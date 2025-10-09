@@ -7,15 +7,15 @@
 // qt
 #include <QJsonObject>
 #include <QTimer>
+#include <QDateTime>
+#include <QUuid>
 
 AuthManager *AuthManager::manager = nullptr;
 
-AuthManager::AuthManager(QObject *parent, bool readonlyMode)
+AuthManager::AuthManager(QObject *parent)
 	: QObject(parent)
-	, _authTable(new AuthTable("", this, readonlyMode))
-	, _metaTable(new MetaTable(this, readonlyMode))
-	, _pendingRequests()
-	, _authRequired(true)
+	, _authTable(new AuthTable(this))
+	, _metaTable(new MetaTable(this))
 	, _timer(new QTimer(this))
 	, _authBlockTimer(new QTimer(this))
 {
@@ -36,13 +36,13 @@ AuthManager::AuthManager(QObject *parent, bool readonlyMode)
 	connect(_authBlockTimer, &QTimer::timeout, this, &AuthManager::checkAuthBlockTimeout);
 
 	// init with default user and password
-	if (!_authTable->userExist("Hyperion"))
+	if (!_authTable->userExist(hyperion::DEFAULT_USER))
 	{
-		_authTable->createUser("Hyperion", "hyperion");
+		_authTable->createUser(hyperion::DEFAULT_USER, hyperion::DEFAULT_PASSWORD);
 	}
 
 	// update Hyperion user token on startup
-	_authTable->setUserToken("Hyperion");
+	_authTable->setUserToken(hyperion::DEFAULT_USER);
 }
 
 AuthManager::AuthDefinition AuthManager::createToken(const QString &comment)
@@ -201,6 +201,8 @@ QVector<AuthManager::AuthDefinition> AuthManager::getPendingRequests() const
 		def.comment = entry.comment;
 		def.id = entry.id;
 		def.timeoutTime = entry.timeoutTime - QDateTime::currentMSecsSinceEpoch();
+		def.tan = entry.tan;
+		def.caller = nullptr;
 		finalVec.append(def);
 	}
 	return finalVec;
@@ -208,20 +210,26 @@ QVector<AuthManager::AuthDefinition> AuthManager::getPendingRequests() const
 
 bool AuthManager::renameToken(const QString &id, const QString &comment)
 {
-	if (_authTable->renameToken(id, comment))
+	if (_authTable->identifierExist(id))
 	{
-		emit tokenChange(getTokenList());
-		return true;
+		if (_authTable->renameToken(id, comment))
+		{
+			emit tokenChange(getTokenList());
+			return true;
+		}
 	}
 	return false;
 }
 
 bool AuthManager::deleteToken(const QString &id)
 {
-	if (_authTable->deleteToken(id))
+	if (_authTable->identifierExist(id))
 	{
-		emit tokenChange(getTokenList());
-		return true;
+		if (_authTable->deleteToken(id))
+		{
+			emit tokenChange(getTokenList());
+			return true;
+		}
 	}
 	return false;
 }
@@ -231,9 +239,7 @@ void AuthManager::handleSettingsUpdate(settings::type type, const QJsonDocument 
 	if (type == settings::NETWORK)
 	{
 		const QJsonObject &obj = config.object();
-		_authRequired = obj["apiAuth"].toBool(true);
 		_localAuthRequired = obj["localApiAuth"].toBool(false);
-		_localAdminAuthRequired = obj["localAdminAuth"].toBool(true);
 	}
 }
 
@@ -261,26 +267,24 @@ void AuthManager::checkTimeout()
 void AuthManager::checkAuthBlockTimeout()
 {
 	// handle user auth block
-	for (auto it = _userAuthAttempts.begin(); it != _userAuthAttempts.end(); it++)
-	{
+	QMutableVectorIterator<uint64_t> itUserAuth(_userAuthAttempts);
+	while (itUserAuth.hasNext()) {
 		// after 10 minutes, we remove the entry
-		if (*it < (uint64_t)QDateTime::currentMSecsSinceEpoch())
-		{
-			_userAuthAttempts.erase(it--);
-		}
+		if (itUserAuth.next() < static_cast<uint64_t>(QDateTime::currentMSecsSinceEpoch()))
+			itUserAuth.remove();
 	}
 
 	// handle token auth block
-	for (auto it = _tokenAuthAttempts.begin(); it != _tokenAuthAttempts.end(); it++)
-	{
+	QMutableVectorIterator<uint64_t> itTokenAuth(_tokenAuthAttempts);
+	while (itTokenAuth.hasNext()) {
 		// after 10 minutes, we remove the entry
-		if (*it < (uint64_t)QDateTime::currentMSecsSinceEpoch())
-		{
-			_tokenAuthAttempts.erase(it--);
-		}
+		if (itTokenAuth.next() < static_cast<uint64_t>(QDateTime::currentMSecsSinceEpoch()))
+			itTokenAuth.remove();
 	}
 
 	// if the lists are empty we stop
 	if (_userAuthAttempts.empty() && _tokenAuthAttempts.empty())
+	{
 		_authBlockTimer->stop();
+	}
 }

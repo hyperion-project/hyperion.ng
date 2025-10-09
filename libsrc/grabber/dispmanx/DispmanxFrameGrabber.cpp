@@ -16,10 +16,10 @@ namespace {
 } //End of constants
 
 // Local includes
-#include "grabber/DispmanxFrameGrabber.h"
+#include "grabber/dispmanx/DispmanxFrameGrabber.h"
 
 DispmanxFrameGrabber::DispmanxFrameGrabber()
-	: Grabber("DISPMANXGRABBER")
+	: Grabber("GRABBER-DISPMANX")
 	, _lib(nullptr)
 	, _vc_display(0)
 	, _vc_resource(0)
@@ -31,7 +31,7 @@ DispmanxFrameGrabber::DispmanxFrameGrabber()
 	_useImageResampler = true;
 }
 
-bool DispmanxFrameGrabber::isAvailable()
+bool DispmanxFrameGrabber::isAvailable(bool logError)
 {
 #ifdef BCM_FOUND
 	void* bcm_host = dlopen(std::string("" BCM_LIBRARY).c_str(), RTLD_LAZY | RTLD_GLOBAL);

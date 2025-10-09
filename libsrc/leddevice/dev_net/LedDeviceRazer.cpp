@@ -23,7 +23,7 @@ namespace {
 	const char CONFIG_RAZER_DEVICE_TYPE[] = "subType";
 	const char CONFIG_SINGLE_COLOR[] = "singleColor";
 
-	// WLED JSON-API elements
+	// API elements
 	const char API_DEFAULT_HOST[] = "localhost";
 	const int API_DEFAULT_PORT = 54235;
 
@@ -60,7 +60,7 @@ bool LedDeviceRazer::init(const QJsonObject& deviceConfig)
 {
 	bool isInitOK = false;
 	setRewriteTime(HEARTBEAT_INTERVALL.count());
-	connect(_refreshTimer, &QTimer::timeout, this, &LedDeviceRazer::rewriteLEDs);
+	connect(_refreshTimer.get(), &QTimer::timeout, this, &LedDeviceRazer::rewriteLEDs);
 
 	// Initialise sub-class
 	if (LedDevice::init(deviceConfig))
@@ -141,10 +141,6 @@ bool LedDeviceRazer::checkApiError(const httpResponse& response)
 	else
 	{
 		QString errorReason;
-
-		QString strJson(response.getBody().toJson(QJsonDocument::Compact));
-		//DebugIf(verbose, _log, "Reply: [%s]", strJson.toUtf8().constData());
-
 		QJsonObject jsonObj = response.getBody().object();
 
 		if (!jsonObj[API_RESULT].isNull())

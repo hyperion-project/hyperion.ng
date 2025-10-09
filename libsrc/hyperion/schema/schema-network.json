@@ -1,81 +1,49 @@
 {
-	"type" : "object",
-	"title" : "edt_conf_net_heading_title",
-	"required" : true,
-	"properties" :
-	{
-		"apiAuth" :
-		{
-			"type" : "boolean",
-			"title" : "edt_conf_net_apiAuth_title",
-			"required" : true,
-			"default" : true,
-			"propertyOrder" : 1
+	"type": "object",
+	"title": "edt_conf_network_heading_title",
+	"properties": {
+		"internetAccessAPI": {
+			"type": "boolean",
+			"title": "edt_conf_network_internetAccessAPI_title",
+			"required": true,
+			"default": false,
+			"propertyOrder": 1
 		},
-		"internetAccessAPI" :
-		{
-			"type" : "boolean",
-			"title" : "edt_conf_net_internetAccessAPI_title",
-			"required" : true,
-			"default" : false,
-			"options": {
-				"dependencies": {
-					"apiAuth": true
-				}
-			},
-			"propertyOrder" : 2
-		},
-		"restirctedInternetAccessAPI" :
-		{
-			"type" : "boolean",
-			"title" : "edt_conf_net_restirctedInternetAccessAPI_title",
-			"required" : true,
-			"default" : false,
+		"restirctedInternetAccessAPI": {
+			"type": "boolean",
+			"title": "edt_conf_network_restirctedInternetAccessAPI_title",
+			"required": true,
+			"default": false,
 			"options": {
 				"dependencies": {
 					"internetAccessAPI": true
 				}
 			},
-			"propertyOrder" : 3
+			"propertyOrder": 2
 		},
-		"ipWhitelist" :
-		{
-			"type" : "array",
-			"title" : "edt_conf_net_ipWhitelist_title",
-			"required" : true,
-			"items" : {
+		"ipWhitelist": {
+			"type": "array",
+			"title": "edt_conf_network_ipWhitelist_title",
+			"required": true,
+			"items": {
 				"type": "string",
-				"title" : "edt_conf_net_ip_itemtitle",
-				"allowEmptyArray" : true
+				"title": "edt_conf_network_ip_itemtitle",
+				"allowEmptyArray": true
 			},
 			"options": {
 				"dependencies": {
 					"restirctedInternetAccessAPI": true
 				}
 			},
-			"propertyOrder" : 4
+			"propertyOrder": 3
 		},
-		"localApiAuth" :
-		{
-			"type" : "boolean",
-			"title" : "edt_conf_net_localApiAuth_title",
-			"required" : true,
-			"default" : false,
-			"options": {
-				"dependencies": {
-					"apiAuth": true
-				}
-			},
-			"propertyOrder" : 5
-		},
-		"localAdminAuth" :
-		{
-			"type" : "boolean",
-			"title" : "edt_conf_net_localAdminAuth_title",
-			"required" : true,
-			"default" : true,
-			"propertyOrder" : 5
+		"localApiAuth": {
+			"type": "boolean",
+			"title": "edt_conf_network_localApiAuth_title",
+			"required": true,
+			"default": false,
+			"propertyOrder": 4
 		}
 	},
-	"additionalProperties" : false
+	"additionalProperties": false
 }

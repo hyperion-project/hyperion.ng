@@ -1,26 +1,39 @@
 <RCC>
 	<qresource prefix="/">
-		<file alias="hyperion-schema">hyperion.schema.json</file>
-		<file alias="schema-general.json">schema/schema-general.json</file>
-		<file alias="schema-logger.json">schema/schema-logger.json</file>
-		<file alias="schema-device.json">schema/schema-device.json</file>
-		<file alias="schema-color.json">schema/schema-color.json</file>
-		<file alias="schema-smoothing.json">schema/schema-smoothing.json</file>
-		<file alias="schema-grabberV4L2.json">schema/schema-grabberV4L2.json</file>
-		<file alias="schema-framegrabber.json">schema/schema-framegrabber.json</file>
-		<file alias="schema-blackborderdetector.json">schema/schema-blackborderdetector.json</file>
-		<file alias="schema-foregroundEffect.json">schema/schema-foregroundEffect.json</file>
 		<file alias="schema-backgroundEffect.json">schema/schema-backgroundEffect.json</file>
-		<file alias="schema-forwarder.json">schema/schema-forwarder.json</file>
-		<file alias="schema-jsonServer.json">schema/schema-jsonServer.json</file>
-		<file alias="schema-flatbufServer.json">schema/schema-flatbufServer.json</file>
-		<file alias="schema-protoServer.json">schema/schema-protoServer.json</file>
+		<file alias="schema-blackborderdetector.json">schema/schema-blackborderdetector.json</file>
 		<file alias="schema-boblightServer.json">schema/schema-boblightServer.json</file>
-		<file alias="schema-webConfig.json">schema/schema-webConfig.json</file>
+		<file alias="schema-cecEvents.json">schema/schema-cecEvents.json</file>
+		<file alias="schema-color.json">schema/schema-color.json</file>
+		<file alias="schema-device.json">schema/schema-device.json</file>
 		<file alias="schema-effects.json">schema/schema-effects.json</file>
+		<file alias="schema-eventActions.json">schema/schema-eventActions.json</file>
+		<file alias="schema-flatbufServer.json">schema/schema-flatbufServer.json</file>
+		<file alias="schema-forwarder.json">schema/schema-forwarder.json</file>
+		<file alias="schema-framegrabber.json">schema/schema-framegrabber.json</file>
+		<file alias="schema-foregroundEffect.json">schema/schema-foregroundEffect.json</file>
+		<file alias="schema-general.json">schema/schema-general.json</file>		
+		<file alias="schema-grabberAudio.json">schema/schema-grabberAudio.json</file>
+		<file alias="schema-grabberV4L2.json">schema/schema-grabberV4L2.json</file>
+		<file alias="schema-instCapture.json">schema/schema-instCapture.json</file>
+		<file alias="schema-jsonServer.json">schema/schema-jsonServer.json</file>
 		<file alias="schema-ledConfig.json">schema/schema-ledConfig.json</file>
 		<file alias="schema-leds.json">schema/schema-leds.json</file>
-		<file alias="schema-instCapture.json">schema/schema-instCapture.json</file>
+		<file alias="schema-logger.json">schema/schema-logger.json</file>
 		<file alias="schema-network.json">schema/schema-network.json</file>
+		<file alias="schema-osEvents.json">schema/schema-osEvents.json</file>
+		<file alias="schema-protoServer.json">schema/schema-protoServer.json</file>
+		<file alias="schema-schedEvents.json">schema/schema-schedEvents.json</file>
+		<file alias="schema-smoothing.json">schema/schema-smoothing.json</file>
+		<file alias="schema-webConfig.json">schema/schema-webConfig.json</file>
+		
+		<file alias="schema-settings-default.json">schema/schema-settings-default.json</file>
+		<file alias="schema-settings-full.json">schema/schema-settings-full.json</file>
+		<file alias="schema-settings-full-relaxed.json">schema/schema-settings-full-relaxed.json</file>		
+		<file alias="schema-settings-global.json">schema/schema-settings-global.json</file>
+		<file alias="schema-settings-global-relaxed.json">schema/schema-settings-global-relaxed.json</file>		
+		<file alias="schema-settings-instance.json">schema/schema-settings-instance.json</file>
+		<file alias="schema-settings-instance-relaxed.json">schema/schema-settings-instance-relaxed.json</file>		
+		<file alias="schema-settings-ui.json">schema/schema-settings-ui.json</file>
 	</qresource>
 </RCC>

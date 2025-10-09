@@ -179,8 +179,6 @@ int LedDevicePiBlaster::write(const std::vector<ColorRgb> & ledValues)
 					continue;
 			}
 
-//			fprintf(_fid, "%i=%f\n", iPins[iPin], pwmDutyCycle);
-
 			if ( (fprintf(_fid, "%i=%f\n", i, pwmDutyCycle) < 0) || (fflush(_fid) < 0))
 			{
 				if (_fid != nullptr)

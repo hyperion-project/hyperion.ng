@@ -3,6 +3,8 @@
 // STL includes
 #include <cstdint>
 
+#include <utils/ColorRgb.h>
+
 ///
 /// Color transformation to adjust the saturation and value of a RGB color value
 ///
@@ -23,8 +25,9 @@ public:
 	/// @param backlightThreshold The used lower brightness
 	/// @param backlightColored use color in backlight
 	/// @param brightnessHigh The used higher brightness
+	/// @param temeprature The given color temperature (in Kelvin)
 	///
-	RgbTransform(double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation);
+	RgbTransform(double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation, int temperature);
 
 	/// @return The current red gamma value
 	double getGammaR() const;
@@ -44,7 +47,7 @@ public:
 	int getBacklightThreshold() const;
 
 	/// @param backlightThreshold New lower brightness
-	void setBacklightThreshold(int backlightThreshold);
+	void setBacklightThreshold(double backlightThreshold);
 
 	/// @return The current state
 	bool getBacklightColored() const;
@@ -79,10 +82,10 @@ public:
 	///
 	/// @note The values are updated in place.
 	///
-	void getBrightnessComponents(uint8_t & rgb, uint8_t & cmy, uint8_t & w) const;
+	void getBrightnessComponents(uint8_t & rgb, uint8_t & cmy, uint8_t & white) const;
 
 	///
-	/// Apply the transform the the given RGB values.
+	/// Apply Gamma the the given RGB values.
 	///
 	/// @param red The red color component
 	/// @param green The green color component
@@ -90,7 +93,22 @@ public:
 	///
 	/// @note The values are updated in place.
 	///
-	void transform(uint8_t & red, uint8_t & green, uint8_t & blue);
+	void applyGamma(uint8_t & red, uint8_t & green, uint8_t & blue);
+
+	///
+	/// Apply Backlight the the given RGB values.
+	///
+	/// @param red The red color component
+	/// @param green The green color component
+	/// @param blue The blue color component
+	///
+	/// @note The values are updated in place.
+	///
+	void applyBacklight(uint8_t & red, uint8_t & green, uint8_t & blue) const;
+
+	int getTemperature() const;
+	void setTemperature(int temperature);
+	void applyTemperature(ColorRgb& color) const;
 
 private:
 	///
@@ -103,8 +121,9 @@ private:
 	/// @param backlightColored en/disable color in backlight
 	/// @param brightness The used brightness
 	/// @param brightnessCompensation The used brightness compensation
+	/// @param temeprature apply the given color temperature (in Kelvin)
 	///
-	void init(double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation);
+	void init(double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation, int temperature);
 
 	/// (re)-initilize the color mapping
 	void initializeMapping();	/// The saturation gain
@@ -112,25 +131,28 @@ private:
 	void updateBrightnessComponents();
 
 	/// backlight variables
-	bool      _backLightEnabled
-		, _backlightColored;
-	double    _backlightThreshold
-		, _sumBrightnessLow;
+	bool _backLightEnabled;
+	bool _backlightColored;
+	double  _backlightThreshold;
+	double _sumBrightnessLow;
 
 	/// gamma variables
-	double    _gammaR
-		, _gammaG
-		, _gammaB;
+	double _gammaR;
+	double _gammaG;
+	double _gammaB;
 
 	/// The mapping from input color to output color
-	uint8_t   _mappingR[256]
-		, _mappingG[256]
-		, _mappingB[256];
+	uint8_t _mappingR[256];
+	uint8_t _mappingG[256];
+	uint8_t _mappingB[256];
 
 	/// brightness variables
-	uint8_t   _brightness
-		, _brightnessCompensation
-		, _brightness_rgb
-		, _brightness_cmy
-		, _brightness_w;
+	uint8_t _brightness;
+	uint8_t _brightnessCompensation;
+	uint8_t _brightness_rgb;
+	uint8_t _brightness_cmy;
+	uint8_t _brightness_w;
+
+	int _temperature;
+	ColorRgb _temperatureRGB;
 };

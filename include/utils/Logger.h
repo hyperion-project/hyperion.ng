@@ -6,6 +6,8 @@
 #include <QMap>
 #include <QAtomicInteger>
 #include <QList>
+#include <QJsonArray>
+#include <QScopedPointer>
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
 	#include <QRecursiveMutex>
@@ -14,8 +16,6 @@
 #endif
 
 // stl includes
-#include <stdio.h>
-#include <stdarg.h>
 #ifdef _WIN32
 #include <stdexcept>
 #endif
@@ -59,7 +59,7 @@ public:
 		QString      function;
 		unsigned int line;
 		QString      fileName;
-		uint64_t     utime;
+		qint64       utime;
 		QString      message;
 		LogLevel     level;
 		QString      levelString;
@@ -74,7 +74,7 @@ public:
 	void     setMinLevel(LogLevel level) { _minLevel = static_cast<int>(level); }
 	LogLevel getMinLevel() const { return static_cast<LogLevel>(int(_minLevel)); }
 	QString  getName() const { return _name; }
-	QString  getSubName() const { return _subname; }
+	QString  getSubName() const { return _subName; }
 
 signals:
 	void newLogMessage(Logger::T_LOG_MESSAGE);
@@ -95,7 +95,7 @@ private:
 	static QAtomicInteger<int>   GLOBAL_MIN_LOG_LEVEL;
 
 	const QString                _name;
-	const QString                _subname;
+	const QString                _subName;
 	const bool                   _syslogEnabled;
 	const unsigned               _loggerId;
 
@@ -107,18 +107,28 @@ class LoggerManager : public QObject
 {
 	Q_OBJECT
 
+private:
+	// Run LoggerManager as singleton
+	LoggerManager();
+	LoggerManager(const LoggerManager&) = delete;
+	LoggerManager(LoggerManager&&) = delete;
+	LoggerManager& operator=(const LoggerManager&) = delete;
+	LoggerManager& operator=(LoggerManager&&) = delete;
+
+	static QScopedPointer<LoggerManager> instance;
+
 public:
-	static LoggerManager* getInstance();
-	const QList<Logger::T_LOG_MESSAGE>* getLogMessageBuffer() const { return &_logMessageBuffer; }
+	~LoggerManager() override;
+	 static QScopedPointer<LoggerManager>& getInstance();
 
 public slots:
 	void handleNewLogMessage(const Logger::T_LOG_MESSAGE&);
+	QJsonArray getLogMessageBuffer(Logger::LogLevel filter=Logger::UNSET) const;
 
 signals:
 	void newLogMessage(const Logger::T_LOG_MESSAGE&);
 
-protected:
-	LoggerManager();
+private:
 
 	QList<Logger::T_LOG_MESSAGE>   _logMessageBuffer;
 	const int                      _loggerMaxMsgBufferSize;

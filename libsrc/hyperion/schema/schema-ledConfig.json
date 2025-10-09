@@ -124,13 +124,11 @@
 				"ledshoriz": {
 					"type": "integer",
 					"minimum": 0,
-					"maximum": 50,
 					"default": 0
 				},
 				"ledsvert": {
 					"type": "integer",
 					"minimum": 0,
-					"maximum": 50,
 					"default": 0
 				},
 				"cabling": {
@@ -144,6 +142,30 @@
 				"start": {
 					"type": "string",
 					"enum": [ "top-left", "top-right", "bottom-left", "bottom-right" ]
+				},
+				"gapleft": {
+					"type": "integer",
+					"minimum": 0,
+					"maximum": 100,
+					"default": 0
+				},
+				"gapright": {
+					"type": "integer",
+					"minimum": 0,
+					"maximum": 100,
+					"default": 0
+				},
+				"gaptop": {
+					"type": "integer",
+					"minimum": 0,
+					"maximum": 100,
+					"default": 0
+				},
+				"gapbottom": {
+					"type": "integer",
+					"minimum": 0,
+					"maximum": 100,
+					"default": 0
 				}
 			},
 			"additionalProperties": false
@@ -155,6 +177,7 @@
 			"items": {
 				"type": "object",
 				"title": "conf_leds_layout_blacklist_rule_title",
+				"allowEmptyArray": true,
 				"required": true,
 				"properties": {
 					"start": {

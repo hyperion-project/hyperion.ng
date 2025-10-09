@@ -132,7 +132,6 @@
     "edt_conf_v4l2_device_title": "デバイス",
     "edt_conf_v4l2_heading_title": "USBキャプチャ",
     "edt_conf_v4l2_standard_title": "ビデオスタンダード",
-    "edt_dev_auth_key_title": "認証トークン",
     "edt_dev_enum_sub_min_cool_adjust": "クールホワイトを減らす",
     "edt_dev_enum_sub_min_warm_adjust": "ワームホワイトを減らす",
     "edt_dev_general_autostart_title": "オートスタート",

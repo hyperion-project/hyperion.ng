@@ -1,4 +1,3 @@
-//#include <iostream>
 #pragma once
 
 // Utils includes
@@ -111,7 +110,7 @@ namespace hyperion
 			}
 
 			// Construct result
-			BlackBorder detectedBorder;
+			BlackBorder detectedBorder{};
 			detectedBorder.unknown = firstNonBlackXPixelIndex == -1 || firstNonBlackYPixelIndex == -1;
 			detectedBorder.horizontalSize = firstNonBlackYPixelIndex;
 			detectedBorder.verticalSize = firstNonBlackXPixelIndex;
@@ -168,7 +167,7 @@ namespace hyperion
 			}
 
 			// Construct result
-			BlackBorder detectedBorder;
+			BlackBorder detectedBorder{};
 			detectedBorder.unknown = firstNonBlackXPixelIndex == -1 || firstNonBlackYPixelIndex == -1;
 			detectedBorder.horizontalSize = firstNonBlackYPixelIndex;
 			detectedBorder.verticalSize = firstNonBlackXPixelIndex;
@@ -219,14 +218,13 @@ namespace hyperion
 					|| !isBlack(image((width - x), y))
 					|| !isBlack(image((width - x), (height - y))))
 				{
-//					std::cout << "y " << y << " lt " << int(isBlack(color1)) << " lb " << int(isBlack(color2)) << " rt " << int(isBlack(color3)) << " rb " << int(isBlack(color4)) << std::endl;
 					firstNonBlackYPixelIndex = y;
 					break;
 				}
 			}
 
 			// Construct result
-			BlackBorder detectedBorder;
+			BlackBorder detectedBorder{};
 			detectedBorder.unknown = firstNonBlackXPixelIndex == -1 || firstNonBlackYPixelIndex == -1;
 			detectedBorder.horizontalSize = firstNonBlackYPixelIndex;
 			detectedBorder.verticalSize = firstNonBlackXPixelIndex;
@@ -269,7 +267,7 @@ namespace hyperion
 			}
 
 			// Construct result
-			BlackBorder detectedBorder;
+			BlackBorder detectedBorder{};
 			detectedBorder.unknown = firstNonBlackYPixelIndex == -1;
 			detectedBorder.horizontalSize = firstNonBlackYPixelIndex;
 			detectedBorder.verticalSize = 0;

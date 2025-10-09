@@ -67,8 +67,6 @@ bool LedDeviceSk6822SPI::init(const QJsonObject &deviceConfig)
 		WarningIf(( _baudRate_Hz < 2000000 || _baudRate_Hz > 2460000 ), _log, "SPI rate %d outside recommended range (2000000 -> 2460000)", _baudRate_Hz);
 
 		_ledBuffer.resize( (_ledRGBCount *  SPI_BYTES_PER_COLOUR) + (_ledCount * SPI_BYTES_WAIT_TIME ) + SPI_FRAME_END_LATCH_BYTES, 0x00);
-		//	Debug(_log, "_ledBuffer.resize(_ledRGBCount:%d * SPI_BYTES_PER_COLOUR:%d) + ( _ledCount:%d * SPI_BYTES_WAIT_TIME:%d ) + SPI_FRAME_END_LATCH_BYTES:%d, 0x00)", _ledRGBCount, SPI_BYTES_PER_COLOUR, _ledCount, SPI_BYTES_WAIT_TIME,  SPI_FRAME_END_LATCH_BYTES);
-
 		isInitOK = true;
 	}
 
@@ -95,7 +93,7 @@ int LedDeviceSk6822SPI::write(const std::vector<ColorRgb> &ledValues)
 		spi_ptr += SPI_BYTES_WAIT_TIME;	// the wait between led time is all zeros
 	}
 
-/*
+#if 0
 	// debug the whole SPI packet
 	char debug_line[2048];
 	int ptr=0;
@@ -114,7 +112,7 @@ int LedDeviceSk6822SPI::write(const std::vector<ColorRgb> &ledValues)
 			ptr = 0;
 		}
 	}
-*/
+#endif
 
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }

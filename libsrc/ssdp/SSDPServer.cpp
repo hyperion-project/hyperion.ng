@@ -27,11 +27,7 @@ static const QString UPNP_ALIVE_MESSAGE = "NOTIFY * HTTP/1.1\r\n"
                                           "NTS: ssdp:alive\r\n"
                                           "SERVER: %4\r\n"
                                           "USN: uuid:%5\r\n"
-#if defined(ENABLE_FLATBUF_SERVER)
-                                          "HYPERION-FBS-PORT: %6\r\n"
-#endif
-                                          "HYPERION-JSS-PORT: %7\r\n"
-                                          "HYPERION-NAME: %8\r\n"
+										  "%6"
                                           "\r\n";
 
 // Implement ssdp:update as per spec 1.1, section 1.2.4
@@ -73,12 +69,8 @@ static const QString UPNP_MSEARCH_RESPONSE = "HTTP/1.1 200 OK\r\n"
                                              "LOCATION: %3\r\n"
                                              "SERVER: %4\r\n"
                                              "ST: %5\r\n"
-                                             "USN: uuid:%6\r\n"
-#if defined(ENABLE_FLATBUF_SERVER)
-                                             "HYPERION-FBS-PORT: %7\r\n"
-#endif
-                                             "HYPERION-JSS-PORT: %8\r\n"
-                                             "HYPERION-NAME: %9\r\n"
+											 "USN: uuid:%6\r\n"
+											 "%7"
                                              "\r\n";
 
 SSDPServer::SSDPServer(QObject * parent)
@@ -87,17 +79,15 @@ SSDPServer::SSDPServer(QObject * parent)
 	, _udpSocket(nullptr)
 	, _running(false)
 {
-
 }
 
 SSDPServer::~SSDPServer()
 {
-	stop();
 }
 
 void SSDPServer::initServer()
 {
-	_udpSocket = new QUdpSocket(this);
+	_udpSocket.reset(new QUdpSocket());
 
 	// get system info
 	SysInfo::HyperionSysInfo data = SysInfo::get();
@@ -106,7 +96,7 @@ void SSDPServer::initServer()
 	_serverHeader = QString("%1/%2 UPnP/1.0 Hyperion/%3")
 				.arg(data.prettyName, data.productVersion, HYPERION_VERSION);
 
-	connect(_udpSocket, &QUdpSocket::readyRead, this, &SSDPServer::readPendingDatagrams);
+	connect(_udpSocket.get(), &QUdpSocket::readyRead, this, &SSDPServer::readPendingDatagrams);
 }
 
 bool SSDPServer::start()
@@ -165,7 +155,6 @@ void SSDPServer::readPendingDatagrams()
 
 		if (headers.value("man") == "\"ssdp:discover\"")
 		{
-			//Debug(_log, "Received msearch from '%s:%d'. Search target: %s",QSTRING_CSTR(sender.toString()), senderPort, QSTRING_CSTR(headers.value("st")));
 			emit msearchRequestReceived(headers.value("st"), headers.value("mx"), sender.toString(), senderPort);
 		}
     }
@@ -175,15 +164,11 @@ void SSDPServer::sendMSearchResponse(const QString& st, const QString& senderIp,
 {
 	QString message = UPNP_MSEARCH_RESPONSE.arg(SSDP_MAX_AGE
 		, QDateTime::currentDateTimeUtc().toString("ddd, dd MMM yyyy HH:mm:ss GMT")
-		, _descAddress
+		, getDescriptionAddress()
 		, _serverHeader
 		, st
 		, _uuid
-#if defined(ENABLE_FLATBUF_SERVER)
-		, _fbsPort
-#endif
-		, _jssPort
-		, _name );
+		, getInfo());
 
 	_udpSocket->writeDatagram(message.toUtf8(), QHostAddress(senderIp), senderPort);
 }
@@ -204,15 +189,11 @@ void SSDPServer::sendAlive(const QString& st)
 	const QString tempUSN = (st == "upnp:rootdevice ") ? _uuid+"::"+st  : _uuid;
 
 	QString message = UPNP_ALIVE_MESSAGE.arg(SSDP_MAX_AGE
-		, _descAddress
+		, getDescriptionAddress()
 		, st
 		, _serverHeader
 		, tempUSN
-#if defined(ENABLE_FLATBUF_SERVER)
-		, _fbsPort
-#endif
-		, _jssPort
-		, _name );
+		, getInfo());
 
 	// we repeat 3 times
 	quint8 rep = 0;
@@ -223,7 +204,7 @@ void SSDPServer::sendAlive(const QString& st)
 
 void SSDPServer::sendUpdate(const QString& st)
 {
-	QString message = UPNP_UPDATE_MESSAGE.arg(_descAddress
+	QString message = UPNP_UPDATE_MESSAGE.arg(getDescriptionAddress()
 		, st
 		, _uuid+"::"+st );
 

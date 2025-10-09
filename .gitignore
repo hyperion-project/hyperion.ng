@@ -30,6 +30,7 @@ libsrc/flatbufserver/hyperion_request_generated.h
 # Ignore
 .vs/*
 CMakeSettings.json
+/out
 # Allow
 !.vs/launch.vs.json
 
@@ -38,3 +39,16 @@ NULL
 
 # Docker deploy folder
 deploy/*
+
+# ccache/buildcache
+.*cache/
+
+# User defined CMake preset file.
+/CMakeUserPresets.json
+
+#Configurations created under config for testing
+/configs
+
+#Config database & backups created for testing
+HyperionBackup_*
+hyperion.db

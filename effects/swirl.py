@@ -22,7 +22,10 @@ def getPoint(rand = True ,x = 0.5, y = 0.5):
 def getSTime(rt, steps = 360):
 	rt = float(rt)
 	sleepTime = max(0.1, rt) / steps
-	
+
+	# Limit update rate
+	sleepTime = max(hyperion.lowestUpdateInterval(), sleepTime)
+
 	# adapt sleeptime to hardware
 	minStepTime= float(hyperion.latchTime)/1000.0
 	if minStepTime == 0: minStepTime = 0.001
@@ -42,7 +45,7 @@ def buildGradient(cc, closeCircle = True):
 		pos = 0
 		if len(cc[0]) == 4:
 			withAlpha = True
-			
+
 		for c in cc:
 			if withAlpha:
 				alpha = int(c[3]*255)
@@ -50,7 +53,7 @@ def buildGradient(cc, closeCircle = True):
 				alpha = 255
 			pos += posfac
 			ba += bytearray([pos,c[0],c[1],c[2],alpha])
-		
+
 		if closeCircle:
 			# last color as first color
 			lC = cc[-1]
@@ -61,6 +64,7 @@ def buildGradient(cc, closeCircle = True):
 			ba += bytearray([0,lC[0],lC[1],lC[2],alpha])
 
 		return ba
+	return bytearray()
 
 def rotateAngle( increment = 1):
 	global angle

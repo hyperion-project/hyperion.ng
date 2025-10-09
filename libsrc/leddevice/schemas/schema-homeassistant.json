@@ -1,0 +1,115 @@
+{
+  "type": "object",
+  "required": true,
+  "properties": {
+    "hostList": {
+      "type": "string",
+      "title": "edt_dev_spec_devices_discovered_title",
+      "enum": [ "NONE" ],
+      "options": {
+        "enum_titles": [ "edt_dev_spec_devices_discovery_inprogress" ],
+        "infoText": "edt_dev_spec_devices_discovered_title_info"
+      },
+      "required": true,
+      "propertyOrder": 1
+    },
+    "host": {
+      "type": "string",
+      "format": "hostname_or_ip",
+      "title": "edt_dev_spec_targetIpHost_title",
+      "options": {
+        "infoText": "edt_dev_spec_targetIpHost_title_info"
+      },
+      "required": true,
+      "propertyOrder": 2
+    },
+    "port": {
+      "type": "integer",
+      "title": "edt_dev_spec_port_title",
+      "default": 8123,
+      "minimum": 0,
+      "maximum": 65535,
+      "access": "expert",
+      "propertyOrder": 3
+    },
+    "token": {
+      "type": "string",
+      "title": "edt_dev_auth_key_title",
+      "options": {
+        "infoText": "edt_dev_auth_key_title_info"
+      },
+      "propertyOrder": 4
+    },
+    "overwriteBrightness": {
+      "type": "boolean",
+      "format": "checkbox",
+      "title": "edt_dev_spec_brightnessOverwrite_title",
+      "default": true,
+      "required": true,
+      "access": "advanced",
+      "propertyOrder": 5
+    },
+    "brightness": {
+      "type": "integer",
+      "title": "edt_dev_spec_brightness_title",
+      "default": 255,
+      "minimum": 1,
+      "maximum": 255,
+      "options": {
+        "dependencies": {
+          "overwriteBrightness": true
+        }
+      },
+      "access": "advanced",
+      "propertyOrder": 6
+    },
+    "fullBrightnessAtStart": {
+      "type": "boolean",
+      "format": "checkbox",
+      "title": "edt_dev_spec_fullBrightnessAtStart_title",
+      "default": true,
+      "required": true,
+      "access": "advanced",
+      "propertyOrder": 7
+    },
+    "transitionTime": {
+      "type": "integer",
+      "title": "edt_dev_spec_transistionTime_title",
+      "default": 0,
+      "append": "ms",
+      "minimum": 0,
+      "maximum": 2000,
+      "required": false,
+      "access": "advanced",
+      "propertyOrder": 8
+    },
+    "entityIds": {
+      "title": "edt_dev_spec_lightid_title",
+      "type": "array",
+      "required": true,
+      "format": "select",
+      "options": {
+        "hidden": true
+      },
+      "items": {
+        "type": "string",
+        "title": "edt_dev_spec_lights_itemtitle"
+      },
+      "propertyOrder": 9
+    },
+    "latchTime": {
+      "type": "integer",
+      "title": "edt_dev_spec_latchtime_title",
+      "default": 250,
+      "append": "edt_append_ms",
+      "minimum": 100,
+      "maximum": 2000,
+      "access": "expert",
+      "options": {
+        "infoText": "edt_dev_spec_latchtime_title_info"
+      },
+      "propertyOrder": 10
+    }
+  },
+  "additionalProperties": true
+}

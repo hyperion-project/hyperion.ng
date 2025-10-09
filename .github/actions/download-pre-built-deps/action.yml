@@ -1,0 +1,64 @@
+name: Download Pre-Built Dependencies
+description: Download Pre-Built Dependencies for Hyperion to speed-up the CI build
+inputs:
+  os:
+    description: Operating System
+    required: true
+    default: 'debian_buster'
+  architecture:
+    description: Linux architecture
+    required: false
+    default: 'amd64'
+  qt_version:
+    description: Qt version
+    required: false
+    default: '6'
+  build_type:
+    type: string
+    description: Build type
+    default: ''
+outputs:
+  cmakeArgs:
+    description: "CMake arguments"
+    value: ${{ steps.download-pre-built-deps.outputs.cmake-args }}
+runs:
+  using: composite
+  steps:
+    - name: Download latest specs
+      uses: robinraju/release-downloader@v1
+      with:
+        repository: 'hyperion-project/hyperion-deps'
+        latest: true
+        fileName: 'buildspec.json'
+
+    - name: Download Deps
+      id: download-pre-built-deps
+      shell: bash
+      run: |
+        preBuiltDeps='buildspec.json'
+        baseURL=$(jq -r '.baseUrl' $preBuiltDeps)
+        version=$(jq -r '.version' $preBuiltDeps)
+        downloadHash=$(jq -r '.hashes .${{ inputs.os }} .${{ inputs.architecture }} .qt${{ inputs.qt_version }} .${{ inputs.build_type }}' $preBuiltDeps)
+        downloadFilename=${{ inputs.os }}-${{ inputs.architecture }}-qt${{ inputs.qt_version }}-${{ inputs.build_type }}-$version.tar.gz
+        echo 💾 Download "$downloadFilename"...
+        curl -OL "$baseURL"/"$version"/"$downloadFilename"
+        if [[ ${{ inputs.os }} == 'windows' ]]; then
+          computedHash=$(powershell -Command "(Get-FileHash -Path \"$downloadFilename\" -Algorithm SHA256).Hash.ToLower()")
+          destDir=C:/tmp
+        else
+          computedHash=$(sha256sum "$downloadFilename" | awk '{print $1}')
+          destDir=/tmp/deps
+        fi
+        echo 👀 Check Hash...
+        if [[ "$computedHash" == "$downloadHash" ]]; then
+          mkdir "$destDir"
+          tar -xzf "$downloadFilename" -C "$destDir"
+          if [[ ${{ inputs.os }} != 'windows' ]]; then
+            chmod +x "$destDir"/bin/*
+          fi
+          echo ✅ Hash check passed.
+          echo "cmake-args="-DUSE_PRE_BUILT_DEPS=ON -DPRE_BUILT_DEPS_DIR=$destDir"" >> $GITHUB_OUTPUT
+        else
+          echo ❌ Hash check failed.
+          echo "cmake-args=" >> $GITHUB_OUTPUT
+        fi

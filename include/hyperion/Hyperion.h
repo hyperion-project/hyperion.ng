@@ -2,6 +2,7 @@
 
 // stl includes
 #include <list>
+#include <chrono>
 
 // QT includes
 #include <QString>
@@ -11,6 +12,10 @@
 #include <QJsonValue>
 #include <QJsonArray>
 #include <QMap>
+#include <QScopedPointer>
+#include <QSharedPointer>
+#include <QElapsedTimer>
+#include <QThread>
 
 // hyperion-utils includes
 #include <utils/Image.h>
@@ -21,15 +26,20 @@
 // Hyperion includes
 #include <hyperion/LedString.h>
 #include <hyperion/PriorityMuxer.h>
+#include <hyperion/MultiColorAdjustment.h>
 #include <hyperion/ColorAdjustment.h>
 #include <hyperion/ComponentRegister.h>
 
+#include <hyperion/SettingsManager.h>
+#include <hyperion/CaptureCont.h>
+#include <hyperion/BGEffectHandler.h>
+
+#include <leddevice/LedDeviceWrapper.h>
+#include <boblightserver/BoblightServer.h>
+
 #if defined(ENABLE_EFFECTENGINE)
-// Effect engine includes
-#include <effectengine/EffectDefinition.h>
-#include <effectengine/Effect.h>
+#include <effectengine/EffectEngine.h>
 #include <effectengine/ActiveEffectDefinition.h>
-#include <effectengine/EffectSchema.h>
 #endif
 
 #include <leddevice/LedDevice.h>
@@ -38,24 +48,8 @@
 #include <utils/settings.h>
 
 // Forward class declaration
-class HyperionDaemon;
 class ImageProcessor;
-#if defined(ENABLE_FORWARDER)
-class MessageForwarder;
-#endif
 class LinearColorSmoothing;
-#if defined(ENABLE_EFFECTENGINE)
-class EffectEngine;
-#endif
-class MultiColorAdjustment;
-class ColorAdjustment;
-class SettingsManager;
-class BGEffectHandler;
-class CaptureCont;
-#if defined(ENABLE_BOBLIGHT_SERVER)
-class BoblightServer;
-#endif
-class LedDeviceWrapper;
 class Logger;
 
 ///
@@ -67,19 +61,16 @@ class Hyperion : public QObject
 	Q_OBJECT
 public:
 	///  Type definition of the info structure used by the priority muxer
+	using InputsMap = PriorityMuxer::InputsMap;
 	using InputInfo = PriorityMuxer::InputInfo;
 
 	///
-	/// Destructor; cleans up resources
+	/// @brief Constructs the Hyperion instance
+	/// @param  instance  The instance index
 	///
-	~Hyperion() override;
+	explicit Hyperion(quint8 instance, QObject* parent = nullptr);
 
-	///
-	/// free all alocated objects, should be called only from constructor or before restarting hyperion
-	///
-	void freeObjects();
-
-	ImageProcessor* getImageProcessor() const { return _imageProcessor; }
+	ImageProcessor* getImageProcessor() const { return _imageProcessor.get(); }
 
 	///
 	/// @brief Get instance index of this instance
@@ -90,7 +81,7 @@ public:
 	///
 	/// @brief Return the size of led grid
 	///
-	QSize getLedGridSize() const { return _ledGridSize; }
+	QSize getLedGridSize() const { return _layoutGridSize; }
 
 	/// gets the methode how image is maped to leds
 	int getLedMappingType() const;
@@ -107,8 +98,6 @@ public:
 	///
 	QString getActiveDeviceType() const;
 
-	bool getReadOnlyMode() {return _readOnlyMode; }
-
 public slots:
 
 	///
@@ -116,6 +105,12 @@ public slots:
 	/// transforms.
 	///
 	void update();
+
+	///
+	/// Forces one update to the priority muxer with the current time and (re)writes the led color with applied
+	/// transforms.
+	///
+	void refreshUpdate();
 
 	///
 	/// Returns the number of attached leds
@@ -173,7 +168,7 @@ public slots:
 	/// @param priority  The priority
 	/// @return True on success false if not found
 	///
-	bool setInputInactive(quint8 priority);
+	bool setInputInactive(int priority);
 
 	///
 	/// Returns the list with unique adjustment identifiers
@@ -185,7 +180,7 @@ public slots:
 	/// Returns the ColorAdjustment with the given identifier
 	/// @return The adjustment with the given identifier (or nullptr if the identifier does not exist)
 	///
-	ColorAdjustment * getAdjustment(const QString& id) const;
+	ColorAdjustment * getAdjustment(const QString& identifier) const;
 
 	/// Tell Hyperion that the corrections have changed and the leds need to be updated
 	void adjustmentsUpdated();
@@ -207,21 +202,7 @@ public slots:
 	/// @brief Get a pointer to the effect engine
 	/// @return     EffectEngine instance pointer
 	///
-	EffectEngine* getEffectEngineInstance() const { return _effectEngine; }
-
-	///
-	/// @brief Save an effect
-	/// @param  obj  The effect args
-	/// @return Empty on success else error message
-	///
-	QString saveEffect(const QJsonObject& obj);
-
-	///
-	/// @brief Delete an effect by name.
-	/// @param  effectName  The effect name to delete
-	/// @return Empty on success else error message
-	///
-	QString deleteEffect(const QString& effectName);
+	QSharedPointer<EffectEngine> getEffectEngineInstance() const { return _effectEngine; }
 
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	/// @param effectName Name of the effec to run
@@ -235,25 +216,18 @@ public slots:
 	///	@param priority The priority channel of the effect
 	/// @param timeout The timeout of the effect (after the timout, the effect will be cleared)
 	int setEffect(const QString &effectName
-				, const QJsonObject &args
-				, int priority
-				, int timeout = PriorityMuxer::ENDLESS
-				, const QString &pythonScript = ""
-				, const QString &origin="System"
-				, const QString &imageData = ""
-	);
+				  , const QJsonObject &args
+				  , int priority
+				  , int timeout = PriorityMuxer::ENDLESS
+				  , const QString &pythonScript = ""
+				  , const QString &origin="System"
+				  , const QString &imageData = ""
+				);
 
-	/// Get the list of available effects
-	/// @return The list of available effects
-	std::list<EffectDefinition> getEffects() const;
 
 	/// Get the list of active effects
 	/// @return The list of active effects
 	std::list<ActiveEffectDefinition> getActiveEffects() const;
-
-	/// Get the list of available effect schema files
-	/// @return The list of available effect schema files
-	std::list<EffectSchema> getEffectSchemas() const;
 #endif
 
 	/// #############
@@ -262,7 +236,7 @@ public slots:
 	/// @brief Get a pointer to the priorityMuxer instance
 	/// @return      PriorityMuxer instance pointer
 	///
-	PriorityMuxer* getMuxerInstance() { return _muxer; }
+	QSharedPointer<PriorityMuxer> getMuxerInstance() { return _muxer; }
 
 	///
 	/// @brief enable/disable automatic/priorized source selection
@@ -303,7 +277,14 @@ public slots:
 	QList<int> getActivePriorities() const;
 
 	///
-	/// Returns the information of a specific priorrity channel
+	/// Returns the information of all priority channels.
+	///
+	/// @return The information fo all priority channels
+	///
+	PriorityMuxer::InputsMap getPriorityInfo() const;
+
+	///
+	/// Returns the information of a specific priority channel
 	///
 	/// @param[in] priority  The priority channel
 	///
@@ -322,23 +303,14 @@ public slots:
 
 	/// gets the current json config object from SettingsManager
 	/// @return json config
-	QJsonObject getQJsonConfig() const;
+	QJsonObject getQJsonConfig(quint8 inst) const;
 
 	///
 	/// @brief Save a complete json config
 	/// @param config  The entire config object
-	/// @param correct If true will correct json against schema before save
 	/// @return        True on success else false
 	///
-	bool saveSettings(const QJsonObject& config, bool correct = false);
-
-	///
-	/// @brief Restore a complete json config
-	/// @param config  The entire config object
-	/// @param correct If true will correct json against schema before save
-	/// @return        True on success else false
-	///
-	bool restoreSettings(const QJsonObject& config, bool correct = false);
+	QPair<bool, QStringList> saveSettings(const QJsonObject& config);
 
 	/// ############
 	/// COMPONENTREGISTER
@@ -346,7 +318,7 @@ public slots:
 	/// @brief Get the component Register
 	/// return Component register pointer
 	///
-	ComponentRegister* getComponentRegister() { return _componentRegister; }
+	QSharedPointer<ComponentRegister> getComponentRegister() const { return _componentRegister; }
 
 	///
 	/// @brief Called from components to update their current state. DO NOT CALL FROM USERS
@@ -384,10 +356,25 @@ public slots:
 
 	///
 	/// @brief Stop the execution of this thread, helper to properly track eventing
+	/// @param name  The instance's name for information
 	///
-	void stop();
+	void stop(const QString name = "");
 
 	int getLatchTime() const;
+
+	///
+	/// @brief Set hyperion in suspend mode or resume from suspend/idle.
+	/// All instances and components will be disabled/enabled.
+	/// @param isSupend True, components will be deactivated, else put into their previous state before suspend
+	///
+	void setSuspend(bool isSupend);
+
+	///
+	/// @brief Set hyperion in idle /working mode.
+	/// In idle, all instances and components will be disabled besides the output processing (LED-Devices, smoothing).
+	/// @param isIdle True, selected components will be deactivated, else put into their previous state before idle
+	///
+	void setIdle(bool isIdle);
 
 signals:
 	/// Signal which is emitted when a priority channel is actively cleared
@@ -407,6 +394,18 @@ signals:
 	void compStateChangeRequest(hyperion::Components component, bool enabled);
 
 	///
+	/// @brief Emits when all (besides excluded) components are subject to state changes
+	///	@param isActive The new state for all components
+	/// @param execlude List of excluded components
+	void compStateChangeRequestAll(bool isActive, const ComponentList& excludeList = {});
+
+	/// Signal which is emitted, when system is to be suspended/resumed
+	void suspendRequest(bool isSuspend);
+
+	/// Signal which is emitted, when system should go into idle/working mode
+	void idleRequest(bool isIdle);
+
+	///
 	/// @brief Emits whenever the imageToLedsMapping has changed
 	/// @param mappingType The new mapping type
 	///
@@ -419,14 +418,14 @@ signals:
 	///
 	void currentImage(const Image<ColorRgb> & image);
 
-	/// Signal which is emitted, when a new json message should be forwarded
-	void forwardJsonMessage(QJsonObject);
-
 	/// Signal which is emitted, when a new system proto image should be forwarded
 	void forwardSystemProtoMessage(const QString&, const Image<ColorRgb>&);
 
 	/// Signal which is emitted, when a new V4l proto image should be forwarded
 	void forwardV4lProtoMessage(const QString&, const Image<ColorRgb>&);
+
+	/// Signal which is emitted, when a new Audio proto image should be forwarded
+	void forwardAudioProtoMessage(const QString&, const Image<ColorRgb>&);
 
 #if defined(ENABLE_FLATBUF_SERVER) || defined(ENABLE_PROTOBUF_SERVER)
 	/// Signal which is emitted, when a new Flat-/Proto- Buffer image should be forwarded
@@ -475,12 +474,14 @@ signals:
 	///
 	/// @brief Emits before thread quit is requested
 	///
-	void finished();
+	void finished(const QString& name);
 
 	///
 	/// @brief Emits after thread has been started
 	///
 	void started();
+
+	void stopEffects();
 
 private slots:
 	///
@@ -508,52 +509,42 @@ private slots:
 	void handleSourceAvailability(int priority);
 
 private:
-	friend class HyperionDaemon;
-	friend class HyperionIManager;
 
-	///
-	/// @brief Constructs the Hyperion instance, just accessible for HyperionIManager
-	/// @param  instance  The instance index
-	///
-	Hyperion(quint8 instance, bool readonlyMode = false);
+	void updateLedColorAdjustment(int ledCount, const QJsonObject& colors);
+	void updateLedLayout(const QJsonArray& ledLayout);
 
 	/// instance index
 	const quint8 _instIndex;
 
 	/// Settings manager of this instance
-	SettingsManager* _settingsManager;
+	QScopedPointer<SettingsManager,QScopedPointerDeleteLater> _settingsManager;
 
 	/// Register that holds component states
-	ComponentRegister* _componentRegister;
+	QSharedPointer<ComponentRegister> _componentRegister;
 
 	/// The specifiation of the led frame construction and picture integration
 	LedString _ledString;
 
 	/// Image Processor
-	ImageProcessor* _imageProcessor;
+	QSharedPointer<ImageProcessor> _imageProcessor;
 
 	std::vector<ColorOrder> _ledStringColorOrder;
 
 	/// The priority muxer
-	PriorityMuxer* _muxer;
+	QSharedPointer<PriorityMuxer> _muxer;
 
 	/// The adjustment from raw colors to led colors
-	MultiColorAdjustment * _raw2ledAdjustment;
+	QScopedPointer<MultiColorAdjustment> _raw2ledAdjustment;
 
 	/// The actual LedDeviceWrapper
-	LedDeviceWrapper* _ledDeviceWrapper;
+	QScopedPointer<LedDeviceWrapper> _ledDeviceWrapper;
 
 	/// The smoothing LedDevice
-	LinearColorSmoothing * _deviceSmooth;
+	QScopedPointer<LinearColorSmoothing> _deviceSmooth;
 
 #if defined(ENABLE_EFFECTENGINE)
 	/// Effect engine
-	EffectEngine * _effectEngine;
-#endif
-
-#if defined(ENABLE_FORWARDER)
-	// Message forwarder
-	MessageForwarder * _messageForwarder;
+	QSharedPointer<EffectEngine> _effectEngine;
 #endif
 
 	/// Logger instance
@@ -561,13 +552,14 @@ private:
 
 	/// count of hardware leds
 	int _hwLedCount;
-
-	QSize _ledGridSize;
+	int _layoutLedCount;
+	QString _colorOrder;
+	QSize _layoutGridSize;
 
 	/// Background effect instance, kept active to react on setting changes
-	BGEffectHandler* _BGEffectHandler;
+	QScopedPointer<BGEffectHandler, QScopedPointerDeleteLater> _BGEffectHandler;
 	/// Capture control for Daemon native capture
-	CaptureCont* _captureCont;
+	QScopedPointer<CaptureCont,QScopedPointerDeleteLater> _captureCont;
 
 	/// buffer for leds (with adjustment)
 	std::vector<ColorRgb> _ledBuffer;
@@ -576,8 +568,16 @@ private:
 
 #if defined(ENABLE_BOBLIGHT_SERVER)
 	/// Boblight instance
-	BoblightServer* _boblightServer;
+	QScopedPointer<BoblightServer, QScopedPointerDeleteLater> _boblightServer;
 #endif
 
-	bool _readOnlyMode;
+	QElapsedTimer _imageTimer;  // Timer for controlling image emission frequency
+	QElapsedTimer _rawLedDataTimer;  // Timer for controlling rawLedColors emission frequency
+	QElapsedTimer _ledDeviceDataTimer; // Timer for controlling LedDevice data emission frequency
+	qint64 _lastImageEmission;  // Last timestamp of image signal emission
+	qint64 _lastRawLedDataEmission;  // Last timestamp of rawLedColors signal emission
+	qint64 _lastLedDeviceDataEmission; // Last timestamp of ledDeviceData signal emission
+	std::chrono::milliseconds _imageEmissionInterval;
+	std::chrono::milliseconds _rawLedDataEmissionInterval;
+	std::chrono::milliseconds _ledDeviceDataEmissionInterval;
 };

@@ -18,7 +18,7 @@ namespace {
 	constexpr std::chrono::milliseconds WRITE_TIMEOUT{ 1000 };	// device write timeout in ms
 	constexpr std::chrono::milliseconds OPEN_TIMEOUT{ 5000 };		// device open timeout in ms
 	const int MAX_WRITE_TIMEOUTS = 5;	// Maximum number of allowed timeouts
-	const int NUM_POWEROFF_WRITE_BLACK = 2;	// Number of write "BLACK" during powering off
+	const int NUM_POWEROFF_WRITE_BLACK = 5;	// Number of write "BLACK" during powering off
 
 	constexpr std::chrono::milliseconds DEFAULT_IDENTIFY_TIME{ 500 };
 
@@ -60,7 +60,7 @@ bool ProviderRs232::init(const QJsonObject &deviceConfig)
 			_deviceName = _deviceName.mid(5);
 		}
 
-		_baudRate_Hz          = deviceConfig["rate"].toInt();
+		_baudRate_Hz = deviceConfig["rate"].toInt();
 		_delayAfterConnect_ms = deviceConfig["delayAfterConnect"].toInt(1500);
 
 		Debug(_log, "DeviceName   : %s", QSTRING_CSTR(_deviceName));
@@ -86,6 +86,8 @@ int ProviderRs232::open()
 	// open device physically
 	if ( tryOpen(_delayAfterConnect_ms) )
 	{
+		connect(&_rs232Port, &QSerialPort::readyRead, this, &ProviderRs232::readFeedback);
+
 		// Everything is OK, device is ready
 		_isDeviceReady = true;
 		retval = 0;
@@ -106,6 +108,9 @@ int ProviderRs232::close()
 		{
 			Debug(_log,"Flush was successful");
 		}
+
+		disconnect(&_rs232Port, &QSerialPort::readyRead, this, &ProviderRs232::readFeedback);
+
 		Debug(_log,"Close UART: %s", QSTRING_CSTR(_deviceName) );
 		_rs232Port.close();
 		// Everything is OK -> device is closed
@@ -180,7 +185,7 @@ bool ProviderRs232::tryOpen(int delayAfterConnect_ms)
 		}
 		else
 		{
-			QString errortext = QString("Invalid serial device name: %1 %2!").arg(_deviceName, _location);
+			QString errortext = QString("Invalid serial device: %1 %2!").arg(_deviceName, _location);
 			this->setInError( errortext );
 			return false;
 		}
@@ -202,12 +207,12 @@ bool ProviderRs232::tryOpen(int delayAfterConnect_ms)
 	return _rs232Port.isOpen();
 }
 
-void ProviderRs232::setInError(const QString& errorMsg)
+void ProviderRs232::setInError(const QString& errorMsg, bool isRecoverable)
 {
 	_rs232Port.clearError();
 	this->close();
 
-	LedDevice::setInError( errorMsg );
+	LedDevice::setInError( errorMsg, isRecoverable );
 }
 
 int ProviderRs232::writeBytes(const qint64 size, const uint8_t *data)
@@ -232,9 +237,9 @@ int ProviderRs232::writeBytes(const qint64 size, const uint8_t *data)
 	{
 		if (!_rs232Port.waitForBytesWritten(WRITE_TIMEOUT.count()))
 		{
-			if ( _rs232Port.error() == QSerialPort::TimeoutError )
+			if (_rs232Port.error() == QSerialPort::TimeoutError)
 			{
-				Debug(_log, "Timeout after %dms: %d frames already dropped", WRITE_TIMEOUT.count(), _frameDropCounter);
+				Debug(_log, "Timeout after %dms: %d frames already dropped, Rs232 SerialPortError [%d]: %s", WRITE_TIMEOUT.count(), _frameDropCounter, _rs232Port.error(), QSTRING_CSTR(_rs232Port.errorString()));
 
 				++_frameDropCounter;
 
@@ -253,12 +258,28 @@ int ProviderRs232::writeBytes(const qint64 size, const uint8_t *data)
 			}
 			else
 			{
-				this->setInError( QString ("Rs232 SerialPortError: %1").arg(_rs232Port.errorString()) );
+				this->setInError( QString ("Error writing data to %1, Error: %2").arg(_deviceName).arg(_rs232Port.error()));
 				rc = -1;
 			}
 		}
+
+		if (rc == -1)
+		{
+			Info(_log, "Try restarting the device %s after error occured...", QSTRING_CSTR(_activeDeviceType));
+			emit enable();
+		}
 	}
 	return rc;
+}
+
+void ProviderRs232::readFeedback()
+{
+	QByteArray readData = _rs232Port.readAll();
+	if (!readData.isEmpty())
+	{
+		//Output as received
+		std::cout << readData.toStdString();
+	}
 }
 
 QString ProviderRs232::discoverFirst()

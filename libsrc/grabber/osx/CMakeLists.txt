@@ -1,11 +1,18 @@
-# Define the current source locations
-SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/grabber)
-SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/grabber/osx)
-
-FILE ( GLOB OsxGrabberSOURCES "${CURRENT_HEADER_DIR}/Osx*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
-
-add_library(osx-grabber ${OsxGrabberSOURCES} )
+add_library(osx-grabber
+	${CMAKE_SOURCE_DIR}/include/grabber/osx/OsxFrameGrabber.h
+	${CMAKE_SOURCE_DIR}/include/grabber/osx/OsxWrapper.h
+	${CMAKE_SOURCE_DIR}/libsrc/grabber/osx/OsxFrameGrabber.mm
+	${CMAKE_SOURCE_DIR}/libsrc/grabber/osx/OsxWrapper.cpp
+)
 
 target_link_libraries(osx-grabber
 	hyperion
-	${QT_LIBRARIES})
+	"-framework CoreGraphics"
+	"-framework Foundation"
+)
+
+find_library(ScreenCaptureKit ScreenCaptureKit)
+if(ScreenCaptureKit)
+	target_compile_definitions(osx-grabber PRIVATE SDK_15_AVAILABLE)
+	target_link_libraries(osx-grabber "${ScreenCaptureKit}")
+endif()

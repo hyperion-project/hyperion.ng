@@ -1,11 +1,13 @@
 // stdlib includes
+#include <limits>
 #include <iterator>
 #include <algorithm>
-#include <math.h>
+#include <cmath>
 
 // Utils-Jsonschema includes
 #include <utils/jsonschema/QJsonSchemaChecker.h>
 #include <utils/jsonschema/QJsonUtils.h>
+#include <utils/JsonUtils.h>
 
 QJsonSchemaChecker::QJsonSchemaChecker() :
 	_ignoreRequired(false),
@@ -39,7 +41,7 @@ QStringList QJsonSchemaChecker::getMessages() const
 	return _messages;
 }
 
-QPair<bool, bool> QJsonSchemaChecker::validate(const QJsonObject& value, bool ignoreRequired)
+QPair<bool, bool> QJsonSchemaChecker::validate(const QJsonValue& value, bool ignoreRequired)
 {
 	// initialize state
 	_ignoreRequired = ignoreRequired;
@@ -55,10 +57,10 @@ QPair<bool, bool> QJsonSchemaChecker::validate(const QJsonObject& value, bool ig
 	return QPair<bool, bool>(!_error, !_schemaError);
 }
 
-QJsonObject QJsonSchemaChecker::getAutoCorrectedConfig(const QJsonObject& value, bool ignoreRequired)
+QJsonValue QJsonSchemaChecker::getAutoCorrectedConfig(const QJsonValue& value, bool ignoreRequired)
 {
 	_ignoreRequired = ignoreRequired;
-	QStringList sequence = QStringList() << "remove" << "modify" << "create";
+	const QStringList sequence = QStringList() << "remove" << "modify" << "create";
 	_error = false;
 	_schemaError = false;
 	_messages.clear();
@@ -162,7 +164,8 @@ void QJsonSchemaChecker::validate(const QJsonValue& value, const QJsonObject& sc
 			; // references have already been collected
 		else if (attribute == "title" || attribute == "description" || attribute == "default" || attribute == "format"
 			|| attribute == "defaultProperties" || attribute == "propertyOrder" || attribute == "append" || attribute == "step"
-			|| attribute == "access" || attribute == "options" || attribute == "script" || attribute == "allowEmptyArray" || attribute == "comment")
+			|| attribute == "access" || attribute == "options" || attribute == "script" || attribute == "allowEmptyArray" || attribute == "comment"
+			|| attribute == "watch" || attribute == "template")
 			; // nothing to do.
 		else
 		{
@@ -186,7 +189,14 @@ void QJsonSchemaChecker::checkType(const QJsonValue& value, const QJsonValue& sc
 	else if (type == "integer")
 	{
 		if (value.isDouble()) //check if value type not boolean (true = 1 && false = 0)
-			wrongType = (rint(value.toDouble()) != value.toDouble());
+		{
+			double valueIntegratlPart;
+			double valueFractionalPart = std::modf(value.toDouble(), &valueIntegratlPart);
+			if (valueFractionalPart > std::numeric_limits<double>::epsilon())
+			{
+				wrongType = true;
+			}
+		}
 		else
 			wrongType = true;
 	}
@@ -222,12 +232,11 @@ void QJsonSchemaChecker::checkProperties(const QJsonObject& value, const QJsonOb
 {
 	for (QJsonObject::const_iterator i = schema.begin(); i != schema.end(); ++i)
 	{
-		QString property = i.key();
+		QString const property = i.key();
 
 		const QJsonValue& propertyValue = *i;
 
 		_currentPath.append("." + property);
-		QJsonObject::const_iterator required = propertyValue.toObject().find("required");
 
 		if (value.contains(property))
 		{
@@ -235,24 +244,27 @@ void QJsonSchemaChecker::checkProperties(const QJsonObject& value, const QJsonOb
 		}
 		else if (!verifyDeps(property, value, schema))
 		{
-			if (required != propertyValue.toObject().end() && propertyValue.toObject().find("required").value().toBool() && !_ignoreRequired)
+			bool const isRequired = propertyValue.toObject().value("required").toBool(false);
+			if (isRequired && !_ignoreRequired)
 			{
 				_error = true;
 
 				if (_correct == "create")
 				{
-					QJsonUtils::modify(_autoCorrected, _currentPath, QJsonUtils::create(propertyValue, _ignoreRequired), property);
-					setMessage("Create property: " + property + " with value: " + QJsonUtils::getDefaultValue(propertyValue));
+					QJsonValue const createdValue = QJsonUtils::create(propertyValue, _ignoreRequired);
+					QJsonUtils::modify(_autoCorrected, _currentPath, createdValue, property);
+					setMessage("Create property with value: " + JsonUtils::jsonValueToQString(createdValue));
 				}
 
-				if (_correct == "")
+				if (_correct.isEmpty())
 				{
 					setMessage("missing member");
 				}
 			}
 			else if (_correct == "create" && _ignoreRequired)
 			{
-				QJsonUtils::modify(_autoCorrected, _currentPath, QJsonUtils::create(propertyValue, _ignoreRequired), property);
+				QJsonValue const createdValue = QJsonUtils::create(propertyValue, _ignoreRequired);
+				QJsonUtils::modify(_autoCorrected, _currentPath, createdValue, property);
 			}
 		}
 
@@ -266,9 +278,10 @@ bool QJsonSchemaChecker::verifyDeps(const QString& property, const QJsonObject& 
 	{
 		const QJsonObject& depends = ((schema[property].toObject())["options"].toObject())["dependencies"].toObject();
 
-		if (depends.keys().size() > 0)
+		const QStringList dependsKeys = depends.keys();
+		if (!dependsKeys.isEmpty())
 		{
-			QString firstName = depends.keys().first();
+			const QString firstName = dependsKeys.constFirst();
 			if (value.contains(firstName))
 			{
 				if (value[firstName] != depends[firstName])
@@ -569,7 +582,7 @@ void QJsonSchemaChecker::checkUniqueItems(const QJsonValue& value, const QJsonVa
 		return;
 	}
 
-	if (schema.toBool() == true)
+	if (schema.toBool())
 	{
 		// make sure no two items are identical
 

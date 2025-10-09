@@ -7,6 +7,7 @@
 		{
 			"type" : "boolean",
 			"title" : "edt_conf_general_enable_title",
+			"required" : true,
 			"default" : true,
 			"propertyOrder" : 1
 		},

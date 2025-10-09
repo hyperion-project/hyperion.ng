@@ -1,5 +1,5 @@
 #include <utils/Logger.h>
-#include <grabber/XcbGrabber.h>
+#include <grabber/xcb/XcbGrabber.h>
 
 #include "XcbCommands.h"
 #include "XcbCommandExecutor.h"
@@ -18,7 +18,7 @@ namespace {
 #define DOUBLE_TO_FIXED(d) ((xcb_render_fixed_t) ((d) * 65536))
 
 XcbGrabber::XcbGrabber(int cropLeft, int cropRight, int cropTop, int cropBottom)
-	: Grabber("XCBGRABBER", cropLeft, cropRight, cropTop, cropBottom)
+	: Grabber("GRABBER-XCB", cropLeft, cropRight, cropTop, cropBottom)
 	, _connection{}
 	, _screen{}
 	, _pixmap{}
@@ -37,12 +37,9 @@ XcbGrabber::XcbGrabber(int cropLeft, int cropRight, int cropTop, int cropBottom)
 	, _XcbShmAvailable{}
 	, _XcbShmPixmapAvailable{}
 	, _isWayland (false)
-	, _logger{}
 	, _shmData{}
 	, _XcbRandREventBase{-1}
 {
-	_logger = Logger::getInstance("XCB");
-
 	// cropping is performed by XcbRender, XcbShmGetImage or XcbGetImage
 	_useImageResampler = false;
 	_imageResampler.setCropping(0, 0, 0, 0);
@@ -182,22 +179,30 @@ void XcbGrabber::setupShm()
 	}
 }
 
+bool XcbGrabber::isAvailable(bool logError)
+{
+	if (getenv("WAYLAND_DISPLAY") != nullptr)
+	{
+		ErrorIf(logError, _log, "Grabber does not work under Wayland!");
+		_isWayland = true;
+	}
+
+	_isAvailable = !_isWayland;
+	return _isAvailable;
+}
+
 bool XcbGrabber::open()
 {
 	bool rc = false;
 
-	if (getenv("WAYLAND_DISPLAY") != nullptr)
-	{
-		_isWayland = true;
-	}
-	else
+	if (_isAvailable)
 	{
 		_connection = xcb_connect(nullptr, &_screen_num);
 
 		int ret = xcb_connection_has_error(_connection);
 		if (ret != 0)
 		{
-			Debug(_logger, "Cannot open display, error %d", ret);
+			Debug(_log, "Cannot open display, error %d", ret);
 		}
 		else
 		{
@@ -215,26 +220,24 @@ bool XcbGrabber::open()
 
 bool XcbGrabber::setupDisplay()
 {
-	bool result = false;
+	if (!_isAvailable)
+	{
+		return false;
+	}
+
+	bool result {false};
 
 	if ( ! open() )
 	{
-		if ( _isWayland  )
+		if (getenv("DISPLAY") != nullptr)
 		{
-			Error(_log, "Grabber does not work under Wayland!");
+			Error(_log, "Unable to open display [%s], screen %d does not exist", getenv("DISPLAY"), _screen_num);
 		}
 		else
 		{
-			if (getenv("DISPLAY") != nullptr)
-			{
-				Error(_log, "Unable to open display [%s], screen %d does not exist", getenv("DISPLAY"), _screen_num);
-			}
-			else
-			{
-				Error(_log, "DISPLAY environment variable not set");
-			}
-			freeResources();
+			Error(_log, "DISPLAY environment variable not set");
 		}
+		freeResources();
 	}
 	else
 	{
@@ -242,12 +245,12 @@ bool XcbGrabber::setupDisplay()
 		setupRender();
 		setupShm();
 
-		Info(_log, QString("XcbRandR=[%1] XcbRender=[%2] XcbShm=[%3] XcbPixmap=[%4]")
-			 .arg(_XcbRandRAvailable     ? "available" : "unavailable")
-			 .arg(_XcbRenderAvailable    ? "available" : "unavailable")
-			 .arg(_XcbShmAvailable       ? "available" : "unavailable")
-			 .arg(_XcbShmPixmapAvailable ? "available" : "unavailable")
-			 .toStdString().c_str());
+		Info(_log, "%s", QSTRING_CSTR(QString("XcbRandR=[%1] XcbRender=[%2] XcbShm=[%3] XcbPixmap=[%4]")
+			 .arg(_XcbRandRAvailable ? "available" : "unavailable",
+			 _XcbRenderAvailable     ? "available" : "unavailable",
+			 _XcbShmAvailable        ? "available" : "unavailable",
+			 _XcbShmPixmapAvailable  ? "available" : "unavailable"))
+			 );
 
 		result = (updateScreenDimensions(true) >= 0);
 		ErrorIf(!result, _log, "XCB Grabber start failed");
@@ -509,7 +512,7 @@ QJsonObject XcbGrabber::discover(const QJsonObject& params)
 	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	QJsonObject inputsDiscovered;
-	if ( open() )
+	if ( isAvailable(false) && open() )
 	{
 		inputsDiscovered["device"] = "xcb";
 		inputsDiscovered["device_name"] = "XCB";

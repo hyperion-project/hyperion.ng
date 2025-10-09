@@ -21,9 +21,9 @@
     "time_ms": {
       "type": "integer",
       "title": "edt_conf_smooth_time_ms_title",
-      "minimum": 25,
+      "minimum": 1,
       "maximum": 5000,
-      "default": 200,
+      "default": 150,
       "append": "edt_append_ms",
       "propertyOrder": 3
     },
@@ -44,20 +44,6 @@
       "default": 1.0,
       "append": "edt_append_hz",
       "propertyOrder": 5,
-      "options": {
-        "dependencies": {
-          "type": "decay"
-        }
-      }
-    },
-    "outputRate": {
-      "type": "number",
-      "title": "edt_conf_smooth_outputRate_title",
-      "minimum": 1.0,
-      "maximum": 1000.0,
-      "default": 1.0,
-      "append": "edt_append_hz",
-      "propertyOrder": 6,
       "options": {
         "dependencies": {
           "type": "decay"

@@ -30,7 +30,7 @@ while not hyperion.abort():
 	hyperion.setImage(width, 1, imageData)
 
 	# Move data into next state
-	for i in range(increment):
+	for unused in range(increment):
 		position += direction
 		if position == -1:
 			position = 1

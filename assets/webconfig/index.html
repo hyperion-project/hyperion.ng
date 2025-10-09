@@ -24,8 +24,10 @@
   <script src="js/lib/jquery/jquery-migrate-3.3.2.min.js"></script>
 
   <!-- jQuery - Dev -->
-  <!script src="js/lib/jquery/dev/jquery-3.6.0.js"></script>
-  <!script src="js/lib/jquery/dev/jquery-migrate-3.3.2.js"></script>
+  <!--
+  <script src="js/lib/jquery/dev/jquery-3.6.0.js"></script>
+  <script src="js/lib/jquery/dev/jquery-migrate-3.3.2.js"></script>
+  -->
 
   <!-- SemVer -->
   <script src='js/lib/semver.js'></script>
@@ -142,18 +144,13 @@
             <i id="btn_streamer_icon" class="fa fa-video-camera fa-fw"></i>
           </a>
         </li>
-        <li class="dropdown" id="btn_darkmode">
-          <a>
-            <i id="btn_darkmode_icon" class="fa fa-moon-o"></i>
-          </a>
-        </li>
         <li class="dropdown" id="btn_open_ledsim">
           <a>
             <i class="fa fa-television fa-fw"></i>
           </a>
         </li>
         <!-- /.dropdown -->
-        <li class="dropdown">
+        <li class="dropdown" id="NavMenuWizards">
           <a class="dropdown-toggle" data-toggle="dropdown" href="#">
             <i class="fa fa-magic fa-fw"></i>  <i class="fa fa-caret-down"></i>
           </a>
@@ -183,7 +180,6 @@
             <i class="fa fa-wrench fa-fw"></i>  <i class="fa fa-caret-down"></i>
           </a>
           <ul class="dropdown-menu dropdown-alerts">
-
             <!-- /.language selector -->
             <li id="btn_setlang">
               <a>
@@ -213,7 +209,44 @@
             </li>
           </ul>
         </li>
-
+        <li class="dropdown" id="btn_darkmode">
+          <a>
+            <i id="btn_darkmode_icon" class="fa fa-moon-o"></i>
+          </a>
+        </li>
+        <!-- /.dropdown -->
+        <li class="dropdown">
+          <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+            <i class="fa fa-power-off fa-fw"></i>  <i class="fa fa-caret-down"></i>
+          </a>
+          <ul class="dropdown-menu dropdown-alerts">
+            <li id="btn_systemSuspend">
+              <a>
+                <div>
+                  <i class="fa fa-stop fa-fw"></i>
+                  <span data-i18n="InfoDialog_systemSuspend_title"></span>
+                </div>
+              </a>
+            </li>
+            <li id="btn_systemResume">
+              <a>
+                <div>
+                  <i class="fa fa-play fa-fw"></i>
+                  <span data-i18n="InfoDialog_systemResume_title"></span>
+                </div>
+              </a>
+            </li>
+            <li class="divider"></li>
+            <li id="btn_systemRestart">
+              <a>
+                <div>
+                  <i class="fa fa-refresh fa-fw"></i>
+                  <span data-i18n="InfoDialog_systemRestart_title"></span>
+                </div>
+              </a>
+            </li>
+          </ul>
+        </li>
         <!-- /.lock-ui -->
         <li class="dropdown" id="btn_lock_ui" style="display:none">
           <a>
@@ -226,29 +259,30 @@
       <div id="main-nav" class="navbar-default sidebar" role="navigation">
         <div class="sidebar-nav navbar-collapse">
           <ul class="nav" id="side-menu">
-            <li> <a class="inactive mnava" href="#dashboard"><i class="fa fa-dashboard fa-fw"></i><span data-i18n="main_menu_dashboard_token">Dashboard</span></a> </li>
-            <li> <a class="inactive mnava" href="#conf_general"><i class="fa fa-wrench fa-fw"></i><span data-i18n="main_menu_general_conf_token">General</span></a> </li>
+            <li> <a class="inactive mnava" id="MenuItemDashboard" href="#dashboard"><i class="fa fa-dashboard fa-fw"></i><span data-i18n="main_menu_dashboard_token">Dashboard</span></a> </li>
+            <li> <a class="inactive mnava" id="MenuItemGeneral" href="#conf_general"><i class="fa fa-wrench fa-fw"></i><span data-i18n="main_menu_general_conf_token">General</span></a> </li>
             <li>
-              <a class="inactive"><i class="fa fa-cog fa-fw"></i><span data-i18n="main_menu_configuration_token">LED-Instances</span><span class="fa arrow"></span></a>
+              <a class="inactive" id="MenuItemLedInstances"><i class="fa fa-cog fa-fw"></i><span data-i18n="main_menu_configuration_token">LED-Instances</span><span class="fa arrow"></span></a>
               <ul class="nav nav-second-level">
-                <li> <a class="inactive mnava" id="MenuItemLeds" href="#conf_leds"><i class="mdi mdi-lightbulb-on fa-fw"></i><span data-i18n="main_menu_leds_conf_token">LED Hardware</span></a> </li>
+                <li> <a class="inactive mnava" id="MenuItemInstLeds" href="#conf_leds"><i class="mdi mdi-lightbulb-on fa-fw"></i><span data-i18n="main_menu_leds_conf_token">LED Hardware</span></a> </li>
                 <li> <a class="inactive mnava" id="MenuItemInstCapture" href="#conf_instcapture"><i class="fa fa-camera fa-fw"></i><span data-i18n="main_menu_instcapture_conf_token">Sources</span></a> </li>
-                <li> <a class="inactive mnava" href="#conf_effect"><i class="fa fa-spinner fa-fw"></i><span data-i18n="main_menu_effect_conf_token">Effects</span></a> </li>
-                <li> <a class="inactive mnava" href="#conf_colors"><i class="fa fa-photo fa-fw"></i><span data-i18n="main_menu_colors_conf_token">Image Processing</span></a> </li>
+                <li> <a class="inactive mnava" id="MenuItemInstConfEffect" href="#conf_effect"><i class="fa fa-spinner fa-fw"></i><span data-i18n="main_menu_effect_conf_token">Effects</span></a> </li>
+                <li> <a class="inactive mnava" id="MenuItemInstConfColors" href="#conf_colors"><i class="fa fa-photo fa-fw"></i><span data-i18n="main_menu_colors_conf_token">Image Processing</span></a> </li>
               </ul>
             </li>
             <li> <a class="inactive mnava" id="MenuItemGrabber" href="#conf_grabber"><i class="fa fa-camera fa-fw"></i><span data-i18n="main_menu_grabber_conf_token">Capturing Hardware</span></a> </li>
             <li> <a class="inactive mnava" id="MenuItemNetwork" href="#conf_network"><i class="fa fa-sitemap fa-fw"></i><span data-i18n="main_menu_network_conf_token">Network</span></a> </li>
-            <li> <a class="inactive mnava" href="#remote"><i class="fa fa-wifi fa-fw"></i><span data-i18n="main_menu_remotecontrol_token">Remote Control</span></a>	</li>
+            <li> <a class="inactive mnava" id="MenuItemRemoteControl" href="#remote"><i class="fa fa-wifi fa-fw"></i><span data-i18n="main_menu_remotecontrol_token">Remote Control</span></a>	</li>
             <li> <a class="inactive mnava" id="MenuItemEffectsConfig" href="#effects_configurator"><i class="fa fa-cogs fa-fw"></i><span data-i18n="main_menu_effectsconfigurator_token">Effects Configurator</span></a>	</li>
             <li> <a class="inactive mnava" href="#support"><i class="fa fa-info fa-fw"></i><span data-i18n="main_menu_support_token">Support</span></a> </li>
             <li>
-              <a class="inactive"><i class="fa fa-industry fa-fw"></i><span data-i18n="main_menu_system_token">System</span><span class="fa arrow"></span></a>
+              <a class="inactive" id="MenuItemSystem"><i class="fa fa-industry fa-fw"></i><span data-i18n="main_menu_system_token">System</span><span class="fa arrow"></span></a>
               <ul class="nav nav-second-level">
+                <li> <a class="inactive mnava" id="MenuItemEventServices" href="#conf_events"><i class="fa fa-server fa-fw"></i><span data-i18n="main_menu_event_services_token">Event Services</span></a> </li>
                 <li> <a class="inactive mnava" id="MenuItemWeb" href="#conf_webconfig" id="load_webconfig"><i class="fa fa-wrench fa-fw"></i><span data-i18n="main_menu_webconfig_token">Webconfiguration</span></a> </li>
                 <li> <a class="inactive mnava" id="MenuItemLogging" href="#conf_logging"><i class="fa fa-reorder fa-fw"></i><span data-i18n="main_menu_logging_token">Log</span></a> </li>
-                <li> <a class="inactive mnava" href="#update"><i class="fa fa-download fa-fw"></i><span data-i18n="main_menu_update_token">Update</span></a> </li>
-                <li> <a class="inactive mnava" href="#about"><i class="fa fa-info-circle fa-fw"></i><span data-i18n="main_menu_about_token">About</span></a> </li>
+                <li> <a class="inactive mnava" id="MenuItemUpdate" href="#update"><i class="fa fa-download fa-fw"></i><span data-i18n="main_menu_update_token">Update</span></a> </li>
+                <li> <a class="inactive mnava" id="MenuItemAbout" href="#about"><i class="fa fa-info-circle fa-fw"></i><span data-i18n="main_menu_about_token">About</span></a> </li>
               </ul>
             </li>
           </ul>

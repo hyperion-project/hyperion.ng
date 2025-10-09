@@ -3,10 +3,8 @@
 
 #include <QMimeDatabase>
 
-//#include "QtHttpServer.h"
 #include "QtHttpRequest.h"
 #include "QtHttpReply.h"
-#include "QtHttpHeader.h"
 #include "CgiHandler.h"
 
 #include <utils/Logger.h>
@@ -39,7 +37,7 @@ private:
 	Logger        * _log;
 	QByteArray      _ssdpDescription;
 
-	void printErrorToReply (QtHttpReply * reply, QtHttpReply::StatusCode code, QString errorMessage);
+	void printErrorToReply (QtHttpReply * reply, QtHttpReply::StatusCode code, const QString& errorMessage);
 
 };
 

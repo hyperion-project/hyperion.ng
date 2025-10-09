@@ -24,7 +24,6 @@ bool LedDeviceKarate::init(const QJsonObject& deviceConfig)
 	{
 		if (_ledCount != 8 && _ledCount != 16)
 		{
-			//Error( _log, "%d channels configured. This should always be 16!", _ledCount);
 			QString errortext = QString("%1 channels configured. This should always be 8 or 16!").arg(_ledCount);
 			this->setInError(errortext);
 			isInitOK = false;

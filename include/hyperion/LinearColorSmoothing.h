@@ -7,6 +7,8 @@
 
 // Qt includes
 #include <QVector>
+#include <QScopedPointer>
+#include <QSharedPointer>
 
 // hyperion includes
 #include <leddevice/LedDevice.h>
@@ -77,10 +79,10 @@ class LinearColorSmoothing : public QObject
 
 public:
 	/// Constructor
-	/// @param config    The configuration document smoothing
+	/// @param config    The smoothing configuration
 	/// @param hyperion  The hyperion parent instance
 	///
-	LinearColorSmoothing(const QJsonDocument &config, Hyperion *hyperion);
+	LinearColorSmoothing(const QJsonObject &config, Hyperion *hyperion);
 	~LinearColorSmoothing() override;
 
 	/// LED values as input for the smoothing filter
@@ -135,6 +137,9 @@ public slots:
 	///
 	void handleSettingsUpdate(settings::type type, const QJsonDocument &config);
 
+	void start();
+	void stop();
+
 private slots:
 	/// Timer callback which writes updated led values to the led device
 	void updateLeds();
@@ -146,7 +151,19 @@ private slots:
 	///
 	void componentStateChange(hyperion::Components component, bool state);
 
+	///
+	/// @brief Handle priority updates.
+	///
+	void handlePriorityUpdate(int priority);
+
 private:
+
+	///
+	/// @brief Update the settings along the provided configuration
+	/// @param config configuration object
+	///
+	void updateSettings(const QJsonObject &config);
+
 	/**
 	 * Pushes the colors into the output queue and popping the head to the led-device
 	 *
@@ -164,6 +181,9 @@ private:
 
 	QString getConfig(int cfgID);
 
+	/// Helper to pipe configuration from constructor to start()
+	QJsonObject _smoothConfig;
+
 	/// Logger instance
 	Logger *_log;
 
@@ -171,7 +191,7 @@ private:
 	Hyperion *_hyperion;
 
 	/// priority muxer instance
-	PriorityMuxer* _prioMuxer;
+	QSharedPointer<PriorityMuxer> _prioMuxer;
 
 	/// The interval at which to update the leds (msec)
 	int _updateInterval;
@@ -180,7 +200,7 @@ private:
 	int64_t _settlingTime;
 
 	/// The Qt timer object
-	QTimer *_timer;
+	QScopedPointer<QTimer> _timer;
 
 	/// The timestamp at which the target data should be fully applied
 	int64_t _targetTime;
@@ -230,9 +250,6 @@ private:
 	/// Flag for pausing
 	bool _pause;
 
-	/// The rate at which color frames should be written to LED device.
-	double _outputRate;
-
 	/// The interval time in microseconds for writing of LED Frames.
 	int64_t _outputIntervalMicros;
 
@@ -268,9 +285,6 @@ private:
 		/// The type of smoothing to perform
 		SmoothingType _type;
 
-		/// The rate at which color frames should be written to LED device.
-		double _outputRate;
-
 		/// The rate at which interpolation of LED frames should be performed.
 		double _interpolationRate;
 
@@ -284,7 +298,7 @@ private:
 		double _decay;
 
 		SmoothingCfg();
-		SmoothingCfg(bool pause, int64_t settlingTime, int updateInterval, SmoothingType type = SmoothingType::Linear, double outputRate = 0, double interpolationRate = 0, unsigned outputDelay = 0, bool dithering = false, double decay = 1);
+		SmoothingCfg(bool pause, int64_t settlingTime, int updateInterval, SmoothingType type = SmoothingType::Linear, double interpolationRate = 0, unsigned outputDelay = 0, bool dithering = false, double decay = 1);
 
 		static QString EnumToString(SmoothingType type);
 	};
@@ -294,6 +308,9 @@ private:
 
 	int _currentConfigId;
 	bool _enabled;
+
+	//The system enable state, to restore smoothing state after effect with smoothing ran
+	bool _enabledSystemCfg;
 
 	/// The type of smoothing to perform
 	SmoothingType _smoothingType;

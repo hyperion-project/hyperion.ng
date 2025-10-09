@@ -3,6 +3,7 @@
 // Qt includes
 #include <Qt>
 #include <QTextStream>
+#include <QDateTime>
 
 LedDeviceFile::LedDeviceFile(const QJsonObject &deviceConfig)
 	: LedDevice(deviceConfig)
@@ -13,7 +14,6 @@ LedDeviceFile::LedDeviceFile(const QJsonObject &deviceConfig)
 
 LedDeviceFile::~LedDeviceFile()
 {
-	delete _file;
 }
 
 LedDevice* LedDeviceFile::construct(const QJsonObject &deviceConfig)
@@ -30,7 +30,7 @@ bool LedDeviceFile::init(const QJsonObject &deviceConfig)
 #if _WIN32
 	if (_fileName == "/dev/null" )
 	{
-		_fileName = "NULL";
+		_fileName = "\\\\.\\NUL";
 	}
 #endif
 
@@ -45,7 +45,7 @@ void LedDeviceFile::initFile(const QString &fileName)
 {
 	if ( _file == nullptr )
 	{
-		_file = new QFile(fileName, this);
+		_file.reset(new QFile(fileName));
 	}
 }
 
@@ -89,12 +89,20 @@ int LedDeviceFile::close()
 	return retval;
 }
 
+bool LedDeviceFile::powerOff()
+{
+	// Simulate power-off by writing a final "Black" to have a defined outcome
+	bool rc = false;
+	if ( writeBlack( 5 ) >= 0 )
+	{
+		rc = true;
+	}
+	return rc;
+}
+
 int LedDeviceFile::write(const std::vector<ColorRgb> & ledValues)
 {
-	QTextStream out(_file);
-
-	//printLedValues (ledValues);
-
+	QTextStream out(_file.get());
 	if ( _printTimeStamp )
 	{
 		QDateTime now = QDateTime::currentDateTime();

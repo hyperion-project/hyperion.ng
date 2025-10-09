@@ -1,7 +1,6 @@
 {
 	"type":"object",
 	"title" : "edt_conf_color_heading_title",
-	"required" : true,
 	"properties":
 	{
 		"imageToLedMappingType" :
@@ -9,12 +8,36 @@
 			"type" : "string",
 			"required" : true,
 			"title" : "edt_conf_color_imageToLedMappingType_title",
-			"enum" : ["multicolor_mean", "unicolor_mean"],
+			"enum" : ["multicolor_mean","multicolor_mean_squared", "unicolor_mean", "dominant_color", "unicolor_dominant", "dominant_color_advanced", "unicolor_dominant_advanced"],
 			"default" : "multicolor_mean",
 			"options" : {
-				"enum_titles" : ["edt_conf_enum_multicolor_mean", "edt_conf_enum_unicolor_mean"]
+				"enum_titles" : ["edt_conf_enum_multicolor_mean","edt_conf_enum_multicolor_mean_squared", "edt_conf_enum_unicolor_mean", "edt_conf_enum_dominant_color", "edt_conf_enum_unicolor_dominant", "edt_conf_enum_dominant_color_advanced", "edt_conf_enum_unicolor_dominant_advanced"]
 			},
 			"propertyOrder" : 1
+		},
+	    "accuracyLevel": {
+		    "type": "integer",
+		    "title": "edt_conf_color_accuracyLevel_title",
+		    "minimum": 1,
+		    "maximum": 4,
+		    "default": 2,
+		    "propertyOrder": 2,
+		    "options": {
+		        "dependencies": {
+					"imageToLedMappingType": ["dominant_color_advanced", "unicolor_dominant_advanced"]
+		        }
+		    }
+		},
+	    "reducedPixelSetFactorFactor": {
+		    "type": "string",
+		    "title": "edt_conf_color_reducedPixelSetFactorFactor_title",
+		    "default": 0,
+			"enum" : ["0", "1", "2", "3"],
+			"default" : "0",
+			"options" : {
+				"enum_titles" : ["edt_conf_enum_disabled", "edt_conf_enum_low", "edt_conf_enum_medium", "edt_conf_enum_high"]
+			},
+		    "propertyOrder": 3
 		},
 		"channelAdjustment" :
 		{
@@ -22,7 +45,7 @@
 			"title" : "edt_conf_color_channelAdjustment_header_title",
 			"minItems": 1,
 			"required" : true,
-			"propertyOrder" : 3,
+			"propertyOrder" : 4,
 			"items" :
 			{
 				"type" : "object",
@@ -221,6 +244,18 @@
 						"step" : 0.1,
 						"propertyOrder" : 16
 					},
+					"temperature" :
+					{
+						"type" : "integer",
+						"title" : "edt_conf_color_temperature_title",
+						"required" : true,
+						"minimum" : 1000,
+						"maximum": 40000,
+						"default" : 6600,
+						"step" : 100,
+						"append" : "edt_append_kelvin",
+						"propertyOrder" : 17
+					},
 					"gammaRed" :
 					{
 						"type" : "number",
@@ -230,7 +265,7 @@
 						"maximum": 100.0,
 						"default" : 2.2,
 						"step" : 0.1,
-						"propertyOrder" : 17
+						"propertyOrder" : 18
 					},
 					"gammaGreen" :
 					{
@@ -241,7 +276,7 @@
 						"maximum": 100.0,
 						"default" : 2.2,
 						"step" : 0.1,
-						"propertyOrder" : 18
+						"propertyOrder" : 19
 					},
 					"gammaBlue" :
 					{
@@ -252,7 +287,7 @@
 						"maximum": 100.0,
 						"default" : 2.2,
 						"step" : 0.1,
-						"propertyOrder" : 19
+						"propertyOrder" : 20
 					}
 				},
 				"additionalProperties" : false

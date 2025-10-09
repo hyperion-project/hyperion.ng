@@ -2,28 +2,22 @@
 
 #undef slots
 #include <Python.h>
-#define slots
+#define slots Q_SLOTS
 
 #include <QJsonValue>
 
 class Effect;
 
-class EffectModule: public QObject
+class EffectModule : public QObject
 {
 	Q_OBJECT
 
 public:
-	// Python 3 module def
-	static struct PyModuleDef moduleDef;
-
-	// Init module
-	static PyObject* PyInit_hyperion();
-
 	// Register module once
 	static void registerHyperionExtensionModule();
 
 	// json 2 python
-	static PyObject * json2python(const QJsonValue & jsonData);
+	static PyObject* json2python(const QJsonValue& jsonData);
 
 	// Wrapper methods for Python interpreter extra buildin methods
 	static PyMethodDef effectMethods[];
@@ -51,4 +45,5 @@ public:
 	static PyObject* wrapImageCOffset          (PyObject *self, PyObject *args);
 	static PyObject* wrapImageCShear           (PyObject *self, PyObject *args);
 	static PyObject* wrapImageResetT           (PyObject *self, PyObject *args);
+	static PyObject* wrapLowestUpdateInterval  (PyObject* self, PyObject* args);
 };

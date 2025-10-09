@@ -1,6 +1,6 @@
 #include <QMetaType>
 
-#include <grabber/VideoWrapper.h>
+#include <grabber/video/VideoWrapper.h>
 
 // qt includes
 #include <QTimer>
@@ -15,9 +15,12 @@ VideoWrapper::VideoWrapper()
 {
 	// register the image type
 	qRegisterMetaType<Image<ColorRgb>>("Image<ColorRgb>");
+	qRegisterMetaType<Event>("Event");
 
 	// Handle the image in the captured thread (Media Foundation/V4L2) using a direct connection
 	connect(&_grabber, SIGNAL(newFrame(const Image<ColorRgb>&)), this, SLOT(newFrame(const Image<ColorRgb>&)), Qt::DirectConnection);
+	connect(&_grabber, SIGNAL(readError(const char*)), this, SLOT(readError(const char*)), Qt::DirectConnection);
+
 	connect(&_grabber, SIGNAL(readError(const char*)), this, SLOT(readError(const char*)), Qt::DirectConnection);
 }
 
@@ -36,15 +39,6 @@ void VideoWrapper::stop()
 	_grabber.stop();
 	GrabberWrapper::stop();
 }
-
-#if defined(ENABLE_CEC) && !defined(ENABLE_MF)
-
-void VideoWrapper::handleCecEvent(CECEvent event)
-{
-	_grabber.handleCecEvent(event);
-}
-
-#endif
 
 void VideoWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
@@ -74,9 +68,6 @@ void VideoWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument
 			// Device resolution
 			_grabber.setWidthHeight(obj["width"].toInt(0), obj["height"].toInt(0));
 
-			// Device framerate
-			_grabber.setFramerate(obj["fps"].toInt(15));
-
 			// Device encoding format
 			_grabber.setEncoding(obj["encoding"].toString("NO_CHANGE"));
 
@@ -103,11 +94,6 @@ void VideoWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument
 				obj["hardware_saturation"].toInt(0),
 				obj["hardware_hue"].toInt(0));
 
-#if defined(ENABLE_CEC) && defined(ENABLE_V4L2)
-			// CEC Standby
-			_grabber.setCecDetectionEnable(obj["cecDetection"].toBool(true));
-#endif
-
 			// Software frame skipping
 			_grabber.setFpsSoftwareDecimation(obj["fpsSoftwareDecimation"].toInt(1));
 
@@ -123,6 +109,11 @@ void VideoWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument
 				obj["greenSignalThreshold"].toDouble(0.0)/100.0,
 				obj["blueSignalThreshold"].toDouble(0.0)/100.0,
 				obj["noSignalCounterThreshold"].toInt(50));
+
+			// Device framerate
+			_grabber.setFramerate(obj["fps"].toInt(15));
+
+			updateTimer(_ggrabber->getUpdateInterval());
 
 			// Reload the Grabber if any settings have been changed that require it
 			_grabber.reload(getV4lGrabberState());

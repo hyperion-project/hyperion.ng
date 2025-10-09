@@ -6,16 +6,19 @@ length = hyperion.args.get('length', 1)
 color1 = hyperion.args.get('color1', (255,255,255))
 color2 = hyperion.args.get('color2', (255,0,0))
 
+# Limit update rate
+sleepTime = max(hyperion.lowestUpdateInterval(), sleepTime)
+
 # Initialize the led data
 i = 0
 ledDataOdd = bytearray()
 while i < hyperion.ledCount:
-	for l in range(length):
+	for unused in range(length):
 		if i<hyperion.ledCount:
 			ledDataOdd += bytearray((int(color1[0]), int(color1[1]), int(color1[2])))
 			i += 1
 
-	for l in range(length):
+	for unused in range(length):
 		if i<hyperion.ledCount:
 			ledDataOdd += bytearray((int(color2[0]), int(color2[1]), int(color2[2])))
 			i += 1

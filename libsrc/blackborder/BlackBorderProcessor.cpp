@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cmath>
 
 #include <hyperion/Hyperion.h>
 
@@ -33,11 +34,8 @@ BlackBorderProcessor::BlackBorderProcessor(Hyperion* hyperion, QObject* parent)
 
 	// listen for component state changes
 	connect(_hyperion, &Hyperion::compStateChangeRequest, this, &BlackBorderProcessor::handleCompStateChangeRequest);
-}
 
-BlackBorderProcessor::~BlackBorderProcessor()
-{
-	delete _detector;
+	_detector = std::make_unique<BlackBorderDetector>(_oldThreshold);
 }
 
 void BlackBorderProcessor::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
@@ -60,13 +58,10 @@ void BlackBorderProcessor::handleSettingsUpdate(settings::type type, const QJson
 			_detectionMode = obj["mode"].toString("default");
 			const double newThreshold = obj["threshold"].toDouble(5.0) / 100.0;
 
-			if (_oldThreshold != newThreshold)
+			if (fabs(_oldThreshold - newThreshold) > std::numeric_limits<double>::epsilon())
 			{
 				_oldThreshold = newThreshold;
-
-				delete _detector;
-
-				_detector = new BlackBorderDetector(newThreshold);
+				_detector = std::make_unique<BlackBorderDetector>(_oldThreshold);
 			}
 
 			Debug(Logger::getInstance("BLACKBORDER", "I"+QString::number(_hyperion->getInstanceIndex())), "Set mode to: %s", QSTRING_CSTR(_detectionMode));
@@ -139,8 +134,6 @@ bool BlackBorderProcessor::updateBorder(const BlackBorder & newDetectedBorder)
 // this "random effect" caused the old algorithm to switch to that smaller border immediatly, resulting in a too small border being detected
 // makes it look like the border detectionn is not working - since the new 3 line detection algorithm is more precise this became a problem specialy in dark scenes
 // wisc
-
-//	std::cout << "c: " << setw(2) << _currentBorder.verticalSize << " " << setw(2) << _currentBorder.horizontalSize << " p: " << setw(2) << _previousDetectedBorder.verticalSize << " " << setw(2) << _previousDetectedBorder.horizontalSize << " n: " << setw(2) << newDetectedBorder.verticalSize << " " << setw(2) << newDetectedBorder.horizontalSize << " c:i " << setw(2) << _consistentCnt << ":" << setw(2) << _inconsistentCnt << std::endl;
 
 	// set the consistency counter
 	if (newDetectedBorder == _previousDetectedBorder)

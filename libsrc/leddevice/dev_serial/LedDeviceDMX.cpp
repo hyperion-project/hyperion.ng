@@ -42,7 +42,6 @@ bool LedDeviceDMX::init(const QJsonObject &deviceConfig)
 		}
 		else
 		{
-			//Error(_log, "unknown dmx device type %s", QSTRING_CSTR(dmxString));
 			QString errortext = QString ("unknown dmx device type: %1").arg(dmxTypeString);
 			this->setInError(errortext);
 			return false;

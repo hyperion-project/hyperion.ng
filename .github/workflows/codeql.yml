@@ -1,0 +1,98 @@
+name: 📊 CodeQL
+run-name: |
+  ${{ github.event_name == 'schedule' && '⏰ Scheduled CodeQL run' || '' }}
+  ${{ github.event_name == 'push' && format('📊 Pushed CodeQL run - {0}', github.event.head_commit.message) || '' }}
+  ${{ github.event_name == 'pull_request' && format('📊 CodeQL run for PR {0} - {1}', github.event.pull_request.number, github.event.pull_request.title) || '' }}
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  schedule:
+    - cron: "36 18 * * 4"
+
+jobs:
+  analyze:
+    name: 📊 Analyze
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ python, javascript, cpp ]
+
+    container:
+      image: ghcr.io/hyperion-project/debian:bullseye-qt6
+
+    steps:
+      - name: ⬇ Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: 🔁 Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: +security-and-quality
+          config-file: ./.github/config/codeql.yml
+
+      - name: 👷 Build (Python & JavaScript)
+        if: ${{ matrix.language != 'cpp' }}
+        uses: github/codeql-action/autobuild@v3
+
+      - name: 📥 Install jq (C++)
+        if: ${{ matrix.language == 'cpp' }}
+        shell: bash
+        run: apt-get update && apt-get install -y jq
+
+      - name: 💾 Download Pre-Build Dependencies (C++)
+        if: ${{ matrix.language == 'cpp' }}
+        id: dependencies
+        uses: ./.github/actions/download-pre-built-deps
+        with:
+          os: 'debian_bullseye'
+          architecture: 'amd64'
+          qt_version: '6'
+          build_type: ${{ github.event_name == 'pull_request' && 'debug' || 'release' }}
+
+      - name: 👷 Build (C++)
+        if: ${{ matrix.language == 'cpp' }}
+        run: |
+          cmake --preset linux-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }}
+          cmake --build --preset linux-${{ env.BUILD_TYPE }}
+        env:
+          BUILD_TYPE: ${{ github.event_name == 'pull_request' && 'debug' || 'release' }}
+
+      - name: 🏃 Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+          upload: False
+          output: sarif-results
+
+      - name: 🆔 Filter SARIF
+        uses: advanced-security/filter-sarif@v1
+        with:
+          patterns: |
+            -**/dependencies/**
+            -**/moc_*.cpp
+          input: sarif-results/${{ matrix.language }}.sarif
+          output: sarif-results/${{ matrix.language }}.sarif
+
+      - name: 📦 Upload SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: sarif-results/${{ matrix.language }}.sarif
+
+      - name: 📦 Upload loc as a Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.language }}.sarif
+          path: sarif-results
+          retention-days: 1

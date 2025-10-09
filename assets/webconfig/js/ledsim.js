@@ -28,8 +28,8 @@ $(document).ready(function () {
 
   function create2dPaths() {
     twoDPaths = [];
-    for (var idx = 0; idx < leds.length; idx++) {
-      var led = leds[idx];
+    for (const element of leds) {
+      var led = element;
       twoDPaths.push(build2DPath(led.hmin * canvas_width, led.vmin * canvas_height, (led.hmax - led.hmin) * canvas_width, (led.vmax - led.vmin) * canvas_height, 5));
     }
   }
@@ -105,6 +105,10 @@ $(document).ready(function () {
         updateLedLayout();
       },
       opened: function (e) {
+
+        const titleText = $.i18n('main_ledsim_title') + " - " + getCurrentInstanceName();
+        $(this).get(0).querySelector(".modal-title").textContent = titleText;
+
         if (!lC) {
           updateLedLayout();
           lC = true;
@@ -128,11 +132,16 @@ $(document).ready(function () {
         setStorage("ledsim_height", $("#ledsim_dialog").outerHeight());
       }
     });
-    // apply new serverinfos
-    $(window.hyperion).on("cmd-config-getconfig", function (event) {
-      leds = event.response.info.leds;
-      grabberConfig = event.response.info.grabberV4L2;
-      updateLedLayout();
+    // apply new configuration
+    $(window.hyperion).on("serverConfig_updated", function (event) {
+      grabberConfig = window.serverConfig?.grabberV4L2 ?? {};
+      leds = window.serverConfig?.leds;
+
+      if (Array.isArray(leds) && leds.length > 0) {
+        updateLedLayout();
+      } else {
+        console.warn("LED configuration is missing or empty. Skipping updateLedLayout.");
+      }
     });
   });
 
@@ -174,10 +183,6 @@ $(document).ready(function () {
       ledsCanvasNodeCtx.stroke(twoDPaths[idx]);
 
       if (toggleLedsNum) {
-        //ledsCanvasNodeCtx.shadowOffsetX = 1;
-        //ledsCanvasNodeCtx.shadowOffsetY = 1;
-        //ledsCanvasNodeCtx.shadowColor = "black";
-        //ledsCanvasNodeCtx.shadowBlur = 4;
         ledsCanvasNodeCtx.fillStyle = "white";
         ledsCanvasNodeCtx.textAlign = "center";
         ledsCanvasNodeCtx.fillText(((led.name) ? led.name : idx), (led.hmin * canvas_width) + (((led.hmax - led.hmin) * canvas_width) / 2), (led.vmin * canvas_height) + (((led.vmax - led.vmin) * canvas_height) / 2));
@@ -199,7 +204,7 @@ $(document).ready(function () {
     canvas_height = $('#ledsim_dialog').outerHeight() - $('#ledsim_text').outerHeight() - $('[data-role=footer]').outerHeight() - $('[data-role=header]').outerHeight() - 40;
     canvas_width = $('#ledsim_dialog').outerWidth() - 30;
 
-    $("[id$=_preview_canv]").prop({"width": canvas_width, "height": canvas_height});
+    $("[id$=_preview_canv]").prop({ "width": canvas_width, "height": canvas_height });
     $("body").get(0).style.setProperty("--width-var", canvas_width + "px");
     $("body").get(0).style.setProperty("--height-var", canvas_height + "px");
 
@@ -261,7 +266,7 @@ $(document).ready(function () {
       $("body").get(0).style.setProperty("--background-var", "none");
     }
     else {
-      printLedsToCanvas(event.response.result.leds)
+      printLedsToCanvas(event.response.data.leds)
       $("body").get(0).style.setProperty("--background-var", "url(" + ($('#leds_preview_canv')[0]).toDataURL("image/jpg") + ") no-repeat top left");
     }
   });
@@ -275,7 +280,7 @@ $(document).ready(function () {
       }
     }
     else {
-      var imageData = (event.response.result.image);
+      var imageData = (event.response.data.image);
 
       var image = new Image();
       image.onload = function () {
@@ -294,7 +299,6 @@ $(document).ready(function () {
 
     var obj = event.response.data
     if (obj.leds || obj.grabberV4L2) {
-      //console.log("ledsim: cmd-settings-update", event.response.data);
       Object.getOwnPropertyNames(obj).forEach(function (val, idx, array) {
         window.serverInfo[val] = obj[val];
       });
@@ -305,11 +309,8 @@ $(document).ready(function () {
   });
 
   $(window.hyperion).on("cmd-priorities-update", function (event) {
-    //console.log("cmd-priorities-update", event.response.data);
-
     var prios = event.response.data.priorities;
-    if (prios.length > 0)
-    {
+    if (prios.length > 0) {
       //Clear image when new input
       if (prios[0].componentId !== activeComponent) {
         resetImage();
@@ -323,6 +324,19 @@ $(document).ready(function () {
       resetImage();
     }
 
+  });
+
+  $(window.hyperion).on("cmd-instance-switchTo", function (event) {
+    if (modalOpened) {
+      if (!isCurrentInstanceRunning()) {
+        dialog.close();
+        return;
+      }
+
+      const titleText = $.i18n('main_ledsim_title') + " - " + getCurrentInstanceName();
+      // Update the title inside the Gijgo modal dialog
+      $("#ledsim_dialog").find(".modal-title").text(titleText);
+    }
   });
 
   function resetImage() {
@@ -340,3 +354,4 @@ $(document).ready(function () {
     }
   }
 });
+

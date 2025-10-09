@@ -1,0 +1,153 @@
+#!/bin/sh
+
+# echo "--- postinst called with args: " $1 $2
+
+# If $1=configure and $2 is set, this is an upgrade
+if [ "$1" = configure ] && [ "$2" != "" ]; then
+	IS_UPGRADE=true
+else
+	IS_UPGRADE=false
+fi
+
+install_file()
+{
+	src="$1"
+	dest="$2"
+
+	if [ ! -e "$dest" ]
+	then
+		cp "$src" "${dest}"
+		return 1
+	else
+		echo "--> Service file already exists, skip creation"
+		return 0
+	fi
+}
+
+echo "--- Hyperion ambient light postinstall ---"
+
+#get current system ip
+NET_IP=`hostname -I | cut -d " " -f1`
+
+START_MSG=""
+
+# service registration if no gui is present (only on initial installation and not upgrade)
+if [ "$IS_UPGRADE" = false ]; then
+	if [ -z "${DISPLAY}" ] && [ -z "${WAYLAND_DISPLAY}" ] && [ -z "${XDG_CURRENT_DESKTOP}" ]; then
+		STARTUP_MSG="echo ---> Hyperion has been installed as service, it will start on each system startup"
+
+		if grep -m1 systemd /proc/1/comm > /dev/null
+		then
+			# systemd
+			echo "---> init deamon: systemd"
+			FOUND_USR=${SUDO_USER:-root}
+			install_file /usr/share/hyperion/service/hyperion.systemd /etc/systemd/system/hyperion@.service
+			systemctl enable hyperion"@${FOUND_USR}".service
+			START_MSG="--> systemctl start hyperion for user ${FOUND_USR}"
+			systemctl start hyperion"@${FOUND_USR}"
+		elif [ -e /sbin/initctl ]
+		then
+			# upstart
+			echo "---> init deamon: upstart"
+			install_file /usr/share/hyperion/service/hyperion.initctl /etc/init/hyperion.conf && initctl reload-configuration
+			START_MSG="--> initctl start hyperion"
+			initctl start hyperion
+		else
+			# sysV
+			echo "---> init deamon: sysV"
+			install_file /usr/share/hyperion/service/hyperion.init /etc/init.d/hyperion && chmod +x /etc/init.d/hyperion && update-rc.d hyperion defaults 98 02
+			START_MSG="---> service hyperion start"
+			service hyperion start
+		fi
+
+		#after registration cleanup service files
+		rm -r /usr/share/hyperion/service 2>/dev/null
+	else
+		STARTUP_MSG="echo ---> You can start Hyperion from your menu now"
+	fi
+else
+	if [ -z "${DISPLAY}" ] && [ -z "${WAYLAND_DISPLAY}" ] && [ -z "${XDG_CURRENT_DESKTOP}" ]; then
+		#cleanup service files also on upgrade (non gui user)
+		rm -r /usr/share/hyperion/service 2>/dev/null
+		#start existing service on upgrade
+		CURRENT_SERVICE=$(systemctl list-units --all | { grep -o "hyperion*.*\.service" || true; })
+		if [ ! -z ${CURRENT_SERVICE} ]; then
+			systemctl start "${CURRENT_SERVICE}"
+		fi
+	fi
+fi
+
+#link binarys and set exec bit
+BINSP=/usr/share/hyperion
+BINTP=/usr/bin
+chmod +x -R $BINSP/bin $BINSP/scripts
+ln -fs $BINSP/bin/hyperiond $BINTP/hyperiond
+ln -fs $BINSP/bin/hyperion-remote $BINTP/hyperion-remote
+ln -fs $BINSP/bin/hyperion-v4l2 $BINTP/hyperion-v4l2
+ln -fs $BINSP/bin/hyperion-framebuffer $BINTP/hyperion-framebuffer 2>/dev/null
+ln -fs $BINSP/bin/hyperion-dispmanx $BINTP/hyperion-dispmanx 2>/dev/null
+ln -fs $BINSP/bin/hyperion-x11 $BINTP/hyperion-x11 2>/dev/null
+ln -fs $BINSP/bin/hyperion-xcb $BINTP/hyperion-xcb 2>/dev/null
+ln -fs $BINSP/bin/hyperion-aml $BINTP/hyperion-aml 2>/dev/null
+ln -fs $BINSP/bin/hyperion-qt $BINTP/hyperion-qt 2>/dev/null
+
+#create symlink for updateHyperionUser.sh script
+ln -fs $BINSP/scripts/updateHyperionUser.sh $BINTP/updateHyperionUser 2>/dev/null
+
+# install desktop icons (only on initial installation and not upgrade)
+if [ "$IS_UPGRADE" = false ]; then
+	if [ ! -z "${DISPLAY}" ] || [ ! -z "${WAYLAND_DISPLAY}" ] || [ ! -z "${XDG_CURRENT_DESKTOP}" ]; then
+		echo "---> Install Hyperion desktop icons"
+		cp -R /usr/share/hyperion/icons/* /usr/share/icons/hicolor/ 2>/dev/null
+		cp /usr/share/hyperion/desktop/hyperion.metainfo.xml /usr/share/metainfo 2>/dev/null
+
+		if [ -x "$(command -v desktop-file-install )" ]; then
+			desktop-file-install /usr/share/hyperion/desktop/hyperion.desktop 2>/dev/null
+		else
+			# On some systems this directory doesn't exist by default
+			mkdir -p /usr/share/applications
+			cp /usr/share/hyperion/desktop/hyperion.desktop /usr/share/applications
+		fi
+			
+		# update desktop-database (if exists)
+		if [ -x "$(command -v update-desktop-database)" ]; then
+			update-desktop-database -q /usr/share/applications
+			update-desktop-database -q /usr/share/icons/hicolor
+		fi
+	fi
+fi
+
+# cleanup desktop and icons
+rm -r /usr/share/hyperion/desktop 2>/dev/null
+rm -r /usr/share/hyperion/icons 2>/dev/null
+
+echo ${START_MSG}
+
+echo "-----------------------------------------------------------------------------"
+if [ "$IS_UPGRADE" = true ]; then
+	echo "---> Hyperion has been upgraded!"
+else
+	echo "---> Hyperion has been installed!"
+fi
+echo "---> "
+$STARTUP_MSG
+echo "---> For configuration, visit with your browser: ${NET_IP}:8090"
+echo "---> or if already used by another service try: ${NET_IP}:8091"
+$REBOOTMESSAGE
+echo "-----------------------------------------------------------------------------"
+echo "Webpage: www.hyperion-project.org"
+echo "Forum: www.hyperion-project.org"
+echo "Documentation: docs.hyperion-project.org"
+echo "-----------------------------------------------------------------------------"
+
+
+if [ -e /opt/hyperion/ ]
+then
+	echo
+	echo "---------------------------------------------------------------------------------"
+	echo "- It seems that you have an older version of hyperion installed in /opt/hyperion -"
+	echo "- please remove it to avoid problems                                            -"
+	echo "---------------------------------------------------------------------------------"
+fi
+
+exit 0

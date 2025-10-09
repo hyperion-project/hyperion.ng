@@ -7,6 +7,7 @@
 		<file alias="schema-dmx">schemas/schema-dmx.json</file>
 		<file alias="schema-fadecandy">schemas/schema-fadecandy.json</file>
 		<file alias="schema-file">schemas/schema-file.json</file>
+		<file alias="schema-homeassistant">schemas/schema-homeassistant.json</file>
 		<file alias="schema-hyperionusbasp">schemas/schema-hyperionusbasp.json</file>
 		<file alias="schema-lightpack">schemas/schema-lightpack.json</file>
 		<file alias="schema-lpd6803">schemas/schema-lpd6803.json</file>
@@ -38,5 +39,10 @@
 		<file alias="schema-yeelight">schemas/schema-yeelight.json</file>
 		<file alias="schema-razer">schemas/schema-razer.json</file>		
 		<file alias="schema-cololight">schemas/schema-cololight.json</file>
+		<file alias="schema-ws2812_ftdi">schemas/schema-ws2812_ftdi.json</file>
+		<file alias="schema-apa102_ftdi">schemas/schema-apa102_ftdi.json</file>
+		<file alias="schema-sk6812_ftdi">schemas/schema-sk6812_ftdi.json</file>
+		<file alias="schema-skydimo">schemas/schema-skydimo.json</file>
+                <file alias="schema-hd108">schemas/schema-hd108.json</file>		
 	</qresource>
 </RCC>

@@ -1,13 +1,21 @@
-#include <grabber/OsxWrapper.h>
+#include <grabber/osx/OsxWrapper.h>
 
 OsxWrapper::OsxWrapper( int updateRate_Hz,
 						int display,
 						int pixelDecimation
 						)
-	: GrabberWrapper("OSX", &_grabber, updateRate_Hz)
-	  , _grabber(display)
+	: GrabberWrapper(GRABBERTYPE, &_grabber, updateRate_Hz)
+	, _grabber(display)
 {
 	_grabber.setPixelDecimation(pixelDecimation);
+}
+
+OsxWrapper::OsxWrapper(const QJsonDocument& grabberConfig)
+	: OsxWrapper(GrabberWrapper::DEFAULT_RATE_HZ,
+				 kCGDirectMainDisplay,
+				 GrabberWrapper::DEFAULT_PIXELDECIMATION)
+{
+	this->handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
 }
 
 void OsxWrapper::action()

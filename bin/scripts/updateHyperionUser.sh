@@ -70,7 +70,7 @@ if [[ ! -z ${CURRENT_SERVICE} ]]; then
 		exit 0;
 	fi
 	echo "Disable current service: ${CURRENT_SERVICE}"
-	systemctl is-active --quiet ${CURRENT_SERVICE} && systemctl disable --quiet ${CURRENT_SERVICE} --now >/dev/null 2>&1
+        systemctl disable --quiet ${CURRENT_SERVICE} --now >/dev/null 2>&1
 fi
 
 HYPERION="hyperion"
@@ -84,9 +84,5 @@ NEW_SERVICE="${HYPERION}@${USERNAME}.service"
 echo "Restarting Hyperion Service: ${NEW_SERVICE}"
 systemctl enable --quiet ${NEW_SERVICE} --now >/dev/null 2>&1
 
-# Update HyperBian splash screen
-sed -i "s/${CURRENT_SERVICE}/${NEW_SERVICE}/" /etc/update-motd.d/10-hyperbian >/dev/null 2>&1
-
 echo "Done."
 exit 0
-

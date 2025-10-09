@@ -18,12 +18,13 @@ class CaptureCont : public QObject
 public:
 	CaptureCont(Hyperion* hyperion);
 
-	void setSystemCaptureEnable(bool enable);
-	void setV4LCaptureEnable(bool enable);
+	void setScreenCaptureEnable(bool enable);
+	void setVideoCaptureEnable(bool enable);
+	void setAudioCaptureEnable(bool enable);
 
 private slots:
 	///
-	/// @brief Handle component state change of V4L and SystemCapture
+	/// @brief Handle component state change of Video- (V4L/MF) and Screen capture
 	/// @param component  The component from enum
 	/// @param enable     The new state
 	///
@@ -37,40 +38,58 @@ private slots:
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 	///
-	/// @brief forward system image
+	/// @brief forward screen image
 	/// @param image  The image
 	///
-	void handleSystemImage(const QString& name, const Image<ColorRgb>& image);
+	void handleScreenImage(const QString& name, const Image<ColorRgb>& image);
 
 	///
-	/// @brief forward v4l image
+	/// @brief forward video (v4l, MF) image
 	/// @param image  The image
 	///
-	void handleV4lImage(const QString& name, const Image<ColorRgb> & image);
+	void handleVideoImage(const QString& name, const Image<ColorRgb> & image);
 
 	///
-	/// @brief Is called from _v4lInactiveTimer to set source after specific time to inactive
+	/// @brief forward audio image
+	/// @param image  The image
 	///
-	void setV4lInactive();
+	void handleAudioImage(const QString& name, const Image<ColorRgb>& image);
 
 	///
-	/// @brief Is called from _systemInactiveTimer to set source after specific time to inactive
+	/// @brief Sets the video source to inactive
 	///
-	void setSystemInactive();
+	void onVideoIsInactive();
+
+	///
+	/// @brief Sets the screen source to inactive
+	///
+	void onScreenIsInactive();
+
+	///
+	/// @brief Sets the audio source to inactive
+	///
+	void onAudioIsInactive();
+
 
 private:
 	/// Hyperion instance
 	Hyperion* _hyperion;
 
-	/// Reflect state of System capture and prio
-	bool _systemCaptEnabled;
-	quint8 _systemCaptPrio;
-	QString _systemCaptName;
-	QTimer* _systemInactiveTimer;
+	/// Reflect state of screen capture and prio
+	bool _screenCaptureEnabled;
+	int _screenCapturePriority;
+	QString _screenCaptureName;
+	QTimer* _screenCaptureInactiveTimer;
 
-	/// Reflect state of v4l capture and prio
-	bool _v4lCaptEnabled;
-	quint8 _v4lCaptPrio;
-	QString _v4lCaptName;
-	QTimer* _v4lInactiveTimer;
+	/// Reflect state of video capture and prio
+	bool _videoCaptureEnabled;
+	int _videoCapturePriority;
+	QString _videoCaptureName;
+	QTimer* _videoInactiveTimer;
+
+	/// Reflect state of audio capture and prio
+	bool _audioCaptureEnabled;
+	int _audioCapturePriority;
+	QString _audioCaptureName;
+	QTimer* _audioCaptureInactiveTimer;
 };

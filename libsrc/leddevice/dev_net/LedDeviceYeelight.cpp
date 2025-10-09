@@ -82,7 +82,6 @@ const char API_PROP_BRIGHT[] = "bright";
 // List of Result Information
 const char API_RESULT_ID[] = "id";
 const char API_RESULT[] = "result";
-//const char API_RESULT_OK[] = "OK";
 
 // List of Error Information
 const char API_ERROR[] = "error";
@@ -383,16 +382,12 @@ bool YeelightLight::streamCommand( const QJsonDocument &command )
 	{
 		log ( 2, "Info:", "Skip write. Device is in error");
 	}
-
-	//log (2,"streamCommand() rc","%d, isON[%d], isInMusicMode[%d]", rc, _isOn, _isInMusicMode );
 	return rc;
 }
 
 YeelightResponse YeelightLight::handleResponse(int correlationID, QByteArray const &response )
 {
 	log (3,"handleResponse()","" );
-
-	//std::cout << _name.toStdString() <<"| Response: [" << response.toStdString() << "]" << std::endl << std::flush;
 
 	YeelightResponse yeeResponse;
 	QString errorReason;
@@ -446,8 +441,6 @@ YeelightResponse YeelightLight::handleResponse(int correlationID, QByteArray con
 		else
 		{
 			int id = jsonObj[API_RESULT_ID].toInt();
-			//log ( 3, "Correlation ID:", "%d", id );
-
 			if ( id != correlationID && TEST_CORRELATION_IDS)
 			{
 				errorReason = QString ("%1| API is out of sync, received ID [%2], expected [%3]").
@@ -528,9 +521,6 @@ QJsonObject YeelightLight::getProperties()
 	log (3,"getProperties()","" );
 	QJsonObject properties;
 
-	//Selected properties
-	//QJsonArray propertyList = { API_PROP_NAME, API_PROP_MODEL, API_PROP_POWER, API_PROP_RGB, API_PROP_BRIGHT, API_PROP_CT, API_PROP_FWVER };
-
 	//All properties
 	QJsonArray propertyList = {"power","bright","ct","rgb","hue","sat","color_mode","flowing","delayoff","music_on","name","bg_power","bg_flowing","bg_ct","bg_bright","bg_hue","bg_sat","bg_rgb","nl_br","active_mode" };
 
@@ -578,9 +568,6 @@ bool YeelightLight::identify()
 	Brightness:	10
 	*/
 	QJsonArray colorflowParams = { API_PROP_COLORFLOW, 6, 0, "500,1,100,100,500,1,16711696,10"};
-
-	//Blink White
-	//QJsonArray colorflowParams = { API_PROP_COLORFLOW, 6, 0, "500,2,4000,1,500,2,4000,50"};
 
 	QJsonDocument command = getCommand( API_METHOD_SETSCENE, colorflowParams );
 
@@ -819,7 +806,6 @@ bool YeelightLight::setColorRGB(const ColorRgb &color)
 			rc = false;
 		}
 	}
-	//log (2,"setColorRGB() rc","%d, isON[%d], isInMusicMode[%d]", rc, _isOn, _isInMusicMode );
 	return rc;
 }
 
@@ -914,7 +900,7 @@ bool YeelightLight::setColorHSV(const ColorRgb &colorRGB)
 	}
 	else
 	{
-		//log ( 3, "setColorHSV", "Skip update. Same Color as before");
+		// Skip update. Same Color as before
 	}
 	log( 3,
 		 "setColorHSV() rc",
@@ -1020,7 +1006,7 @@ LedDeviceYeelight::LedDeviceYeelight(const QJsonObject &deviceConfig)
 	  ,_musicModeServerPort(-1)
 {
 #ifdef ENABLE_MDNS
-	QMetaObject::invokeMethod(&MdnsBrowser::getInstance(), "browseForServiceType",
+	QMetaObject::invokeMethod(MdnsBrowser::getInstance().data(), "browseForServiceType",
 							   Qt::QueuedConnection, Q_ARG(QByteArray, MdnsServiceRegister::getServiceType(_activeDeviceType)));
 #endif
 }
@@ -1055,7 +1041,7 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 
 		if ( deviceConfig[ CONFIG_COLOR_MODEL ].isString() )
 		{
-			_outputColorModel = deviceConfig[ CONFIG_COLOR_MODEL ].toString(QString(QChar(MODEL_RGB))).toInt();
+			_outputColorModel = deviceConfig[ CONFIG_COLOR_MODEL ].toString(QString::number(MODEL_RGB)).toInt();
 		}
 		else
 		{
@@ -1064,7 +1050,7 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 
 		if ( deviceConfig[ CONFIG_TRANS_EFFECT ].isString() )
 		{
-			_transitionEffect = static_cast<YeelightLight::API_EFFECT>( deviceConfig[ CONFIG_TRANS_EFFECT ].toString(QString(QChar(YeelightLight::API_EFFECT_SMOOTH))).toInt() );
+			_transitionEffect = static_cast<YeelightLight::API_EFFECT>( deviceConfig[ CONFIG_TRANS_EFFECT ].toString(QString::number(YeelightLight::API_EFFECT_SMOOTH)).toInt() );
 		}
 		else
 		{
@@ -1405,7 +1391,7 @@ QJsonObject LedDeviceYeelight::discover(const QJsonObject& /*params*/)
 
 #ifdef ENABLE_MDNS
 	QString discoveryMethod("mDNS");
-	deviceList = MdnsBrowser::getInstance().getServicesDiscoveredJson(
+	deviceList = MdnsBrowser::getInstance().data()->getServicesDiscoveredJson(
 		MdnsServiceRegister::getServiceType(_activeDeviceType),
 		MdnsServiceRegister::getServiceNameFilter(_activeDeviceType),
 		DEFAULT_DISCOVER_TIMEOUT
@@ -1471,7 +1457,6 @@ void LedDeviceYeelight::identify(const QJsonObject& params)
 
 int LedDeviceYeelight::write(const std::vector<ColorRgb> & ledValues)
 {
-	//DebugIf(verbose, _log, "enabled [%d], _isDeviceReady [%d]", _isEnabled, _isDeviceReady);
 	int rc = -1;
 
 	//Update on all Yeelights by iterating through lights and set colors.
@@ -1545,8 +1530,5 @@ int LedDeviceYeelight::write(const std::vector<ColorRgb> & ledValues)
 		// Minimum one Yeelight device is working, continue updating devices
 		rc = 0;
 	}
-
-	//DebugIf(verbose, _log, "rc [%d]", rc );
-
 	return rc;
 }

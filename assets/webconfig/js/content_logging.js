@@ -3,9 +3,12 @@ var createdCont = false;
 var isScroll = true;
 
 performTranslation();
-requestLoggingStop();
 
 $(document).ready(function () {
+
+  window.addEventListener('hashchange', function (event) {
+    requestLoggingStop();
+  });
 
   requestLoggingStart();
 
@@ -33,49 +36,76 @@ $(document).ready(function () {
   });
 
   function infoSummary() {
-    var info = "";
+    let info = '';
 
-    info += 'Hyperion System Summary Report (' + window.serverConfig.general.name + '), Reported instance: ' + window.currentHyperionInstanceName + '\n';
+    const serverConfig = window.serverConfig ?? {};
+    const currentInstance = window.currentHyperionInstance;
+    const currentInstanceName = window.currentHyperionInstanceName ?? 'Unknown';
 
-    info += "\n< ----- System information -------------------- >\n";
-    info += getSystemInfo() + '\n';
+    info += `Hyperion System Summary Report (${serverConfig.general?.name ?? 'Unknown'})\n`;
 
-    info += "\n< ----- Configured Instances ------------------ >\n";
-    var instances = window.serverInfo.instance;
-    for (var i = 0; i < instances.length; i++) {
-      info += instances[i].instance + ': ' + instances[i].friendly_name + ' Running: ' + instances[i].running + '\n';
+    if (currentInstance !== null) {
+      info += `Reported instance: [${currentInstance}] - ${currentInstanceName}\n`;
     }
 
-    info += "\n< ----- This instance's priorities ------------ >\n";
-    var prios = window.serverInfo.priorities;
-    for (var i = 0; i < prios.length; i++) {
-      info += prios[i].priority + ': ';
-      if (prios[i].visible) {
-        info += ' VISIBLE!';
+    info += `\n< ----- System information -------------------- >\n`;
+    info += `${getSystemInfo()}\n`;
+
+    // Configured Instances
+    info += `\n< ----- Configured Instances ------------------ >\n`;
+    const instances = serverInfo.instance ?? [];
+
+    if (instances.length > 0) {
+      info += instances.map(inst =>
+        `${inst.instance ?? 'Unknown Instance'}: ${inst.friendly_name ?? 'Unnamed'}, Running: ${inst.running ?? 'Unknown'}`
+      ).join('\n') + '\n';
+
+      // Priorities (Only shown if instances exist)
+      info += `\n< ----- This instance's priorities ------------ >\n`;
+      const priorities = serverInfo.priorities ?? [];
+
+      if (priorities.length > 0) {
+        info += priorities.map(prio => {
+          const priorityStr = prio.priority?.toString().padStart(3, '0') ?? 'N/A';
+          return `${priorityStr}: ${prio.visible ? 'VISIBLE   -' : 'INVISIBLE -'} (${prio.componentId ?? 'Unknown Component'})` +
+            (prio.owner ? ` (Owner: ${prio.owner})` : '');
+        }).join('\n') + '\n';
+      } else {
+        info += `The current priority list is empty or unavailable!\n`;
       }
-      else {
-        info += '         ';
+
+      info += `Autoselect: ${serverInfo.priorities_autoselect ?? 'N/A'}\n`;
+
+      // Components Status (Only shown if instances exist)
+      info += `\n< ----- This instance components' status ------->\n`;
+      const components = serverInfo.components ?? [];
+
+      if (components.length > 0) {
+        info += components.map(comp =>
+          `${comp.name} - ${comp.enabled ?? 'Unknown'}`
+        ).join('\n') + '\n';
+      } else {
+        info += `No components found or unavailable!\n`;
       }
-      info += ' (' + prios[i].componentId + ') Owner: ' + prios[i].owner + '\n';
-    }
-    info += 'priorities_autoselect: ' + window.serverInfo.priorities_autoselect + '\n';
-
-    info += "\n< ----- This instance components' status ------->\n";
-    var comps = window.serverInfo.components;
-    for (var i = 0; i < comps.length; i++) {
-      info += comps[i].name + ' - ' + comps[i].enabled + '\n';
-    }
-
-    info += "\n< ----- This instance's configuration --------- >\n";
-    info += JSON.stringify(window.serverConfig) + '\n';
-
-    info += "\n< ----- Current Log --------------------------- >\n";
-    var logMsgs = document.getElementById("logmessages").textContent;
-    if (logMsgs.length !== 0) {
-      info += logMsgs;
     } else {
-      info += "Log is empty!";
+      info += `No instances are configured!\n`;
     }
+
+    // Configuration
+    const config = transformConfig(serverConfig, currentInstance);
+    info += `\n< ----- Global configuration items------------- >\n`;
+    info += `${JSON.stringify(config.global, null, 2)}\n`;
+
+    if (instances.length > 0) {
+      info += `\n< ----- Selected Instance configuration items-- >\n`;
+      info += `${JSON.stringify(config.instances, null, 2)}\n`;
+    }
+
+    // Log Messages
+    info += `\n< ----- Current Log --------------------------- >\n`;
+    const logMessages = document.getElementById("logmessages")?.textContent.trim() ?? '';
+
+    info += logMessages.length > 0 ? logMessages : "Log is empty!";
 
     return info;
   }
@@ -163,9 +193,9 @@ $(document).ready(function () {
   if (!window.loggingHandlerInstalled) {
     window.loggingHandlerInstalled = true;
 
-    $(window.hyperion).on("cmd-logging-update", function (event) {
+    $(window.hyperion).on("cmd-logmsg-update", function (event) {
 
-      var messages = (event.response.result.messages);
+      var messages = (event.response.data.messages);
 
       if (messages.length != 0) {
         if (!createdCont) {
@@ -193,18 +223,19 @@ $(document).ready(function () {
   });
 
   // toggle fullscreen button in log output
-  $(".fullscreen-btn").mousedown(function(e) {
+  $(".fullscreen-btn").mousedown(function (e) {
     e.preventDefault();
   });
 
-  $(".fullscreen-btn").click(function(e) {
+  $(".fullscreen-btn").click(function (e) {
     e.preventDefault();
     $(this).children('i')
       .toggleClass('fa-expand')
       .toggleClass('fa-compress');
     $('#conf_cont').toggle();
-    $('#logmessages').css('max-height', $('#logmessages').css('max-height') !== 'none' ? 'none' : '400px' );
+    $('#logmessages').css('max-height', $('#logmessages').css('max-height') !== 'none' ? 'none' : '400px');
   });
 
   removeOverlay();
 });
+

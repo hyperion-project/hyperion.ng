@@ -4,7 +4,7 @@
 #include <QTimer>
 
 // Hyperion-Qt includes
-#include <grabber/QtGrabber.h>
+#include <grabber/qt/QtGrabber.h>
 #include <hyperion/GrabberWrapper.h>
 
 class QtWrapper : public QObject
@@ -29,7 +29,7 @@ public:
 
 	void stop();
 
-	bool displayInit();
+	bool screenInit();
 
 signals:
 	void sig_screenshot(const Image<ColorRgb> & screenshot);

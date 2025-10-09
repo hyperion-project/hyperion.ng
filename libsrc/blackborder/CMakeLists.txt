@@ -1,11 +1,9 @@
-
-# Define the current source locations
-SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/blackborder)
-SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/blackborder)
-
-FILE ( GLOB Blackborder_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
-
-add_library(blackborder	${Blackborder_SOURCES} )
+add_library(blackborder
+	${CMAKE_SOURCE_DIR}/include/blackborder/BlackBorderDetector.h
+	${CMAKE_SOURCE_DIR}/include/blackborder/BlackBorderProcessor.h
+	${CMAKE_SOURCE_DIR}/libsrc/blackborder/BlackBorderDetector.cpp
+	${CMAKE_SOURCE_DIR}/libsrc/blackborder/BlackBorderProcessor.cpp
+)
 
 target_link_libraries(blackborder
  	hyperion-utils

@@ -4,7 +4,7 @@
 #include <utils/ColorSys.h>
 
 /// Clamps between 0.f and 1.f. Should generally be branchless
-double clamp(double value)
+inline double clamp(double value)
 {
 	return std::max(0.0, std::min(value, 1.0));
 }

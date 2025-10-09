@@ -7,148 +7,255 @@
 //qt includes
 #include <QRegularExpression>
 #include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonDocument>
 #include <QJsonParseError>
+#include <QStringList>
 
 namespace JsonUtils {
 
-	bool readFile(const QString& path, QJsonObject& obj, Logger* log, bool ignError)
+QPair<bool, QStringList> readFile(const QString& path, QJsonObject& obj, Logger* log, bool ignError)
+{
+	QJsonValue value(obj);
+
+	QPair<bool, QStringList> result = readFile(path, value,log, ignError);
+	obj = value.toObject();
+	return result;
+}
+
+QPair<bool, QStringList> readFile(const QString& path, QJsonValue& obj, Logger* log, bool ignError)
+{
+	QString data;
+	if(!FileUtils::readFile(path, data, log, ignError))
 	{
-		QString data;
-		if(!FileUtils::readFile(path, data, log, ignError))
-			return false;
-
-		if(!parse(path, data, obj, log))
-			return false;
-
-		return true;
+		return qMakePair(false, QStringList(QString("Error reading file: %1").arg(path)));
 	}
 
-	bool readSchema(const QString& path, QJsonObject& obj, Logger* log)
+	QPair<bool, QStringList> parsingResult = JsonUtils::parse(path, data, obj, log);
+	return parsingResult;
+}
+
+
+bool readSchema(const QString& path, QJsonObject& obj, Logger* log)
+{
+	QJsonObject schema;
+	if(!readFile(path, schema, log).first)
 	{
-		QJsonObject schema;
-		if(!readFile(path, schema, log))
-			return false;
-
-		if(!resolveRefs(schema, obj, log))
-			return false;
-
-		return true;
+		return false;
 	}
 
-	bool parse(const QString& path, const QString& data, QJsonObject& obj, Logger* log)
+	if(!resolveRefs(schema, obj, log))
 	{
-		QJsonDocument doc;
-		if(!parse(path, data, doc, log))
-			return false;
-
-		obj = doc.object();
-		return true;
+		return false;
 	}
 
-	bool parse(const QString& path, const QString& data, QJsonArray& arr, Logger* log)
+	return true;
+}
+
+QPair<bool, QStringList> parse(const QString& path, const QString& data, QJsonObject& obj, Logger* log)
+{
+	QJsonValue value(obj);
+
+	QPair<bool, QStringList> result = JsonUtils::parse(path, data, value, log);
+	obj = value.toObject();
+	return result;
+}
+
+QPair<bool, QStringList> parse(const QString& path, const QString& data, QJsonArray& arr, Logger* log)
+{
+	QJsonValue value(arr);
+
+	QPair<bool, QStringList> result = JsonUtils::parse(path, data, value, log);
+	arr = value.toArray();
+	return result;
+}
+
+QPair<bool, QStringList> parse(const QString& path, const QString& data, QJsonValue& value, Logger* log)
+{
+	QJsonDocument doc;
+	QPair<bool, QStringList> parsingResult = JsonUtils::parse(path, data, doc, log);
+	value = doc.object();
+	return parsingResult;
+}
+
+QPair<bool, QStringList> parse(const QString& path, const QString& data, QJsonDocument& doc, Logger* log)
+{
+	QStringList errorList;
+
+	QJsonParseError error;
+	doc = QJsonDocument::fromJson(data.toUtf8(), &error);
+
+	if (error.error != QJsonParseError::NoError)
 	{
-		QJsonDocument doc;
-		if(!parse(path, data, doc, log))
-			return false;
+		qsizetype errorLine = 1;
+		qsizetype errorColumn = 1;
 
-		arr = doc.array();
-		return true;
-	}
-
-	bool parse(const QString& path, const QString& data, QJsonDocument& doc, Logger* log)
-	{
-		//remove Comments in data
-		QString cleanData = data;
-		//cleanData .remove(QRegularExpression("([^:]?\\/\\/.*)"));
-
-		QJsonParseError error;
-		doc = QJsonDocument::fromJson(cleanData.toUtf8(), &error);
-
-		if (error.error != QJsonParseError::NoError)
+		qsizetype const lastNewlineIndex = data.lastIndexOf("\n", error.offset - 1);
+		if (lastNewlineIndex != -1)
 		{
-			// report to the user the failure and their locations in the document.
-			int errorLine(0), errorColumn(0);
-
-			for( int i=0, count=qMin( error.offset,cleanData.size()); i<count; ++i )
-			{
-				++errorColumn;
-				if(data.at(i) == '\n' )
-				{
-					errorColumn = 0;
-					++errorLine;
-				}
-			}
-			Error(log, "Failed to parse json data from %s: Error: %s at Line: %i, Column: %i, Data: '%s'", QSTRING_CSTR(path), QSTRING_CSTR(error.errorString()), errorLine, errorColumn, QSTRING_CSTR(data));
-			return false;
+			errorColumn = error.offset - lastNewlineIndex ;
 		}
-		return true;
+		errorLine += data.left(error.offset).count('\n');
+
+		const QString errorMessage = QString("JSON parse error @(%1): %2, line: %3, column: %4, Data: '%5'")
+									 .arg(path, error.errorString())
+									 .arg(errorLine)
+									 .arg(errorColumn)
+									 .arg(data);
+		errorList.push_back(errorMessage);
+		Error(log, "%s", QSTRING_CSTR(errorMessage));
+
+		return qMakePair(false, errorList);
+	}
+	return qMakePair(true, errorList);
+}
+
+QPair<bool, QStringList> validate(const QString& file, const QJsonValue& json, const QString& schemaPath, Logger* log)
+{
+	// get the schema data
+	QJsonObject schema;
+
+	QPair<bool, QStringList> readResult = readFile(schemaPath, schema, log);
+	if(!readResult.first)
+	{
+		return readResult;
 	}
 
-	bool validate(const QString& file, const QJsonObject& json, const QString& schemaPath, Logger* log)
+	QPair<bool, QStringList> validationResult = validate(file, json, schema, log);
+	return validationResult;
+}
+
+QPair<bool, QStringList> validate(const QString& file, const QJsonValue& json, const QJsonObject& schema, Logger* log)
+{
+	QStringList errorList;
+
+	QJsonSchemaChecker schemaChecker;
+	schemaChecker.setSchema(schema);
+	if (!schemaChecker.validate(json).first)
 	{
-		// get the schema data
-		QJsonObject schema;
-		if(!readFile(schemaPath, schema, log))
-			return false;
-
-		if(!validate(file, json, schema, log))
-			return false;
-		return true;
-
-	}
-
-	bool validate(const QString& file, const QJsonObject& json, const QJsonObject& schema, Logger* log)
-	{
-		QJsonSchemaChecker schemaChecker;
-		schemaChecker.setSchema(schema);
-		if (!schemaChecker.validate(json).first)
+		const QStringList &errors = schemaChecker.getMessages();
+		for (const auto& error : errors)
 		{
-			const QStringList & errors = schemaChecker.getMessages();
-			for (auto & error : errors)
-			{
-				Error(log, "While validating schema against json data of '%s':%s", QSTRING_CSTR(file), QSTRING_CSTR(error));
-			}
-			return false;
+			QString const errorMessage = QString("JSON parse error @(%1) -  %2")
+								   .arg(file, error);
+			errorList.push_back(errorMessage);
+			Error(log, "%s", QSTRING_CSTR(errorMessage));
 		}
-		return true;
+		return qMakePair(false, errorList);
 	}
+	return qMakePair(true, errorList);
+}
 
-	bool write(const QString& filename, const QJsonObject& json, Logger* log)
+QPair<bool, QStringList> correct(const QString& file, QJsonValue& json, const QJsonObject& schema, Logger* log)
+{
+	bool wasCorrected {false};
+	QStringList corrections;
+
+	QJsonSchemaChecker schemaChecker;
+	schemaChecker.setSchema(schema);
+	if (!schemaChecker.validate(json).first)
 	{
-		QJsonDocument doc;
+		Warning(log, "Fixing JSON data!");
+		json = schemaChecker.getAutoCorrectedConfig(json);
+		wasCorrected = true;
 
-		doc.setObject(json);
-		QByteArray data = doc.toJson(QJsonDocument::Indented);
-
-		if(!FileUtils::writeFile(filename, data, log))
-			return false;
-
-		return true;
-	}
-
-	bool resolveRefs(const QJsonObject& schema, QJsonObject& obj, Logger* log)
-	{
-		for (QJsonObject::const_iterator i = schema.begin(); i != schema.end(); ++i)
+		const QStringList &correctionMessages = schemaChecker.getMessages();
+		for (const auto& correction : correctionMessages)
 		{
-			QString attribute = i.key();
-			const QJsonValue & attributeValue = *i;
+			QString const message = QString("JSON fix @(%1) -  %2")
+							  .arg(file, correction);
+			corrections.push_back(message);
+			Warning(log, "%s", QSTRING_CSTR(message));
+		}
+	}
+	return qMakePair(wasCorrected, corrections);
+}
 
-			if (attribute == "$ref" && attributeValue.isString())
+bool write(const QString& filename, const QJsonObject& json, Logger* log)
+{
+	QJsonDocument doc;
+
+	doc.setObject(json);
+	QByteArray const data = doc.toJson(QJsonDocument::Indented);
+
+	return FileUtils::writeFile(filename, data, log);
+}
+
+bool resolveRefs(const QJsonObject& schema, QJsonObject& obj, Logger* log)
+{
+	for (QJsonObject::const_iterator i = schema.begin(); i != schema.end(); ++i)
+	{
+		QString const attribute = i.key();
+		const QJsonValue & attributeValue = *i;
+
+		if (attribute == "$ref" && attributeValue.isString())
+		{
+			if(!readSchema(":/" + attributeValue.toString(), obj, log))
 			{
-				if(!readSchema(":/" + attributeValue.toString(), obj, log))
-				{
-					Error(log,"Error while getting schema ref: %s",QSTRING_CSTR(QString(":/" + attributeValue.toString())));
-					return false;
-				}
-			}
-			else if (attributeValue.isObject())
-				obj.insert(attribute, resolveRefs(attributeValue.toObject(), obj, log));
-			else
-			{
-				//qDebug() <<"ADD ATTR:VALUE"<<attribute<<attributeValue;
-				obj.insert(attribute, attributeValue);
+				Error(log,"Error while getting schema ref: %s",QSTRING_CSTR(QString(":/" + attributeValue.toString())));
+				return false;
 			}
 		}
-		return true;
+		else if (attributeValue.isObject())
+		{
+			obj.insert(attribute, resolveRefs(attributeValue.toObject(), obj, log));
+		}
+		else
+		{
+			obj.insert(attribute, attributeValue);
+		}
 	}
+	return true;
+}
+
+QString jsonValueToQString(const QJsonValue &value, QJsonDocument::JsonFormat format)
+{
+	switch (value.type()) {
+	case QJsonValue::Object:
+	{
+		return QJsonDocument(value.toObject()).toJson(format);
+	}
+	case QJsonValue::Array:
+	{
+		return QJsonDocument(value.toArray()).toJson(format);
+	}
+	case QJsonValue::String:
+	{
+		return value.toString();
+	}
+	case QJsonValue::Double:
+	{
+		return QString::number(value.toDouble());
+	}
+	case QJsonValue::Bool:
+	{
+		return value.toBool() ? "true" : "false";
+	}
+	case QJsonValue::Null:
+	{
+		return "null";
+	}
+	default:
+	break;
+	}
+	return QString();
+}
+
+QJsonObject mergeJsonObjects(const QJsonObject &obj1, const QJsonObject &obj2, bool overrideObj1)
+{
+	QJsonObject result = obj1;
+
+	for (auto it = obj2.begin(); it != obj2.end(); ++it) {
+		if (result.contains(it.key())) {
+			if (overrideObj1)
+			{
+				result[it.key()] = it.value();
+			}
+		} else {
+			result[it.key()] = it.value();
+		}
+	}
+
+	return result;
+}
 };

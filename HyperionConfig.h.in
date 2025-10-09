@@ -9,6 +9,13 @@
 // Define to enable the DirectX grabber
 #cmakedefine ENABLE_DX
 
+// Define to enable the DXGI DDA (Desktop Duplication API) grabber
+#cmakedefine ENABLE_DDA
+
+// Define to enable the framebuffer grabber
+// Define to enable the Audio grabber
+#cmakedefine ENABLE_AUDIO
+
 // Define to enable the Framebuffer grabber
 #cmakedefine ENABLE_FB
 

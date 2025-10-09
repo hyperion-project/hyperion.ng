@@ -52,7 +52,7 @@ void BoblightServer::start()
 	if (NetUtils::portAvailable(_port, _log))
 		_server->listen(QHostAddress::Any, _port);
 
-	Info(_log, "Started on port: %d", _port);
+	Info(_log, "Boblight service started on port: %d", _port);
 
 	_hyperion->setNewComponentState(COMP_BOBLIGHTSERVER, _server->isListening());
 }
@@ -63,10 +63,11 @@ void BoblightServer::stop()
 		return;
 
 	qDeleteAll(_openConnections);
+	_openConnections.clear();
 
 	_server->close();
 
-	Info(_log, "Stopped");
+	Info(_log, "Boblight service stopped");
 	_hyperion->setNewComponentState(COMP_BOBLIGHTSERVER, _server->isListening());
 }
 

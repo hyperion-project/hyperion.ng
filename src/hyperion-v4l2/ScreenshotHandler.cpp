@@ -1,3 +1,5 @@
+#include <cmath>
+
 // Qt includes
 #include <QImage>
 #include <QCoreApplication>
@@ -102,7 +104,6 @@ bool ScreenshotHandler::findNoSignalSettings(const Image<ColorRgb> & image)
 	auto itG = std::max_element(std::begin(greenCounts), std::end(greenCounts));
 	auto itB = std::max_element(std::begin(blueCounts), std::end(blueCounts));
 
-	//std::cout << *itR << " " << *itG << " " << *itB << std::endl;
 	double xOffsetSuggested = xOffset;
 	double yOffsetSuggested = yOffset;
 	double xMaxSuggested    = xMax;
@@ -138,7 +139,7 @@ bool ScreenshotHandler::findNoSignalSettings(const Image<ColorRgb> & image)
 	if (!noSignalBlack)
 	{
 		unsigned xMid = (xMaxSuggested + xOffsetSuggested) / 2;
-		for (unsigned y = yMid; y >= yOffset && yOffsetSuggested != y; --y)
+		for (unsigned y = yMid; y >= yOffset && (fabs(yOffsetSuggested - y) > std::numeric_limits<double>::epsilon()); --y)
 		{
 			ColorRgb rgb = image(xMid, y);
 			if (rgb <= noSignalThresholdColor)
@@ -147,7 +148,7 @@ bool ScreenshotHandler::findNoSignalSettings(const Image<ColorRgb> & image)
 			}
 		}
 
-		for (unsigned y = yMid; y <= yMax && yMaxSuggested != y; ++y)
+		for (unsigned y = yMid; y <= yMax && (fabs(yMaxSuggested - y) > std::numeric_limits<double>::epsilon()); ++y)
 		{
 			ColorRgb rgb = image(xMid, y);
 			if (rgb <= noSignalThresholdColor)

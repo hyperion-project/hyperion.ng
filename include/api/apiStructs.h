@@ -2,6 +2,9 @@
 
 #include <QString>
 #include <QByteArray>
+#include <QJsonObject>
+
+#include <utils/Components.h>
 
 struct ImageCmdData
 {

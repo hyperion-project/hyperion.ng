@@ -18,7 +18,7 @@ try:
 	with open(schemaFileName) as schemaFile:
 		with open(jsonFileName) as jsonFile:
 			schema = json.load(schemaFile)
-			uri = path2url('%s/schema/' % path.abspath(path.dirname(schemaFileName)))
+			uri = path2url('%s/' % path.abspath(path.dirname(schemaFileName)))
 			resolver = RefResolver(uri, referrer = schema)
 			instance = json.load(jsonFile)
 			Draft3Validator(schema, resolver=resolver).validate(instance)

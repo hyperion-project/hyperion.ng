@@ -1,0 +1,49 @@
+name: Hyperion CI/PR Builds
+run-name: |
+  ${{ github.event_name == 'push' && '🌱 Push build -' || '' }}
+  ${{ github.event_name == 'pull_request' && format('📦 Artifacts build for PR {0} - {1}', github.event.pull_request.number, github.event.pull_request.title) || github.event.head_commit.message }}
+
+on:
+  push:
+    branches:
+      - '**'
+    tags:
+      - '*'
+  pull_request:
+    branches:
+      - 'master'
+
+jobs:
+
+  # GitHub Push/Pull Request (Release only on tagged commits)
+  github_build:
+    name: Qt ${{ matrix.qt_version }} Build ${{ matrix.qt_version == '6' && '(Testing))' || '' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        qt_version: ['5', '6']
+    uses: ./.github/workflows/qt5_6.yml
+    secrets: inherit
+    with:
+      qt_version: ${{ matrix.qt_version }}
+      event_name: ${{ github.event_name }}
+      pull_request_number: ${{ github.event.pull_request.number }}
+      publish: ${{ startsWith(github.event.ref, 'refs/tags') && matrix.qt_version == '5' }}
+
+  # Build DEB/RPM Packages for APT/DNF Repository (runs only on tagged commits)
+  repo_build:
+    name: 🚀 Let Hyperion build its own repository (APT/DNF)
+    if: startsWith(github.event.ref, 'refs/tags')
+    needs: [ github_build ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📲 Dispatch APT/DNF build
+        if: ${{ env.SECRET_HYPERION_BOT_TOKEN != null }}
+        uses: peter-evans/repository-dispatch@v3.0.0
+        with:
+          repository: hyperion-project/hyperion.releases-ci
+          token: ${{ secrets.HYPERION_BOT_TOKEN }}
+          event-type: releases_repo_build
+          client-payload: '{ "head_sha": "${{ github.sha }}", "repo_checkout": "hyperion-project/hyperion.ng" }'
+        env:
+          SECRET_HYPERION_BOT_TOKEN: ${{ secrets.HYPERION_BOT_TOKEN }}

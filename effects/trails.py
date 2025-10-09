@@ -13,6 +13,9 @@ randomise = bool(hyperion.args.get('random', False))
 iWidth = hyperion.imageWidth()
 iHeight = hyperion.imageHeight()
 
+# Limit update rate
+sleepTime = max(hyperion.lowestUpdateInterval(), sleepTime)
+
 class trail:
 	def __init__(self):
 		return
@@ -45,7 +48,7 @@ class trail:
 
 tr = []
 
-for i in range(trails):
+for unused in range(trails):
 	r = {'exec': trail()}
 
 	if randomise:

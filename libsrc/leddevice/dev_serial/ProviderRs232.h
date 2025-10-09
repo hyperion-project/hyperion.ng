@@ -119,9 +119,15 @@ protected slots:
 	///
 	/// @brief Set device in error state
 	///
-	/// @param errorMsg The error message to be logged
+	/// @param[in] errorMsg The error message to be logged
+	/// @param[in] isRecoverable If False, no further retries will be done
 	///
-	void setInError( const QString& errorMsg) override;
+	void setInError( const QString& errorMsg, bool isRecoverable=true) override;
+
+	///
+	/// @brief Handle any feedback provided by the device
+	///
+	virtual void readFeedback();
 
 private:
 

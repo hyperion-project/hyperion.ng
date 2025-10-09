@@ -1,68 +1,50 @@
 #include <ssdp/SSDPHandler.h>
 
-#include <webserver/WebServer.h>
 #include "SSDPDescription.h"
 #include <hyperion/Hyperion.h>
 #include <HyperionConfig.h>
-#include <hyperion/AuthManager.h>
+#include <db/MetaTable.h>
 
 #include <QNetworkInterface>
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-#include <QNetworkConfigurationManager>
-#endif
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
 #include <QRandomGenerator>
 #endif
 
+const char HTTP_SERVICE_TYPE[] = "http";
+const char HTTPS_SERVICE_TYPE[] = "https";
+const char JSONAPI_SERVICE_TYPE[] = "jsonapi";
+const char FLATBUFFER_SERVICE_TYPE[] = "flatbuffer";
+const char PROTOBUFFER_SERVICE_TYPE[] = "protobuffer";
+
 static const QString SSDP_IDENTIFIER("urn:hyperion-project.org:device:basic:1");
 
-SSDPHandler::SSDPHandler(WebServer* webserver, quint16 flatBufPort, quint16 protoBufPort, quint16 jsonServerPort, quint16 sslPort, const QString& name, QObject* parent)
+SSDPHandler::SSDPHandler(QObject* parent)
 	: SSDPServer(parent)
-	, _webserver(webserver)
-	, _localAddress()
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-	, _NCA(nullptr)
-#endif
+	, _httpPort(8090)
+	, _httpsPort(8092)
+	, _jsonApiPort(19444)
+	, _flatBufferPort(19400)
+	, _protoBufferPort(19445)
 {
-	setFlatBufPort(flatBufPort);
-	setProtoBufPort(protoBufPort);
-	setJsonServerPort(jsonServerPort);
-	setSSLServerPort(sslPort);
-	setHyperionName(name);
+	Debug(_log, "SSDP info service created");
 }
 
 SSDPHandler::~SSDPHandler()
 {
-	stopServer();
 }
 
 void SSDPHandler::initServer()
 {
-	_uuid = AuthManager::getInstance()->getID();
-	SSDPServer::setUuid(_uuid);
-
+	MetaTable metaTable;
+	setUuid(metaTable.getUUID());
 	// announce targets
 	_deviceList.push_back("upnp:rootdevice");
-	_deviceList.push_back("uuid:" + _uuid);
+	_deviceList.push_back("uuid:" + getUuid());
 	_deviceList.push_back(SSDP_IDENTIFIER);
 
 	// prep server
 	SSDPServer::initServer();
-
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-	#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
-	QT_WARNING_PUSH
-	QT_WARNING_DISABLE_DEPRECATED
-	#endif
-
-	_NCA = new QNetworkConfigurationManager(this);
-	connect(_NCA, &QNetworkConfigurationManager::configurationChanged, this, &SSDPHandler::handleNetworkConfigurationChanged);
-
-	#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
-	QT_WARNING_POP
-	#endif
-#endif	
 
 	// listen for mSearchRequestes
 	connect(this, &SSDPServer::msearchRequestReceived, this, &SSDPHandler::handleMSearchRequest);
@@ -72,111 +54,125 @@ void SSDPHandler::initServer()
 	{
 		_localAddress = getLocalAddress();
 	}
-
-	// startup if localAddress is found
-	bool isInited = false;
-	QMetaObject::invokeMethod(_webserver, "isInited", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isInited));
-
-	if (!_localAddress.isEmpty() && isInited)
-	{
-		handleWebServerStateChange(true);
-	}
 }
 
-void SSDPHandler::stopServer()
+void SSDPHandler::stop()
 {
 	sendAnnounceList(false);
 	SSDPServer::stop();
+	Info(_log, "SSDP info service stopped");
 }
 
 void SSDPHandler::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
+	bool isSsdpInfoUpdated {false};
 	const QJsonObject& obj = config.object();
 
-	if (type == settings::FLATBUFSERVER)
+	switch (type) {
+	case settings::FLATBUFSERVER:
 	{
-		if (obj["port"].toInt() != SSDPServer::getFlatBufPort())
+		int port = (obj["port"].toInt());
+		if ( port != _flatBufferPort)
 		{
-			SSDPServer::setFlatBufPort(obj["port"].toInt());
+			_flatBufferPort = port;
+			isSsdpInfoUpdated = true;
 		}
 	}
-
-	if (type == settings::PROTOSERVER)
+	break;
+	case settings::PROTOSERVER:
 	{
-		if (obj["port"].toInt() != SSDPServer::getProtoBufPort())
+		int port = (obj["port"].toInt());
+		if ( port != _protoBufferPort)
 		{
-			SSDPServer::setProtoBufPort(obj["port"].toInt());
+			_protoBufferPort = port;
+			isSsdpInfoUpdated = true;
 		}
 	}
-
-	if (type == settings::JSONSERVER)
+	break;
+	case settings::JSONSERVER:
 	{
-		if (obj["port"].toInt() != SSDPServer::getJsonServerPort())
+		int port = (obj["port"].toInt());
+		if ( port != _jsonApiPort)
 		{
-			SSDPServer::setJsonServerPort(obj["port"].toInt());
+			_jsonApiPort = port;
+			isSsdpInfoUpdated = true;
 		}
 	}
-
-	if (type == settings::WEBSERVER)
+	break;
+	case settings::WEBSERVER:
 	{
-		if (obj["sslPort"].toInt() != SSDPServer::getSSLServerPort())
+		int httpPort = (obj["port"].toInt());
+		int httpsPort = (obj["sslPort"].toInt());
+
+		if ( httpPort != _httpPort || httpsPort != _httpPort)
 		{
-			SSDPServer::setSSLServerPort(obj["sslPort"].toInt());
+			_httpPort = httpPort;
+			setDescriptionAddress(getDescriptionAddress());
+
+			_httpsPort = httpsPort;
+			isSsdpInfoUpdated = true;
 		}
 	}
-
-	if (type == settings::GENERAL)
+	break;
+	case settings::GENERAL:
 	{
-		if (obj["name"].toString() != SSDPServer::getHyperionName())
+		QString name = (obj["name"].toString());
+		if ( name != _name)
 		{
-			SSDPServer::setHyperionName(obj["name"].toString());
+			_name = name;
+			isSsdpInfoUpdated = true;
 		}
+	}
+	break;
+	default:
+	break;
+	}
+
+	if (isSsdpInfoUpdated)
+	{
+		emit descriptionUpdated(getDescription());
 	}
 }
 
-void SSDPHandler::handleWebServerStateChange(bool newState)
+void SSDPHandler::onPortChanged(const QString& serviceType, quint16 servicePort)
 {
-	if (newState)
+	if (serviceType == HTTP_SERVICE_TYPE)
 	{
-		// refresh info
-		QMetaObject::invokeMethod(_webserver, "setSSDPDescription", Qt::BlockingQueuedConnection, Q_ARG(QString, buildDesc()));
-		setDescriptionAddress(getDescAddress());
+		_httpPort = servicePort;
+	}
+	else if (serviceType == HTTPS_SERVICE_TYPE)
+	{
+		_httpsPort = servicePort;
+	}
+	else if (serviceType == JSONAPI_SERVICE_TYPE)
+	{
+		_jsonApiPort = servicePort;
+	}
+	else if (serviceType == FLATBUFFER_SERVICE_TYPE)
+	{
+		_flatBufferPort = servicePort;
+	}
+	else if (serviceType == PROTOBUFFER_SERVICE_TYPE)
+	{
+		_protoBufferPort = servicePort;
+	}
+	emit descriptionUpdated(getDescription());
+}
+
+void SSDPHandler::onStateChange(bool state)
+{
+	if (state)
+	{
 		if (start())
+		{
 			sendAnnounceList(true);
+		}
 	}
 	else
 	{
-		QMetaObject::invokeMethod(_webserver, "setSSDPDescription", Qt::BlockingQueuedConnection, Q_ARG(QString, ""));
-		sendAnnounceList(false);
 		stop();
 	}
 }
-
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
-QT_WARNING_PUSH
-QT_WARNING_DISABLE_DEPRECATED
-#endif
-void SSDPHandler::handleNetworkConfigurationChanged(const QNetworkConfiguration& config)
-{
-	// get localAddress from interface
-	QString localAddress = getLocalAddress();
-	if (!localAddress.isEmpty() && _localAddress != localAddress)
-	{
-		// revoke old ip
-		sendAnnounceList(false);
-
-		// update desc & notify new ip
-		_localAddress = localAddress;
-		QMetaObject::invokeMethod(_webserver, "setSSDPDescription", Qt::BlockingQueuedConnection, Q_ARG(QString, buildDesc()));
-		setDescriptionAddress(getDescAddress());
-		sendAnnounceList(true);
-	}
-}
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
-QT_WARNING_POP
-#endif
-#endif
 
 QString SSDPHandler::getLocalAddress() const
 {
@@ -222,19 +218,17 @@ void SSDPHandler::handleMSearchRequest(const QString& target, const QString& mx,
 	}
 }
 
-QString SSDPHandler::getDescAddress() const
+QString SSDPHandler::getDescriptionAddress() const
 {
 	return getBaseAddress() + "description.xml";
 }
 
 QString SSDPHandler::getBaseAddress() const
 {
-	quint16 port = 0;
-	QMetaObject::invokeMethod(_webserver, "getPort", Qt::BlockingQueuedConnection, Q_RETURN_ARG(quint16, port));
-	return QString("http://%1:%2/").arg(_localAddress).arg(port);
+	return QString("http://%1:%2/").arg(_localAddress).arg(_httpPort);
 }
 
-QString SSDPHandler::buildDesc() const
+QString SSDPHandler::getDescription() const
 {
 	/// %1 base url                   http://192.168.0.177:8090/
 	/// %2 friendly name              Hyperion (192.168.0.177)
@@ -249,12 +243,26 @@ QString SSDPHandler::buildDesc() const
 		getBaseAddress(),
 		QString("Hyperion (%1)").arg(_localAddress),
 		QString(HYPERION_VERSION),
-		_uuid,
-		QString::number(SSDPServer::getJsonServerPort()),
-		QString::number(SSDPServer::getSSLServerPort()),
-		QString::number(SSDPServer::getProtoBufPort()),
-		QString::number(SSDPServer::getFlatBufPort())
+		getUuid(),
+		QString::number(_jsonApiPort),
+		QString::number(_httpsPort),
+		QString::number(_protoBufferPort),
+		QString::number(_flatBufferPort)
 	);
+}
+
+QString SSDPHandler::getInfo() const
+{
+	QString hyperionServicesInfo;
+	hyperionServicesInfo.append(QString("HYPERION-NAME: %1\r\n").arg(_name));
+	hyperionServicesInfo.append(QString("HYPERION-JSS-PORT: %1\r\n").arg(_jsonApiPort));
+#if defined(ENABLE_FLATBUF_SERVER)
+	hyperionServicesInfo.append(QString("HYPERION-FBS-PORT: %1\r\n").arg(_flatBufferPort));
+#endif
+#if defined(ENABLE_PROTOBUF_SERVER)
+	hyperionServicesInfo.append(QString("HYPERION-PBS-PORT: %1\r\n").arg(_protoBufferPort));
+#endif
+	return hyperionServicesInfo;
 }
 
 void SSDPHandler::sendAnnounceList(bool alive)
@@ -263,4 +271,3 @@ void SSDPHandler::sendAnnounceList(bool alive)
 		alive ? SSDPServer::sendAlive(entry) : SSDPServer::sendByeBye(entry);
 	}
 }
-

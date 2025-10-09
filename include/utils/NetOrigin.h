@@ -47,7 +47,9 @@ private slots:
 private:
 	Logger* _log;
 	/// True when internet access is allowed
-	bool _internetAccessAllowed;
+	bool _isInternetAccessAllowed;
+	/// True when internet access is restricted by a white list
+	bool _isInternetAccessRestricted;
 	/// Whitelisted ip addresses
 	QList<QHostAddress> _ipWhitelist;
 

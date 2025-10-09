@@ -30,6 +30,16 @@ void EffectFileHandler::handleSettingsUpdate(settings::type type, const QJsonDoc
 	if (type == settings::EFFECTS)
 	{
 		_effectConfig = config.object();
+
+		QJsonArray effectPathArray = _effectConfig["paths"].toArray();
+
+		// TODO: Remove workaround and move effect config to global settings
+		if (effectPathArray.empty())
+		{
+			effectPathArray.append("$ROOT/custom-effects");
+		}
+		_effectConfig["paths"] = effectPathArray;
+
 		// update effects and schemas
 		updateEffects();
 	}
@@ -103,7 +113,7 @@ QString EffectFileHandler::saveEffect(const QJsonObject& message)
 
 		if (it != effectsSchemas.end())
 		{
-			if (!JsonUtils::validate("EffectFileHandler", message["args"].toObject(), it->schemaFile, _log))
+			if (!JsonUtils::validate("EffectFileHandler", message["args"], it->schemaFile, _log).first)
 			{
 				return "Error during arg validation against schema, please consult the Hyperion Log";
 			}
@@ -224,7 +234,7 @@ void EffectFileHandler::updateEffects()
 	}
 
 	QMap<QString, EffectDefinition> availableEffects;
-	for (const QString& path : qAsConst(efxPathList))
+	for (const QString& path : std::as_const(efxPathList))
 	{
 		QDir directory(path);
 		if (!directory.exists())
@@ -241,8 +251,8 @@ void EffectFileHandler::updateEffects()
 		else
 		{
 			int efxCount = 0;
-			QStringList filenames = directory.entryList(QStringList() << "*.json", QDir::Files, QDir::Name | QDir::IgnoreCase);
-			for (const QString& filename : qAsConst(filenames))
+			const QStringList filenames = directory.entryList(QStringList() << "*.json", QDir::Files, QDir::Name | QDir::IgnoreCase);
+			for (const QString& filename : filenames)
 			{
 				EffectDefinition def;
 				if (loadEffectDefinition(path, filename, def))
@@ -268,8 +278,8 @@ void EffectFileHandler::updateEffects()
 
 			QString schemaPath = path + "schema" + '/';
 			directory.setPath(schemaPath);
-			QStringList schemaFileNames = directory.entryList(QStringList() << "*.json", QDir::Files, QDir::Name | QDir::IgnoreCase);
-			for (const QString& schemaFileName : qAsConst(schemaFileNames))
+			const QStringList schemaFileNames = directory.entryList(QStringList() << "*.json", QDir::Files, QDir::Name | QDir::IgnoreCase);
+			for (const QString& schemaFileName : schemaFileNames)
 			{
 				EffectSchema pyEffect;
 				if (loadEffectSchema(path, directory.filePath(schemaFileName), pyEffect))
@@ -282,7 +292,7 @@ void EffectFileHandler::updateEffects()
 		}
 	}
 
-	for (const auto& item : qAsConst(availableEffects))
+	for (const auto& item : std::as_const(availableEffects))
 	{
 		_availableEffects.push_back(item);
 	}
@@ -298,12 +308,12 @@ bool EffectFileHandler::loadEffectDefinition(const QString& path, const QString&
 
 	// Read and parse the effect json config file
 	QJsonObject configEffect;
-	if (!JsonUtils::readFile(fileName, configEffect, _log)) {
+	if (!JsonUtils::readFile(fileName, configEffect, _log).first) {
 		return false;
 	}
 
 	// validate effect config with effect schema(path)
-	if (!JsonUtils::validate(fileName, configEffect, ":effect-schema", _log)) {
+	if (!JsonUtils::validate(fileName, configEffect, ":effect-schema", _log).first) {
 		return false;
 	}
 
@@ -335,7 +345,7 @@ bool EffectFileHandler::loadEffectSchema(const QString& path, const QString& sch
 {
 	// Read and parse the effect schema file
 	QJsonObject schemaEffect;
-	if (!JsonUtils::readFile(schemaFilePath, schemaEffect, _log))
+	if (!JsonUtils::readFile(schemaFilePath, schemaEffect, _log).first)
 	{
 		return false;
 	}

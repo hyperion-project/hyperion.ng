@@ -12,9 +12,17 @@ table RawImage {
   height:int = -1;
 }
 
-union ImageType {RawImage}
+table NV12Image {
+  data_y:[ubyte];
+  data_uv:[ubyte];
+  width:int;
+  height:int;
+  stride_y:int = 0;
+  stride_uv:int = 0;
+}
 
-// Either RGB or RGBA data can be transferred
+union ImageType {RawImage, NV12Image}
+
 table Image {
   data:ImageType (required);
   duration:int = -1;

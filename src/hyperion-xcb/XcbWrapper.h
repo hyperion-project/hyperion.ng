@@ -4,7 +4,7 @@
 #include <QTimer>
 
 // Hyperion-Xcb includes
-#include <grabber/XcbGrabber.h>
+#include <grabber/xcb/XcbGrabber.h>
 #include <hyperion/GrabberWrapper.h>
 
 //Utils includes
@@ -29,7 +29,7 @@ public:
 
 	void stop();
 
-	bool displayInit();
+	bool screenInit();
 
 signals:
 	void sig_screenshot(const Image<ColorRgb> & screenshot);

@@ -44,7 +44,7 @@ public:
 	/// @return The first boolean is true when the arguments is valid according to the schema. The second is true when the schema contains no errors
 	/// @return TODO: Check the Schema in SetSchema() function and remove the QPair result
 	///
-	QPair<bool, bool> validate(const QJsonObject& value, bool ignoreRequired = false);
+	QPair<bool, bool> validate(const QJsonValue& value, bool ignoreRequired = false);
 
 	///
 	/// @brief Auto correct a JSON structure
@@ -52,7 +52,7 @@ public:
 	/// @param ignoreRequired Ignore the "required" keyword in hyperion schema. Default is false
 	/// @return The corrected JSON structure
 	///
-	QJsonObject getAutoCorrectedConfig(const QJsonObject& value, bool ignoreRequired = false);
+	QJsonValue getAutoCorrectedConfig(const QJsonValue& value, bool ignoreRequired = false);
 
 	///
 	/// @return A list of error messages
@@ -207,7 +207,7 @@ private:
 	/// Auto correction variable
 	QString _correct;
 	/// The auto corrected json-configuration
-	QJsonObject _autoCorrected;
+	QJsonValue _autoCorrected;
 	/// The current location into a json-configuration structure being checked
 	QStringList _currentPath;
 	/// The result messages collected during the schema verification

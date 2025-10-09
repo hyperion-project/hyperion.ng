@@ -9,18 +9,20 @@
 inline void wait(std::chrono::milliseconds millisecondsWait)
 {
 	QEventLoop loop;
-	QTimer t;
-	t.connect(&t, &QTimer::timeout, &loop, &QEventLoop::quit);
-	t.start(millisecondsWait.count());
+	QTimer timer;
+	timer.setTimerType(Qt::PreciseTimer);
+	QTimer::connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+	timer.start(millisecondsWait.count());
 	loop.exec();
 }
 
 inline void wait(int millisecondsWait)
 {
 	QEventLoop loop;
-	QTimer t;
-	t.connect(&t, &QTimer::timeout, &loop, &QEventLoop::quit);
-	t.start(millisecondsWait);
+	QTimer timer;
+	timer.setTimerType(Qt::PreciseTimer);
+	QTimer::connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+	timer.start(millisecondsWait);
 	loop.exec();
 }
 

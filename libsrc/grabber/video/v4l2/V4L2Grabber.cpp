@@ -23,7 +23,7 @@
 #include <QFileInfo>
 #include <QSet>
 
-#include "grabber/V4L2Grabber.h"
+#include "grabber/video/v4l2/V4L2Grabber.h"
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
@@ -54,7 +54,9 @@ Q_GLOBAL_STATIC_WITH_ARGS(ControlIDPropertyMap, _controlIDPropertyMap, (initCont
 static PixelFormat GetPixelFormat(const unsigned int format)
 {
 	if (format == V4L2_PIX_FMT_RGB32) return PixelFormat::RGB32;
-	if (format == V4L2_PIX_FMT_RGB24) return PixelFormat::BGR24;
+	if (format == V4L2_PIX_FMT_BGR32) return PixelFormat::BGR32;
+	if (format == V4L2_PIX_FMT_RGB24) return PixelFormat::RGB24;
+	if (format == V4L2_PIX_FMT_BGR24) return PixelFormat::BGR24;
 	if (format == V4L2_PIX_FMT_YUYV) return PixelFormat::YUYV;
 	if (format == V4L2_PIX_FMT_UYVY) return PixelFormat::UYVY;
 	if (format == V4L2_PIX_FMT_NV12) return  PixelFormat::NV12;
@@ -79,10 +81,9 @@ V4L2Grabber::V4L2Grabber()
 	, _currentFrame(0)
 	, _noSignalCounterThreshold(40)
 	, _noSignalThresholdColor(ColorRgb{0,0,0})
-	, _cecDetectionEnabled(true)
-	, _cecStandbyActivated(false)
+	, _standbyActivated(false)
 	, _signalDetectionEnabled(true)
-	, _noSignalDetected(false)
+	, _signalDetected(false)
 	, _noSignalCounter(0)
 	, _brightness(0)
 	, _contrast(0)
@@ -209,7 +210,7 @@ bool V4L2Grabber::start()
 		{
 			connect(_threadManager, &EncoderThreadManager::newFrame, this, &V4L2Grabber::newThreadFrame);
 			_threadManager->start();
-			DebugIf(verbose, _log, "Decoding threads: %d", _threadManager->_threadCount);
+			DebugIf(verbose, _log, "Decoding threads: %u", _threadManager->_threadCount);
 
 			_streamNotifier->setEnabled(true);
 			start_capturing();
@@ -558,8 +559,16 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB32;
 		break;
 
-		case PixelFormat::BGR24:
+		case PixelFormat::BGR32:
+			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_BGR32;
+			break;
+
+		case PixelFormat::RGB24:
 			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB24;
+		break;
+
+		case PixelFormat::BGR24:
+			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_BGR24;
 		break;
 
 		case PixelFormat::YUYV:
@@ -692,14 +701,29 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 		}
 		break;
 
+		case V4L2_PIX_FMT_BGR32:
+		{
+			_pixelFormat = PixelFormat::BGR32;
+			_frameByteSize = _width * _height * 4;
+			Debug(_log, "Pixel format=BGR32");
+		}
+		break;
+
 		case V4L2_PIX_FMT_RGB24:
+		{
+			_pixelFormat = PixelFormat::RGB24;
+			_frameByteSize = _width * _height * 3;
+			Debug(_log, "Pixel format=RGB24");
+		}
+		break;
+
+		case V4L2_PIX_FMT_BGR24:
 		{
 			_pixelFormat = PixelFormat::BGR24;
 			_frameByteSize = _width * _height * 3;
 			Debug(_log, "Pixel format=BGR24");
 		}
 		break;
-
 
 		case V4L2_PIX_FMT_YUYV:
 		{
@@ -744,9 +768,9 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 
 		default:
 #ifdef HAVE_TURBO_JPEG
-			throw_exception("Only pixel formats RGB32, BGR24, YUYV, UYVY, NV12, I420 and MJPEG are supported");
+			throw_exception("Only pixel formats RGB32, BGR32, RGB24, BGR24, YUYV, UYVY, NV12, I420 and MJPEG are supported");
 #else
-			throw_exception("Only pixel formats RGB32, BGR24, YUYV, UYVY, NV12 and I420 are supported");
+			throw_exception("Only pixel formats RGB32, BGR32, RGB24, BGR24, YUYV, UYVY, NV12 and I420 are supported");
 #endif
 		return;
 	}
@@ -1035,7 +1059,7 @@ bool V4L2Grabber::process_image(const void *p, int size)
 
 void V4L2Grabber::newThreadFrame(Image<ColorRgb> image)
 {
-	if (_cecDetectionEnabled && _cecStandbyActivated)
+	if (_standbyActivated)
 		return;
 
 	if (_signalDetectionEnabled)
@@ -1061,7 +1085,7 @@ void V4L2Grabber::newThreadFrame(Image<ColorRgb> image)
 		{
 			if (_noSignalCounter >= _noSignalCounterThreshold)
 			{
-				_noSignalDetected = true;
+				_signalDetected = true;
 				Info(_log, "Signal detected");
 			}
 
@@ -1074,12 +1098,28 @@ void V4L2Grabber::newThreadFrame(Image<ColorRgb> image)
 		}
 		else if (_noSignalCounter == _noSignalCounterThreshold)
 		{
-			_noSignalDetected = false;
+			_signalDetected = false;
 			Info(_log, "Signal lost");
 		}
 	}
 	else
 		emit newFrame(image);
+
+#ifdef FRAME_BENCH
+	// calculate average frametime
+	if (_currentFrame > 1)
+	{
+		if (_currentFrame % 100 == 0)
+		{
+			Debug(_log, "%d: avg. frametime=%.02fms / %.02fms", int(_currentFrame), _frameTimer.restart()/100.0, 1000.0/_fps);
+		}
+	}
+	else
+	{
+		Debug(_log, "%d: frametimer started", int(_currentFrame));
+		_frameTimer.start();
+	}
+#endif
 }
 
 int V4L2Grabber::xioctl(int request, void *arg)
@@ -1203,16 +1243,6 @@ void V4L2Grabber::setSignalDetectionEnable(bool enable)
 	}
 }
 
-void V4L2Grabber::setCecDetectionEnable(bool enable)
-{
-	if (_cecDetectionEnabled != enable)
-	{
-		_cecDetectionEnabled = enable;
-		if(_initialized)
-			Info(_log, QString("CEC detection is now %1").arg(enable ? "enabled" : "disabled").toLocal8Bit());
-	}
-}
-
 bool V4L2Grabber::reload(bool force)
 {
 	if (_reload || force)
@@ -1230,26 +1260,6 @@ bool V4L2Grabber::reload(bool force)
 
 	return false;
 }
-
-#if defined(ENABLE_CEC)
-
-void V4L2Grabber::handleCecEvent(CECEvent event)
-{
-	switch (event)
-	{
-		case CECEvent::On  :
-			Debug(_log,"CEC on event received");
-			_cecStandbyActivated = false;
-			return;
-		case CECEvent::Off :
-			Debug(_log,"CEC off event received");
-			_cecStandbyActivated = true;
-			return;
-		default: break;
-	}
-}
-
-#endif
 
 QJsonArray V4L2Grabber::discover(const QJsonObject& params)
 {
@@ -1290,7 +1300,7 @@ QJsonArray V4L2Grabber::discover(const QJsonObject& params)
 					format["format"] = pixelFormatToString(encodingFormat);
 
 					QMap<std::pair<int, int>, QSet<int>> combined = QMap<std::pair<int, int>, QSet<int>>();
-					for (auto enc : input.value().encodingFormats.values(encodingFormat))
+					for (const auto &enc : input.value().encodingFormats.values(encodingFormat))
 					{
 						std::pair<int, int> width_height{enc.width, enc.height};
 						auto &com = combined[width_height];
@@ -1326,7 +1336,7 @@ QJsonArray V4L2Grabber::discover(const QJsonObject& params)
 			device["video_inputs"] = video_inputs;
 
 			QJsonObject controls, controls_default;
-			for (auto control : _deviceControls[device_property.key()])
+			for (const auto &control :  std::as_const(_deviceControls[device_property.key()]))
 			{
 				QJsonObject property;
 				property["minValue"] = control.minValue;
@@ -1501,19 +1511,19 @@ void V4L2Grabber::enumVideoCaptureDevices()
 
 			// Enumerate video control IDs
 			QList<DeviceControls> deviceControlList;
-			for (auto it = _controlIDPropertyMap->constBegin(); it != _controlIDPropertyMap->constEnd(); it++)
+			for (auto itDeviceControls = _controlIDPropertyMap->constBegin(); itDeviceControls != _controlIDPropertyMap->constEnd(); itDeviceControls++)
 			{
 				struct v4l2_queryctrl queryctrl;
 				CLEAR(queryctrl);
 
-				queryctrl.id = it.key();
+				queryctrl.id = itDeviceControls.key();
 				if (xioctl(fd, VIDIOC_QUERYCTRL, &queryctrl) < 0)
 					break;
 				if (queryctrl.flags & V4L2_CTRL_FLAG_DISABLED)
 					break;
 
 				DeviceControls control;
-				control.property = it.value();
+				control.property = itDeviceControls.value();
 				control.minValue = queryctrl.minimum;
 				control.maxValue = queryctrl.maximum;
 				control.step = queryctrl.step;
@@ -1524,13 +1534,13 @@ void V4L2Grabber::enumVideoCaptureDevices()
 				CLEAR(ctrl);
 				CLEAR(ctrls);
 
-				ctrl.id = it.key();
+				ctrl.id = itDeviceControls.key();
 				ctrls.count = 1;
 				ctrls.controls = &ctrl;
 				if (xioctl(fd, VIDIOC_G_EXT_CTRLS, &ctrls) == 0)
 				{
 					control.currentValue = ctrl.value;
-					DebugIf(verbose, _log, "%s: min=%i, max=%i, step=%i, default=%i, current=%i", QSTRING_CSTR(it.value()), control.minValue, control.maxValue, control.step, control.defaultValue, control.currentValue);
+					DebugIf(verbose, _log, "%s: min=%i, max=%i, step=%i, default=%i, current=%i", QSTRING_CSTR(itDeviceControls.value()), control.minValue, control.maxValue, control.step, control.defaultValue, control.currentValue);
 				}
 				else
 					break;

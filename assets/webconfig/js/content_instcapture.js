@@ -3,6 +3,7 @@ $(document).ready(function () {
 
   var screenGrabberAvailable = (window.serverInfo.grabbers.screen.available.length !== 0);
   var videoGrabberAvailable = (window.serverInfo.grabbers.video.available.length !== 0);
+  const audioGrabberAvailable = (window.serverInfo.grabbers.audio.available.length !== 0);
 
   var BOBLIGHT_ENABLED = (jQuery.inArray("boblight", window.serverInfo.services) !== -1);
 
@@ -15,7 +16,7 @@ $(document).ready(function () {
   // Instance Capture
 
   if (window.showOptHelp) {
-    if (screenGrabberAvailable || videoGrabberAvailable) {
+    if (screenGrabberAvailable || videoGrabberAvailable || audioGrabberAvailable) {
       $('#conf_cont').append(createRow('conf_cont_instCapt'));
       $('#conf_cont_instCapt').append(createOptPanel('fa-camera', $.i18n("edt_conf_instCapture_heading_title"), 'editor_container_instCapt', 'btn_submit_instCapt', ''));
       $('#conf_cont_instCapt').append(createHelpTable(window.schema.instCapture.properties, $.i18n("edt_conf_instCapture_heading_title")));
@@ -29,7 +30,7 @@ $(document).ready(function () {
   }
   else {
     $('#conf_cont').addClass('row');
-    if (screenGrabberAvailable || videoGrabberAvailable) {
+    if (screenGrabberAvailable || videoGrabberAvailable || audioGrabberAvailable) {
       $('#conf_cont').append(createOptPanel('fa-camera', $.i18n("edt_conf_instCapture_heading_title"), 'editor_container_instCapt', 'btn_submit_instCapt', ''));
     }
     if (BOBLIGHT_ENABLED) {
@@ -37,7 +38,7 @@ $(document).ready(function () {
     }
   }
 
-  if (screenGrabberAvailable || videoGrabberAvailable) {
+  if (screenGrabberAvailable || videoGrabberAvailable || audioGrabberAvailable) {
 
     // Instance Capture
     conf_editor_instCapt = createJsonEditor('editor_container_instCapt', {
@@ -64,6 +65,7 @@ $(document).ready(function () {
         showInputOptionForItem(conf_editor_instCapt, "instCapture", "systemEnable", false);
         showInputOptionForItem(conf_editor_instCapt, "instCapture", "systemGrabberDevice", false);
         showInputOptionForItem(conf_editor_instCapt, "instCapture", "systemPriority", false);
+        showInputOptionForItem(conf_editor_instCapt, "instCapture", "screenInactiveTimeout", false);
       }
 
       if (videoGrabberAvailable) {
@@ -79,6 +81,23 @@ $(document).ready(function () {
         showInputOptionForItem(conf_editor_instCapt, "instCapture", "v4lGrabberDevice", false);
         showInputOptionForItem(conf_editor_instCapt, "instCapture", "v4lEnable", false);
         showInputOptionForItem(conf_editor_instCapt, "instCapture", "v4lPriority", false);
+        showInputOptionForItem(conf_editor_instCapt, "instCapture", "videoInactiveTimeout", false);
+      }
+
+      if (audioGrabberAvailable) {
+        if (!window.serverConfig.grabberAudio.enable) {
+          conf_editor_instCapt.getEditor("root.instCapture.audioEnable").setValue(false);
+          conf_editor_instCapt.getEditor("root.instCapture.audioEnable").disable();
+        }
+        else {
+          conf_editor_instCapt.getEditor("root.instCapture.audioEnable").setValue(window.serverConfig.instCapture.audioEnable);
+
+        }
+      } else {
+        showInputOptionForItem(conf_editor_instCapt, "instCapture", "audioGrabberDevice", false);
+        showInputOptionForItem(conf_editor_instCapt, "instCapture", "audioEnable", false);
+        showInputOptionForItem(conf_editor_instCapt, "instCapture", "audioPriority", false);
+        showInputOptionForItem(conf_editor_instCapt, "instCapture", "audioInactiveTimeout", false);
       }
 
     });
@@ -86,7 +105,9 @@ $(document).ready(function () {
     conf_editor_instCapt.on('change', function () {
 
       if (!conf_editor_instCapt.validate().length) {
-        if (!window.serverConfig.framegrabber.enable && !window.serverConfig.grabberV4L2.enable) {
+        if (!window.serverConfig.framegrabber.enable &&
+          !window.serverConfig.grabberV4L2.enable &&
+          !window.serverConfig.grabberAudio.enable) {
           $('#btn_submit_instCapt').prop('disabled', true);
         } else {
           window.readOnlyMode ? $('#btn_submit_instCapt').prop('disabled', true) : $('#btn_submit_instCapt').prop('disabled', false);
@@ -104,11 +125,11 @@ $(document).ready(function () {
         conf_editor_instCapt.getEditor("root.instCapture.systemGrabberDevice").setValue(window.serverConfig.framegrabber.available_devices);
         conf_editor_instCapt.getEditor("root.instCapture.systemGrabberDevice").disable();
         showInputOptions("instCapture", ["systemGrabberDevice"], true);
-        showInputOptions("instCapture", ["systemPriority"], true);
+        showInputOptions("instCapture", ["systemPriority", "screenInactiveTimeout"], true);
 
       } else {
         showInputOptions("instCapture", ["systemGrabberDevice"], false);
-        showInputOptions("instCapture", ["systemPriority"], false);
+        showInputOptions("instCapture", ["systemPriority", "screenInactiveTimeout"], false);
       }
 
     });
@@ -119,14 +140,31 @@ $(document).ready(function () {
         conf_editor_instCapt.getEditor("root.instCapture.v4lGrabberDevice").setValue(window.serverConfig.grabberV4L2.available_devices);
         conf_editor_instCapt.getEditor("root.instCapture.v4lGrabberDevice").disable();
         showInputOptions("instCapture", ["v4lGrabberDevice"], true);
-        showInputOptions("instCapture", ["v4lPriority"], true);
+        showInputOptions("instCapture", ["v4lPriority", "videoInactiveTimeout"], true);
       }
       else {
         if (!window.serverConfig.grabberV4L2.enable) {
           conf_editor_instCapt.getEditor("root.instCapture.v4lEnable").disable();
         }
         showInputOptions("instCapture", ["v4lGrabberDevice"], false);
-        showInputOptions("instCapture", ["v4lPriority"], false);
+        showInputOptions("instCapture", ["v4lPriority", "videoInactiveTimeout"], false);
+      }
+    });
+
+    conf_editor_instCapt.watch('root.instCapture.audioEnable', () => {
+      const audioEnable = conf_editor_instCapt.getEditor("root.instCapture.audioEnable").getValue();
+      if (audioEnable) {
+        conf_editor_instCapt.getEditor("root.instCapture.audioGrabberDevice").setValue(window.serverConfig.grabberAudio.available_devices);
+        conf_editor_instCapt.getEditor("root.instCapture.audioGrabberDevice").disable();
+        showInputOptions("instCapture", ["audioGrabberDevice"], true);
+        showInputOptions("instCapture", ["audioPriority", "audioInactiveTimeout"], true);
+      }
+      else {
+        if (!window.serverConfig.grabberAudio.enable) {
+          conf_editor_instCapt.getEditor("root.instCapture.audioEnable").disable();
+        }
+        showInputOptions("instCapture", ["audioGrabberDevice"], false);
+        showInputOptions("instCapture", ["audioPriority", "audioInactiveTimeout"], false);
       }
     });
 

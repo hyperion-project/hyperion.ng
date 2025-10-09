@@ -10,18 +10,26 @@
 #include <QUrlQuery>
 #include <QJsonDocument>
 
+#include <QFile>
 #include <QBasicTimer>
 #include <QTimerEvent>
+
+#include <chrono>
+
+constexpr std::chrono::milliseconds DEFAULT_REST_TIMEOUT{ 2000 };
 
 //Set QNetworkReply timeout without external timer
 //https://stackoverflow.com/questions/37444539/how-to-set-qnetworkreply-timeout-without-external-timer
 
-class ReplyTimeout : public QObject {
+class ReplyTimeout : public QObject
+{
 	Q_OBJECT
+
 public:
 	enum HandleMethod { Abort, Close };
+
 	ReplyTimeout(QNetworkReply* reply, const int timeout, HandleMethod method = Abort) :
-		  QObject(reply), m_method(method)
+		QObject(reply), m_method(method), m_timedout(false)
 	{
 		Q_ASSERT(reply);
 		if (reply && reply->isRunning()) {
@@ -29,20 +37,30 @@ public:
 			connect(reply, &QNetworkReply::finished, this, &QObject::deleteLater);
 		}
 	}
-	static void set(QNetworkReply* reply, const int timeout, HandleMethod method = Abort)
+
+	bool isTimedout() const
 	{
-		new ReplyTimeout(reply, timeout, method);
+		return m_timedout;
 	}
 
+	static ReplyTimeout * set(QNetworkReply* reply, const int timeout, HandleMethod method = Abort)
+	{
+		return new ReplyTimeout(reply, timeout, method);
+	}
+
+signals:
+	void timedout();
+
 protected:
-	QBasicTimer m_timer;
-	HandleMethod m_method;
+
 	void timerEvent(QTimerEvent * ev) override {
 		if (!m_timer.isActive() || ev->timerId() != m_timer.timerId())
 			return;
 		auto reply = static_cast<QNetworkReply*>(parent());
 		if (reply->isRunning())
 		{
+			m_timedout = true;
+			emit timedout();
 			if (m_method == Close)
 				reply->close();
 			else if (m_method == Abort)
@@ -50,6 +68,10 @@ protected:
 			m_timer.stop();
 		}
 	}
+
+	QBasicTimer m_timer;
+	HandleMethod m_method;
+	bool m_timedout;
 };
 
 ///
@@ -66,6 +88,10 @@ public:
 	QJsonDocument getBody() const { return _responseBody; }
 	void setBody(const QJsonDocument& body) { _responseBody = body; }
 
+
+	QByteArray getHeader(const QByteArray& header) const;
+	void setHeaders(const QList<QNetworkReply::RawHeaderPair>& pairs);
+
 	QString getErrorReason() const { return _errorReason; }
 	void setErrorReason(const QString& errorReason) { _errorReason = errorReason; }
 
@@ -78,6 +104,8 @@ public:
 private:
 
 	QJsonDocument _responseBody {};
+	QHash<QByteArray, QByteArray> _responseHeaders;
+
 	bool _hasError = false;
 	QString _errorReason;
 
@@ -104,8 +132,10 @@ private:
 ///
 ///@endcode
 ///
-class ProviderRestApi
+class ProviderRestApi : public QObject
 {
+	Q_OBJECT
+
 public:
 
 	///
@@ -124,6 +154,15 @@ public:
 	///
 	/// @brief Constructor of the REST-API wrapper
 	///
+	/// @param[in] scheme
+	/// @param[in] host
+	/// @param[in] port
+	///
+	explicit ProviderRestApi(const QString& scheme, const QString& host, int port);
+
+	///
+	/// @brief Constructor of the REST-API wrapper
+	///
 	/// @param[in] host
 	/// @param[in] port
 	/// @param[in] API base-path
@@ -131,9 +170,33 @@ public:
 	explicit ProviderRestApi(const QString& host, int port, const QString& basePath);
 
 	///
+	/// @brief Constructor of the REST-API wrapper
+	///
+	/// @param[in] scheme
+	/// @param[in] host
+	/// @param[in] port
+	/// @param[in] API base-path
+	///
+	explicit ProviderRestApi(const QString& scheme, const QString& host, int port, const QString& basePath);
+
+	///
 	/// @brief Destructor of the REST-API wrapper
 	///
-	virtual ~ProviderRestApi();
+	virtual ~ProviderRestApi() override;
+
+	///
+	/// @brief Set the API's scheme
+	///
+	/// @param[in] scheme
+	///
+	void setScheme(const QString& scheme);
+
+	///
+	/// @brief Get the API's scheme
+	///
+	/// return schme
+	///
+	QString getScheme() { return _apiUrl.scheme(); }
 
 	///
 	/// @brief Set an API's host
@@ -148,6 +211,13 @@ public:
 	/// @param[in] port
 	///
 	void setPort(const int port) { _apiUrl.setPort(port); }
+
+	///
+	/// @brief Get the API's port
+	///
+	/// return port
+	///
+	int getPort() { return _apiUrl.port(); }
 
 	///
 	/// @brief Set an API's url
@@ -166,9 +236,21 @@ public:
 	///
 	/// @brief Set an API's base path (the stable path element before addressing resources)
 	///
+	/// @param[in] pathElements to form a path, e.g. (clip,v2,resource) results in "/clip/v2/resource"
+	///
+	void setBasePath(const QStringList& pathElements);
+
+	///
+	/// @brief Set an API's base path (the stable path element before addressing resources)
+	///
 	/// @param[in] basePath, e.g. "/api/v1/" or "/json"
 	///
 	void setBasePath(const QString& basePath);
+
+	///
+	/// @brief Clear an API's base path (the stable path element before addressing resources)
+	///
+	void clearBasePath();
 
 	///
 	/// @brief Set an API's path to address resources
@@ -178,11 +260,30 @@ public:
 	void setPath(const QString& path);
 
 	///
+	/// @brief Set an API's path to address resources
+	///
+	/// @param[in] pathElements to form a path, e.g. (lights,1,state) results in "/lights/1/state/"
+	///
+	void setPath(const QStringList& pathElements);
+
+	///
+	/// @brief Clear an API's path
+	///
+	void clearPath();
+
+	///
 	/// @brief Append an API's path element to path set before
 	///
 	/// @param[in] path
 	///
 	void appendPath(const QString& appendPath);
+
+	///
+	/// @brief Append API's path elements to path set before
+	///
+	/// @param[in] pathElements
+	///
+	void appendPath(const QStringList& pathElements);
 
 	///
 	/// @brief Set an API's fragment
@@ -197,6 +298,10 @@ public:
 	/// @param[in] query, e.g. "&A=128&FX=0"
 	///
 	void setQuery(const QUrlQuery& query);
+
+
+	QString getBasePath() {return _basePath;}
+	QString getPath() {return _path;}
 
 	///
 	/// @brief Execute GET request
@@ -283,8 +388,15 @@ public:
 	/// @param[in] The type of the header field.
 	/// @param[in] The value of the header field.
 	/// If the header field exists, the value will be combined as comma separated string.
-
 	void setHeader(QNetworkRequest::KnownHeaders header, const QVariant& value);
+
+	///
+	/// Set a header field.
+	///
+	/// @param[in] The type of the header field.
+	/// @param[in] The value of the header field.
+	/// If the header field exists, the value will override the previous setting.
+	void setHeader(const QByteArray &headerName, const QByteArray &headerValue);
 
 	///
 	/// Remove all header fields.
@@ -292,11 +404,30 @@ public:
 	void removeAllHeaders() { _networkRequestHeaders = QNetworkRequest(); }
 
 	///
+	/// Sets the timeout time frame after a request is aborted
+	/// Zero means no timer is set.
+	///
+	/// @param[in] timeout in milliseconds.
+	void setTransferTimeout(std::chrono::milliseconds timeout = DEFAULT_REST_TIMEOUT) { _requestTimeout = timeout; }
+
+
+	bool setCaCertificate(const QString& caFileName);
+
+	void acceptSelfSignedCertificates(bool accept);
+
+	void setAlternateServerIdentity(const QString& serverIdentity);
+	QString getAlternateServerIdentity() const;
+
+	///
 	/// @brief Set the common logger for LED-devices.
 	///
 	/// @param[in] log The logger to be used
 	///
 	void setLogger(Logger* log) { _log = log; }
+
+protected slots:
+	/// Handle the SSLErrors
+	void onSslErrors(QNetworkReply* reply, const QList<QSslError>& errors);
 
 private:
 
@@ -308,10 +439,18 @@ private:
 	///
 	static void appendPath (QString &path, const QString &appendPath) ;
 
+
+	httpResponse executeOperation(QNetworkAccessManager::Operation op, const QUrl& url, const QByteArray& body = {});
+
+	bool checkServerIdentity(const QSslConfiguration& sslConfig) const;
+
+	bool matchesPinnedCertificate(const QSslCertificate& certificate);
+
 	Logger* _log;
 
-	// QNetworkAccessManager object for sending REST-requests.
+	/// QNetworkAccessManager object for sending REST-requests.
 	QNetworkAccessManager* _networkManager;
+	std::chrono::milliseconds _requestTimeout;
 
 	QUrl _apiUrl;
 
@@ -322,6 +461,9 @@ private:
 	QUrlQuery _query;
 
 	QNetworkRequest _networkRequestHeaders;
+
+	QString _serverIdentity;
+	bool _isSeflSignedCertificateAccpeted;
 };
 
 #endif // PROVIDERRESTKAPI_H

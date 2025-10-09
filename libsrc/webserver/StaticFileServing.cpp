@@ -1,5 +1,7 @@
 
 #include "StaticFileServing.h"
+
+#include "QtHttpHeader.h"
 #include <utils/QStringUtils.h>
 
 #include <QStringBuilder>
@@ -9,6 +11,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QResource>
+
 #include <exception>
 
 StaticFileServing::StaticFileServing (QObject * parent)
@@ -36,12 +39,15 @@ void StaticFileServing::setBaseUrl(const QString& url)
 void StaticFileServing::setSSDPDescription(const QString& desc)
 {
 	if(desc.isEmpty())
+	{
 		_ssdpDescription.clear();
-	else
+	} else
+	{
 		_ssdpDescription = desc.toLocal8Bit();
+	}
 }
 
-void StaticFileServing::printErrorToReply (QtHttpReply * reply, QtHttpReply::StatusCode code, QString errorMessage)
+void StaticFileServing::printErrorToReply (QtHttpReply * reply, QtHttpReply::StatusCode code, const QString& errorMessage)
 {
 	reply->setStatusCode(code);
 	reply->addHeader ("Content-Type", QByteArrayLiteral ("text/html"));
@@ -59,13 +65,13 @@ void StaticFileServing::printErrorToReply (QtHttpReply * reply, QtHttpReply::Sta
 	if (errorPage.open (QFile::ReadOnly))
 	{
 		QByteArray data = errorPage.readAll();
-		data = data.replace("{MESSAGE}", errorMessage.toLocal8Bit() );
+		data = data.replace("{MESSAGE}", QString(errorMessage.toLocal8Bit()).toHtmlEscaped().toLocal8Bit() );
 		reply->appendRawData (data);
 		errorPage.close ();
 	}
 	else
 	{
-		reply->appendRawData (QString(QString::number(code) + " - " +errorMessage).toLocal8Bit());
+		reply->appendRawData (QString(QString::number(code) + " - " +errorMessage.toLocal8Bit()).toHtmlEscaped().toLocal8Bit());
 	}
 
 	if (errorPageFooter.open (QFile::ReadOnly))
@@ -100,7 +106,8 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 				}
 				return;
 			}
-			else if(uri_parts.at(0) == "description.xml" && !_ssdpDescription.isNull())
+
+			if(uri_parts.at(0) == "description.xml" && !_ssdpDescription.isNull())
 			{
 				reply->addHeader ("Content-Type", "text/xml");
 				reply->appendRawData (_ssdpDescription);
@@ -129,8 +136,16 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 			QMimeType mime = _mimeDb->mimeTypeForFile (file.fileName ());
 			if (file.open (QFile::ReadOnly)) {
 				QByteArray data = file.readAll ();
-				reply->addHeader ("Content-Type", mime.name ().toLocal8Bit ());
-				reply->addHeader(QtHttpHeader::AccessControlAllow, "*" );
+
+				// Workaround https://bugreports.qt.io/browse/QTBUG-97392
+				if (mime.name() == QStringLiteral("application/x-extension-html"))
+				{
+					reply->addHeader ("Content-Type", "text/html");
+				}
+				else
+				{
+					reply->addHeader ("Content-Type", mime.name().toLocal8Bit());
+				}
 				reply->appendRawData (data);
 				file.close ();
 			}

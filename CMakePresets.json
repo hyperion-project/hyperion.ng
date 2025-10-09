@@ -1,0 +1,310 @@
+{
+  "version": 8,
+  "configurePresets": [
+    {
+      "name": "base",
+      "description": "Base settings that apply to all configurations",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/build"
+    },
+    {
+      "name": "ccache",
+      "description": "Set ccache variables",
+      "hidden": true,
+      "cacheVariables": {
+        "USE_COMPILER_CACHE": "ON"
+      },
+      "environment": {
+        "CCACHE_NODEBUG": "true",
+        "CCACHE_DIRECT": "true",
+        "CCACHE_MAXSIZE": "500M",
+        "CCACHE_COMPRESS": "true",
+        "CCACHE_COMPRESSLEVEL": "1",
+        "CCACHE_NOSTATS": "true",
+        "CCACHE_DIR": "${sourceDir}/.ccache"
+      }
+    },
+    {
+      "name": "buildcache",
+      "description": "Set buildcache variables",
+      "hidden": true,
+      "cacheVariables": {
+        "USE_COMPILER_CACHE": "ON"
+      },
+      "environment": {
+        "BUILDCACHE_DEBUG": "-1",
+        "BUILDCACHE_DIRECT_MODE": "true",
+        "BUILDCACHE_MAX_CACHE_SIZE": "524288000",
+        "BUILDCACHE_COMPRESS": "true",
+        "BUILDCACHE_COMPRESS_FORMAT": "LZ4",
+        "BUILDCACHE_DIR": "${sourceDir}/.buildcache"
+      }
+    },
+    {
+      "name": "hyperion-light",
+      "hidden": true,
+      "cacheVariables": {
+        "HYPERION_LIGHT": "ON"
+      }
+    },
+    {
+      "name": "hyperion-bare-minimum",
+      "hidden": true,
+      "cacheVariables": {
+        "ENABLE_AMLOGIC": "OFF",
+        "ENABLE_DDA": "OFF",
+        "ENABLE_DISPMANX": "OFF",
+        "ENABLE_DX": "OFF",
+        "ENABLE_FB": "OFF",
+        "ENABLE_MF": "OFF",
+        "ENABLE_OSX": "OFF",
+        "ENABLE_QT": "OFF",
+        "ENABLE_V4L2": "OFF",
+        "ENABLE_X11": "OFF",
+        "ENABLE_XCB": "OFF",
+        "ENABLE_AUDIO": "OFF",
+        "ENABLE_DEV_FTDI": "OFF",
+        "ENABLE_DEV_NETWORK": "OFF",
+        "ENABLE_DEV_SERIAL": "ON",
+        "ENABLE_DEV_SPI": "OFF",
+        "ENABLE_DEV_TINKERFORGE": "OFF",
+        "ENABLE_DEV_USB_HID": "OFF",
+        "ENABLE_DEV_WS281XPWM": "OFF",
+        "ENABLE_BOBLIGHT_SERVER": "OFF",
+        "ENABLE_CEC": "OFF",
+        "ENABLE_FLATBUF_SERVER": "OFF",
+        "ENABLE_PROTOBUF_SERVER": "OFF",
+        "ENABLE_FORWARDER": "OFF",
+        "ENABLE_FLATBUF_CONNECT": "OFF",
+        "ENABLE_EXPERIMENTAL": "OFF",
+        "ENABLE_MDNS": "OFF",
+        "ENABLE_REMOTE_CTL": "OFF",
+        "ENABLE_EFFECTENGINE": "OFF",
+        "ENABLE_JSONCHECKS": "ON",
+        "ENABLE_DEPLOY_DEPENDENCIES": "ON"
+      }
+    },
+    {
+      "name": "debug",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "release",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "relwithdebinfo",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
+    },
+    {
+      "name": "ninja-base",
+      "hidden": true,
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "clang",
+      "hidden": true,
+      "inherits": [ "ninja-base" ],
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "/usr/bin/clang",
+        "CMAKE_CXX_COMPILER": "/usr/bin/clang++"
+      }
+    },
+    {
+      "name": "msvc",
+      "hidden": true,
+      "inherits": [ "ninja-base" ],
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "cl.exe",
+        "CMAKE_CXX_COMPILER": "cl.exe"
+      }
+    },
+    {
+      "name": "gcc",
+      "hidden": true,
+      "inherits": [ "ninja-base" ],
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "/usr/bin/gcc",
+        "CMAKE_CXX_COMPILER": "/usr/bin/g++"
+      }
+    },
+    {
+      "name": "macos-release",
+      "displayName": "MacOS (release) (clang)",
+      "description": "Build with Clang as Release without Debug Symbols",
+      "inherits": [ "base", "release", "clang" ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
+    },
+    {
+      "name": "macos-debug",
+      "displayName": "MacOS (debug) (clang)",
+      "description": "Build with Clang with Debug Symbols",
+      "inherits": [ "base", "debug", "clang" ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
+    },
+    {
+      "name": "windows-release",
+      "displayName": "Windows (release) (msvc)",
+      "description": "Build with MSVC's CL as Release without Debug Symbols",
+      "inherits": [ "base", "release", "msvc" ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "windows-relwithdebinfo",
+      "displayName": "Windows (RelWithDebInfo) (msvc)",
+      "description": "Build with MSVC's CL as Release with Debug Symbols",
+      "inherits": [ "base", "relwithdebinfo", "msvc" ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "windows-debug",
+      "displayName": "Windows (debug) (msvc)",
+      "description": "Build with MSVC's CL with Debug Symbols",
+      "inherits": [ "base", "debug", "msvc" ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "linux-release",
+      "displayName": "Linux (release) (gcc)",
+      "description": "Build with GCC as Release without Debug Symbols",
+      "inherits": [ "base", "release", "gcc" ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "linux-debug",
+      "displayName": "Linux (debug) (gcc)",
+      "description": "Build with GCC with Debug Symbols",
+      "inherits": [ "base", "debug", "gcc" ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "macos-release",
+      "displayName": "MacOS (release) (clang)",
+      "description": "Build with Clang as Release without Debug Symbols",
+      "targets": "all",
+      "configurePreset": "macos-release",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
+    },
+    {
+      "name": "macos-debug",
+      "displayName": "MacOS (debug) (clang)",
+      "description": "Build with Clang as Debug",
+      "targets": "all",
+      "configurePreset": "macos-debug",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
+    },
+    {
+      "name": "windows-release",
+      "displayName": "Windows (release) (msvc)",
+      "description": "Build with MSVC's CL as Release without Debug Symbols",
+      "configuration": "Release",
+      "targets": "all",
+      "configurePreset": "windows-release",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "windows-relwithdebinfo",
+      "displayName": "Windows (RelWithDebInfo) (msvc)",
+      "description": "Build with MSVC's CL as Release with Debug Symbols",
+      "configuration": "RelWithDebInfo",
+      "targets": "all",
+      "configurePreset": "windows-relwithdebinfo",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "windows-debug",
+      "displayName": "Windows (debug) (msvc)",
+      "description": "Build with MSVC's CL with Debug Symbols",
+      "configuration": "Debug",
+      "targets": "all",
+      "configurePreset": "windows-debug",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "linux-release",
+      "displayName": "Linux (release) (gcc)",
+      "description": "Build with GCC as Release without Debug Symbols",
+      "targets": "all",
+      "configurePreset": "linux-release",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "linux-debug",
+      "displayName": "Linux (debug) (gcc)",
+      "description": "Build with GCC with Debug Symbols",
+      "targets": "all",
+      "configurePreset": "linux-debug",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    }
+  ]
+}

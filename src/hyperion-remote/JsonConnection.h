@@ -4,7 +4,10 @@
 #include <QColor>
 #include <QImage>
 #include <QTcpSocket>
+#include <QHostAddress>
 #include <QJsonObject>
+#include <QJsonArray>
+#include <QScopedPointer>
 
 //forward class decl
 class Logger;
@@ -14,8 +17,10 @@ const int JSONAPI_DEFAULT_PORT = 19444;
 ///
 /// Connection class to setup an connection to the hyperion server and execute commands
 ///
-class JsonConnection
+class JsonConnection : public QObject
 {
+	Q_OBJECT
+
 public:
 	///
 	/// Constructor
@@ -24,7 +29,7 @@ public:
 	/// @param address The port of the Hyperion JSON-server (default port = 19444)
 	/// @param printJson Boolean indicating if the sent and received json is written to stdout
 	///
-	JsonConnection(const QString& host, bool printJson, quint16 port = JSONAPI_DEFAULT_PORT);
+	JsonConnection(const QHostAddress& host, bool printJson, quint16 port = JSONAPI_DEFAULT_PORT);
 
 	///
 	/// Destructor
@@ -38,7 +43,7 @@ public:
 	/// @param priority The priority
 	/// @param duration The duration in milliseconds
 	///
-	void setColor(std::vector<QColor> color, int priority, int duration);
+	void setColor(const QList<QColor>& color, int priority, int duration);
 
 	///
 	/// Set the LEDs according to the given image (assume the image is stretched to the display size)
@@ -48,7 +53,7 @@ public:
 	/// @param duration The duration in milliseconds
 	/// @param name The image's filename
 	///
-	void setImage(QImage &image, int priority, int duration, const QString& name = "");
+	void setImage(const QImage &image, int priority, int duration, const QString& name = "");
 
 #if defined(ENABLE_EFFECTENGINE)
 	///
@@ -100,6 +105,36 @@ public:
 	QString getSysInfo();
 
 	///
+	/// Suspend Hyperion. Stop all instances and components
+	///
+	void suspend();
+
+	///
+	/// Resume Hyperion. Start all instances and components
+	///
+	void resume();
+
+	///
+	/// Toggle between Suspend and Resume
+	///
+	void toggleSuspend();
+
+	///
+	///  Put Hyperion in Idle mode, i.e. all instances, components will be disabled besides the output processing (LED-devices, smoothing).
+	///
+	void idle();
+
+	///
+	/// Toggle between Idle and Working mode
+	///
+	void toggleIdle();
+
+	///
+	/// Restart Hyperion
+	///
+	void restart();
+
+	///
 	/// Clear the given priority channel
 	///
 	/// @param priority The priority
@@ -134,7 +169,7 @@ public:
 	///
 	/// Print the current loaded Hyperion configuration file
 	///
-	QString getConfig(std::string type);
+	QString getConfig(const QString& type);
 
 	///
 	/// Write JSON Value(s) to the actual loaded configuration file
@@ -158,51 +193,83 @@ public:
 	/// @param brightness The threshold aka upper brightness limit
 
 	void setAdjustment(
-		const QString & adjustmentId,
-		const QColor & redAdjustment,
-		const QColor & greenAdjustment,
-		const QColor & blueAdjustment,
-		const QColor & cyanAdjustment,
-		const QColor & magentaAdjustment,
-		const QColor & yellowAdjustment,
-		const QColor & blackAdjustment,
-		const QColor & whiteAdjustment,
-		double *gammaR,
-		double *gammaG,
-		double *gammaB,
-		int    *backlightThreshold,
-		int    *backlightColored,
-		int    *brightness,
-		int    *brightnessC);
+			const QString & adjustmentId,
+			const QColor & redAdjustment,
+			const QColor & greenAdjustment,
+			const QColor & blueAdjustment,
+			const QColor & cyanAdjustment,
+			const QColor & magentaAdjustment,
+			const QColor & yellowAdjustment,
+			const QColor & blackAdjustment,
+			const QColor & whiteAdjustment,
+			double *gammaR,
+			double *gammaG,
+			double *gammaB,
+			int    *backlightThreshold,
+			int    *backlightColored,
+			int    *brightness,
+			int    *brightnessC);
 
 	///
 	/// sets the image to leds mapping type
 	///
 	/// @param mappingType led mapping type
-	void setLedMapping(QString mappingType);
+	void setLedMapping(const QString& mappingType);
 
 	// sets video mode 3D/2D
-	void setVideoMode(QString videoMode);
+	void setVideoMode(const QString& videoMode);
 
 	// set the specified authorization token
-	void setToken(const QString &token);
+	bool setToken(const QString& token);
 
 	///
 	/// Send a json message with a specific instance id
 	/// @param instance The instance id
 	///
-	void setInstance(int instance);
+	bool setInstance(int instance);
 
+public slots:
+
+	void close();
+
+signals:
+
+	void isReadyToSend();
+	void isMessageReceived(const QJsonObject &resp);
+	void isDisconnected();
+	void errorOccured(const QString& error);
+
+private slots:
+
+	void onConnected();
+	void onReadyRead();
+	void onDisconnected();
+	void onErrorOccured();
 
 private:
+
+	///
+	/// @brief Try to connect to the Hyperion host
+	///
+	void connectToRemoteHost();
+
 	///
 	/// Send a json command message and receive its reply
 	///
 	/// @param message The message to send
+	/// @param instanceIds A list of instanceIDs the command should be applied to
 	///
 	/// @return The returned reply
 	///
-	QJsonObject sendMessage(const QJsonObject & message);
+	QJsonObject sendMessageSync(const QJsonObject& message, const QJsonArray& instanceIds = {});
+
+	///
+	/// Send a json command message
+	///
+	/// @param message The message to send
+	/// @param instanceIds A list of instanceIDs the command should be applied to
+	///
+	void sendMessage(const QJsonObject& message, const QJsonArray& instanceIds = {});
 
 	///
 	/// Parse a reply message
@@ -213,13 +280,23 @@ private:
 	///
 	bool parseReply(const QJsonObject & reply);
 
-	/// Flag for printing all send and received json-messages to the standard out
-	bool _printJson;
-
 	// Logger class
 	Logger* _log;
 
 	/// The TCP-Socket with the connection to the server
-	QTcpSocket _socket;
+	//QTcpSocket _socket;
+	QScopedPointer<QTcpSocket,QScopedPointerDeleteLater> _socket;
+
+	/// Host address
+	QHostAddress _host;
+
+	/// Host port
+	uint16_t _port;
+
+	/// Flag for printing all send and received json-messages to the standard out
+	bool _printJson;
+
+	/// buffer for reply
+	QByteArray _receiveBuffer;
 
 };

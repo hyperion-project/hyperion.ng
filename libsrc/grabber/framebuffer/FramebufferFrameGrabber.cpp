@@ -28,13 +28,13 @@ const char DISCOVERY_FILEPATTERN[] = "fb?";
 } //End of constants
 
 // Local includes
-#include <grabber/FramebufferFrameGrabber.h>
+#include <grabber/framebuffer/FramebufferFrameGrabber.h>
 
-FramebufferFrameGrabber::FramebufferFrameGrabber(const QString & device)
-	: Grabber("FRAMEBUFFERGRABBER")
-	  , _fbDevice(device)
-	  , _fbfd (-1)
+FramebufferFrameGrabber::FramebufferFrameGrabber(int deviceIdx)
+	: Grabber("GRABBER-FB")
+	, _fbfd (-1)
 {
+	_input = deviceIdx;
 	_useImageResampler = true;
 }
 
@@ -105,6 +105,7 @@ bool FramebufferFrameGrabber::openDevice()
 {
 	bool rc = true;
 
+	_fbDevice = getPath();
 	/* Open the framebuffer device */
 	_fbfd = ::open(QSTRING_CSTR(_fbDevice), O_RDONLY);
 	if (_fbfd < 0)
@@ -136,8 +137,7 @@ QSize FramebufferFrameGrabber::getScreenSize() const
 
 QSize FramebufferFrameGrabber::getScreenSize(const QString& device) const
 {
-	int width (0);
-	int height(0);
+	QSize size;
 
 	int fbfd = ::open(QSTRING_CSTR(device), O_RDONLY);
 	if (fbfd != -1)
@@ -146,13 +146,13 @@ QSize FramebufferFrameGrabber::getScreenSize(const QString& device) const
 		int result = ioctl (fbfd, FBIOGET_VSCREENINFO, &vinfo);
 		if (result == 0)
 		{
-			width = static_cast<int>(vinfo.xres);
-			height = static_cast<int>(vinfo.yres);
-			DebugIf(verbose, _log, "FB device [%s] found with resolution: %dx%d", QSTRING_CSTR(device), width, height);
+			size.setWidth(static_cast<int>(vinfo.xres));
+			size.setHeight(static_cast<int>(vinfo.yres));
+			DebugIf(verbose, _log, "FB device [%s] found with resolution: %dx%d", QSTRING_CSTR(device), size.width(), size.height());
 		}
 		::close(fbfd);
 	}
-	return QSize(width, height);
+	return size;
 }
 
 bool FramebufferFrameGrabber::getScreenInfo()

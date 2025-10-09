@@ -8,17 +8,30 @@
 			"default":"ttyACM0",
 			"propertyOrder" : 1
 		},
+		"rateList": {
+			"type": "string",
+			"title":"edt_dev_spec_baudrate_title",
+			"enum": [ "CUSTOM","250000","500000","1000000" ],
+			"options": {
+			  "enum_titles": [ "edt_conf_enum_custom" ]
+			},
+			"default": "500000",
+			"access": "advanced",
+			"propertyOrder" : 2
+		},
 		"rate": {
 			"type": "integer",
-			"title":"edt_dev_spec_baudrate_title",
+			"title":"",
 			"default": 1000000,
-			"propertyOrder" : 2
+			"access": "advanced",
+			"propertyOrder" : 3
 		},
 		"delayAfterConnect": {
 			"type": "integer",
 			"title":"edt_dev_spec_delayAfterConnect_title",
 			"default": 250,
-			"propertyOrder" : 3
+			"access" : "expert",
+			"propertyOrder" : 4
 		},
 		"latchTime": {
 			"type": "integer",
@@ -28,7 +41,7 @@
 			"minimum": 0,
 			"maximum": 1000,
 			"access" : "expert",
-			"propertyOrder" : 4
+			"propertyOrder" : 5
 		},
 		"rewriteTime": {
 			"type": "integer",
@@ -37,7 +50,7 @@
 			"append" : "edt_append_ms",
 			"minimum": 0,
 			"access" : "expert",
-			"propertyOrder" : 5
+			"propertyOrder" : 6
 		}		
 	},
 	"additionalProperties": true

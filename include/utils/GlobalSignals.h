@@ -57,6 +57,13 @@ signals:
 #endif
 
 	///
+	/// @brief PIPE audioCapture images from audioCapture over HyperionDaemon to Hyperion class
+	/// @param name   The name of the audio capture (path) that is currently active
+	/// @param image  The prepared image
+	///
+	void setAudioImage(const QString& name, const Image<ColorRgb>& image);
+
+	///
 	/// @brief PIPE the register command for a new global input over HyperionDaemon to Hyperion class
 	/// @param[in] priority    The priority of the channel
 	/// @param[in] component   The component of the channel
@@ -110,4 +117,13 @@ signals:
 	///
 	void requestSource(hyperion::Components component, int hyperionInd, bool listen);
 
+	///////////////////////////////////////
+	///////////// TO FORWARDER ////////////
+	///////////////////////////////////////
+
+	///
+	/// @brief Forward message to all json target hosts
+	/// @param message The JSON message to send
+	///
+	void forwardJsonMessage(const QJsonObject &message, quint8 instanceId);
 };

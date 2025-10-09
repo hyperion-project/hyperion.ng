@@ -2,7 +2,7 @@
 // QT includes
 #include <QTimer>
 
-#include <grabber/OsxFrameGrabber.h>
+#include <grabber/osx/OsxFrameGrabber.h>
 #include <hyperion/GrabberWrapper.h>
 
 class OsxWrapper : public QObject
@@ -26,7 +26,7 @@ public:
 
 	void stop();
 
-	bool displayInit();
+	bool screenInit();
 
 signals:
 	void sig_screenshot(const Image<ColorRgb> & screenshot);

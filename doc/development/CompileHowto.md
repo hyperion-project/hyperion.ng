@@ -1,73 +1,58 @@
 
 # With Docker
-If you are using [Docker](https://www.docker.com/), you can compile Hyperion inside a docker container. This keeps your system clean and with a simple script it's easy to use. Supported is also cross compiling for Raspberry Pi (Debian Stretch or higher). To compile Hyperion just execute one of the following commands.
+If you are using [Docker](https://www.docker.com/), you can compile Hyperion inside a docker container. This keeps your system clean and with a simple script it's easy to use. Supported is also cross compiling for Raspberry Pi (Debian Buster or higher). To compile Hyperion just execute one of the following commands.
 
 The compiled binaries and packages will be available at the deploy folder next to the script.<br/>
-Note: call the script with `./docker-compile.sh -h` for more options.
 
-## Native compilation on Raspberry Pi for:
+> [!NOTE]
+> Call the script with `./docker-compile.sh --help` for more options.
 
-**Raspbian Stretch**
+## Cross compilation on amd64 (aka x86_64), sample commands
+
+### Debian
+
+**amd64 (Bookworm):**
 ```console
-wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i rpi-raspbian -t stretch
+wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh --name bookworm
 ```
-**Raspbian Buster/Raspberry Pi OS**
+**arm64 or Raspberry Pi 5 (Bookworm)**
 ```console
-wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i rpi-raspbian -t buster
+wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh --architecture arm64 --name bookworm
 ```
-**Raspberry Pi OS Bullseye**
+**Raspberry Pi 2/3/4 (Bookworm)**
 ```console
-wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i rpi-raspbian
+wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh --architecture arm/v7 --name bookworm
+```
+**Raspberry Pi v1 & ZERO (Bookworm)**
+```console
+wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh --architecture arm/v6 --name bookworm
 ```
 
-## Cross compilation on x86_64 for:
+### Ubuntu
 
-**x86_64 (Debian Stretch):**
+**amd64 (Noble Numbat):**
 ```console
-wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i x86_64 -t stretch
+wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh --name noble
 ```
-**x86_64 (Debian Buster):**
+
+### Fedora
+
+**amd64 (41):**
 ```console
-wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i x86_64 -t buster
+wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh --name 41
 ```
-**x86_64 (Debian Bullseye):**
-```console
-wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i x86_64
-```
-**Raspberry Pi v1 & ZERO (Debian Stretch)**
-```console
-wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i armv6l -t stretch
-```
-**Raspberry Pi v1 & ZERO (Debian Buster)**
-```console
-wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i armv6l -t buster
-```
-**Raspberry Pi v1 & ZERO (Debian Bullseye)**
-```console
-wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i armv6l
-```
-**Raspberry Pi 2/3/4 (Debian Stretch)**
-```console
-wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i armv7l -t stretch
-```
-**Raspberry Pi 2/3/4 (Debian Buster)**
-```console
-wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i armv7l -t buster
-```
-**Raspberry Pi 2/3/4 (Debian Bullseye)**
-```console
-wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i armv7l
-```
-## Cross compilation on x86_64 for developers
+
+## Cross compilation on amd64 for developers
 Using additional options you can cross compile locally
--l: use a local hyperion source code directory rather than cloning from GitHub
--c: do incremental compiles, Note: you need to keep the image and tag stable
+--local: use a local hyperion source code directory rather than cloning from GitHub
+--incremental: do incremental compiles, Note: you need to keep the image and tag stable
 
-**Compile code in $HYPERION_HOME incrementally for Raspberry Pi 2/3/4 (Debian Bullseye)**
+**Compile code in $HYPERION_HOME incrementally for Raspberry Pi 2/3/4 (Debian Bookworm)**
 ```console
 cd $HYPERION_HOME
-./bin/scripts/docker-compile.sh -l -c -i armv7l -t bullseye
+./bin/scripts/docker-compile.sh --local --incremental --architecture arm/v7 --name bookworm
 ```
+
 # The usual way
 
 ## Debian/Ubuntu/Win10LinuxSubsystem
@@ -76,14 +61,14 @@ cd $HYPERION_HOME
 
 ```console
 sudo apt-get update
-sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev libqt5sql5-sqlite libqt5svg5-dev libqt5x11extras5-dev libusb-1.0-0-dev python3-dev libturbojpeg0-dev libssl-dev
+sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev libqt5websockets5-dev libqt5sql5-sqlite libqt5svg5-dev libqt5x11extras5-dev libusb-1.0-0-dev python3-dev libasound2-dev libturbojpeg0-dev libjpeg-dev libssl-dev libftdi1-dev
 ```
 
 **Ubuntu (22.04+) - Qt6 based**
 
 ```console
 sudo apt-get update
-sudo apt-get install git cmake build-essential qt6-base-dev libqt6serialport6-dev libvulkan-dev libgl1-mesa-dev libusb-1.0-0-dev python3-dev libturbojpeg0-dev libssl-dev pkg-config
+sudo apt-get install git cmake build-essential qt6-base-dev libqt6serialport6-dev libqt6websockets6-dev libxkbcommon-dev libvulkan-dev libgl1-mesa-dev libusb-1.0-0-dev python3-dev libasound2-dev libturbojpeg0-dev libjpeg-dev libssl-dev pkg-config libftdi1-dev
 ```
 
 **For Linux X11/XCB grabber support**
@@ -125,16 +110,21 @@ See [AUR](https://aur.archlinux.org/packages/?O=0&SeB=nd&K=hyperion&outdated=&SB
 The following dependencies are needed to build hyperion.ng on fedora.
 ```console
 sudo dnf -y groupinstall "Development Tools"
-sudo dnf install python3-devel qt-devel qt5-qtbase-devel qt5-qtserialport-devel xrandr xcb-util-image-devel qt5-qtx11extras-devel turbojpeg-devel libusb-devel xcb-util-devel dbus-devel openssl-devel fedora-packager rpmdevtools gcc libcec-devel
+sudo dnf install python3-devel qt-devel qt6-qtbase-devel qt6-qtserialport-devel qt6-qtwebsockets-devel xrandr xcb-util-image-devel qt5-qtx11extras-devel alsa-lib-devel turbojpeg-devel libusb-devel xcb-util-devel dbus-devel openssl-devel fedora-packager rpmdevtools gcc libcec-devel libftdi1-dev
 ```
 After installing the dependencies, you can continue with the compile instructions later on this page (the more detailed way..).
 
-## OSX
-To install on OS X you either need Homebrew or Macport but Homebrew is the recommended way to install the packages. To use Homebrew XCode is required as well, use `brew doctor` to check your install.
+## macOS
+To install on OS X you either need [Homebrew](https://brew.sh/) or [Macport](https://www.macports.org/) but Homebrew is the recommended way to install the packages. To use Homebrew, XCode is required as well, use `brew doctor` to check your install.
 
-First you need to install the dependencies:
+First you need to install the dependencies for either the QT5 or QT6 build:
+####QT5
 ```console
-brew install qt5 python3 cmake libusb doxygen
+brew install git qt@5 python3 cmake libusb openssl@1.1 libftdi pkg-config
+```
+####QT6
+```console
+brew install git qt python3 cmake libusb openssl@1.1 libftdi pkg-config
 ```
 
 ## Windows
@@ -143,14 +133,14 @@ We assume a 64bit Windows 10. Install the following;
 - [CMake (Windows win64-x64 installer)](https://cmake.org/download/) (Check: Add to PATH)
 - [Visual Studio 2022 Community Edition](https://visualstudio.microsoft.com/downloads/#visual-studio-community-2022)
   - Select 'Desktop development with C++'
-  - On the right, just select `MSVC v143 VS 2022 C++ x64/x86-Buildtools` and latest `Windows 10 SDK`. Everything else is not needed.
-- [Win64 OpenSSL v1.1.1k](https://slproweb.com/products/Win32OpenSSL.html) ([direct link](https://slproweb.com/download/Win64OpenSSL-1_1_1k.exe))
+  - On the right, just select `MSVC v143 VS 2022 C++ x64/x86-Buildtools`, `C++ ATL for latest v143 build tools (x86 & x64)` and latest `Windows 10 SDK`. Everything else is not needed.
+- [Win64 OpenSSL v1.1.1w](https://slproweb.com/products/Win32OpenSSL.html) ([direct link](https://slproweb.com/download/Win64OpenSSL-1_1_1w.exe))
 - [Python 3 (Windows x86-64 executable installer)](https://www.python.org/downloads/windows/) (Check: Add to PATH and Debug Symbols)
   - Open a console window and execute `pip install aqtinstall`.
   - Now we can download Qt to _C:\Qt_ `mkdir c:\Qt && aqt install -O c:\Qt 5.15.2 windows desktop win64_msvc2019_64`
   - QT6.2 requires the [Vulkan SDK](https://vulkan.lunarg.com/sdk/home) to be installed
 - [libjpeg-turbo SDK for Visual C++](https://sourceforge.net/projects/libjpeg-turbo/files/)
-  - Download the latest 64bit installer (currently `libjpeg-turbo-2.1.3-vc64.exe`) and install to its default location `C:\libjpeg-turbo64`.
+  - Download the latest 64bit installer (currently `libjpeg-turbo-3.0.1-vc64.exe`) and install to its default location `C:\libjpeg-turbo64`.
 
 ###  Optional:
 - For DirectX9 grabber:
@@ -162,7 +152,7 @@ We assume a 64bit Windows 10. Install the following;
 
 ## The general quick way (without big comments)
 
-**complete automated process for Mac/Linux:**
+**complete automated process (Linux only):**
 ```console
 wget -qO- https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/bin/compile.sh | sh
 ```
@@ -188,7 +178,7 @@ bin/hyperiond
 # webui is located on localhost:8090 or 8091
 ```
 
-In case you would like to build with a dedicated Qt version, Either supply ``QTDIR`` as ``-DQTDIR=<path>`` to cmake or set and environment variable ``QTDIR`` pointing to the Qt installation.
+In case you would like to build with a dedicated Qt version, Either supply ``QTDIR`` as ``-DQTDIR=<path>`` to CMake or set an environment variable ``QTDIR`` pointing to the Qt installation.
 
 On Windows MSVC2022 set it via the CMakeSettings.json:
 ```posh
@@ -197,7 +187,7 @@ On Windows MSVC2022 set it via the CMakeSettings.json:
       ...
       "environments": [
         {
-          "QTDIR": "C:/Qt/6.2.2/msvc2019_64/"
+          "QTDIR": "C:/Qt/6.5.3/msvc2019_64/"
         }
       ]
     },

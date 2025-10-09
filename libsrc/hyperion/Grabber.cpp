@@ -18,6 +18,7 @@ Grabber::Grabber(const QString& grabberName, int cropLeft, int cropRight, int cr
 	, _cropRight(0)
 	, _cropTop(0)
 	, _cropBottom(0)
+	, _isAvailable(true)
 	, _isEnabled(true)
 	, _isDeviceInError(false)
 {
@@ -149,6 +150,8 @@ bool Grabber::setWidthHeight(int width, int height)
 
 bool Grabber::setFramerate(int fps)
 {
+	Debug(_log,"Set new frames per second to: %i fps, current fps: %i", fps, _fps);
+
 	if((fps > 0) && (_fps != fps))
 	{
 		Info(_log,"Set new frames per second to: %i fps", fps);

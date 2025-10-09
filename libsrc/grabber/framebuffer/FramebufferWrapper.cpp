@@ -1,12 +1,20 @@
-#include <grabber/FramebufferWrapper.h>
+#include <grabber/framebuffer/FramebufferWrapper.h>
 
 FramebufferWrapper::FramebufferWrapper( int updateRate_Hz,
-										const QString & device,
+										int deviceIdx,
 										int pixelDecimation)
-	: GrabberWrapper("FrameBuffer", &_grabber, updateRate_Hz)
-	  , _grabber(device)
+	: GrabberWrapper(GRABBERTYPE, &_grabber, updateRate_Hz)
+	, _grabber(deviceIdx)
 {
 	_grabber.setPixelDecimation(pixelDecimation);
+}
+
+FramebufferWrapper::FramebufferWrapper(const QJsonDocument& grabberConfig)
+	: FramebufferWrapper(GrabberWrapper::DEFAULT_RATE_HZ,
+						 0,
+						 GrabberWrapper::DEFAULT_PIXELDECIMATION)
+{
+	this->handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
 }
 
 void FramebufferWrapper::action()

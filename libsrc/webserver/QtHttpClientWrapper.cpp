@@ -5,7 +5,7 @@
 #include "QtHttpReply.h"
 #include "QtHttpServer.h"
 #include "QtHttpHeader.h"
-#include "WebSocketClient.h"
+#include "WebSocketJsonHandler.h"
 #include "WebJsonRpc.h"
 
 #include <QCryptographicHash>
@@ -27,8 +27,9 @@ QtHttpClientWrapper::QtHttpClientWrapper (QTcpSocket * sock, const bool& localCo
 	, m_localConnection(localConnection)
 	, m_websocketClient(nullptr)
 	, m_webJsonRpc     (nullptr)
+	, m_websocketServer (nullptr)
 {
-	connect (m_sockClient, &QTcpSocket::readyRead, this, &QtHttpClientWrapper::onClientDataReceived);
+	connect(m_sockClient, &QTcpSocket::readyRead, this, &QtHttpClientWrapper::onClientDataReceived);
 }
 
 QString QtHttpClientWrapper::getGuid (void)
@@ -37,7 +38,7 @@ QString QtHttpClientWrapper::getGuid (void)
 	{
 		m_guid = QString::fromLocal8Bit (
 			QCryptographicHash::hash (
-			QByteArray::number ((quint64) (this)),
+			QByteArray::number (reinterpret_cast<quint64>(this)),
 			QCryptographicHash::Md5
 			).toHex ()
 		);
@@ -46,70 +47,95 @@ QString QtHttpClientWrapper::getGuid (void)
 	return m_guid;
 }
 
+void QtHttpClientWrapper::injectCorsHeaders(QtHttpReply* reply)
+{
+	if (reply == nullptr)
+		return;
+
+	// Add CORS headers if not already set
+	if (reply->getHeader(QtHttpHeader::AccessControlAllowOrigin).isEmpty())
+		reply->addHeader(QtHttpHeader::AccessControlAllowOrigin, "*");
+
+	if (reply->getHeader(QtHttpHeader::AccessControlAllowMethods).isEmpty())
+		reply->addHeader(QtHttpHeader::AccessControlAllowMethods, "POST, GET, OPTIONS");
+
+	if (reply->getHeader(QtHttpHeader::AccessControlAllowHeaders).isEmpty())
+		reply->addHeader(QtHttpHeader::AccessControlAllowHeaders, "Authorization, Content-Type");
+}
+
 void QtHttpClientWrapper::onClientDataReceived (void)
 {
 	if (m_sockClient != Q_NULLPTR)
 	{
-		while (m_sockClient->bytesAvailable ())
+		if (!m_sockClient->isTransactionStarted())
+		{
+			m_sockClient->startTransaction();
+		}
+
+		while (m_sockClient->bytesAvailable () != 0)
 		{
 			QByteArray line = m_sockClient->readLine ();
 
 			switch (m_parsingStatus) // handle parsing steps
 			{
-				case AwaitingRequest: // "command url version" × 1
+			case AwaitingRequest: // "command url version" × 1
+			{
+				QString str = QString::fromUtf8 (line).trimmed ();
+				QStringList parts = QStringUtils::split(str,SPACE, QStringUtils::SplitBehavior::SkipEmptyParts);
+				if (parts.size () == 3)
 				{
-					QString str = QString::fromUtf8 (line).trimmed ();
-					QStringList parts = QStringUtils::split(str,SPACE, QStringUtils::SplitBehavior::SkipEmptyParts);
-					if (parts.size () == 3)
-					{
-						QString command = parts.at (0);
-						QString url     = parts.at (1);
-						QString version = parts.at (2);
+					const QString& command = parts.at (0);
+					const QString& url     = parts.at (1);
+					const QString& version = parts.at (2);
 
-						if (version == QtHttpServer::HTTP_VERSION)
-						{
-							m_currentRequest = new QtHttpRequest (this, m_serverHandle);
-							m_currentRequest->setClientInfo(m_sockClient->localAddress(), m_sockClient->peerAddress());
-							m_currentRequest->setUrl (QUrl (url));
-							m_currentRequest->setCommand (command);
-							m_parsingStatus = AwaitingHeaders;
-						}
-						else
-						{
-						m_parsingStatus = ParsingError;
-						//qWarning () << "Error : unhandled HTTP version :" << version;
-						}
+					if (version == QtHttpServer::HTTP_VERSION)
+					{
+						m_currentRequest = new QtHttpRequest (this, m_serverHandle);
+						m_currentRequest->setClientInfo(m_sockClient->localAddress(), m_sockClient->peerAddress());
+						m_currentRequest->setUrl (QUrl (url));
+						m_currentRequest->setCommand (command);
+						m_parsingStatus = AwaitingHeaders;
 					}
 					else
 					{
 						m_parsingStatus = ParsingError;
-						//qWarning () << "Error : incorrect HTTP command line :" << line;
+						// Error : unhandled HTTP version
 					}
-
-					break;
 				}
-				case AwaitingHeaders: // "header: value" × N (until empty line)
+				else
 				{
-					QByteArray raw = line.trimmed ();
+					m_parsingStatus = ParsingError;
+					// Error : incorrect HTTP command line
+				}
+				m_fragment.clear();
 
+				break;
+			}
+			case AwaitingHeaders: // "header: value" × N (until empty line)
+			{
+				m_fragment.append(line);
+
+				if ( m_fragment.endsWith(CRLF))
+				{
+					QByteArray raw = m_fragment.trimmed ();
 					if (!raw.isEmpty ()) // parse headers
 					{
 						int pos = raw.indexOf (COLON);
-
 						if (pos > 0)
 						{
 							QByteArray header = raw.left (pos).trimmed();
 							QByteArray value  = raw.mid  (pos +1).trimmed();
 							m_currentRequest->addHeader (header, value);
-							#if (QT_VERSION >= QT_VERSION_CHECK(5, 12, 0))
+
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 12, 0))
 							if (header.compare(QtHttpHeader::ContentLength, Qt::CaseInsensitive) == 0)
-							#else
+#else
 							if (header.toLower() == QtHttpHeader::ContentLength.toLower())
-							#endif
+#endif
 							{
-								bool ok  = false;
-								const int len = value.toInt (&ok, 10);
-								if (ok)
+								bool isConversionOk  = false;
+								const int len = value.toInt (&isConversionOk, 10);
+								if (isConversionOk)
 								{
 									m_currentRequest->addHeader (QtHttpHeader::ContentLength, QByteArray::number (len));
 								}
@@ -132,107 +158,137 @@ void QtHttpClientWrapper::onClientDataReceived (void)
 							m_parsingStatus = RequestParsed;
 						}
 					}
-
-					break;
+					m_fragment.clear();
 				}
-				case AwaitingContent: // raw data × N (until EOF ??)
+
+				break;
+			}
+			case AwaitingContent: // raw data × N (until EOF ??)
+			{
+				m_currentRequest->appendRawData (line);
+
+				if (m_currentRequest->getRawDataSize () == m_currentRequest->getHeader (QtHttpHeader::ContentLength).toInt ())
 				{
-					m_currentRequest->appendRawData (line);
-
-					if (m_currentRequest->getRawDataSize () == m_currentRequest->getHeader (QtHttpHeader::ContentLength).toInt ())
-					{
-						m_parsingStatus = RequestParsed;
-					}
-
-					break;
+					m_parsingStatus = RequestParsed;
 				}
-				default:
-				{
-					break;
-				}
+
+				break;
+			}
+			default:
+			{
+				break;
+			}
 			}
 
 			switch (m_parsingStatus) // handle parsing status end/error
 			{
-				case RequestParsed: // a valid request has ben fully parsed
+			case RequestParsed: // a valid request has ben fully parsed
+			{
+				// Handle CORS Preflight (OPTIONS)
+				if (m_currentRequest->getCommand() == "OPTIONS")
 				{
-					// Catch websocket header "Upgrade"
-					if(m_currentRequest->getHeader(QtHttpHeader::Upgrade) == "websocket")
+					QtHttpReply reply(m_serverHandle);
+					reply.setStatusCode(QtHttpReply::NoContent); // 204 No Content
+
+					injectCorsHeaders(&reply);
+					reply.addHeader(QtHttpHeader::AccessControlMaxAge, "86400"); // Cache for 1 day
+
+					connect(&reply, &QtHttpReply::requestSendHeaders, this, &QtHttpClientWrapper::onReplySendHeadersRequested, Qt::UniqueConnection);
+					connect(&reply, &QtHttpReply::requestSendData, this, &QtHttpClientWrapper::onReplySendDataRequested, Qt::UniqueConnection);
+
+					m_parsingStatus = sendReplyToClient(&reply);
+
+					return; // Important: return early, do NOT continue to normal POST/jsonrpc handling
+				}
+
+				const auto& upgradeValue = m_currentRequest->getHeader(QtHttpHeader::Upgrade).toLower();
+				if (upgradeValue == "websocket")
+				{
+					if(m_websocketClient == Q_NULLPTR)
 					{
-						if(m_websocketClient == Q_NULLPTR)
+						// disconnect this slot from socket for further requests
+						disconnect(m_sockClient, &QTcpSocket::readyRead, this, &QtHttpClientWrapper::onClientDataReceived);
+						m_sockClient->rollbackTransaction();
+
+						QString servername = QCoreApplication::applicationName() + QLatin1Char('/') + HYPERION_VERSION;
+						QWebSocketServer::SslMode secureMode = m_serverHandle->isSecure() ? QWebSocketServer::SecureMode : QWebSocketServer::NonSecureMode;
+						m_websocketServer.reset(new QWebSocketServer(servername, secureMode));
+						connect(m_websocketServer.get(), &QWebSocketServer::newConnection,
+							this, &QtHttpClientWrapper::onNewWebSocketConnection);
+
+						m_websocketServer->handleConnection(m_sockClient);
+						emit m_sockClient->readyRead();
+						return;
+					}
+
+					break;
+				}
+
+				m_sockClient->commitTransaction();
+				// add  post data to request and catch /jsonrpc subroute url
+				if ( m_currentRequest->getCommand() == "POST")
+				{
+					QtHttpPostData  postData;
+					QByteArray data = m_currentRequest->getRawData();
+					QList<QByteArray> parts = data.split('&');
+
+					for (int i = 0; i < parts.size(); ++i)
+					{
+						QList<QByteArray> keyValue = parts.at(i).split('=');
+						QByteArray value;
+
+						if (keyValue.size()>1)
 						{
-							// disconnect this slot from socket for further requests
-							disconnect(m_sockClient, &QTcpSocket::readyRead, this, &QtHttpClientWrapper::onClientDataReceived);
-							// disabling packet bunching
-							m_sockClient->setSocketOption(QAbstractSocket::LowDelayOption, 1);
-							m_sockClient->setSocketOption(QAbstractSocket::KeepAliveOption, 1);
-							m_websocketClient = new WebSocketClient(m_currentRequest, m_sockClient, m_localConnection, this);
+							value = QByteArray::fromPercentEncoding(keyValue.at(1));
 						}
 
+						postData.insert(QString::fromUtf8(keyValue.at(0)),value);
+					}
+
+					m_currentRequest->setPostData(postData);
+
+					// catch /jsonrpc in url, we need async callback, StaticFileServing is sync
+					QString path = m_currentRequest->getUrl ().path ();
+
+					QStringList uri_parts = QStringUtils::split(path,'/', QStringUtils::SplitBehavior::SkipEmptyParts);
+					if ( ! uri_parts.empty() && uri_parts.at(0) == "json-rpc" )
+					{
+						if(m_webJsonRpc == Q_NULLPTR)
+						{
+							m_webJsonRpc = new WebJsonRpc(m_currentRequest, m_serverHandle, m_localConnection, this);
+						}
+
+						m_webJsonRpc->handleMessage(m_currentRequest);
 						break;
 					}
-
-					// add  post data to request and catch /jsonrpc subroute url
-					if ( m_currentRequest->getCommand() == "POST")
-					{
-						QtHttpPostData  postData;
-						QByteArray data = m_currentRequest->getRawData();
-						QList<QByteArray> parts = data.split('&');
-
-						for (int i = 0; i < parts.size(); ++i)
-						{
-							QList<QByteArray> keyValue = parts.at(i).split('=');
-							QByteArray value;
-
-							if (keyValue.size()>1)
-							{
-								value = QByteArray::fromPercentEncoding(keyValue.at(1));
-							}
-
-							postData.insert(QString::fromUtf8(keyValue.at(0)),value);
-						}
-
-						m_currentRequest->setPostData(postData);
-
-						// catch /jsonrpc in url, we need async callback, StaticFileServing is sync
-						QString path = m_currentRequest->getUrl ().path ();
-
-						QStringList uri_parts = QStringUtils::split(path,'/', QStringUtils::SplitBehavior::SkipEmptyParts);
-						if ( ! uri_parts.empty() && uri_parts.at(0) == "json-rpc" )
-						{
-							if(m_webJsonRpc == Q_NULLPTR)
-							{
-								m_webJsonRpc = new WebJsonRpc(m_currentRequest, m_serverHandle, m_localConnection, this);
-							}
-
-							m_webJsonRpc->handleMessage(m_currentRequest);
-							break;
-						}
-					}
-
-					QtHttpReply reply (m_serverHandle);
-					connect (&reply, &QtHttpReply::requestSendHeaders, this, &QtHttpClientWrapper::onReplySendHeadersRequested);
-					connect (&reply, &QtHttpReply::requestSendData, this, &QtHttpClientWrapper::onReplySendDataRequested);
-					emit m_serverHandle->requestNeedsReply (m_currentRequest, &reply); // allow app to handle request
-					m_parsingStatus = sendReplyToClient (&reply);
-
-					break;
 				}
-				case ParsingError: // there was an error durin one of parsing steps
-				{
-					m_sockClient->readAll (); // clear remaining buffer to ignore content
-					QtHttpReply reply (m_serverHandle);
-					reply.setStatusCode (QtHttpReply::BadRequest);
-					reply.appendRawData (QByteArrayLiteral ("<h1>Bad Request (HTTP parsing error) !</h1>"));
-					reply.appendRawData (CRLF);
-					m_parsingStatus = sendReplyToClient (&reply);
 
-					break;
-				}
-				default:
-				{
-					break;
-				}
+				QtHttpReply reply (m_serverHandle);
+				connect(&reply, &QtHttpReply::requestSendHeaders, this, &QtHttpClientWrapper::onReplySendHeadersRequested, Qt::UniqueConnection);
+				connect(&reply, &QtHttpReply::requestSendData, this, &QtHttpClientWrapper::onReplySendDataRequested, Qt::UniqueConnection);
+
+				emit m_serverHandle->requestNeedsReply (m_currentRequest, &reply); // allow app to handle request
+				m_parsingStatus = sendReplyToClient (&reply);
+
+				break;
+			}
+			case ParsingError: // there was an error durin one of parsing steps
+			{
+				m_sockClient->readAll (); // clear remaining buffer to ignore content
+				m_sockClient->commitTransaction();
+
+				QtHttpReply reply (m_serverHandle);
+				reply.setStatusCode (QtHttpReply::BadRequest);
+				reply.appendRawData (QByteArrayLiteral ("<h1>Bad Request (HTTP parsing error) !</h1>"));
+				reply.appendRawData (CRLF);
+				m_parsingStatus = sendReplyToClient (&reply);
+
+				break;
+			}
+			default:
+			{
+				break;
+			}
 			}
 		}
 	}
@@ -244,6 +300,8 @@ void QtHttpClientWrapper::onReplySendHeadersRequested (void)
 
 	if (reply != Q_NULLPTR)
 	{
+		injectCorsHeaders(reply);
+
 		QByteArray data;
 		// HTTP Version + Status Code + Status Msg
 		data.append (QtHttpServer::HTTP_VERSION.toUtf8());
@@ -264,7 +322,6 @@ void QtHttpClientWrapper::onReplySendHeadersRequested (void)
 		}
 
 		const QList<QByteArray> & headersList = reply->getHeadersList ();
-
 		foreach (const QByteArray & header, headersList)
 		{
 			data.append (header);
@@ -315,10 +372,9 @@ QtHttpClientWrapper::ParsingStatus QtHttpClientWrapper::sendReplyToClient (QtHtt
 	{
 		if (!reply->useChunked ())
 		{
-			//reply->appendRawData (CRLF);
 			// send all headers and all data in one shot
-			reply->requestSendHeaders ();
-			reply->requestSendData ();
+			emit reply->requestSendHeaders ();
+			emit reply->requestSendData ();
 		}
 		else
 		{
@@ -331,7 +387,7 @@ QtHttpClientWrapper::ParsingStatus QtHttpClientWrapper::sendReplyToClient (QtHtt
 		{
 			static const QByteArray & CLOSE = QByteArrayLiteral ("close");
 
-			if (m_currentRequest->getHeader(QtHttpHeader::Connection) == CLOSE)
+			if (m_currentRequest->getHeader(QtHttpHeader::Connection).toLower() == CLOSE)
 			{
 				// must close connection after this request
 				m_sockClient->close ();
@@ -359,4 +415,18 @@ void QtHttpClientWrapper::closeConnection()
 		m_parsingStatus = sendReplyToClient(&reply);
 	}
 	m_sockClient->close ();
+}
+
+void QtHttpClientWrapper::onNewWebSocketConnection() {
+
+	// Handle the pending connection
+	QWebSocket* webSocket = m_websocketServer->nextPendingConnection();
+	if (webSocket) {
+		// Manage the WebSocketJsonHandler for this connection
+		WebSocketJsonHandler* handler = new WebSocketJsonHandler(webSocket);
+		connect(webSocket, &QWebSocket::disconnected, handler, &QObject::deleteLater);
+	}
+	else {
+		qWarning() << "No pending WebSocket connection!";
+	}
 }

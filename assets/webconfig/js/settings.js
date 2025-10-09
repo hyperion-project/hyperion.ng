@@ -75,6 +75,21 @@ $(document).ready(function () {
     changePassword();
   });
 
+  //Suspend Hyperion
+  $('#btn_systemSuspend').off().on('click', function () {
+    requestSystemSuspend();
+  });
+
+  //Resume Hyperion
+  $('#btn_systemResume').off().on('click', function () {
+    requestSystemResume();
+  });
+
+  //Restart Hyperion
+  $('#btn_systemRestart').off().on('click', function () {
+    requestSystemRestart();
+  });
+
   //Lock Ui
   $('#btn_lock_ui').off().on('click', function () {
     removeStorage('loginToken');

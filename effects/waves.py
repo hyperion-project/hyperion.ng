@@ -7,7 +7,6 @@ rotationTime = float(hyperion.args.get('rotation_time', 90))
 colors       = hyperion.args.get('colors', ((255,0,0),(255,255,0),(0,255,0),(0,255,255),(0,0,255),(255,0,255)))
 reverse      = bool(hyperion.args.get('reverse', False))
 reverseTime  = int(hyperion.args.get('reverse_time', 0))
-#rotate       = bool(hyperion.args.get('rotate', True))
 positions    = []
 
 # calc center if random
@@ -32,7 +31,7 @@ if centerY < 0.5:
 else:
 	cY = 0.0+centerY
 
-diag = int(round(math.sqrt(((cX*hyperion.imageWidth())**2)+((cY*hyperion.imageHeight())**2))))
+diag = int(round(math.hypot(cX*hyperion.imageWidth(),cY*hyperion.imageHeight())))
 # some diagonal overhead
 diag = int(diag*1.3)
 
@@ -45,9 +44,6 @@ for _ in colors:
 
 # target time
 targetTime = time.time()+float(reverseTime)
-
-#hyperion.imageCOffset(int(hyperion.imageWidth()/2), int(hyperion.imageHeight()/2))
-
 while not hyperion.abort():
 	# verify reverseTime, randomize reverseTime based on reverseTime up to reversedTime*2
 	if reverseTime >= 1:
@@ -55,9 +51,7 @@ while not hyperion.abort():
 		if now > targetTime:
 			reverse = not reverse
 			targetTime = time.time()+random.uniform(float(reverseTime), float(reverseTime*2.0))
-	# apply rotate
-	#if rotate:
-	#	hyperion.imageCRotate(1)		
+
 	# prepare bytearray with colors and positions
 	gradientBa = bytearray()
 	it = 0

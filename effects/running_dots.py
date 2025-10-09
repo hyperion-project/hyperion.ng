@@ -5,6 +5,9 @@ sleepTime  = float(hyperion.args.get('speed', 1.5)) * 0.005
 whiteLevel = int(hyperion.args.get('whiteLevel', 0))
 lvl        = int(hyperion.args.get('colorLevel', 220))
 
+# Limit update rate
+sleepTime = max(hyperion.lowestUpdateInterval(), sleepTime)
+
 # check value
 whiteLevel = min( whiteLevel, 254 )
 lvl        = min( lvl, 255 )
@@ -14,7 +17,7 @@ if whiteLevel >= lvl:
 
 # Initialize the led data
 ledData = bytearray()
-for i in range(hyperion.ledCount):
+for unused in range(hyperion.ledCount):
 	ledData += bytearray((0,0,0))
 
 runners = [

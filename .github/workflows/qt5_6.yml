@@ -1,0 +1,280 @@
+name: GitHub Qt5/6 Builds
+
+on:
+  # Reusable from push_pull.yml
+  workflow_call:
+    inputs:
+      qt_version:
+        type: string
+        description: Build with this Qt version
+        default: '5'
+        required: false
+      event_name:
+        type: string
+        description: The event name
+        default: ''
+        required: false
+      pull_request_number:
+        type: string
+        description: The corresponding PR number
+        default: ''
+        required: false
+      publish:
+        type: boolean
+        description: Package publishing
+        default: false
+        required: false
+
+jobs:
+
+######################
+###### Linux #########
+######################
+
+  Linux:
+    name: 🐧 ${{ matrix.os.description }}
+    runs-on: ${{ matrix.os.architecture[0] == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [
+          { distribution: debian, codename: buster,   description: Debian Buster (x86_64),                        architecture: [ amd64, linux/amd64  ], platform: x11 },
+          { distribution: debian, codename: buster,   description: Debian Buster (Raspberry Pi 1 & Zero 1),       architecture: [ armv6, linux/arm/v6 ], platform: rpi },
+          { distribution: debian, codename: buster,   description: Debian Buster (Raspberry Pi 2),                architecture: [ armv7, linux/arm/v7 ], platform: rpi },
+          { distribution: debian, codename: buster,   description: Debian Buster (Raspberry Pi 3/4/5 & Zero 2),   architecture: [ arm64, linux/arm64  ], platform: rpi },
+          { distribution: debian, codename: bullseye, description: Debian Bullseye (x86_64),                      architecture: [ amd64, linux/amd64  ], platform: x11 },
+          { distribution: debian, codename: bullseye, description: Debian Bullseye (Raspberry Pi 2),              architecture: [ armv7, linux/arm/v7 ], platform: rpi },
+          { distribution: debian, codename: bullseye, description: Debian Bullseye (Raspberry Pi 3/4/5 & Zero 2), architecture: [ arm64, linux/arm64  ], platform: rpi }
+        ]
+        target_lookup: [{ 'arm64': 'arm64', 'armv6': 'armv6l', 'armv7': 'armv7l' }]
+        isQt5:
+          - ${{ inputs.qt_version == '5' }}
+        exclude:
+          - isQt5: true
+            os: { distribution: debian, codename: bullseye }
+          - isQt5: false
+            os: { distribution: debian, codename: buster }
+
+    steps:
+      - name: ⬇ Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: 🔧 Append PR number to version (PR  only)
+        if: ${{ inputs.event_name == 'pull_request' }}
+        shell: bash
+        run: tr -d '\n' < .version > temp && mv temp .version && echo -n "+PR${{ inputs.pull_request_number }}" >> .version
+
+      - name: 💾 Download Pre-Build Dependencies
+        id: dependencies
+        uses: ./.github/actions/download-pre-built-deps
+        with:
+          os: ${{ matrix.os.distribution }}_${{ matrix.os.codename }}
+          architecture: ${{ matrix.os.architecture[0] }}
+          qt_version: ${{ inputs.qt_version }}
+          build_type: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
+
+      - name: 👷 Build ${{ env.HINT }}
+        shell: bash
+        run: |
+          mkdir deploy
+          docker run --rm --platform=${{ matrix.os.architecture[1] }} ${{ env.ENTRYPOINT }} \
+            -v "${{ github.workspace }}/deploy:/deploy" \
+            -v "${{ github.workspace }}:/source:rw" \
+            -v "/tmp/deps:/tmp/deps:rw" \
+            -w "/source" \
+            ghcr.io/hyperion-project/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }} \
+            /bin/bash -c "cmake --preset linux-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }} -DPLATFORM=${{ matrix.os.platform }} ${{ env.CPACK_SYSTEM_PROCESSOR }} &&
+            cmake --build --preset linux-${{ env.BUILD_TYPE }} --target package &&
+            cp /source/build/Hyperion-* /deploy/ 2>/dev/null"
+        env:
+          DOCKER_IMAGE: ${{ matrix.os.distribution }}
+          DOCKER_TAG: ${{ matrix.os.codename }}${{ inputs.qt_version == '6' && '-qt6' || '' }}
+          BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
+          ENTRYPOINT: ${{ matrix.os.architecture[0] != 'amd64' && '--entrypoint /usr/bin/env' || '' }}
+          CPACK_SYSTEM_PROCESSOR: ${{ matrix.os.architecture[0] != 'amd64' && format('-DCPACK_SYSTEM_PROCESSOR={0}', matrix.target_lookup[format('{0}', matrix.os.architecture[0])]) || '' }}
+          HINT: ${{ steps.dependencies.outputs.cmakeArgs != '' && '(with pre-built dependencies)' || '(full build)' }}
+
+      - name: 📦 Upload
+        if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.event_name == 'pull_request' && env.NAME || format('artifact-{0}', env.NAME) }}
+          path: ${{ inputs.event_name == 'pull_request' && 'deploy/*.tar.gz' || 'deploy/Hyperion-*' }}
+        env:
+          NAME: ${{ format('{0}_{1}_{2}{3}', matrix.os.distribution, matrix.os.codename, matrix.os.architecture[0], inputs.qt_version == '6' && '_qt6' || '') }}
+
+######################
+###### macOS #########
+######################
+
+  macOS:
+    name: 🍏 macOS ${{ matrix.architecture }}
+    runs-on: ${{ matrix.architecture == 'arm64' && 'macos-14' || 'macos-13' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [ arm64, x64 ]
+
+    steps:
+      - name: ⬇ Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: 🔧 Append Pull Request number to version (PR  only)
+        if: ${{ inputs.event_name == 'pull_request' }}
+        shell: bash
+        run: tr -d '\n' < .version > temp && mv temp .version && echo -n "+PR${{ inputs.pull_request_number }}" >> .version
+
+      - name: 📥 Install dependencies
+        uses: tecolicom/actions-use-homebrew-tools@v1
+        with:
+          tools: qt@${{ inputs.qt_version }} coreutils
+          key: ${{ runner.os }}-${{ matrix.architecture }}-homebrew-packages-${{ inputs.qt_version }}
+
+      - name: 💾 Download Pre-Build Dependencies
+        id: dependencies
+        uses: ./.github/actions/download-pre-built-deps
+        with:
+          os: 'macos'
+          architecture: ${{ matrix.architecture }}
+          qt_version: ${{ inputs.qt_version }}
+          build_type: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
+
+      - name: 👷 Build ${{ env.HINT }}
+        shell: bash
+        run: |
+          # Build
+          cmake --preset macos-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }}
+          cmake --build --preset macos-${{ env.BUILD_TYPE }} --target package
+        env:
+          BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
+          HINT: ${{ steps.dependencies.outputs.cmakeArgs != '' && '(with pre-built dependencies)' || '(full build)' }}
+
+      - name: 📦 Upload
+        if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.event_name == 'pull_request' && env.NAME || format('artifact-{0}', env.NAME) }}
+          path: 'build/Hyperion-*'
+        env:
+          NAME: ${{ inputs.qt_version == '6' && format('macOS_{0}_qt6', matrix.architecture) || format('macOS_{0}', matrix.architecture) }}
+
+######################
+###### Windows #######
+######################
+
+  windows:
+    name: 🪟 Windows ${{ matrix.architecture }}
+    runs-on: ${{ matrix.architecture == 'arm64' && 'windows-11-arm' || 'windows-2022' }}
+    env:
+      LIBJPEG_TURBO_VERSION: 3.1.0
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [ arm64, x64 ]
+        isQt5:
+          - ${{ inputs.qt_version == '5' }}
+        exclude:
+          - isQt5: true
+            architecture: arm64
+
+    steps:
+      - name: ⬇ Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: 🔧 Append Pull Request number to version (PR  only)
+        if: ${{ inputs.event_name == 'pull_request' }}
+        shell: bash
+        run: tr -d '\n' < .version > temp && mv temp .version && echo -n "+PR${{ inputs.pull_request_number }}" >> .version
+
+      - name: 📥 Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.3'
+          architecture: ${{ matrix.architecture }}
+
+      - name: 📥 Install Qt
+        # If the following PR is merged, you can switch back to jurplel/install-qt-action
+        # https://github.com/jurplel/install-qt-action/pull/273
+        uses: jdpurcell/install-qt-action@v5
+        with:
+          version: ${{ inputs.qt_version == '6' && '6.8.*' || '5.15.*' }}
+          target: 'desktop'
+          modules: ${{ inputs.qt_version == '6' && 'qtserialport qtwebsockets' || '' }}
+          cache: 'true'
+          cache-key-prefix: 'cache-qt-windows'
+          setup-python: 'false'
+
+      - name: 📥 Install latest CMake and Ninja
+        uses: lukka/get-cmake@latest
+
+      - name: 🛠️ Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.architecture }}
+
+      - name: 💾 Download Pre-Build Dependencies
+        id: dependencies
+        uses: ./.github/actions/download-pre-built-deps
+        with:
+          os: 'windows'
+          architecture: ${{ matrix.architecture }}
+          qt_version: ${{ inputs.qt_version }}
+          build_type: ${{ inputs.event_name == 'pull_request' && 'relwithdebinfo' || 'release' }}
+
+      - name: 👷 Build ${{ env.HINT }}
+        shell: cmd
+        run: |
+           cmake --preset windows-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }}
+           cmake --build --preset windows-${{ env.BUILD_TYPE }} --target package
+        env:
+          BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'relwithdebinfo' || 'release' }}
+          HINT: ${{ steps.dependencies.outputs.cmakeArgs != '' && '(with pre-built dependencies)' || '(full build)' }}
+
+      - name: 📦 Upload
+        if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.event_name == 'pull_request' && env.NAME || format('artifact-{0}', env.NAME) }}
+          path: ${{ inputs.event_name == 'pull_request' && 'build/*.exe' || 'build/Hyperion-*' }}
+        env:
+          NAME: ${{ inputs.qt_version == '6' && format('windows_{0}_qt6', matrix.architecture) || format('windows_{0}', matrix.architecture) }}
+
+#####################################
+###### Publish GitHub Releases ######
+#####################################
+
+  github_publish:
+    name: 🚀 Publish GitHub Releases
+    if: ${{ inputs.qt_version == '5' && inputs.publish }}
+    needs: [Linux, macOS, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇ Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔧 Prepare
+        run: |
+          echo "TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
+          echo "VERSION=$(tr -d '\n' < .version)" >> $GITHUB_ENV
+
+      - name: 💾 Artifact download
+        uses: actions/download-artifact@v4
+        with:
+          pattern: artifact-*
+          path: all-artifacts
+
+      - name: 📦 Upload
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Hyperion ${{ env.VERSION }}
+          tag_name: ${{ env.TAG }}
+          files: "all-artifacts/**"
+          draft: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

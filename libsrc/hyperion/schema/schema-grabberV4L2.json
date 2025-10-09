@@ -1,6 +1,5 @@
 {
 	"type" : "object",
-	"required" : true,
 	"title" : "edt_conf_v4l2_heading_title",
 	"properties":
 	{
@@ -24,6 +23,7 @@
 		"device": {
 			"type": "string",
 			"title": "edt_conf_enum_custom",
+			"default": "none",
 			"options": {
 				"hidden": true
 			},
@@ -212,21 +212,13 @@
 			"required": true,
 			"propertyOrder": 23
 		},
-		"cecDetection": {
-			"type": "boolean",
-			"title": "edt_conf_v4l2_cecDetection_title",
-			"default": false,
-			"required": true,
-			"access": "advanced",
-			"propertyOrder": 24
-		},
 		"signalDetection": {
 			"type": "boolean",
 			"title": "edt_conf_v4l2_signalDetection_title",
 			"default": false,
 			"required": true,
 			"access": "expert",
-			"propertyOrder": 25
+			"propertyOrder": 24
 		},
 		"redSignalThreshold": {
 			"type": "integer",
@@ -242,7 +234,7 @@
 			},
 			"access": "expert",
 			"required": true,
-			"propertyOrder": 26
+			"propertyOrder": 25
 		},
 		"greenSignalThreshold": {
 			"type": "integer",
@@ -258,7 +250,7 @@
 			},
 			"required": true,
 			"access": "expert",
-			"propertyOrder": 27
+			"propertyOrder": 26
 		},
 		"blueSignalThreshold": {
 			"type": "integer",
@@ -274,7 +266,7 @@
 			},
 			"required": true,
 			"access": "expert",
-			"propertyOrder": 28
+			"propertyOrder": 27
 		},
 		"noSignalCounterThreshold": {
 			"type": "integer",
@@ -289,7 +281,7 @@
 			},
 			"required": true,
 			"access": "expert",
-			"propertyOrder": 29
+			"propertyOrder": 28
 		},
 		"sDVOffsetMin": {
 			"type": "number",
@@ -305,7 +297,7 @@
 			},
 			"required": true,
 			"access": "expert",
-			"propertyOrder": 30
+			"propertyOrder": 29
 		},
 		"sDVOffsetMax": {
 			"type": "number",
@@ -321,7 +313,7 @@
 			},
 			"required": true,
 			"access": "expert",
-			"propertyOrder": 31
+			"propertyOrder": 30
 		},
 		"sDHOffsetMin": {
 			"type": "number",
@@ -337,7 +329,7 @@
 			},
 			"required": true,
 			"access": "expert",
-			"propertyOrder": 32
+			"propertyOrder": 31
 		},
 		"sDHOffsetMax": {
 			"type": "number",
@@ -353,7 +345,7 @@
 			},
 			"required": true,
 			"access": "expert",
-			"propertyOrder": 33
+			"propertyOrder": 32
 		}
 	},
 		"additionalProperties": true

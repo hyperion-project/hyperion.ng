@@ -1,18 +1,15 @@
 {
-	"type" : "object",
-	"required" : true,
-	"title" : "edt_conf_js_heading_title",
-	"properties" :
-	{
-		"port" :
-		{
-			"type" : "integer",
-			"required" : true,
-			"title" : "edt_conf_general_port_title",
-			"minimum" : 1024,
-			"maximum" : 65535,
-			"default" : 19444
+	"type": "object",
+	"title": "edt_conf_jsonServer_heading_title",
+	"properties": {
+		"port": {
+			"type": "integer",
+			"required": true,
+			"title": "edt_conf_general_port_title",
+			"minimum": 1024,
+			"maximum": 65535,
+			"default": 19444
 		}
 	},
-	"additionalProperties" : false
+	"additionalProperties": false
 }

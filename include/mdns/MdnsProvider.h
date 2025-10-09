@@ -9,6 +9,7 @@
 // Qt includes
 #include <QObject>
 #include <QByteArray>
+#include <QScopedPointer>
 
 // Utility includes
 #include <utils/Logger.h>
@@ -30,6 +31,11 @@ public slots:
 	///
 	void init();
 
+	///
+	/// @brief Stop MdnsProvider to cleanup objects with thread affinity
+	///
+	void stop();
+
 	void publishService (const QString& serviceType, quint16 servicePort, const QByteArray& serviceName = "");
 
 private slots:
@@ -41,11 +47,11 @@ private:
 	/// The logger instance for mDNS-Service
 	Logger* _log;
 
-	QMdnsEngine::Server* _server;
-	QMdnsEngine::Hostname* _hostname;
+	QScopedPointer<QMdnsEngine::Server> _server;
+	QScopedPointer<QMdnsEngine::Hostname> _hostname;
 
 	/// map of services provided
-	QMap<QByteArray, QMdnsEngine::Provider*> _providedServiceTypes;
+	QMap<QByteArray, QSharedPointer<QMdnsEngine::Provider>> _providedServiceTypes;
 };
 
 #endif // MDNSPROVIDER_H

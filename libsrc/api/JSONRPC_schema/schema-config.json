@@ -1,22 +1,54 @@
 {
 	"type":"object",
 	"required":true,
-	"properties":{
+	"properties": {
 		"command": {
-			"type" : "string",
-			"required" : true,
-			"enum" : ["config"]
+			"type": "string",
+			"required": true,
+			"enum": ["config"]
 		},
 		"subcommand": {
-			"type" : "string",
-			"required" : true,
-			"enum" : ["getconfig","getschema","setconfig","restoreconfig","reload"]
+			"type": "string",
+			"required": true,
+			"enum": ["getconfig","getschema","setconfig","restoreconfig","reload"]
 		},
-		"tan" : {
-			"type" : "integer"
+		"tan": {
+			"type": "integer"
+		},
+		"configFilter": {
+			"global": {
+				"types": {
+					"type": "array",
+					"required": false,
+					"items": {
+						"type" : "string"
+					}
+				}
+			},
+			"instances": {
+				"ids": {
+					"type": "array",
+					"required": true,
+					"items": {
+						"type" : "integer",
+						"minimum": 0,
+						"maximum": 254
+					},
+					"uniqueItems": true,
+					"minItems": 1
+				},
+				"types": {
+					"type": "array",
+					"required": false,
+					"items": {
+						"type" : "string"
+					}
+				}
+			}
 		},
 		"config": {
-			"type" : "object"
+			"required": false,
+			"$ref": "schema-settings-full-relaxed.json"
 		}
 	},
 	"additionalProperties": false

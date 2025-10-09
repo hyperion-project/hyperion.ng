@@ -16,7 +16,7 @@
 #include <QMap>
 
 // Local includes
-#include <grabber/DRMFrameGrabber.h>
+#include <grabber/drm/DRMFrameGrabber.h>
 
 // Constants
 namespace {
@@ -61,8 +61,8 @@ static size_t vc4_sand_tiled_offset(size_t column_width, size_t column_size, siz
 	return offset;
 }
 
-DRMFrameGrabber::DRMFrameGrabber(const QString & device)
-	: Grabber("DRM")
+DRMFrameGrabber::DRMFrameGrabber(const QString & device, int cropLeft, int cropRight, int cropTop, int cropBottom)
+	: Grabber("DRM", cropLeft, cropRight, cropTop, cropBottom)
 	, _device(device)
 	, _deviceFd (-1)
 {
@@ -555,7 +555,8 @@ QJsonObject DRMFrameGrabber::discover(const QJsonObject& params)
 	QFileInfoList::const_iterator deviceFileIterator;
 	for (deviceFileIterator = deviceFiles.constBegin(); deviceFileIterator != deviceFiles.constEnd(); ++deviceFileIterator)
 	{
-		drmIdx = (*deviceFileIterator).fileName().rightRef(1).toInt();
+		QString const fileName = (*deviceFileIterator).fileName();
+		drmIdx = fileName.right(1).toInt();
 		QString device = (*deviceFileIterator).absoluteFilePath();
 		DebugIf(verbose, _log, "DRM device [%s] found", QSTRING_CSTR(device));
 

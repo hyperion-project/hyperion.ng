@@ -1,0 +1,281 @@
+#define AppName "@CPACK_PACKAGE_NAME@"
+#define AppVersion "@CPACK_PACKAGE_VERSION@"
+#define AppPublisher "@CPACK_PACKAGE_VENDOR@"
+#define AppURL "@CPACK_PACKAGE_HOMEPAGE_URL@"
+#define AppCopyright "Copyright (c) 2014-2025 Hyperion Project"
+#define AppLicense "@CPACK_RESOURCE_FILE_LICENSE@"
+#define AppDescription "@CPACK_PACKAGE_DESCRIPTION_SUMMARY@"
+#define OutputName "@CPACK_PACKAGE_FILE_NAME@"
+#define ComponentStagingDir "@CPACK_TEMPORARY_INSTALL_DIRECTORY@"
+#define OutputDir "@CPACK_PACKAGE_DIRECTORY@"
+#define AppFile str(ComponentStagingDir)+str("\Hyperion\bin\hyperiond.exe")
+#define Arch "@CPACK_SYSTEM_PROCESSOR@"
+#define VCRedist "vc_redist." + Arch + ".exe"
+#define VCRedistVersion GetVersionNumbersString(str(ComponentStagingDir) + "\dependencies\bin\" + VCRedist)
+#define VCRedistVersionMajor
+#expr UnpackVersionComponents(StrToVersion(VCRedistVersion), VCRedistVersionMajor, null, null, null)
+
+[Setup]
+; NOTE: The value of AppId uniquely identifies this application.
+; Do not use the same AppId value in installers for other applications.
+; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
+
+SetupLogging=yes
+
+; App Information
+AppId={{3546F644-587C-4690-B8DA-C84383B9ECFD}
+AppMutex={#AppName}
+AppName={#AppName}
+AppVersion={#AppVersion}
+AppPublisher={#AppPublisher}
+AppPublisherURL={#AppURL}
+AppSupportURL={#AppURL}
+AppUpdatesURL={#AppURL}
+AppCopyright={#AppCopyright}
+
+; Version Info
+VersionInfoVersion={#GetVersionNumbersString(AppFile)}
+VersionInfoCompany={#AppPublisher}
+VersionInfoCopyRight={#AppCopyright}
+VersionInfoDescription={#AppDescription}
+VersionInfoProductName={#AppName} Installer
+
+; Other Information
+ShowLanguageDialog=no
+DisableWelcomePage=yes
+DisableDirPage=no
+LicenseFile={#AppLicense}
+DefaultDirName={autopf}\{#AppName}
+DefaultGroupName={#AppName}
+DisableProgramGroupPage=yes
+OutputDir={#OutputDir}
+OutputBaseFilename={#OutputName}
+DirExistsWarning=no
+AlwaysShowComponentsList=true
+PrivilegesRequired=lowest
+PrivilegesRequiredOverridesAllowed=dialog
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
+RestartIfNeededByRun=no
+ChangesEnvironment=true
+CloseApplications=yes
+ShowComponentSizes=no
+
+; Compression
+Compression=lzma2/ultra64
+SolidCompression=yes
+LZMAAlgorithm=1
+
+; Wizard Information
+WizardStyle=modern
+WizardResizable=yes
+SetupIconFile=gfx/installer.ico
+UninstallDisplayIcon={app}\bin\hyperiond.exe
+UninstallDisplayName={#AppName}
+WizardSmallImageFile=gfx/logo_*.bmp
+
+[Languages]
+Name: english; MessagesFile: "compiler:Default.isl,i18n\en.isl"
+Name: german; MessagesFile: "compiler:Languages\German.isl,i18n\de.isl"
+
+[Types]
+Name: "full"; Description: "{cm:SetupTypeFull}"
+Name: "custom"; Description: "{cm:SetupTypeCustom}"; Flags: iscustom
+
+[Components]
+Name: runtime; Description: "Hyperion runtime"; Types: full custom; Flags: disablenouninstallwarning fixed
+
+#ifdef hyperion_remote
+Name: remote; Description: "hyperion-remote commandline tool"; Types: full; Flags: disablenouninstallwarning
+#endif
+
+#ifdef hyperion_qt
+Name: capture; Description: "Qt based standalone screen capture"; Types: full; Flags: disablenouninstallwarning
+#endif
+
+[Tasks]
+;menu icon
+Name: menuicon; Description: "{cm:StartMenuEntry}"; GroupDescription: "{cm:AdditionalIcons}"; Components: runtime; Flags: checkedonce
+
+;desktop icon
+Name: "desktopicon"; Description: "{cm:DesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Components: runtime; Flags: unchecked
+Name: "desktopicon\common"; Description: "{cm:DesktopIconAllUsers}"; GroupDescription: "{cm:AdditionalIcons}"; Components: runtime; Flags: exclusive
+Name: "desktopicon\user"; Description: "{cm:DesktopIconCurrentUser}"; GroupDescription: "{cm:AdditionalIcons}"; Components: runtime; Flags: exclusive checkedonce
+
+;add to environment path
+Name: "modifypath"; Description: "{cm:AddToPath}"; GroupDescription: "{cm:AddToPath_Group}:"; Flags: unchecked
+Name: "modifypath\system"; Description: "{cm:AddToSystemAllUsers}"; GroupDescription: "{cm:AddToPath_Group}:"; Flags: exclusive
+Name: "modifypath\user"; Description: "{cm:AddToPathCurrentUser}"; GroupDescription: "{cm:AddToPath_Group}"; Flags: exclusive checkedonce
+
+;autostart
+Name: "autostart"; Description: "{cm:Autostart_Description}"; GroupDescription: "{cm:Autostart_Group}:"; Components: runtime; Flags: unchecked
+
+[InstallDelete]
+;Close Hyperion on Uninstall
+Name: {app}\bin\hyperiond.exe; Type: files;
+
+;This removes the desktop icon in case the user chooses not to install it after previously having it installed
+Name: {commondesktop}\Hyperion.lnk; Type: files; Check: not WizardIsTaskSelected('desktopicon')
+
+;Removes the Uninstall icon from the start menu...
+Name: {group}\{cm:UninstallProgram,Hyperion}.lnk; Type: files;
+Name: {group}\{cm:UninstallProgram,Hyperion}; Type: files;
+
+[Dirs]
+;The always uninstall flag tells the uninstaller to remove the folder if it's empty regardless of whether or not it existed prior to the installation
+Name: {app}; Flags: uninsalwaysuninstall
+
+[Files]
+;runtime
+Source: "{#ComponentStagingDir}\Hyperion\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs; Components: runtime
+
+;remote
+#ifdef hyperion_remote
+Source: "{#ComponentStagingDir}\hyperion_remote\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs; Components: remote
+#endif
+
+#ifdef hyperion_qt
+;capture
+Source: "{#ComponentStagingDir}\hyperion_qt\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs; Components: capture
+#endif
+
+;dependencies
+Source: "{#ComponentStagingDir}\dependencies\*"; DestDir: "{app}"; Excludes: "\bin\{#VCRedist}"; Flags: ignoreversion recursesubdirs;
+
+;vc_redist
+Source: "{#ComponentStagingDir}\dependencies\bin\{#VCRedist}"; DestDir: {tmp}; Flags: deleteafterinstall
+
+[Registry]
+Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "Hyperion"; ValueData: "{app}\bin\hyperiond.exe"; Flags:uninsdeletevalue; Tasks: autostart
+
+[Icons]
+;menu icons
+Name: "{group}\{#AppName}"; Filename: "{app}\bin\hyperiond.exe"
+
+;uninstaller
+Name: "{group}\{cm:UninstallProgram,{#AppName}}"; Filename: "{uninstallexe}"
+
+;common desktop icon
+Name: "{commondesktop}\Hyperion"; Filename: "{app}\bin\hyperiond.exe"; Tasks: desktopicon\common; Components: runtime
+;user desktop icon
+Name: "{userdesktop}\Hyperion"; Filename: "{app}\bin\hyperiond.exe"; Tasks: desktopicon\user; Components: runtime
+
+[Run]
+Filename: "{tmp}\{#VCRedist}"; Parameters: "/install /quiet /norestart"; StatusMsg: "{cm:VCRedistInstall}"; Check: VCRedistNeeded;
+Filename: "{app}\bin\hyperiond.exe"; Description: "{cm:LaunchProgram,{#StringChange(AppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+
+[Code]
+const
+  ModPathName = 'modifypath';
+  ModPathPath = '{app}\bin';
+
+var
+  ModPathType: String;
+
+#include "modpath.iss"
+
+function VCRedistNeeded(): boolean;
+var
+  regVersion: String;
+begin
+  Result := True;
+  if (RegQueryStringValue(HKEY_LOCAL_MACHINE, ExpandConstant('SOFTWARE\Microsoft\VisualStudio\{#VCRedistVersionMajor}.0\VC\Runtimes\{#Arch}'), 'Version', regVersion)) then
+  begin
+    Result := (CompareStr(regVersion, ExpandConstant('{#VCRedistVersion}')) < 0);
+  end;
+end;
+
+function GetUninstallString: String;
+var
+  UnInstPath: String;
+  UnInstPathWow64: String;
+  UnInstallString: String;
+begin
+  UnInstPath := 'Software\Microsoft\Windows\CurrentVersion\Uninstall\Hyperion';
+  UnInstPathWow64 := 'Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Hyperion';
+  UnInstallString := '';
+  if not RegQueryStringValue(HKLM, UnInstPath, 'UninstallString', UnInstallString) then
+    RegQueryStringValue(HKLM, UnInstPathWow64, 'UninstallString', UnInstallString);
+  Result := UnInstallString;
+end;
+
+function InitializeSetup(): Boolean;
+var
+  UninstallString, Param: String;
+  ResultCode: Integer;
+begin
+   // Check if the application is already installed by the old NSIS installer, and uninstall it
+  UninstallString := RemoveQuotes(GetUninstallString());
+  if not FileExists(UninstallString) then
+  begin
+    Result := True;
+    Exit;
+  end;
+
+  // Found, start uninstall
+  if UninstallString <> '' then begin
+    if MsgBox('Since the installation path of Hyperion has changed, the existing version must be uninstalled. Of course, the Hyperion database remains unaffected. Do you want to continue?', mbInformation, MB_YESNO) <> IDYES then
+    begin
+      Result := False;
+      Exit;
+    end;
+
+    // Close hyperion since the uninstaller cannot do this
+    ShellExec('open', 'taskkill.exe', '/f /im hyperiond.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    Sleep(250)
+
+    // Add this parameter to not return until uninstall finished. The drawback is that the uninstaller file is not deleted
+    Param := '_?=' + ExtractFilePath(UninstallString);
+    if not ShellExec('open', UninstallString, Param, '', SW_SHOW, ewWaitUntilTerminated, ResultCode) or (ResultCode <> 0) then begin
+      MsgBox('Failed to remove the old Hyperion uninstaller. Please manually uninstall the old version first.', mbError, MB_OK);
+      Result := False;
+      Exit;
+    end else begin
+      // Delete the uninstaller file and empty folders
+      DeleteFile(UninstallString);
+      DelTree(ExtractFilePath(UninstallString), True, False, True);
+    end;
+
+    Result := True;
+  end else begin
+    Result := True;
+    Exit;
+  end;
+end;
+
+procedure InitializeWizard();
+begin
+  with WizardForm do
+  begin
+    AutoScroll := False;
+    PageDescriptionLabel.Visible := False;
+    PageNameLabel.Visible := False;
+    Bevel1.Visible := False;
+
+    with WizardSmallBitmapImage do
+    begin
+      Parent              := MainPanel;
+      Bitmap.AlphaFormat  := afDefined;
+      AutoSize            := True;
+      Stretch             := False;
+      Center              := True;
+      Align               := alClient;
+    end;
+  end;
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+	if CurStep = ssPostInstall then begin
+    if WizardIsTaskSelected(ModPathName) then begin
+      if WizardIsTaskSelected(ModPathName + '\system') then begin
+        ModPathType := 'system';
+      end else begin
+        ModPathType := 'user';
+      end;
+    end;
+
+		if WizardIsTaskSelected(ModPathName) then
+			ModPath();
+	end;
+end;
