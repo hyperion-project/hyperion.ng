@@ -290,8 +290,8 @@ if(HYPERION_LIGHT)
 
 	# Disable Screen/Video Grabbers
 	set(DEFAULT_AMLOGIC                     OFF)
-	set(DEFAULT_DISPMANX                    OFF)
 	set(DEFAULT_DDA                         OFF)
+	set(DEFAULT_DISPMANX                    OFF)
 	set(DEFAULT_DRM                         OFF)
 	set(DEFAULT_DX                          OFF)
 	set(DEFAULT_FB                          OFF)
