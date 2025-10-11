@@ -24,10 +24,10 @@ public:
 	/// @param[in] cropBottom        Remove from bottom [pixels]
 	///
 	DRMWrapper( int updateRate_Hz=GrabberWrapper::DEFAULT_RATE_HZ,
-			   const QString & device = "/dev/dri/card0",
-			   int pixelDecimation=GrabberWrapper::DEFAULT_PIXELDECIMATION,
-			   int cropLeft=0, int cropRight=0,
-			   int cropTop=0, int cropBottom=0
+			    int deviceIdx = 0,
+			    int pixelDecimation=GrabberWrapper::DEFAULT_PIXELDECIMATION,
+			    int cropLeft=0, int cropRight=0,
+			    int cropTop=0, int cropBottom=0
 			   );
 	///
 	/// Constructs the QT frame grabber from configuration settings

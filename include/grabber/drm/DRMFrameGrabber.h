@@ -38,7 +38,7 @@ public:
 	///
 	/// @param[in] device The framebuffer device name/path
 	///
-	DRMFrameGrabber(const QString & device="/dev/dri/card1", int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0);
+	DRMFrameGrabber(int deviceIdx = 0, int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0);
 
 	~DRMFrameGrabber() override;
 
@@ -67,7 +67,7 @@ public:
 	///@brief Set new width and height for the DRM-grabber, overwrite Grabber.h implementation
 	bool setWidthHeight(int width, int height) override;
 
-	QString getPath() const {return _device;}
+	QString getDeviceName() const {return QString("%1/%2%3").arg(DRM_DIR_NAME, DRM_PRIMARY_MINOR_NAME).arg(_input);}
 
 	///
 	/// @brief Discover DRM screens available (for configuration).
@@ -83,9 +83,6 @@ private:
 	bool openDevice();
 	bool closeDevice();
 	bool getScreenInfo();
-
-	/// DRM device e.g. /dev/dri/card0
-	QString _device;
 
 	int _deviceFd;
     std::map<uint32_t, Connector*> connectors;
