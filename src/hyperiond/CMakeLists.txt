@@ -87,9 +87,14 @@ target_link_libraries(${PROJECT_NAME}
 	$<$<BOOL:${ENABLE_PROTOBUF_SERVER}>:protoserver>
 	$<$<BOOL:${ENABLE_CEC}>:cechandler>
 	# Services
-	$<$<BOOL:${ENABLE_EFFECTENGINE} AND TARGET python>:effectengine python>
 	$<$<BOOL:${ENABLE_MDNS}>:mdns>
 )
+
+if(ENABLE_EFFECTENGINE AND TARGET python)
+	target_link_libraries(${PROJECT_NAME}
+	$<$<BOOL:${ENABLE_EFFECTENGINE} AND TARGET python>:effectengine python>
+	)
+endif()
 
 #####################################
 ########### Install steps ###########
