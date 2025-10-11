@@ -57,7 +57,7 @@ static size_t vc4_sand_tiled_offset(size_t column_width, size_t column_size, siz
 DRMFrameGrabber::DRMFrameGrabber(int deviceIdx, int cropLeft, int cropRight, int cropTop, int cropBottom)
 	: Grabber("GRABBER-DRM", cropLeft, cropRight, cropTop, cropBottom)
 	, _deviceFd (-1)
-	, crtc (nullptr)
+	, _crtc (nullptr)
 {
 	_input = deviceIdx;
 	_useImageResampler = true;
@@ -71,48 +71,48 @@ DRMFrameGrabber::~DRMFrameGrabber()
 
 void DRMFrameGrabber::freeResources()
 {
-	for(auto & connector : connectors)
+	for(auto const& [id, connector] : _connectors)
 	{
-		for(auto & property : connector.second->props)
+		for(auto const& [name, property] : connector->props)
 		{
-			drmModeFreeProperty(property.second.spec);
+			drmModeFreeProperty(property.spec);
 		}
-		drmModeFreeConnector(connector.second->ptr);
-		delete connector.second;
+		drmModeFreeConnector(connector->ptr);
+		delete connector;
 	}
-	connectors.clear();
+	_connectors.clear();
 
-	for(auto & encoder : encoders)
+	for(auto const& [id, encoder] : _encoders)
 	{
-		for(auto & property : encoder.second->props)
+		for(auto const& [name, property] : encoder->props)
 		{
-			drmModeFreeProperty(property.second.spec);
+			drmModeFreeProperty(property.spec);
 		}
-		drmModeFreeEncoder(encoder.second->ptr);
-		delete encoder.second;
+		drmModeFreeEncoder(encoder->ptr);
+		delete encoder;
 	}
-	encoders.clear();
+	_encoders.clear();
 
-	if (crtc != nullptr)
+	if (_crtc != nullptr)
 	{
-		drmModeFreeCrtc(crtc);
-		crtc = nullptr;
+		drmModeFreeCrtc(_crtc);
+		_crtc = nullptr;
 	}
 
-	for(auto & plane : planes)
+	for(auto const& [id, plane] : _planes)
 	{
-		if (plane.second != nullptr)
+		if (plane != nullptr)
 		{
-			drmModeFreePlane(plane.second);
+			drmModeFreePlane(plane);
 		}
 	}
-	planes.clear();
+	_planes.clear();
 
-	for(auto & framebuffer : framebuffers)
+	for(auto const& [id, framebuffer] : _framebuffers)
 	{
-		drmModeFreeFB2(framebuffer.second);
+		drmModeFreeFB2(framebuffer);
 	}
-	framebuffers.clear();
+	_framebuffers.clear();
 }
 
 bool DRMFrameGrabber::setupScreen()
@@ -153,30 +153,31 @@ int DRMFrameGrabber::grabFrame(Image<ColorRgb> & image)
 	}
 	
 	bool newImage {false};
-	for(auto & framebuffer : framebuffers)
+	for(auto const& [id, framebuffer] : _framebuffers)
 	{
-		_pixelFormat = GetPixelFormatForDrmFormat(framebuffer.second->pixel_format);
-		uint64_t modifier = framebuffer.second->modifier;
+		_pixelFormat = GetPixelFormatForDrmFormat(framebuffer->pixel_format);
+		uint64_t modifier = framebuffer->modifier;
 		int fb_dmafd = 0;
 
 		DebugIf(verbose, _log, "Framebuffer ID: %d - Width: %d - Height: %d  - DRM Format: %c%c%c%c - PixelFormat: %s"
-			, framebuffer.first // framebuffer ID
-			, framebuffer.second->width // width
-			, framebuffer.second->height // height
-			, framebuffer.second->pixel_format         & 0xff
-			, (framebuffer.second->pixel_format >> 8)  & 0xff
-			, (framebuffer.second->pixel_format >> 16) & 0xff
-			, (framebuffer.second->pixel_format >> 24) & 0xff
+			, id // framebuffer ID
+			, framebuffer->width // width
+			, framebuffer->height // height
+			, framebuffer->pixel_format         & 0xff
+			, (framebuffer->pixel_format >> 8)  & 0xff
+			, (framebuffer->pixel_format >> 16) & 0xff
+			, (framebuffer->pixel_format >> 24) & 0xff
 			, QSTRING_CSTR(pixelFormatToString(_pixelFormat))
 		);
 
 		if (_pixelFormat != PixelFormat::NO_CHANGE && modifier == DRM_FORMAT_MOD_LINEAR)
 		{
-			int w = framebuffer.second->width;
-			int h = framebuffer.second->height;
+			int w = framebuffer->width;
+			int h = framebuffer->height;
 			Grabber::setWidthHeight(w, h);
 
-			int size = 0, lineLength = 0;
+			int size = 0;
+			int lineLength = 0;
 
 			if (_pixelFormat == PixelFormat::I420 || _pixelFormat == PixelFormat::NV12)
 			{
@@ -189,7 +190,7 @@ int DRMFrameGrabber::grabFrame(Image<ColorRgb> & image)
 				lineLength = w * 4;
 			}
 
-			int ret = drmPrimeHandleToFD(_deviceFd, framebuffer.second->handles[0], O_RDONLY, &fb_dmafd);
+			int ret = drmPrimeHandleToFD(_deviceFd, framebuffer->handles[0], O_RDONLY, &fb_dmafd);
 			if (ret < 0)
 			{
 				continue;
@@ -209,10 +210,10 @@ int DRMFrameGrabber::grabFrame(Image<ColorRgb> & image)
 			else
 			{
 				Error(_log, "Format: %c%c%c%c failed. Error: %s"
-					, framebuffer.second->pixel_format         & 0xff
-					, (framebuffer.second->pixel_format >> 8)  & 0xff
-					, (framebuffer.second->pixel_format >> 16) & 0xff
-					, (framebuffer.second->pixel_format >> 24) & 0xff
+					, framebuffer->pixel_format         & 0xff
+					, (framebuffer->pixel_format >> 8)  & 0xff
+					, (framebuffer->pixel_format >> 16) & 0xff
+					, (framebuffer->pixel_format >> 24) & 0xff
 					, strerror(errno)
 				);
 				break;
@@ -257,14 +258,14 @@ int DRMFrameGrabber::grabFrame(Image<ColorRgb> & image)
 						}
 					}
 
-					int ret = drmPrimeHandleToFD(_deviceFd, framebuffer.second->handles[0], O_RDONLY, &fb_dmafd);
+					int ret = drmPrimeHandleToFD(_deviceFd, framebuffer->handles[0], O_RDONLY, &fb_dmafd);
 					if (ret < 0)
 					{
 						continue;
 					}
 
-					int w = framebuffer.second->width;
-					int h = framebuffer.second->height;
+					int w = framebuffer->width;
+					int h = framebuffer->height;
 					Grabber::setWidthHeight(w, h);
 
 					int num_planes = 0;
@@ -293,10 +294,10 @@ int DRMFrameGrabber::grabFrame(Image<ColorRgb> & image)
 						}
 					}
 
-					uint8_t *src_buf = (uint8_t*)mmap(nullptr, size, PROT_READ, MAP_PRIVATE, fb_dmafd, 0);
+					auto* src_buf = (uint8_t*)mmap(nullptr, size, PROT_READ, MAP_PRIVATE, fb_dmafd, 0);
 					if (src_buf != MAP_FAILED)
 					{
-						uint8_t *dst_buf = (uint8_t*)malloc(size);
+						auto* dst_buf = (uint8_t*)malloc(size);
 						uint32_t column_size = column_width_bytes * column_height;
 
 						for (int plane = 0; plane < num_planes; plane++)
@@ -305,8 +306,8 @@ int DRMFrameGrabber::grabFrame(Image<ColorRgb> & image)
 							{
 								for (int j = 0; j < plane_width[plane]; j++)
 								{
-									size_t src_offset = framebuffer.second->offsets[plane];
-									size_t dst_offset = framebuffer.second->offsets[plane];
+									size_t src_offset = framebuffer->offsets[plane];
+									size_t dst_offset = framebuffer->offsets[plane];
 
 									src_offset += vc4_sand_tiled_offset(column_width_bytes * plane_width[plane] / w, column_size, j, i, plane_bpp[plane]);
 									dst_offset += plane_stride[plane] * i + j * plane_bpp[plane] / 8;
@@ -349,10 +350,10 @@ int DRMFrameGrabber::grabFrame(Image<ColorRgb> & image)
 		else
 		{
 			Debug(_log, "Currently unsupported format: %c%c%c%c"
-				, framebuffer.second->pixel_format         & 0xff
-				, (framebuffer.second->pixel_format >> 8)  & 0xff
-				, (framebuffer.second->pixel_format >> 16) & 0xff
-				, (framebuffer.second->pixel_format >> 24) & 0xff
+				, framebuffer->pixel_format         & 0xff
+				, (framebuffer->pixel_format >> 8)  & 0xff
+				, (framebuffer->pixel_format >> 16) & 0xff
+				, (framebuffer->pixel_format >> 24) & 0xff
 			);
 		}
 	}
@@ -430,8 +431,6 @@ QSize DRMFrameGrabber::getScreenSize(const QString& device) const
         if (connector->connection == DRM_MODE_CONNECTED && connector->count_modes > 0)
         {
             // 4. Find the current active mode
-            drmModeModeInfoPtr mode = nullptr;
-
             // The 'encoder_id' links a connector to a CRTC. If it's non-zero, it's active.
             if (connector->encoder_id)
             {
@@ -496,26 +495,26 @@ bool DRMFrameGrabber::getScreenInfo()
 	{
 		auto connector = new Connector();
 		connector->ptr = drmModeGetConnector(_deviceFd, resources->connectors[i]);
-		connectors.insert(std::pair<uint32_t, Connector*>(resources->connectors[i], connector));
+		_connectors.insert(std::pair<uint32_t, Connector*>(resources->connectors[i], connector));
 	}
 
 	for(int i = 0; i < resources->count_encoders; i++)
 	{
 		auto encoder = new Encoder();
 		encoder->ptr = drmModeGetEncoder(_deviceFd, resources->encoders[i]);
-		encoders.insert(std::pair<uint32_t, Encoder*>(resources->encoders[i], encoder));
+		_encoders.insert(std::pair<uint32_t, Encoder*>(resources->encoders[i], encoder));
 	}
 
 	for(int i = 0; i < resources->count_crtcs; i++)
 	{
-		crtc = drmModeGetCrtc(_deviceFd, resources->crtcs[i]);
-		if (crtc->mode_valid)
+		_crtc = drmModeGetCrtc(_deviceFd, resources->crtcs[i]);
+		if (_crtc->mode_valid)
 		{
 			break;
 		}
 
-		drmModeFreeCrtc(crtc);
-		crtc = nullptr;
+		drmModeFreeCrtc(_crtc);
+		_crtc = nullptr;
 	}
 
 	drmModePlaneResPtr planeResources = drmModeGetPlaneResources(_deviceFd);
@@ -534,7 +533,7 @@ bool DRMFrameGrabber::getScreenInfo()
 			if (strcmp(prop->name, "type") == 0 && properties->prop_values[j] == DRM_PLANE_TYPE_PRIMARY)
 			{
 				auto plane = drmModeGetPlane(_deviceFd, planeResources->planes[i]);
-				if (crtc == nullptr) // Handle scenario where monitor got disconnected
+				if (_crtc == nullptr) // Handle scenario where monitor got disconnected
 				{
 					drmModeFreePlane(plane);
 					drmModeFreeProperty(prop);
@@ -543,9 +542,9 @@ bool DRMFrameGrabber::getScreenInfo()
 					return false;
 				}
 				
-				if (plane->crtc_id == crtc->crtc_id)
+				if (plane->crtc_id == _crtc->crtc_id)
 				{
-					planes.insert(std::pair<uint32_t, drmModePlanePtr>(planeResources->planes[i], plane));
+					_planes.insert(std::pair<uint32_t, drmModePlanePtr>(planeResources->planes[i], plane));
 					foundPrimary = true;
 					drmModeFreeProperty(prop);
 					break;
@@ -563,9 +562,9 @@ bool DRMFrameGrabber::getScreenInfo()
 	}
 
 	// get all properties
-	for(auto & connector : connectors)
+	for(auto const& [id, connector] : _connectors)
 	{
-		auto properties = drmModeObjectGetProperties(_deviceFd, connector.first, DRM_MODE_OBJECT_CONNECTOR);
+		auto properties = drmModeObjectGetProperties(_deviceFd, id, DRM_MODE_OBJECT_CONNECTOR);
 		if (properties == nullptr) 
 		{
 			continue;
@@ -574,14 +573,14 @@ bool DRMFrameGrabber::getScreenInfo()
 		for(unsigned int i = 0; i < properties->count_props; i++)
 		{
 			auto prop = drmModeGetProperty(_deviceFd, properties->props[i]);
-			connector.second->props.insert(std::pair<std::string, DrmProperty>(std::string(prop->name),
+			connector->props.insert(std::pair<std::string, DrmProperty>(std::string(prop->name),
 				{ .spec=prop, .value=properties->prop_values[i] }));
 		}
 	}
 
-	for(auto & encoder : encoders)
+	for(auto const& [id, encoder] : _encoders)
 	{
-		auto properties = drmModeObjectGetProperties(_deviceFd, encoder.first, DRM_MODE_OBJECT_ENCODER);
+		auto properties = drmModeObjectGetProperties(_deviceFd, id, DRM_MODE_OBJECT_ENCODER);
 		if (properties == nullptr) 
 		{
 			continue;
@@ -590,25 +589,25 @@ bool DRMFrameGrabber::getScreenInfo()
 		for(unsigned int i = 0; i < properties->count_props; i++)
 		{
 			auto prop = drmModeGetProperty(_deviceFd, properties->props[i]);
-			encoder.second->props.insert(std::pair<std::string, DrmProperty>(std::string(prop->name),
+			encoder->props.insert(std::pair<std::string, DrmProperty>(std::string(prop->name),
 				{ .spec=prop, .value=properties->prop_values[i] }));
 		}
 	}
 
-	for(auto & plane : planes)
+	for(auto const& [id, plane] : _planes)
 	{
-		for (unsigned int j = 0; j < plane.second->count_formats; ++j)
+		for (unsigned int j = 0; j < plane->count_formats; ++j)
 		{
-			drmModeFB2Ptr fb = drmModeGetFB2(_deviceFd, plane.second->fb_id);
+			drmModeFB2Ptr fb = drmModeGetFB2(_deviceFd, plane->fb_id);
 			if (fb == nullptr)
 			{
 				continue;
 			}
-			framebuffers.insert(std::pair<uint32_t, drmModeFB2Ptr>(plane.second->fb_id, fb));
+			_framebuffers.insert(std::pair<uint32_t, drmModeFB2Ptr>(plane->fb_id, fb));
 		}
 	}
 	
-	return !framebuffers.empty();
+	return !_framebuffers.empty();
 }
 
 QJsonObject DRMFrameGrabber::discover(const QJsonObject& params)
@@ -624,17 +623,14 @@ QJsonObject DRMFrameGrabber::discover(const QJsonObject& params)
 	deviceDirectory.setSorting(QDir::Name);
 	QFileInfoList deviceFiles = deviceDirectory.entryInfoList(QDir::System);
 
-	
-
 	int drmIdx (0);
 	QJsonArray video_inputs;
 
-	QFileInfoList::const_iterator deviceFileIterator;
-	for (deviceFileIterator = deviceFiles.constBegin(); deviceFileIterator != deviceFiles.constEnd(); ++deviceFileIterator)
+	for (const auto& deviceFile : deviceFiles)
 	{
-		QString const fileName = (*deviceFileIterator).fileName();
+		QString const fileName = deviceFile.fileName();
 		drmIdx = fileName.right(1).toInt();
-		QString device = (*deviceFileIterator).absoluteFilePath();
+		QString device = deviceFile.absoluteFilePath();
 		DebugIf(verbose, _log, "DRM device [%s] found", QSTRING_CSTR(device));
 
 		QSize screenSize = getScreenSize(device);

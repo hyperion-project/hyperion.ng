@@ -85,11 +85,11 @@ private:
 	bool getScreenInfo();
 
 	int _deviceFd;
-    std::map<uint32_t, Connector*> connectors;
-    std::map<uint32_t, Encoder*> encoders;
-    drmModeCrtcPtr crtc;
-    std::map<uint32_t, drmModePlanePtr> planes;
-	std::map<uint32_t, drmModeFB2Ptr> framebuffers;
+    std::map<uint32_t, Connector*> _connectors;
+    std::map<uint32_t, Encoder*> _encoders;
+    drmModeCrtcPtr _crtc;
+    std::map<uint32_t, drmModePlanePtr> _planes;
+	std::map<uint32_t, drmModeFB2Ptr> _framebuffers;
 
 	PixelFormat _pixelFormat;
 };
