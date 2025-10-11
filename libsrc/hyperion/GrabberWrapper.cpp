@@ -256,6 +256,8 @@ void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocume
 			// width/height
 			_ggrabber->setWidthHeight(obj["width"].toInt(96), obj["height"].toInt(96));
 
+			_ggrabber->setInput(obj["input"].toInt(0));
+
 			// display index for MAC
 			_ggrabber->setDisplayIndex(obj["input"].toInt(0));
 

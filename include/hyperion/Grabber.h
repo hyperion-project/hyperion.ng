@@ -84,6 +84,8 @@ public:
 	/// @brief Prevent the real capture implementation from capturing if disabled
 	///
 	virtual void setEnabled(bool enable);
+	
+	bool isEnabled() const { return _isEnabled; }
 
 	///
 	/// @brief get current resulting height of image (after crop)
