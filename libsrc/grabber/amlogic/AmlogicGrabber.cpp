@@ -69,11 +69,14 @@ AmlogicGrabber::~AmlogicGrabber()
 
 bool AmlogicGrabber::isGbmSupported(bool logMsg) const
 {
-	// Check for the existence of gbm_create_device, a core GBM function, within libgbm.so
+	// Check for the existence of gbm_create_device, a core GBM function, within libdrm.so
+	
+	QString libName  = "libMali";
+	QString lib  = libName + ".so";
 
 	// 1. Attempt to open the library.
 	// RTLD_LAZY resolves symbols only when they are needed.
-	void *handle = dlopen("libgbm.so", RTLD_LAZY);
+	void *handle = dlopen( QSTRING_CSTR(lib), RTLD_LAZY);
 
 	if (!handle)
 	{
@@ -92,12 +95,12 @@ bool AmlogicGrabber::isGbmSupported(bool logMsg) const
 
 	if (symbol != nullptr)
 	{
-		DebugIf(logMsg, _log, "Found 'gbm_create_device' in libgbm.so.");
-		InfoIf(logMsg, _log, "System likely supports DRM/GBM. Found 'gbm_create_device' in libgbm.so.");
+		DebugIf(logMsg, _log, "Found 'gbm_create_device' in %s.so.", QSTRING_CSTR(libName));
+		InfoIf(logMsg, _log, "System likely supports DRM/GBM. Found 'gbm_create_device' in %s.so.", QSTRING_CSTR(libName));
 		return true;
 	}
 
-	DebugIf(logMsg, _log, "'gbm_create_device' not found in libgbm.so.");
+	DebugIf(logMsg, _log, "'gbm_create_device' not found in %s.so.", QSTRING_CSTR(libName));
 	InfoIf(logMsg, _log, "System likely does not support DRM/GBM.");
 
 	return false;
