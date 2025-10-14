@@ -7,6 +7,7 @@
 
 // Utils includes
 #include <utils/ColorRgb.h>
+#include <utils/Logger.h>
 #include <hyperion/Grabber.h>
 
 struct DrmProperty
@@ -18,13 +19,13 @@ struct DrmProperty
 struct Connector
 {
 	drmModeConnectorPtr ptr;
-	std::map<std::string, DrmProperty> props;
+	std::map<std::string, DrmProperty, std::less<>> props;
 };
 
 struct Encoder
 {
 	drmModeEncoderPtr ptr;
-	std::map<std::string, DrmProperty> props;
+	std::map<std::string, DrmProperty, std::less<>> props;
 };
 
 ///
@@ -38,7 +39,7 @@ public:
 	///
 	/// @param[in] device The framebuffer device name/path
 	///
-	DRMFrameGrabber(int deviceIdx = 0, int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0);
+	explicit DRMFrameGrabber(int deviceIdx = 0, int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0);
 
 	~DRMFrameGrabber() override;
 
@@ -52,15 +53,15 @@ public:
 	/// @param[out] image  The snapped screenshot (should be initialized with correct width and
 	/// height)
 	///
-	int grabFrame(Image<ColorRgb> & image);
+	int grabFrame(Image<ColorRgb> & image) override;
 
 	///
 	/// @brief Setup a new capture screen, will free the previous one
 	/// @return True on success, false if no screen is found
 	///
-	bool setupScreen();
+	bool setupScreen() override;
 
-	QSize getScreenSize() const;
+	QSize getScreenSize() const override;
 	QSize getScreenSize(const QString& device) const;
 
 	///
@@ -68,6 +69,8 @@ public:
 	bool setWidthHeight(int width, int height) override;
 
 	QString getDeviceName() const {return QString("%1/%2%3").arg(DRM_DIR_NAME, DRM_PRIMARY_MINOR_NAME).arg(_input);}
+
+	QJsonArray getInputDeviceDetails() const override;
 
 	///
 	/// @brief Discover DRM screens available (for configuration).
@@ -85,8 +88,11 @@ private:
 	bool getScreenInfo();
 
 	int _deviceFd;
-    std::map<uint32_t, Connector*> _connectors;
-    std::map<uint32_t, Encoder*> _encoders;
+    /// Map of available connectors
+	std::map<uint32_t, std::unique_ptr<Connector>> _connectors;
+
+	/// Map of available encoders
+	std::map<uint32_t, std::unique_ptr<Encoder>> _encoders;
     drmModeCrtcPtr _crtc;
     std::map<uint32_t, drmModePlanePtr> _planes;
 	std::map<uint32_t, drmModeFB2Ptr> _framebuffers;

@@ -8,7 +8,7 @@
 /// displayed content. This ImageRgb is processed to a ColorRgb for each led and committed to the
 /// attached Hyperion.
 ///
-class DRMWrapper: public GrabberWrapper
+class DRMWrapper : public GrabberWrapper
 {
 	Q_OBJECT
 public:
@@ -23,16 +23,15 @@ public:
 	/// @param[in] cropTop           Remove from top [pixels]
 	/// @param[in] cropBottom        Remove from bottom [pixels]
 	///
-	DRMWrapper( int updateRate_Hz=GrabberWrapper::DEFAULT_RATE_HZ,
-			    int deviceIdx = 0,
-			    int pixelDecimation=GrabberWrapper::DEFAULT_PIXELDECIMATION,
-			    int cropLeft=0, int cropRight=0,
-			    int cropTop=0, int cropBottom=0
-			   );
+	explicit DRMWrapper(int updateRate_Hz = GrabberWrapper::DEFAULT_RATE_HZ,
+			   int deviceIdx = 0,
+			   int pixelDecimation = GrabberWrapper::DEFAULT_PIXELDECIMATION,
+			   int cropLeft = 0, int cropRight = 0,
+			   int cropTop = 0, int cropBottom = 0);
 	///
 	/// Constructs the QT frame grabber from configuration settings
 	///
-	DRMWrapper(const QJsonDocument& grabberConfig = QJsonDocument());
+	explicit DRMWrapper(const QJsonDocument &grabberConfig = QJsonDocument());
 
 public slots:
 	///

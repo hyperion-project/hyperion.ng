@@ -54,7 +54,7 @@
         "ENABLE_AMLOGIC": "OFF",
         "ENABLE_DDA": "OFF",
         "ENABLE_DISPMANX": "OFF",
-        "ENABLE_DRM": "ON",
+        "ENABLE_DRM": "OFF",
         "ENABLE_DX": "OFF",
         "ENABLE_FB": "OFF",
         "ENABLE_MF": "OFF",

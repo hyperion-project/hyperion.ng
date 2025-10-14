@@ -1,7 +1,10 @@
 #pragma once
 
-#include <QObject>
 #include <cstdint>
+
+#include <QObject>
+#include <QSize>
+#include <QJsonArray>
 
 #include <utils/ColorRgb.h>
 #include <utils/Image.h>
@@ -21,8 +24,7 @@ class Grabber : public QObject
 	Q_OBJECT
 
 public:
-
-	Grabber(const QString& grabberName = "", int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0);
+	explicit Grabber(const QString &grabberName = "", int cropLeft = 0, int cropRight = 0, int cropTop = 0, int cropBottom = 0);
 
 	///
 	/// Set the video mode (2D/3D)
@@ -84,7 +86,7 @@ public:
 	/// @brief Prevent the real capture implementation from capturing if disabled
 	///
 	virtual void setEnabled(bool enable);
-	
+
 	bool isEnabled() const { return _isEnabled; }
 
 	///
@@ -106,7 +108,7 @@ public:
 	///
 	/// @brief Get capture interval in ms
 	///
-	int getUpdateInterval() const { return 1000/_fps; }
+	int getUpdateInterval() const { return 1000 / _fps; }
 
 	///
 	/// @brief  Get pixelDecimation
@@ -120,11 +122,16 @@ public:
 	///
 	/// @return true, on success (i.e. library is present), else false
 	///
-	virtual bool isAvailable(bool logError = true)  { return _isAvailable; }
+	virtual bool isAvailable(bool logError = true) { return _isAvailable; }
+
+	virtual int grabFrame(Image<ColorRgb> &) { return 0; }
+	virtual bool setupScreen() { return true; }
+	virtual QSize getScreenSize() const { return QSize(); }
+	virtual QJsonArray getInputDeviceDetails() const { return QJsonArray(); }
 
 public slots:
 
-	virtual void handleEvent(Event event) {}
+	virtual void handleEvent(Event event) { /* to be overridden by subclasses */ }
 
 protected slots:
 	///
@@ -132,14 +139,13 @@ protected slots:
 	///
 	/// @param[in] errorMsg The error message to be logged
 	///
-	virtual void setInError( const QString& errorMsg);
+	virtual void setInError(const QString &errorMsg);
 
 protected:
-
 	QString _grabberName;
 
 	/// logger instance
-	Logger * _log;
+	Logger *_log;
 
 	ImageResampler _imageResampler;
 
@@ -173,7 +179,10 @@ protected:
 	int _input;
 
 	/// number of pixels to crop after capturing
-	int _cropLeft, _cropRight, _cropTop, _cropBottom;
+	int _cropLeft;
+	int _cropRight;
+	int _cropTop;
+	int _cropBottom;
 
 	// Device states
 
@@ -185,7 +194,4 @@ protected:
 
 	/// Is the device in error state and stopped?
 	bool _isDeviceInError;
-
-
-
 };
