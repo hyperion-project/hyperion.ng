@@ -53,6 +53,7 @@ namespace hyperion
 				const std::vector<Led> & leds,
 				int reducedProcessingFactor = 0,
 				int accuraryLevel = 0);
+		~ImageToLedsMap() override;
 
 		///
 		/// Returns the width of the indexed image

@@ -15,31 +15,86 @@ on:
 
 jobs:
 
-  # GitHub Push/Pull Request (Release only on tagged commits)
-  github_build:
-    name: Qt ${{ matrix.qt_version }} Build ${{ matrix.qt_version == '6' && '(Testing))' || '' }}
+  # Build Debian Artifacts
+  linux:
+    name: 🐧 Debian ${{ matrix.debian.codename[1] }}
     strategy:
       fail-fast: false
       matrix:
-        qt_version: ['5', '6']
-    uses: ./.github/workflows/qt5_6.yml
+        debian: [
+          { codename: [ 'bullseye', 'Bullseye' ] },
+          { codename: [ 'bookworm', 'Bookworm' ] },
+          { codename: [ 'trixie', 'Trixie' ] }
+        ]
+    uses: ./.github/workflows/debian.yml
     secrets: inherit
     with:
-      qt_version: ${{ matrix.qt_version }}
+      codename: ${{ matrix.debian.codename[0] }}
       event_name: ${{ github.event_name }}
       pull_request_number: ${{ github.event.pull_request.number }}
-      publish: ${{ startsWith(github.event.ref, 'refs/tags') && matrix.qt_version == '5' }}
+      publish: ${{ startsWith(github.event.ref, 'refs/tags') && matrix.debian.codename[0] == 'bullseye' }}
+
+  # Build macOS Artifacts
+  macos:
+    name: 🍏 macOS
+    uses: ./.github/workflows/macos.yml
+    secrets: inherit
+    with:
+      event_name: ${{ github.event_name }}
+      pull_request_number: ${{ github.event.pull_request.number }}
+      publish: ${{ startsWith(github.event.ref, 'refs/tags') }}
+
+  # Build Windows Artifacts
+  windows:
+    name: 🪟 Windows
+    uses: ./.github/workflows/windows.yml
+    secrets: inherit
+    with:
+      event_name: ${{ github.event_name }}
+      pull_request_number: ${{ github.event.pull_request.number }}
+      publish: ${{ startsWith(github.event.ref, 'refs/tags') }}
+
+  # Publish to GitHub
+  github_publish:
+    name: 🚀 Publish to GitHub
+    if: startsWith(github.event.ref, 'refs/tags')
+    needs: [linux, macos, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇ Checkout
+        uses: actions/checkout@v5
+
+      - name: 🔧 Prepare
+        run: |
+          echo "TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
+          echo "VERSION=$(tr -d '\n' < .version)" >> $GITHUB_ENV
+
+      - name: 💾 Download artifacts
+        uses: actions/download-artifact@v5
+        with:
+          pattern: artifact-*
+          path: all-artifacts
+
+      - name: 📦 Upload
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Hyperion ${{ env.VERSION }}
+          tag_name: ${{ env.TAG }}
+          files: "all-artifacts/**"
+          draft: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # Build DEB/RPM Packages for APT/DNF Repository (runs only on tagged commits)
   repo_build:
     name: 🚀 Let Hyperion build its own repository (APT/DNF)
     if: startsWith(github.event.ref, 'refs/tags')
-    needs: [ github_build ]
+    needs: [ github_publish ]
     runs-on: ubuntu-latest
     steps:
       - name: 📲 Dispatch APT/DNF build
         if: ${{ env.SECRET_HYPERION_BOT_TOKEN != null }}
-        uses: peter-evans/repository-dispatch@v3.0.0
+        uses: peter-evans/repository-dispatch@v4.0.0
         with:
           repository: hyperion-project/hyperion.releases-ci
           token: ${{ secrets.HYPERION_BOT_TOKEN }}

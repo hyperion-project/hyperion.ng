@@ -108,6 +108,12 @@ public:
 	///
 	void setAutoStart(bool isAutoStart);
 
+	/// @brief Define, if a device can be recovered by retrying open attempts in an error scenrario
+	///
+	/// @param[in] isRecoverable
+	///
+	void setIsRecoverable(bool isRecoverable = true) { _isDeviceRecoverable = isRecoverable; }
+
 	///
 	/// @brief Discover devices of this type available (for configuration).
 	/// @note Mainly used for network devices. Allows to find devices, e.g. via ssdp, mDNS or cloud ways.
@@ -203,10 +209,10 @@ public slots:
 	///
 	/// @brief Update the color values of the device's LEDs.
 	///
-	/// Handles refreshing of LEDs.
+	/// Updates received while another updates is in progress are skipped to avoid queueing.
 	///
 	/// @param[in] ledValues The color per LED
-	/// @return Zero on success else negative (i.e. device is not ready)
+	/// @return Zero on success else negative
 	///
 	virtual int updateLeds(std::vector<ColorRgb> ledValues);
 
@@ -420,7 +426,7 @@ protected:
 	/// @param data ByteArray
 	/// @param number Number of array items to be converted.
 	/// @return array as string of hex values
-	static QString toHex(const QByteArray& data, int number = -1) ;
+	static QString toHex(const QByteArray& data, qsizetype number = -1) ;
 
 	/// Current device's type
 	QString _activeDeviceType;
@@ -436,7 +442,7 @@ protected:
 
 	/// Timer object which makes sure that LED data is written at a minimum rate
 	/// e.g. some devices will switch off when they do not receive data at least every 15 seconds
-	QScopedPointer<QTimer, QScopedPointerDeleteLater> _refreshTimer;
+	QScopedPointer<QTimer> _refreshTimer;
 
 	// Device configuration parameters
 
@@ -503,11 +509,26 @@ protected slots:
 private slots:
 
 	///
+	/// @brief Process LED updates requested.
+	///
+	void processLedUpdate();
+
+	///
 	/// @brief Retry to enable the LED-device
 	///
 	void retryEnable();
 
 private:
+
+	///
+	/// @brief Update the color values of the device's LEDs.
+	///
+	/// Handles refreshing of LEDs.
+	///
+	/// @param[in] ledValues The color per LED
+	/// @return Zero on success else negative (i.e. device is not ready)
+	///
+	int writeLedUpdate(const std::vector<ColorRgb>& ledValues);
 
 	/// @brief Start a new refresh cycle
 	void startRefreshTimer();
@@ -516,7 +537,7 @@ private:
 	void stopRefreshTimer();
 
 	/// Timer that enables a device (used to retry enablement, if enabled failed before)
-	QScopedPointer<QTimer, QScopedPointerDeleteLater>	_enableAttemptsTimer;
+	QScopedPointer<QTimer>	_enableAttemptsTimer;
 
 	// Device configuration parameters
 
@@ -536,6 +557,12 @@ private:
 
 	/// Last LED values written
 	std::vector<ColorRgb> _lastLedValues;
+
+	std::atomic<bool> _isLedUpdatePending{ false };
+
+	// The mutex now ONLY protects the data buffer.
+	QMutex _ledBufferMutex;
+	std::vector<ColorRgb> _ledUpdateBuffer;
 };
 
 #endif // LEDEVICE_H

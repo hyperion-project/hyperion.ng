@@ -617,6 +617,11 @@ if(ENABLE_DEV_NETWORK)
 
 		# Add MbedTLS directory to the build
 		add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/external/mbedtls")
+
+		# Can be removed when the issue is resolved: https://github.com/Mbed-TLS/mbedtls/issues/9875
+		if(CMAKE_C_COMPILER_ID MATCHES "GNU" AND TARGET mbedcrypto)
+			target_compile_options(mbedcrypto PRIVATE -fomit-frame-pointer)
+		endif()
 	endif()
 
 	if(TARGET MbedTLS::mbedtls)

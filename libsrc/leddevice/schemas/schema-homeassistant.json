@@ -32,13 +32,22 @@
       "access": "expert",
       "propertyOrder": 3
     },
+    "useSsl": {
+      "type": "boolean",
+      "format": "checkbox",
+      "title": "edt_dev_spec_useSsl_title",
+      "default": false,
+      "required": true,
+      "access": "advanced",
+      "propertyOrder": 4
+    },
     "token": {
       "type": "string",
       "title": "edt_dev_auth_key_title",
       "options": {
         "infoText": "edt_dev_auth_key_title_info"
       },
-      "propertyOrder": 4
+      "propertyOrder": 5
     },
     "overwriteBrightness": {
       "type": "boolean",
@@ -47,7 +56,7 @@
       "default": true,
       "required": true,
       "access": "advanced",
-      "propertyOrder": 5
+      "propertyOrder": 6
     },
     "brightness": {
       "type": "integer",
@@ -61,7 +70,7 @@
         }
       },
       "access": "advanced",
-      "propertyOrder": 6
+      "propertyOrder": 7
     },
     "fullBrightnessAtStart": {
       "type": "boolean",
@@ -70,7 +79,7 @@
       "default": true,
       "required": true,
       "access": "advanced",
-      "propertyOrder": 7
+      "propertyOrder": 8
     },
     "transitionTime": {
       "type": "integer",
@@ -81,7 +90,7 @@
       "maximum": 2000,
       "required": false,
       "access": "advanced",
-      "propertyOrder": 8
+      "propertyOrder": 9
     },
     "entityIds": {
       "title": "edt_dev_spec_lightid_title",
@@ -95,20 +104,20 @@
         "type": "string",
         "title": "edt_dev_spec_lights_itemtitle"
       },
-      "propertyOrder": 9
+      "propertyOrder": 10
     },
     "latchTime": {
       "type": "integer",
       "title": "edt_dev_spec_latchtime_title",
       "default": 250,
       "append": "edt_append_ms",
-      "minimum": 100,
+      "minimum": 50,
       "maximum": 2000,
       "access": "expert",
       "options": {
         "infoText": "edt_dev_spec_latchtime_title_info"
       },
-      "propertyOrder": 10
+      "propertyOrder": 11
     }
   },
   "additionalProperties": true

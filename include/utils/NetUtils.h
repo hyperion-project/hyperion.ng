@@ -106,7 +106,7 @@ inline bool resolveHostPort(const QString& address, QString& host, int& port)
 /// @param[out]    hostAddress The resolved IP-Address
 /// @return        True on success else false
 ///
-inline bool resolveMdDnsHostToAddress(Logger* log, const QString& hostname, QHostAddress& hostAddress)
+inline bool resolveMDnsHostToAddress(Logger* log, const QString& hostname, QHostAddress& hostAddress)
 {
 	bool isHostAddressOK{ false };
 	if (!hostname.isEmpty())
@@ -176,7 +176,7 @@ inline bool resolveMdDnsHostToAddress(Logger* log, const QString& hostname, QHos
 /// @return        A service record
 ///
 #ifdef ENABLE_MDNS
-inline QMdnsEngine::Record resolveMdDnsServiceRecord(const QByteArray& serviceInstance)
+inline QMdnsEngine::Record resolveMDnsServiceRecord(const QByteArray& serviceInstance)
 {
 	QMdnsEngine::Record serviceRecord;
 
@@ -218,42 +218,114 @@ inline QMdnsEngine::Record resolveMdDnsServiceRecord(const QByteArray& serviceIn
 inline bool resolveHostToAddress(Logger* log, const QString& hostname, QHostAddress& hostAddress, int& port)
 {
 	bool areHostAddressPartOK{ false };
-	QString target {hostname};
+	QString target{ hostname };
 
 #ifdef ENABLE_MDNS
 	if (hostname.endsWith("._tcp.local"))
 	{
 		//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
-		QMdnsEngine::Record const service = resolveMdDnsServiceRecord(hostname.toUtf8());
+		QMdnsEngine::Record const service = resolveMDnsServiceRecord(hostname.toUtf8());
 		if (!service.target().isEmpty())
 		{
-			Info(log, "Resolved service [%s] to mDNS hostname [%s], service port [%d]", QSTRING_CSTR(hostname), service.target().constData(), service.port());
-			target = service.target();
-			port = service.port();
+			if (!service.target().isEmpty())
+			{
+				Info(log, "Resolved service [%s] to mDNS hostname [%s], service port [%d]", QSTRING_CSTR(hostname), service.target().constData(), service.port());
+				target = service.target();
+				port = service.port();
+			}
+			else
+			{
+				Error(log, "Failed to resolved service [%s] to an mDNS hostname", QSTRING_CSTR(hostname));
+				return false;
+			}
 		}
 		else
 		{
 			Error(log, "Cannot resolve mDNS hostname for given service [%s]!", QSTRING_CSTR(hostname));
-			return areHostAddressPartOK;
+			return false;
+		}
+
+		QHostAddress resolvedAddress;
+		if (NetUtils::resolveMDnsHostToAddress(log, target, resolvedAddress))
+		{
+			hostAddress = resolvedAddress;
+			if (hostname != hostAddress.toString())
+			{
+				Info(log, "Resolved hostname (%s) to IP-address (%s)", QSTRING_CSTR(hostname), QSTRING_CSTR(hostAddress.toString()));
+			}
+
+			if (NetUtils::isValidPort(log, port, hostAddress.toString()))
+			{
+				areHostAddressPartOK = true;
+			}
+		}
+	}
+	else
+#endif
+	{
+		return false;
+
+	}
+	return areHostAddressPartOK;
+}
+
+///
+/// @brief Resolve a hostname(DNS) or mDNS service name into an IP-address. A given IP address will be passed through
+/// @param[in/out] log         The logger of the caller to print
+/// @param[in/out] hostname    The hostname/mDNS service name to be resolved, if mDNS the input hostname is replaced with the resolved mDNS hostname
+/// @param[in/out] port        The port provided by the mDNS service, if not mDNS the input port is returned
+/// @return        True on success else false
+///
+inline bool resolveMdnsHost(Logger* log, QString& hostname, int& port)
+{
+	bool isResolved{ true };
+
+#ifdef ENABLE_MDNS
+	QString target{ hostname };
+
+	if (hostname.endsWith("._tcp.local"))
+	{
+		//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
+		QMdnsEngine::Record const service = resolveMDnsServiceRecord(hostname.toUtf8());
+		if (!service.target().isEmpty())
+		{
+			if (!service.target().isEmpty())
+			{
+				Info(log, "Resolved service [%s] to mDNS hostname [%s], service port [%d]", QSTRING_CSTR(hostname), service.target().constData(), service.port());
+				target = service.target();
+				port = service.port();
+			}
+			else
+			{
+				Error(log, "Failed to resolved service [%s] to an mDNS hostname", QSTRING_CSTR(hostname));
+				return false;
+			}
+		}
+		else
+		{
+			Error(log, "Cannot resolve mDNS hostname for given service [%s]!", QSTRING_CSTR(hostname));
+			return false;
+		}
+
+		QHostAddress resolvedAddress;
+		if (NetUtils::resolveMDnsHostToAddress(log, target, resolvedAddress))
+		{
+			QString const resolvedHostname = resolvedAddress.toString();
+			if (hostname != resolvedHostname)
+			{
+				hostname = resolvedHostname;
+				Info(log, "Resolved hostname (%s) to IP-address (%s)", QSTRING_CSTR(hostname), QSTRING_CSTR(hostname));
+
+			}
+
+			if (!NetUtils::isValidPort(log, port, hostname))
+			{
+				isResolved = false;
+			}
 		}
 	}
 #endif
-
-	QHostAddress resolvedAddress;
-	if (NetUtils::resolveMdDnsHostToAddress(log, target, resolvedAddress))
-	{
-		hostAddress = resolvedAddress;
-		if (hostname != hostAddress.toString())
-		{
-			Info(log, "Resolved hostname (%s) to IP-address (%s)",  QSTRING_CSTR(hostname), QSTRING_CSTR(hostAddress.toString()));
-		}
-
-		if (NetUtils::isValidPort(log, port, hostAddress.toString()))
-		{
-			areHostAddressPartOK = true;
-		}
-	}
-	return areHostAddressPartOK;
+	return isResolved;
 }
 
 inline bool resolveHostToAddress(Logger* log, const QString& hostname, QHostAddress& hostAddress)

@@ -8,6 +8,8 @@
 
 #include <QObject>
 #include <QVector>
+#include <QSharedPointer>
+#include <QWeakPointer>
 
 class Hyperion;
 
@@ -22,7 +24,7 @@ class ComponentRegister : public QObject
 	Q_OBJECT
 
 public:
-	ComponentRegister(Hyperion* hyperion);
+	explicit ComponentRegister(const QSharedPointer<Hyperion>& hyperionInstance);
 	~ComponentRegister() override;
 
 	///
@@ -30,9 +32,10 @@ public:
 	/// @param  comp   The component from enum
 	/// @return        True if component is running else false. Not found is -1
 	///
-	int isComponentEnabled(hyperion::Components comp) const;
-
-	/// contains all components and their state
+    int extracted(hyperion::Components &comp) const;
+    int isComponentEnabled(hyperion::Components comp) const;
+    
+    /// contains all components and their state
 	std::map<hyperion::Components, bool> getRegister() const { return _componentStates; }
 
 signals:
@@ -68,7 +71,7 @@ private slots:
 
 private:
 	///  Hyperion instance
-	Hyperion * _hyperion;
+	QWeakPointer<Hyperion> _hyperionWeak;
 	/// Logger instance
 	Logger * _log;
 	/// current state of all components

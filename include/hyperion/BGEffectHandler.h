@@ -17,7 +17,8 @@ class BGEffectHandler : public QObject
 	Q_OBJECT
 
 public:
-	BGEffectHandler(Hyperion* hyperion = nullptr);
+	BGEffectHandler(const QSharedPointer<Hyperion>& hyperionInstance);
+	~BGEffectHandler() override;
 
 	///
 	/// @brief Disconnect from connected signals
@@ -48,7 +49,7 @@ private slots:
 
 private:
 	/// Hyperion instance pointer
-	Hyperion* _hyperion;
+	QWeakPointer<Hyperion> _hyperionWeak;
 	Logger * _log;
 
 	QJsonDocument _bgEffectConfig;

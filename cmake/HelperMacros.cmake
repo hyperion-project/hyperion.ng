@@ -27,7 +27,7 @@ endmacro()
 
 macro(getTargetImportedLocation result target)
 	if(TARGET ${target})
-		foreach(prop IMPORTED_LOCATION IMPORTED_LOCATION_NOCONFIG IMPORTED_LOCATION_DEBUG IMPORTED_LOCATION_RELEASE)
+		foreach(prop IMPORTED_LOCATION IMPORTED_LOCATION_NOCONFIG IMPORTED_LOCATION_DEBUG IMPORTED_LOCATION_RELEASE IMPORTED_LOCATION_RELWITHDEBINFO)
 			get_target_property (${result} ${target} ${prop})
 			if(NOT ("${${result}}" STREQUAL "${result}-NOTFOUND"))
 				break()

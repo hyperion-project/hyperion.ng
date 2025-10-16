@@ -45,6 +45,14 @@ protected:
 	int open() override;
 
 	///
+	/// @brief Opens the output device for a given host address
+	///
+	/// @param[in] address the device's network address
+	/// @return Zero on success (i.e. device is ready), else negative
+	///
+	int open(const QHostAddress& address);
+
+	///
 	/// @brief Writes the RGB-Color values to the LEDs.
 	///
 	/// @param[in] ledValues The RGB-color per LED

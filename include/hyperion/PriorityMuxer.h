@@ -289,8 +289,8 @@ private:
 	bool _sourceAutoSelectEnabled;
 
 	// Timer to update Muxer times independent
-	QScopedPointer<QTimer, QScopedPointerDeleteLater> _updateTimer;
+	QScopedPointer<QTimer> _updateTimer;
 
-	QScopedPointer<QTimer, QScopedPointerDeleteLater> _timer;
-	QScopedPointer<QTimer, QScopedPointerDeleteLater> _blockTimer;
+	QScopedPointer<QTimer> _timer;
+	QScopedPointer<QTimer> _blockTimer;
 };

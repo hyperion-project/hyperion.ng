@@ -1,0 +1,88 @@
+name: macOS Builds
+
+on:
+  # Reusable from push_pull.yml
+  workflow_call:
+    inputs:
+      event_name:
+        type: string
+        description: The event name
+        default: ''
+        required: false
+      pull_request_number:
+        type: string
+        description: The corresponding PR number
+        default: ''
+        required: false
+      nightly:
+        type: boolean
+        description: Nightly build
+        default: false
+        required: false
+      publish:
+        type: boolean
+        description: Package publishing
+        default: false
+        required: false
+
+jobs:
+
+  macos:
+    name: ${{ matrix.os.description }}
+    runs-on: ${{ matrix.os.architecture == 'x64' && 'macos-15-intel' || 'macos-15' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [
+          { architecture: 'arm64', description: 'macOS 15 (arm64)' },
+          { architecture: 'x64', description: 'macOS 15 (x64)' }
+        ]
+
+    steps:
+      - name: ⬇ Checkout
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: 🔧 Prepare
+        shell: bash
+        run: |
+          tr -d '\n' < .version > temp && mv temp .version
+          if [[ "${{ inputs.event_name }}" == "pull_request" ]]; then
+            echo -n "+PR${{ inputs.pull_request_number }}" >> .version
+          elif [[ "${{ inputs.nightly }}" = true ]]; then
+            echo -n "+nightly$(date '+%Y%m%d')" >> .version
+          fi
+
+      - name: 📥 Install dependencies
+        uses: tecolicom/actions-use-homebrew-tools@v1
+        with:
+          tools: qt@6 coreutils
+          key: ${{ runner.os }}-${{ matrix.os.architecture }}-homebrew-packages
+
+      - name: 💾 Download Pre-Build Dependencies
+        id: dependencies
+        uses: ./.github/actions/download-pre-built-deps
+        with:
+          os: 'macos'
+          architecture: ${{ matrix.os.architecture }}
+          build_type: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
+
+      - name: 👷 Build ${{ env.HINT }}
+        shell: bash
+        run: |
+          # Build
+          cmake --preset macos-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }}
+          cmake --build --preset macos-${{ env.BUILD_TYPE }} --target package
+        env:
+          BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
+          HINT: ${{ steps.dependencies.outputs.cmakeArgs != '' && '(with pre-built dependencies)' || '(full build)' }}
+
+      - name: 📦 Upload
+        if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.event_name == 'pull_request' && env.NAME || format('artifact-{0}', env.NAME) }}
+          path: 'build/Hyperion-*'
+        env:
+          NAME: ${{ format('macOS_{0}', matrix.os.architecture) }}

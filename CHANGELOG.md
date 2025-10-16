@@ -4,7 +4,56 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.0.16...HEAD)
+## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.1.1...HEAD)
+
+### ⚠️ Breaking Changes
+
+- Align Hue Bridge processing to Philips' guidance on security, i.e. no self-signed certificates for orginal bridges
+
+---
+
+### ✨ Added
+
+- HTTPS support for homeassistant LED devices (#1886)
+- Hue Bridge - Use https and certificates for all API calls, support Bridge Pro (V3)
+- Hue Bridge - Alternate certificate support
+
+---
+
+### 🔧 Changed
+
+- Hue Bridge - Wizard updates to support bridge-ids, overall code refactoring
+- USB Grabber - Default hardware control properties are now applied when a new USB grabber is selected (avoids black images)
+
+- **Fixes:**
+  - UI - Language is not selectable (#1877)
+  - CEC-Handler is not stopped properly
+  - Qt-Grabber (Windows) does not apply pixel ratio (#1882) - _Thanks to @SolberLight_
+  - LED-devices are not retrying to establish connectivity, if supported by the device
+  - LED-devices are resolving IP-addresses for API and UDP two times in sequence
+  - LED-device updates queue up and let Hyperion crash (#1887)
+
+---
+
+### 🗑️ Removed
+
+### Technical
+
+- Update mbedTLS to v3.6.4, Update flatbuffers to v25.9.23, Update rpi_ws281x library
+
+
+## [2.1.1](https://github.com/hyperion-project/hyperion.ng/compare/2.1.1...HEAD) - 2025-06-14
+
+### 🔧 Changed
+
+- **Fixes:**
+  - WebUI unreachable via IPv6 (#1871)
+  - Align install_pr script working with default Qt6 builds & show authentication failures (#1871)
+  
+- **Build:**
+    - Added Debian Trixie to PR-builds for early testing
+
+## [2.1.0](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.1.0) - 2025-06-12
 
 ### ⚠️ Breaking Changes
 
@@ -152,6 +201,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Use `subscribe` / `unsubscribe` subcommands instead
 - Deprecated: DirectX grabber in favour of the new DXGI DDA grabber
 - Removed "-c" console option on Windows. Hyperion can be started via terminal to get the required console output
+
+#### Builds
+-  Removed builds for following operating system LTS or software component versions, as they are End-of-Life and do not receive maintenance nor security updates any longer
+    - Debian Buster
+    - Ubuntu Focal Fossa (20.04)
+    - Qt5
 
 ## [2.0.16](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.16) - 2024-01
 

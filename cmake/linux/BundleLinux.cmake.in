@@ -1,96 +1,69 @@
 set(PROJECT_NAME "@PROJECT_NAME@")
 set(QMAKE_EXECUTABLE "@QMAKE_EXECUTABLE@")
 set(OPENSSL_FOUND @OPENSSL_FOUND@)
+set(OPENSSL_LIBRARIES "@OPENSSL_LIBRARIES@")
 set(PYTHON_MODULES_DIR "@PYTHON_MODULES_DIR@")
 set(PYTHON_VERSION "@PYTHON_VERSION@")
 set(CMAKE_BINARY_DIR "@CMAKE_BINARY_DIR@")
 
-set(SYSTEM_LIBS_SKIP
-	"libatomic"
-	"libc"
-	"libdbus"
-	"libdl"
-	"libexpat"
-	"libfontconfig"
-	"libgcc_s"
-	"libgcrypt"
-	"libglib"
-	"libglib-2"
-	"libgpg-error"
-	"liblz4"
-	"liblzma"
-	"libm"
-	"libpcre"
-	"libpcre2"
-	"libpthread"
-	"librt"
-	"libstdc++"
-	"libsystemd"
-	"libudev"
-	"libusb"
-	"libusb-1"
-	"libutil"
-	"libuuid"
-	"libz"
+set(SYSTEM_LIBS_SKIP "")
+list(APPEND SYSTEM_LIBS_SKIP
+  libatomic libc libdbus libdl libexpat libfontconfig libgcc_s libgcrypt
+  libglib libglib-2 libgpg-error liblz4 liblzma libm libpcre libpcre2
+  libpthread librt libstdc++ libsystemd libudev libusb libusb-1 libutil
+  libuuid libz
 )
 
-# Extract dependencies ignoring the system ones
-include(GetPrerequisites)
-get_prerequisites("${CMAKE_BINARY_DIR}/bin/${PROJECT_NAME}" DEPENDENCIES 0 1 "" "")
-
-# Append symlink and non-symlink dependencies to the list
-set(PREREQUISITE_LIBS "")
-foreach(DEPENDENCY ${DEPENDENCIES})
-	get_filename_component(resolved ${DEPENDENCY} NAME_WE)
-	list(FIND SYSTEM_LIBS_SKIP ${resolved} _index)
-	if(${_index} GREATER -1)
-		continue() # Skip system libraries
-	else()
-		gp_resolve_item("${CMAKE_BINARY_DIR}/bin/${PROJECT_NAME}" "${DEPENDENCY}" "" "" resolved_file)
+function(collect_dependencies input_file output_var)
+	include(GetPrerequisites)
+	get_prerequisites("${input_file}" LOCAL_DEPS 0 1 "" "")
+	foreach(DEP ${LOCAL_DEPS})
+		get_filename_component(resolved ${DEP} NAME_WE)
+		list(FIND SYSTEM_LIBS_SKIP ${resolved} _index)
+		if(_index GREATER -1)
+			continue()
+		endif()
+		gp_resolve_item("${input_file}" "${DEP}" "" "" resolved_file)
 		get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
-		gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
+		gp_append_unique(${output_var} ${resolved_file})
 		get_filename_component(file_canonical ${resolved_file} REALPATH)
-		gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
-	endif()
-endforeach()
+		gp_append_unique(${output_var} ${file_canonical})
+	endforeach()
+	set(${output_var} "${${output_var}}" PARENT_SCOPE)
+endfunction()
 
+# Extract dependencies ignoring the system ones
+set(PREREQUISITE_LIBS "")
+collect_dependencies("${CMAKE_BINARY_DIR}/bin/${PROJECT_NAME}" PREREQUISITE_LIBS)
+
+# Get Qt plugin path
 execute_process(
-	COMMAND
-		"${QMAKE_EXECUTABLE}" -query QT_INSTALL_PLUGINS
-	OUTPUT_VARIABLE
-		QT_PLUGINS_DIR
+	COMMAND "${QMAKE_EXECUTABLE}" -query QT_INSTALL_PLUGINS
+	OUTPUT_VARIABLE QT_PLUGINS_DIR
 	OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
 # Copy Qt plugins to 'share/hyperion/lib'
 foreach(PLUGIN "platforms" "sqldrivers" "imageformats" "tls" "wayland-shell-integration")
-	if(EXISTS ${QT_PLUGINS_DIR}/${PLUGIN})
-		file(GLOB files "${QT_PLUGINS_DIR}/${PLUGIN}/*.so")
-		foreach(file ${files})
-			get_prerequisites(${file} PLUGINS 0 1 "" "")
-			foreach(DEPENDENCY ${PLUGINS})
-				get_filename_component(resolved ${DEPENDENCY} NAME_WE)
-				list(FIND SYSTEM_LIBS_SKIP ${resolved} _index)
-				if(${_index} GREATER -1)
-					continue() # Skip system libraries
-				else()
-					gp_resolve_item("${file}" "${DEPENDENCY}" "" "" resolved_file)
-					get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
-					gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
-					get_filename_component(file_canonical ${resolved_file} REALPATH)
-					gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
-				endif()
-			endforeach()
-
-			file(INSTALL
-				FILES
-					${file}
-				DESTINATION
-					"${CMAKE_INSTALL_PREFIX}/share/hyperion/lib/${PLUGIN}"
-			)
+	set(PLUGIN_DIR "${QT_PLUGINS_DIR}/${PLUGIN}")
+	if(EXISTS ${PLUGIN_DIR})
+		file(GLOB PLUGIN_FILES "${PLUGIN_DIR}/*.so")
+		foreach(file ${PLUGIN_FILES})
+			collect_dependencies("${file}" PREREQUISITE_LIBS)
+			file(INSTALL FILES ${file} DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperion/lib/${PLUGIN}")
 		endforeach()
 	endif()
 endforeach()
+
+# Append the OpenSSL library to the list
+if(OPENSSL_FOUND AND NOT OPENSSL_LIBRARIES STREQUAL "")
+	foreach(openssl_lib ${OPENSSL_LIBRARIES})
+		collect_dependencies(${openssl_lib} PREREQUISITE_LIBS)
+		gp_append_unique(PREREQUISITE_LIBS ${openssl_lib})
+		get_filename_component(file_canonical ${openssl_lib} REALPATH)
+		gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
+	endforeach()
+endif()
 
 # Copy dependencies to 'share/hyperion/lib'
 file(INSTALL FILES ${PREREQUISITE_LIBS} DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperion/lib")
@@ -98,8 +71,8 @@ file(INSTALL FILES ${PREREQUISITE_LIBS} DESTINATION "${CMAKE_INSTALL_PREFIX}/sha
 # Create a qt.conf file in 'share/hyperion/bin' to override hard-coded search paths in Qt plugins
 file(WRITE "${CMAKE_INSTALL_PREFIX}/share/hyperion/bin/qt.conf" "[Paths]\nPlugins=../lib/\n")
 
+# Copy Python modules to 'share/hyperion/lib/pythonMAJOR.MINOR' and ignore the unnecessary stuff listed below
 if(NOT PYTHON_MODULES_DIR STREQUAL "" AND NOT PYTHON_VERSION STREQUAL "")
-	# Copy Python modules to 'share/hyperion/lib/pythonMAJOR.MINOR' and ignore the unnecessary stuff listed below
 	string(REGEX MATCHALL "[0-9]+" VERSION ${PYTHON_VERSION})
 	list(GET VERSION 0 PYTHON_VERSION_MAJOR)
 	list(GET VERSION 1 PYTHON_VERSION_MINOR)

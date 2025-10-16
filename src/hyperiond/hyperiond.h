@@ -114,7 +114,6 @@ class ProtoServer;
 class MessageForwarder;
 #endif
 class AuthManager;
-class NetOrigin;
 class CECHandler;
 
 class HyperionDaemon : public QObject
@@ -265,7 +264,6 @@ private:
 
 	/// Network services
 	QScopedPointer<AuthManager, QScopedPointerDeleteLater> _authManager;
-	QScopedPointer<NetOrigin, QScopedPointerDeleteLater> _netOrigin;
 	QScopedPointer<JsonServer, QScopedPointerDeleteLater> _jsonServer;
 	QScopedPointer<QThread> _jsonServerThread;
 	QScopedPointer<WebServer, QScopedPointerDeleteLater> _webServer;
@@ -296,7 +294,7 @@ private:
 	QScopedPointer<OsEventHandler> _osEventHandler;
 	QScopedPointer<EventScheduler> _eventScheduler;
 #ifdef ENABLE_CEC
-	QScopedPointer<CECHandler> _cecHandler;
+	QScopedPointer<CECHandler, QScopedPointerDeleteLater> _cecHandler;
 	QScopedPointer<QThread> _cecHandlerThread;
 #endif
 

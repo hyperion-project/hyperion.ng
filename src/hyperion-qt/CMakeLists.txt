@@ -1,18 +1,11 @@
 cmake_minimum_required(VERSION 3.10.0)
 project(hyperion-qt)
 
-if(WIN32)
-	# generate windows .rc file for this binary
-	string(REPLACE "/" "\\\\" WIN_RC_ICON_PATH ${CMAKE_SOURCE_DIR}/cmake/windows/inno/gfx/installer.ico)
-	configure_file(${CMAKE_SOURCE_DIR}/cmake/windows/win.rc.in ${CMAKE_BINARY_DIR}/win.rc)
-	set(WIN_RC_FILE ${CMAKE_BINARY_DIR}/win.rc)
-endif()
-
 add_executable(${PROJECT_NAME}
 	QtWrapper.h
 	QtWrapper.cpp
 	hyperion-qt.cpp
-	${WIN_RC_FILE}
+	$<$<BOOL:${WIN32}>:${CMAKE_BINARY_DIR}/win.rc>
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -27,6 +20,10 @@ if(ENABLE_MDNS)
 else()
 	target_link_libraries(${PROJECT_NAME} ssdp)
 endif()
+
+target_link_libraries(${PROJECT_NAME}
+	hyperion-utils
+)
 
 if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 	install(TARGETS ${PROJECT_NAME} DESTINATION "." COMPONENT "hyperion_qt" OPTIONAL)

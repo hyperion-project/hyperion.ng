@@ -5,25 +5,42 @@
 
 #include <effectengine/Effect.h>
 
-BGEffectHandler::BGEffectHandler(Hyperion* hyperion)
-	: QObject(hyperion)
-	, _hyperion(hyperion)
+BGEffectHandler::BGEffectHandler(const QSharedPointer<Hyperion>& hyperionInstance)
+	: QObject()
+	, _hyperionWeak(hyperionInstance)
 	, _isBgEffectEnabled(false)
 {
-	QString subComponent = parent()->property("instance").toString();
+	QString subComponent{ "__" };
+	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
+	if (hyperion)
+	{
+		 subComponent = hyperion->property("instance").toString();
+	}
 	_log = Logger::getInstance("HYPERION", subComponent);
 
-	QObject::connect(_hyperion, &Hyperion::settingsChanged, this, &BGEffectHandler::handleSettingsUpdate);
-	QObject::connect(_hyperion->getMuxerInstance().get(), &PriorityMuxer::prioritiesChanged, this, &BGEffectHandler::handlePriorityUpdate);
+	if (hyperion)
+	{
+		QObject::connect(hyperion.get(), &Hyperion::settingsChanged, this, &BGEffectHandler::handleSettingsUpdate);
+		QObject::connect(hyperion->getMuxerInstance().get(), &PriorityMuxer::prioritiesChanged, this, &BGEffectHandler::handlePriorityUpdate);
+	}
 
 	// initialization
-	handleSettingsUpdate(settings::BGEFFECT, _hyperion->getSetting(settings::BGEFFECT));
+	handleSettingsUpdate(settings::BGEFFECT, hyperion->getSetting(settings::BGEFFECT));
+}
+
+BGEffectHandler::~BGEffectHandler()
+{
+	qDebug() << "BGEffectHandler::~BGEffectHandler()...";
 }
 
 void BGEffectHandler::disconnect()
 {
-	QObject::disconnect(_hyperion->getMuxerInstance().get(), &PriorityMuxer::prioritiesChanged, this, &BGEffectHandler::handlePriorityUpdate);
-	QObject::disconnect(_hyperion, &Hyperion::settingsChanged, this, &BGEffectHandler::handleSettingsUpdate);
+	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
+	if (hyperion)
+	{
+		QObject::disconnect(hyperion->getMuxerInstance().get(), &PriorityMuxer::prioritiesChanged, this, &BGEffectHandler::handlePriorityUpdate);
+		QObject::disconnect(hyperion.get(), &Hyperion::settingsChanged, this, &BGEffectHandler::handleSettingsUpdate);
+	}
 }
 
 bool BGEffectHandler::_isEnabled () const
@@ -37,12 +54,14 @@ void BGEffectHandler::handleSettingsUpdate(settings::type type, const QJsonDocum
 	{
 		_bgEffectConfig = config;
 
+		QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
 		const QJsonObject& BGEffectConfig = _bgEffectConfig.object();
+
 #define BGCONFIG_ARRAY bgColorConfig.toArray()
 		// clear background priority
-		if (_hyperion->getCurrentPriority() == PriorityMuxer::BG_PRIORITY)
+		if (hyperion->getCurrentPriority() == PriorityMuxer::BG_PRIORITY)
 		{
-			_hyperion->clear(PriorityMuxer::BG_PRIORITY);
+			hyperion->clear(PriorityMuxer::BG_PRIORITY);
 		}
 		_isBgEffectEnabled = BGEffectConfig["enable"].toBool(true);
 
@@ -65,13 +84,13 @@ void BGEffectHandler::handleSettingsUpdate(settings::type type, const QJsonDocum
 						static_cast<uint8_t>(BGCONFIG_ARRAY.at(2).toInt(0))
 					}
 				};
-				_hyperion->setColor(PriorityMuxer::BG_PRIORITY, bg_color);
+				hyperion->setColor(PriorityMuxer::BG_PRIORITY, bg_color);
 				Info(_log,"Initial background color set (%d %d %d)",bg_color.at(0).red, bg_color.at(0).green, bg_color.at(0).blue);
 			}
 #if defined(ENABLE_EFFECTENGINE)
 			else
 			{
-				int result = _hyperion->setEffect(bgEffectConfig, PriorityMuxer::BG_PRIORITY, PriorityMuxer::ENDLESS);
+				int result = hyperion->setEffect(bgEffectConfig, PriorityMuxer::BG_PRIORITY, PriorityMuxer::ENDLESS);
 				Info(_log,"Initial background effect '%s' %s", QSTRING_CSTR(bgEffectConfig), ((result == 0) ? "started" : "failed"));
 			}
 #endif
@@ -82,13 +101,14 @@ void BGEffectHandler::handleSettingsUpdate(settings::type type, const QJsonDocum
 
 void BGEffectHandler::handlePriorityUpdate(int currentPriority)
 {
-	if (currentPriority < PriorityMuxer::BG_PRIORITY && _hyperion->getMuxerInstance()->hasPriority(PriorityMuxer::BG_PRIORITY))
+	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
+	if (currentPriority < PriorityMuxer::BG_PRIORITY && hyperion->getMuxerInstance()->hasPriority(PriorityMuxer::BG_PRIORITY))
 	{
 		Debug(_log,"Stop background (color-) effect as it moved out of scope");
-		_hyperion->clear(PriorityMuxer::BG_PRIORITY);
+		hyperion->clear(PriorityMuxer::BG_PRIORITY);
 	}
 	// Do not start a background effect when the overall instance is disabled
-	else if (_hyperion->isComponentEnabled(hyperion::COMP_ALL))
+	else if (hyperion->isComponentEnabled(hyperion::COMP_ALL))
 	{
 		if (currentPriority == PriorityMuxer::LOWEST_PRIORITY && _isBgEffectEnabled)
 		{

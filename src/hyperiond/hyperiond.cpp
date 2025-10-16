@@ -68,9 +68,6 @@
 // InstanceManager Hyperion
 #include <hyperion/HyperionIManager.h>
 
-// NetOrigin checks
-#include <utils/NetOrigin.h>
-
 #if defined(ENABLE_EFFECTENGINE)
 // Init Python
 #include <python/PythonInit.h>
@@ -97,7 +94,6 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	, _pyInit(new PythonInit())
 	#endif
 	, _authManager(new AuthManager(this))
-	, _netOrigin(new NetOrigin(this))
 	, _currVideoMode(VideoMode::VIDEO_2D)
 {
 	HyperionDaemon::daemon = this;
@@ -249,10 +245,6 @@ void HyperionDaemon::createNetworkServices()
 	// connect and apply settings for AuthManager
 	connect(this, &HyperionDaemon::settingsChanged, _authManager.get(), &AuthManager::handleSettingsUpdate);
 	_authManager->handleSettingsUpdate(settings::NETWORK, _settingsManager->getSetting(settings::NETWORK));
-
-	// connect and apply settings for NetOrigin
-	connect(this, &HyperionDaemon::settingsChanged, _netOrigin.get(), &NetOrigin::handleSettingsUpdate);
-	_netOrigin->handleSettingsUpdate(settings::NETWORK, _settingsManager->getSetting(settings::NETWORK));
 
 #ifdef ENABLE_MDNS
 	// Create mDNS-Provider and mDNS-Browser in own thread
@@ -495,7 +487,6 @@ void HyperionDaemon::startEventServices()
 	_cecHandler.reset(new CECHandler(getSetting(settings::CECEVENTS)));
 	_cecHandler->moveToThread(_cecHandlerThread.get());
 	connect(_cecHandlerThread.get(), &QThread::started, _cecHandler.get(), &CECHandler::start);
-	connect(_cecHandlerThread.get(), &QThread::finished, _cecHandler.get(), &CECHandler::stop);
 	connect(this, &HyperionDaemon::settingsChanged, _cecHandler.get(), &CECHandler::handleSettingsUpdate);
 	Info(_log, "CEC event handler created");
 	_cecHandlerThread->start();
@@ -507,15 +498,14 @@ void HyperionDaemon::startEventServices()
 void HyperionDaemon::stopEventServices()
 {
 #if defined(ENABLE_CEC)
-	if (_cecHandlerThread != nullptr)
+	QMetaObject::invokeMethod(_cecHandler.get(), &CECHandler::stop, Qt::QueuedConnection);
+	if (_cecHandlerThread->isRunning())
 	{
-		if (_cecHandlerThread->isRunning())
-		{
-			_cecHandlerThread->quit();
-			_cecHandlerThread->wait();
-		}
+		_cecHandlerThread->quit();
+		_cecHandlerThread->wait();
 	}
 #endif
+
 	_osEventHandler.reset(nullptr);
 	_eventScheduler.reset(nullptr);
 }
@@ -548,19 +538,19 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 		std::string const level = logConfig["level"].toString("warn").toStdString(); // silent warn verbose debug
 		if (level == "silent")
 		{
-			Logger::setLogLevel(Logger::OFF);
+			Logger::setLogLevel(Logger::LOG_OFF);
 		}
 		else if (level == "warn")
 		{
-			Logger::setLogLevel(Logger::LogLevel::WARNING);
+			Logger::setLogLevel(Logger::LOG_WARNING);
 		}
 		else if (level == "verbose")
 		{
-			Logger::setLogLevel(Logger::INFO);
+			Logger::setLogLevel(Logger::LOG_INFO);
 		}
 		else if (level == "debug")
 		{
-			Logger::setLogLevel(Logger::DEBUG);
+			Logger::setLogLevel(Logger::LOG_DEBUG);
 		}
 	}
 
