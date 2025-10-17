@@ -4,7 +4,6 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <string>
-#include <map>
 #include <iostream>
 
 #include <QThread>
@@ -18,62 +17,23 @@
 // Constants
 namespace
 {
-	const bool verbose = false;
+	const bool verbose = true;
 } // End of constants
-
-static void printDrmModeFB2(const drmModeFB2* fb)
-{
-	if (!verbose)
-	{
-		return;
-	}
-
-	if (!fb)
-	{
-		qDebug() << "drmModeFB2Ptr is null";
-		return;
-	}
-
-	qDebug() << "Framebuffer Info:";
-	qDebug() << "fb_id:" << fb->fb_id;
-	qDebug() << "width:" << fb->width << "height:" << fb->height;
-	qDebug() << "pixel_format:" << QByteArray(reinterpret_cast<const char*>(&fb->pixel_format), 4).toHex();
-	qDebug() << "flags:" << fb->flags;
-	qDebug() << "handles:" << fb->handles[0] << fb->handles[1] << fb->handles[2] << fb->handles[3];
-	qDebug() << "pitches:" << fb->pitches[0] << fb->pitches[1] << fb->pitches[2] << fb->pitches[3];
-	qDebug() << "offsets:" << fb->offsets[0] << fb->offsets[1] << fb->offsets[2] << fb->offsets[3];
-	qDebug() << "modifier:" << fb->modifier;
-	qDebug()<< "\n";
-}
-
-static void printDrmModePlane(drmModePlanePtr plane)
-{
-	if (!verbose)
-	{
-		return;
-	}
-
-	if (!plane)
-	{
-		qDebug() << "drmModePlanePtr is null";
-		return;
-	}
-
-	qDebug() << "Plane Info:";
-	qDebug() << "Plane ID:" << plane->plane_id;
-	qDebug() << "CRTC ID:" << plane->crtc_id;
-	qDebug() << "FB ID:" << plane->fb_id;
-	qDebug() << "CRTC X/Y:" << plane->crtc_x << "/" << plane->crtc_y;
-	qDebug() << "X/Y:" << plane->x << "/" << plane->y;
-	qDebug() << "Possible CRTCs:" << Qt::hex << plane->possible_crtcs;
-	qDebug() << "Gamma Size:" << plane->gamma_size;
-	qDebug() << "Format Count:" << plane->count_formats;
-	qDebug()<< "\n";
-}
 
 #define DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
 #define ALIGN(v, a) (((v) + (a) - 1) & ~((a) - 1))
 
+static QByteArray getDrmFormatString(uint32_t format)
+{
+	return QByteArray(reinterpret_cast<const char*>(&format), 4);
+}
+
+static QString getDrmFormatSummary(uint32_t format)
+{
+	QByteArray drmFormat = getDrmFormatString(format);
+	QString drmFormatStr = QString("%1 [%2]").arg(drmFormat.constData(), drmFormat.toHex().constData());
+	return drmFormatStr;
+}
 static PixelFormat GetPixelFormatForDrmFormat(uint32_t format)
 {
 	switch (format)
@@ -111,6 +71,55 @@ static size_t vc4_sand_tiled_offset(size_t column_width, size_t column_size, siz
 	offset += (column_width * y + pix_x) * bpp / 8;
 
 	return offset;
+}
+
+static void printDrmModeFB2(const drmModeFB2* fb)
+{
+	if (!verbose)
+	{
+		return;
+	}
+
+	qDebug() << "Framebuffer Info:";	
+	if (!fb)
+	{
+		qDebug() << "drmModeFB2Ptr is null";
+		return;
+	}
+
+	qDebug() << "fb_id:" << fb->fb_id;
+	qDebug() << "width:" << fb->width << "height:" << fb->height;
+	qDebug() << "pixel_format - DRM:" << getDrmFormatSummary(fb->pixel_format);;
+	qDebug() << "pixel_format - out:" << pixelFormatToString(GetPixelFormatForDrmFormat(fb->pixel_format));
+	qDebug() << "flags:" << fb->flags;
+	qDebug() << "handles:" << fb->handles[0] << fb->handles[1] << fb->handles[2] << fb->handles[3];
+	qDebug() << "pitches:" << fb->pitches[0] << fb->pitches[1] << fb->pitches[2] << fb->pitches[3];
+	qDebug() << "offsets:" << fb->offsets[0] << fb->offsets[1] << fb->offsets[2] << fb->offsets[3];
+	qDebug() << "modifier:" << fb->modifier << "\n";
+}
+
+static void printDrmModePlane(const drmModePlane* plane)
+{
+	if (!verbose)
+	{
+		return;
+	}
+
+	qDebug() << "Plane Info:";
+	if (!plane)
+	{
+		qDebug() << "drmModePlanePtr is null";
+		return;
+	}
+
+	qDebug() << "Plane ID:" << plane->plane_id;
+	qDebug() << "CRTC ID:" << plane->crtc_id;
+	qDebug() << "FB ID:" << plane->fb_id;
+	qDebug() << "CRTC X/Y:" << plane->crtc_x << "/" << plane->crtc_y;
+	qDebug() << "X/Y:" << plane->x << "/" << plane->y;
+	qDebug() << "Possible CRTCs:" << Qt::hex << plane->possible_crtcs;
+	qDebug() << "Gamma Size:" << plane->gamma_size;
+	qDebug() << "Format Count:" << plane->count_formats << "\n";
 }
 
 DRMFrameGrabber::DRMFrameGrabber(int deviceIdx, int cropLeft, int cropRight, int cropTop, int cropBottom)
@@ -200,16 +209,19 @@ int DRMFrameGrabber::grabFrame(Image<ColorRgb> &image)
 		uint64_t modifier = framebuffer->modifier;
 		int fb_dmafd = 0;
 
-		DebugIf(verbose, _log, "Framebuffer ID: %d - Width: %d - Height: %d  - DRM Format: %c%c%c%c - PixelFormat: %s", id // framebuffer ID
+		const auto drmFormat = getDrmFormatString(framebuffer->pixel_format);
+
+		DebugIf(verbose, _log, "Framebuffer ID: %d - Width: %d - Height: %d  - DRM Format: %s - PixelFormat: %s", id // framebuffer ID
 				, framebuffer->width // width
 				, framebuffer->height // height
-				, framebuffer->pixel_format & 0xff, (framebuffer->pixel_format >> 8) & 0xff, (framebuffer->pixel_format >> 16) & 0xff, (framebuffer->pixel_format >> 24) & 0xff, QSTRING_CSTR(pixelFormatToString(_pixelFormat)));
+				, QSTRING_CSTR(getDrmFormatSummary(framebuffer->pixel_format))
+				, QSTRING_CSTR(pixelFormatToString(_pixelFormat)));
 
 		if (_pixelFormat != PixelFormat::NO_CHANGE && modifier == DRM_FORMAT_MOD_LINEAR)
 		{
 			int w = framebuffer->width;
 			int h = framebuffer->height;
-			//Grabber::setWidthHeight(w, h);
+			Grabber::setWidthHeight(w, h);
 
 			int size = 0;
 			int lineLength = 0;
@@ -226,8 +238,7 @@ int DRMFrameGrabber::grabFrame(Image<ColorRgb> &image)
 			}
 
 			int ret = drmPrimeHandleToFD(_deviceFd, framebuffer->handles[0], O_RDONLY, &fb_dmafd);
-
-			if (ret < 0)
+			if (ret != 0)
 			{
 				Error(_log, "drmPrimeHandleToFD failed (handle=%u): %s", framebuffer->handles[0], strerror(errno));
 				continue;
@@ -244,8 +255,8 @@ int DRMFrameGrabber::grabFrame(Image<ColorRgb> &image)
 				close(fb_dmafd);
 				break;
 			}
-			
-			Error(_log, "Format: %c%c%c%c failed. Error: %s", framebuffer->pixel_format & 0xff, (framebuffer->pixel_format >> 8) & 0xff, (framebuffer->pixel_format >> 16) & 0xff, (framebuffer->pixel_format >> 24) & 0xff, strerror(errno));
+
+			Error(_log, "Format: %s failed. Error: %s", QSTRING_CSTR(getDrmFormatSummary(framebuffer->pixel_format)), strerror(errno));
 			close(fb_dmafd);
 			break;
 		}
@@ -379,7 +390,7 @@ int DRMFrameGrabber::grabFrame(Image<ColorRgb> &image)
 		}
 		else
 		{
-			Debug(_log, "Currently unsupported format: %c%c%c%c", framebuffer->pixel_format & 0xff, (framebuffer->pixel_format >> 8) & 0xff, (framebuffer->pixel_format >> 16) & 0xff, (framebuffer->pixel_format >> 24) & 0xff);
+			Debug(_log, "Currently unsupported format: %s", QSTRING_CSTR(getDrmFormatSummary(framebuffer->pixel_format)));
 		}
 	}
 
@@ -449,7 +460,7 @@ QSize DRMFrameGrabber::getScreenSize(const QString &device) const
 	}
 
 	// 2. Get device resources
-	drmModeResPtr resources = drmModeGetResources(drmfd);
+	const drmModeResPtr resources = drmModeGetResources(drmfd);
 	if (!resources)
 	{
 		::close(drmfd);
@@ -460,7 +471,7 @@ QSize DRMFrameGrabber::getScreenSize(const QString &device) const
 	for (int i = 0; i < resources->count_connectors; ++i)
 	{
 		drmModeConnectorPtr connector = drmModeGetConnector(drmfd, resources->connectors[i]);
-		if (!connector)
+		if (connector == nullptr)
 		{
 			continue;
 		}
@@ -473,7 +484,7 @@ QSize DRMFrameGrabber::getScreenSize(const QString &device) const
 			if (connector->encoder_id)
 			{
 				drmModeEncoderPtr encoder = drmModeGetEncoder(drmfd, connector->encoder_id);
-				if (encoder && encoder->crtc_id)
+				if (encoder != nullptr && encoder->crtc_id)
 				{
 					drmModeCrtcPtr crtc = drmModeGetCrtc(drmfd, encoder->crtc_id);
 					if (crtc)
@@ -483,7 +494,7 @@ QSize DRMFrameGrabber::getScreenSize(const QString &device) const
 						drmModeFreeCrtc(crtc);
 					}
 				}
-				if (encoder)
+				if (encoder != nullptr)
 				{
 					drmModeFreeEncoder(encoder);
 				}
@@ -526,7 +537,7 @@ bool DRMFrameGrabber::getScreenInfo()
 	}
 
 	// enumerate resources
-	drmModeResPtr resources = drmModeGetResources(_deviceFd);
+	const drmModeResPtr resources = drmModeGetResources(_deviceFd);
 	if (!resources)
 	{
 		this->setInError(QString("Unable to get DRM resources on %1").arg(getDeviceName()));
@@ -565,15 +576,19 @@ bool DRMFrameGrabber::getScreenInfo()
 		for (unsigned int i = 0; i < planeResources->count_planes; ++i)
 		{
 			auto properties = drmModeObjectGetProperties(_deviceFd, planeResources->planes[i], DRM_MODE_OBJECT_PLANE);
-			if (!properties)
+			if (properties == nullptr)
+			{
 				continue;
+			}
 
 			bool foundPrimary = false;
 			for (unsigned int j = 0; j < properties->count_props; ++j)
 			{
 				auto prop = drmModeGetProperty(_deviceFd, properties->props[j]);
-				if (!prop)
+				if (prop == nullptr)
+				{
 					continue;
+				}
 
 				if (strcmp(prop->name, "type") == 0 && properties->prop_values[j] == DRM_PLANE_TYPE_PRIMARY)
 				{
@@ -701,10 +716,8 @@ QJsonArray DRMFrameGrabber::getInputDeviceDetails() const
 		DebugIf(verbose, _log, "DRM device [%s] found", QSTRING_CSTR(device));
 
 		QSize screenSize = getScreenSize(device);
-
-		// ToDo Check how to handle in the UI that the seleced device idx is not the same as the format array index
-		// For now not connected devices with be show with a 0x0 size
-		// if ( !screenSize.isEmpty() )
+		//Only add devices with a valid screen size, i.e. where a monitor is connected
+		if ( !screenSize.isEmpty() )
 		{
 			QJsonArray fps = {"1", "5", "10", "15", "20", "25", "30", "40", "50", "60"};
 

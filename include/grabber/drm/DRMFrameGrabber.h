@@ -1,5 +1,8 @@
 #pragma once
 
+#include <map>
+#include <memory> 
+
 // DRM
 #include <drm_fourcc.h>
 #include <xf86drmMode.h>
@@ -19,13 +22,13 @@ struct DrmProperty
 struct Connector
 {
 	drmModeConnectorPtr ptr;
-	std::map<std::string, DrmProperty, std::less<>> props;
+	std::map<std::string, DrmProperty, std::less<std::string>> props;
 };
 
 struct Encoder
 {
 	drmModeEncoderPtr ptr;
-	std::map<std::string, DrmProperty, std::less<>> props;
+	std::map<std::string, DrmProperty, std::less<std::string>> props;
 };
 
 ///

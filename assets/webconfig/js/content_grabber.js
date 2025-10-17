@@ -207,6 +207,8 @@ $(document).ready(function () {
       var deviceSelected = conf_editor_screen.getEditor("root.framegrabber.available_devices").getValue();
       var videoInputSelected = conf_editor_screen.getEditor("root.framegrabber.device_inputs").getValue();
 
+      console.log("Device Selected: " + deviceSelected + ", Video Input Selected: " + videoInputSelected);
+
       //Update hidden input element
       conf_editor_screen.getEditor("root.framegrabber.input").setValue(parseInt(videoInputSelected));
 
@@ -216,8 +218,10 @@ $(document).ready(function () {
       var enumDefaultVal = "";
 
       var deviceProperties = getPropertiesOfDevice("screen", deviceSelected);
+      console.log(deviceProperties);
 
-      var formats = deviceProperties.video_inputs[videoInputSelected].formats;
+      const videoInput = deviceProperties.video_inputs.find(input => input.inputIdx == videoInputSelected);
+      const formats = videoInput.formats;
       var formatIdx = 0;
 
       var resolutions = formats[formatIdx].resolutions;
@@ -262,7 +266,8 @@ $(document).ready(function () {
 
       var deviceProperties = getPropertiesOfDevice("screen", deviceSelected);
 
-      var formats = deviceProperties.video_inputs[videoInputSelected].formats;
+      const videoInput = deviceProperties.video_inputs.find(input => input.inputIdx == videoInputSelected);
+      const formats = videoInput.formats;
       var formatIdx = 0;
 
       //Update hidden resolution related elements
