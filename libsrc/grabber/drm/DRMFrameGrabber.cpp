@@ -211,11 +211,13 @@ int DRMFrameGrabber::grabFrame(Image<ColorRgb> &image)
 
 		const auto drmFormat = getDrmFormatString(framebuffer->pixel_format);
 
-		DebugIf(verbose, _log, "Framebuffer ID: %d - Width: %d - Height: %d  - DRM Format: %s - PixelFormat: %s", id // framebuffer ID
+		DebugIf(verbose, _log, "Framebuffer ID: %d - Width: %d - Height: %d  - DRM Format: %s - PixelFormat: %s, Modifier: %llu"
+				, id // framebuffer ID
 				, framebuffer->width // width
 				, framebuffer->height // height
 				, QSTRING_CSTR(getDrmFormatSummary(framebuffer->pixel_format))
-				, QSTRING_CSTR(pixelFormatToString(_pixelFormat)));
+				, QSTRING_CSTR(pixelFormatToString(_pixelFormat))
+				, modifier);
 
 		if (_pixelFormat != PixelFormat::NO_CHANGE && modifier == DRM_FORMAT_MOD_LINEAR)
 		{
@@ -390,7 +392,7 @@ int DRMFrameGrabber::grabFrame(Image<ColorRgb> &image)
 		}
 		else
 		{
-			Debug(_log, "Currently unsupported format: %s", QSTRING_CSTR(getDrmFormatSummary(framebuffer->pixel_format)));
+			Debug(_log, "Currently unsupported format: %s or modifier: %llu", QSTRING_CSTR(getDrmFormatSummary(framebuffer->pixel_format)), framebuffer->modifier);
 		}
 	}
 
@@ -682,18 +684,10 @@ bool DRMFrameGrabber::getScreenInfo()
 			continue;
 		}
 
-		// Check if the framebuffer size matches the expected size
-		// If width and height are not set (0), accept any size
-		// This allows to capture the full screen without knowing the resolution in advance
-		if (fb->width != _width || fb->height != _height)
-		{
-			Debug(_log, "Skipping framebuffer %d with unsupported size %dx%d (expected %dx%d)", fb->fb_id, fb->width, fb->height, _width, _height);
-			drmModeFreeFB2(fb);
-			continue;
-		}
-
 		_framebuffers.insert(std::pair<uint32_t, drmModeFB2Ptr>(plane->fb_id, fb));
 	}
+
+	qDebug() << "DRMFrameGrabber::getScreenInfo() - Framebuffer count: " << _framebuffers.size();
 
 	return !_framebuffers.empty();
 }
