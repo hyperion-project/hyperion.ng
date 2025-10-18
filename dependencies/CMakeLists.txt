@@ -426,7 +426,7 @@ if(ENABLE_PROTOBUF_SERVER)
 	if(NOT USE_SYSTEM_PROTO_LIBS)
 		
 		# Enable ProtoBuf verbose mode
-		set(protobuf_VERBOSE ON CACHE BOOL "Build protobuf verbose")
+		set(protobuf_VERBOSE OFF CACHE BOOL "Build protobuf verbose")
 		
 		# Build Protobuf as static library
 		set(protobuf_BUILD_SHARED_LIBS OFF CACHE BOOL "Build protobuf shared")
@@ -439,6 +439,9 @@ if(ENABLE_PROTOBUF_SERVER)
 
 		# Enable build of libupb
 		set(protobuf_BUILD_LIBUPB ON CACHE BOOL "Build libupb")
+		
+		# Force all dependencies to be downloaded from GitHub
+		set(protobuf_FORCE_FETCH_DEPENDENCIES ON CACHE INTERNAL "Force all dependencies to be downloaded from GitHub")
 
 		# Build abeil (3rd party sub-module) with C++ version requirements
 		set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "Build abseil-cpp with C++ version requirements propagated")
