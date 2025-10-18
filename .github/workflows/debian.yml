@@ -53,6 +53,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           submodules: recursive
+          fetch-depth: 0  # Ensures all tags are fetched
 
       - name: 🔧 Prepare
         shell: bash
@@ -85,9 +86,11 @@ jobs:
             -e LANG="C.UTF-8" \
             -e LC_ALL="C.UTF-8" \
             ghcr.io/hyperion-project/debian:${{ env.DOCKER_TAG }} \
-            /bin/bash -c "cmake --preset linux-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }} -DPLATFORM=${{ matrix.os.platform }} ${{ env.CPACK_SYSTEM_PROCESSOR }} &&
-            cmake --build --preset linux-${{ env.BUILD_TYPE }} --target package &&
-            cp /source/build/Hyperion-* /deploy/ 2>/dev/null"
+            /bin/bash -c "
+              git config --global --add safe.directory /source &&            
+              cmake --preset linux-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }} -DPLATFORM=${{ matrix.os.platform }} ${{ env.CPACK_SYSTEM_PROCESSOR }} &&
+              cmake --build --preset linux-${{ env.BUILD_TYPE }} --target package &&
+              cp /source/build/Hyperion-* /deploy/ 2>/dev/null"
         env:
           DOCKER_TAG: ${{ inputs.codename == 'bullseye' && matrix.os.architecture[0] == 'armv6' && inputs.codename || format('{0}-qt6', inputs.codename) }}
           BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}

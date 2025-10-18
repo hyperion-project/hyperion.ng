@@ -42,7 +42,8 @@ jobs:
       - name: ⬇ Checkout
         uses: actions/checkout@v5
         with:
-          submodules: recursive
+          submodules: recursive	
+          fetch-depth: 0  # Ensures all tags are fetched
 
       - name: 🔧 Prepare
         shell: bash
