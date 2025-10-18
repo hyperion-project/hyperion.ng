@@ -471,7 +471,7 @@ if(ENABLE_PROTOBUF_SERVER)
 		FetchContent_Declare(
 			protobuf
 			SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/protobuf"
-			PATCH_COMMAND git apply "${CMAKE_CURRENT_SOURCE_DIR}/protobuf/atomic.diff"
+			PATCH_COMMAND git apply "${CMAKE_CURRENT_SOURCE_DIR}/patch/protobuf/atomic.diff"
 		)
 		FetchContent_MakeAvailable(protobuf)
 
@@ -486,7 +486,7 @@ if(ENABLE_PROTOBUF_SERVER)
 					PREFIX				${CMAKE_BINARY_DIR}/dependencies/external/protoc-host
 					BUILD_ALWAYS		OFF
 					DOWNLOAD_COMMAND	""
-					PATCH_COMMAND		git apply "${CMAKE_CURRENT_SOURCE_DIR}/protobuf/atomic.diff"
+					PATCH_COMMAND		git apply "${CMAKE_CURRENT_SOURCE_DIR}/patch/protobuf/atomic.diff"
 					INSTALL_COMMAND     ""
 					SOURCE_DIR			${CMAKE_CURRENT_SOURCE_DIR}/external/protobuf
 					CMAKE_ARGS          -Dprotobuf_BUILD_LIBPROTOC:BOOL=OFF
