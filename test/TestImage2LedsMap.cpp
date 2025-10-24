@@ -11,7 +11,7 @@
 int main()
 {
 	Logger* log = Logger::getInstance("TestImageLedsMap");
-	Logger::setLogLevel(Logger::DEBUG);
+	Logger::setLogLevel(Logger::LOG_DEBUG);
 
 	const QString schemaFile = ":/hyperion-schema";
 	const QString configFile = ":/hyperion_default.config";
