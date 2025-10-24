@@ -4,7 +4,7 @@
 #include <hyperion/Hyperion.h>
 #include <db/InstanceTable.h>
 #include <db/SettingsTable.h>
-#include <utils/TrackedMemory.h>
+#include <utils/MemoryTracker.h>
 
 // qt
 #include <QThread>

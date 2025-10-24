@@ -193,7 +193,7 @@ protected:
 	QString _grabberName;
 
 	/// The Logger instance
-	Logger * _log;
+	QSharedPointer<Logger> _log;
 
 	/// The timer for generating events with the specified update rate
 	QScopedPointer<QTimer> _timer;

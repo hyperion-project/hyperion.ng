@@ -129,7 +129,7 @@ void MdnsBrowser::onHostNameResolved(const QHostAddress& address)
 	}
 }
 
-void MdnsBrowser::resolveFirstAddress(Logger* log, const QString& hostname, std::chrono::milliseconds timeout)
+void MdnsBrowser::resolveFirstAddress(QSharedPointer<Logger> log, const QString& hostname, std::chrono::milliseconds timeout)
 {
 	qRegisterMetaType<QMdnsEngine::Message>("Message");
 

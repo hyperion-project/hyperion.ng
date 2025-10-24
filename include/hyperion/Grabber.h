@@ -145,7 +145,7 @@ protected:
 	QString _grabberName;
 
 	/// logger instance
-	Logger *_log;
+	QSharedPointer<Logger> _log;
 
 	ImageResampler _imageResampler;
 

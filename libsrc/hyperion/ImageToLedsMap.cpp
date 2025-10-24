@@ -3,7 +3,7 @@
 using namespace hyperion;
 
 ImageToLedsMap::ImageToLedsMap(
-		Logger* log,
+		QSharedPointer<Logger> log,
 		int width,
 		int height,
 		int horizontalBorder,

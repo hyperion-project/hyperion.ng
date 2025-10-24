@@ -66,7 +66,7 @@ private:
 private:
 	QScopedPointer<QTcpServer> _server;
 	NetOrigin* _netOrigin;
-	Logger* _log;
+	QSharedPointer<Logger> _log;
 	int _timeout;
 	quint16 _port;
 	const QJsonDocument _config;

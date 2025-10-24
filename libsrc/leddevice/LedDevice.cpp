@@ -594,7 +594,7 @@ QJsonObject LedDevice::getProperties(const QJsonObject& params)
 	return properties;
 }
 
-void LedDevice::setLogger(Logger* log)
+void LedDevice::setLogger(QSharedPointer<Logger> log)
 {
 	_log = log;
 }

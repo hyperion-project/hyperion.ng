@@ -1,12 +1,14 @@
 #ifndef SSDPDISCOVER_H
 #define SSDPDISCOVER_H
 
+#include <chrono>
+
 #include <QHostAddress>
 #include <QMultiMap>
 #include <QUrl>
 #include <QRegularExpression>
 
-#include <chrono>
+#include <utils/Logger.h>
 
 class Logger;
 class QUdpSocket;
@@ -188,7 +190,8 @@ private:
 
 private:
 
-	Logger* _log;
+	QSharedPointer<Logger> _log;
+
 	QUdpSocket* _udpSocket;
 	QHostAddress _ssdpAddr;
 	quint16 _ssdpPort;

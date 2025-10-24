@@ -79,7 +79,7 @@ const char SETTINGS_UI_SCHEMA_FILE[] = ":/schema-settings-ui.json";
 const bool verbose = false;
 }
 
-JsonAPI::JsonAPI(QString peerAddress, Logger *log, bool localConnection, QObject *parent, bool noListener)
+JsonAPI::JsonAPI(QString peerAddress, QSharedPointer<Logger> log, bool localConnection, QObject *parent, bool noListener)
 	: API(log, localConnection, parent)
 	,_noListener(noListener)
 	,_peerAddress (std::move(peerAddress))

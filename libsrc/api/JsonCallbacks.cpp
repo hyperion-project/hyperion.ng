@@ -19,7 +19,7 @@
 
 using namespace hyperion;
 
-JsonCallbacks::JsonCallbacks(Logger *log, const QString& peerAddress, QObject* parent)
+JsonCallbacks::JsonCallbacks(QSharedPointer<Logger> log, const QString& peerAddress, QObject* parent)
 	: QObject(parent)
 	, _log (log)
 	, _hyperionWeak(nullptr)

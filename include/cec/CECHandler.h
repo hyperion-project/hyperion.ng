@@ -90,5 +90,5 @@ private:
 
 	QMap<QString,Event> _cecEventActionMap;
 
-	Logger * _logger {};
+	QSharedPointer<Logger> _logger;
 };

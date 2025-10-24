@@ -265,7 +265,7 @@ private:
 	hyperion::Components getComponentOfPriority(int priority) const;
 
 	/// Logger instance
-	Logger* _log;
+	QSharedPointer<Logger> _log;
 
 	/// The current priority (lowest value in _activeInputs)
 	int _currentPriority;

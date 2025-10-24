@@ -16,7 +16,7 @@ class NetOrigin : public QObject
 	Q_OBJECT
 private:
 	friend class HyperionDaemon;
-	NetOrigin(QObject* parent = nullptr, Logger* log = Logger::getInstance("NETWORK"));
+	NetOrigin(QObject* parent = nullptr, QSharedPointer<Logger> log = Logger::getInstance("NETWORK"));
 
 public:
 	///
@@ -29,5 +29,5 @@ public:
 	static NetOrigin *instance;
 
 private:
-	Logger* _log;
+	QSharedPointer<Logger> _log;
 };

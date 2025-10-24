@@ -20,7 +20,7 @@
 #include <effectengine/EffectFileHandler.h>
 #endif
 
-QJsonObject JsonInfo::getInfo(const QSharedPointer<Hyperion>& hyperionInstance, Logger* log)
+QJsonObject JsonInfo::getInfo(const QSharedPointer<Hyperion>& hyperionInstance, QSharedPointer<Logger> log)
 {
 	QJsonObject info {};
 
@@ -63,7 +63,7 @@ QJsonObject JsonInfo::getInfo(const QSharedPointer<Hyperion>& hyperionInstance, 
 	return info;
 }
 
-QJsonArray JsonInfo::getAdjustmentInfo(const QSharedPointer<Hyperion>& hyperionInstance, Logger* log)
+QJsonArray JsonInfo::getAdjustmentInfo(const QSharedPointer<Hyperion>& hyperionInstance, QSharedPointer<Logger> log)
 {
 	if (hyperionInstance.isNull())
 	{

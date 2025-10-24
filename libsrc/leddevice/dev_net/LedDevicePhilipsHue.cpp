@@ -1534,7 +1534,7 @@ const std::set<QString> PhilipsHueLight::GAMUT_B_MODEL_IDS =
 const std::set<QString> PhilipsHueLight::GAMUT_C_MODEL_IDS =
 	{"LCA001", "LCA002", "LCA003", "LCG002", "LCP001", "LCP002", "LCT010", "LCT011", "LCT012", "LCT014", "LCT015", "LCT016", "LCT024", "LCX001", "LCX002", "LLC020", "LST002"};
 
-PhilipsHueLight::PhilipsHueLight(Logger *log, bool useApiV2, const QString &id, const QJsonObject &lightAttributes, int onBlackTimeToPowerOff,
+PhilipsHueLight::PhilipsHueLight(QSharedPointer<Logger> log, bool useApiV2, const QString &id, const QJsonObject &lightAttributes, int onBlackTimeToPowerOff,
 								 int onBlackTimeToPowerOn)
 	: _log(log), _isUsingApiV2(useApiV2), _id(id), _on(false), _transitionTime(0), _color({0.0, 0.0, 0.0}), _hasColor(false), _colorBlack({0.0, 0.0, 0.0}), _lastSendColorTime(0), _lastBlackTime(-1), _lastWhiteTime(-1), _blackScreenTriggered(false), _onBlackTimeToPowerOff(onBlackTimeToPowerOff), _onBlackTimeToPowerOn(onBlackTimeToPowerOn)
 {

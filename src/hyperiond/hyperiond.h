@@ -252,7 +252,7 @@ private:
 		}
 	}
 
-	Logger* _log;
+	QSharedPointer<Logger> _log;
 
 	/// Core services
 	QScopedPointer<HyperionIManager, QScopedPointerDeleteLater> _instanceManager;

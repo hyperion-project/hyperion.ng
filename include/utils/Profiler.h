@@ -42,7 +42,7 @@ public:
 private:
 	static void initLogger();
 
-	static Logger*  _logger;
+	QSharedPointer<Logger> _logger;
 	const char*     _file;
 	const char*     _func;
 	unsigned int    _line;
