@@ -12,6 +12,12 @@
 #include <utils/ColorRgb.h>
 #include <utils/Logger.h>
 #include <hyperion/Grabber.h>
+#include <QLoggingCategory>
+
+// Utility includes
+#include <utils/Logger.h>
+
+Q_DECLARE_LOGGING_CATEGORY(grabber_drm)
 
 struct DrmProperty
 {
@@ -22,13 +28,13 @@ struct DrmProperty
 struct Connector
 {
 	drmModeConnectorPtr ptr;
-	std::map<std::string, DrmProperty, std::less<std::string>> props;
+	std::map<std::string, DrmProperty, std::less<>> props;
 };
 
 struct Encoder
 {
 	drmModeEncoderPtr ptr;
-	std::map<std::string, DrmProperty, std::less<std::string>> props;
+	std::map<std::string, DrmProperty, std::less<>> props;
 };
 
 ///

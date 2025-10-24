@@ -112,6 +112,10 @@ QCoreApplication* createApplication(int& argc, char* argv[])
 
 int main(int argc, char** argv)
 {
+	//Turn off Qt debug logging per default - to be removed when qtlogging.ini is defined
+	QLoggingCategory::setFilterRules("*.debug = false\n");
+	qSetMessagePattern("%{time yyyy-MM-ddTHH:mm:ss.zzz} |__|                   : <TRACE> %{category}%{if-debug} %{function}()[%{line}] TID:%{threadid} %{threadname}%{endif} %{message}");
+
 	ErrorManager errorManager;
 	DefaultSignalHandler::install();
 
