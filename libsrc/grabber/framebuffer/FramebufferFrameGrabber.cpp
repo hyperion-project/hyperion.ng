@@ -76,10 +76,9 @@ int FramebufferFrameGrabber::grabFrame(Image<ColorRgb> & image)
 	}
 
 	/* map the device to memory */
-	auto * fbp = static_cast<uint8_t*>(mmap(nullptr, _fixInfo.smem_len, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, _deviceFd, 0));
+	auto * fbp = static_cast<uint8_t*>(mmap(nullptr, _fixInfo.smem_len, PROT_READ, MAP_SHARED, _deviceFd, 0));
 	if (fbp == MAP_FAILED)
 	{
-
 		QString errorReason = QString ("Error mapping %1, [%2] %3").arg(getDeviceName()).arg(errno).arg(std::strerror(errno));
 		this->setInError ( errorReason );
 		closeDevice();
