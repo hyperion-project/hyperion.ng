@@ -15,7 +15,7 @@
 #include <QSize>
 #include <QMap>
 
-Q_LOGGING_CATEGORY(grabber_drm, "grabber.drm")
+Q_LOGGING_CATEGORY(grabber_drm, "grabber.screen.drm")
 
 
 // Add missing AMD format modifier definitions for downward compatibility
