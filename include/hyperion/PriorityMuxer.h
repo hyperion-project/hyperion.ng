@@ -13,6 +13,7 @@
 #include <utils/ColorRgb.h>
 #include <utils/Image.h>
 #include <utils/Components.h>
+#include <utils/Logger.h>
 
 // global defines
 constexpr auto SMOOTHING_MODE_DEFAULT = 0;
