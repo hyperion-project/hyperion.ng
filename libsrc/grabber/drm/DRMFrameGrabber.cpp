@@ -17,6 +17,16 @@
 
 Q_LOGGING_CATEGORY(grabber_drm, "grabber.drm")
 
+
+// Add missing AMD format modifier definitions for downward compatibility
+#ifndef AMD_FMT_MOD_TILE_VER_GFX11
+#define AMD_FMT_MOD_TILE_VER_GFX11 4
+#endif
+#ifndef AMD_FMT_MOD_TILE_VER_GFX12
+#define AMD_FMT_MOD_TILE_VER_GFX12 5
+#endif
+
+
 #define DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
 #define ALIGN(v, a) (((v) + (a) - 1) & ~((a) - 1))
 
@@ -57,7 +67,7 @@ static QString getDrmModifierName(uint64_t modifier)
 		case I915_FORMAT_MOD_Yf_TILED_CCS:
 			return "I915_FORMAT_MOD_Yf_TILED_CCS";
 		default:
-			return "DRM_FORMAT_MOD_INTEL_UNKNOWN";
+			return QString("DRM_FORMAT_MOD_INTEL_UNKNOWN [0x%1]").arg(mod, 14, 16, QChar('0'));
 		}
 	case DRM_FORMAT_MOD_VENDOR_AMD:
 		if (mod & AMD_FMT_MOD_TILE_VER_GFX9)
@@ -66,15 +76,17 @@ static QString getDrmModifierName(uint64_t modifier)
 			return "AMD_FMT_MOD_TILE_VER_GFX10";
 		if (mod & AMD_FMT_MOD_TILE_VER_GFX11)
 			return "AMD_FMT_MOD_TILE_VER_GFX11";
+		if (mod & AMD_FMT_MOD_TILE_VER_GFX12)
+			return "AMD_FMT_MOD_TILE_VER_GFX12";
 		if (mod & AMD_FMT_MOD_DCC_BLOCK_128B)
 			return "AMD_FMT_MOD_DCC_BLOCK_128B";
 		if (mod & AMD_FMT_MOD_DCC_BLOCK_256B)
 			return "AMD_FMT_MOD_DCC_BLOCK_256B";
-		return "DRM_FORMAT_MOD_AMD_UNKNOWN";
+		return QString("DRM_FORMAT_MOD_AMD_UNKNOWN [0x%1]").arg(mod, 14, 16, QChar('0'));
 	case DRM_FORMAT_MOD_VENDOR_NVIDIA:
 		if (mod & 0x10)
 			return "DRM_FORMAT_MOD_NVIDIA_BLOCK_LINEAR_2D";
-		return "DRM_FORMAT_MOD_NVIDIA_UNKNOWN";
+		return QString("DRM_FORMAT_MOD_NVIDIA_UNKNOWN [0x%1]").arg(mod , 14, 16, QChar('0'));
 	case DRM_FORMAT_MOD_VENDOR_BROADCOM:
 		switch (fourcc_mod_broadcom_mod(modifier))
 		{
@@ -89,12 +101,12 @@ static QString getDrmModifierName(uint64_t modifier)
 		case DRM_FORMAT_MOD_BROADCOM_VC4_T_TILED:
 			return "DRM_FORMAT_MOD_BROADCOM_VC4_T_TILED";
 		default:
-			return "DRM_FORMAT_MOD_BROADCOM_UNKNOWN";
+			return QString("DRM_FORMAT_MOD_BROADCOM_UNKNOWN [0x%1]").arg(mod, 14, 16, QChar('0'));
 		}
 	case DRM_FORMAT_MOD_VENDOR_ARM:
 		if ((modifier & DRM_FORMAT_MOD_ARM_AFBC(0)) == DRM_FORMAT_MOD_ARM_AFBC(0))
 			return "DRM_FORMAT_MOD_ARM_AFBC";
-		return "DRM_FORMAT_MOD_ARM_UNKNOWN";
+		return QString("DRM_FORMAT_MOD_ARM_UNKNOWN [0x%1]").arg(mod, 14, 16, QChar('0'));
 		
 	default:
 		break;
