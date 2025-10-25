@@ -47,13 +47,9 @@ class Logger : public QObject
 {
     Q_OBJECT
 
-    // Grant friendship to the memory tracking functions
-    friend void customDelete<Logger>(Logger* ptr);
-    template <typename T, typename... Args>
-    friend QSharedPointer<T> makeTrackedShared(Args&&... args);
+    // Grant friendship to the memory tracking function
     template<typename T, typename Creator, typename... Args>
-    friend QSharedPointer<T> makeTrackedShared(Creator&& creator, Args&&... args);
-
+    friend QSharedPointer<T> makeTrackedShared(Creator creator, Args&&... args);
 public:
     enum class LogLevel
     {

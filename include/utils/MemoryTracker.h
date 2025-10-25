@@ -14,50 +14,30 @@
 #include <utils/global_defines.h>
 #include <utils/Logger.h>
 
-Q_DECLARE_LOGGING_CATEGORY(memory_objects)
-Q_DECLARE_LOGGING_CATEGORY(memory_non_objects)
+Q_DECLARE_LOGGING_CATEGORY(memory_objects_create)
+Q_DECLARE_LOGGING_CATEGORY(memory_objects_track)
+Q_DECLARE_LOGGING_CATEGORY(memory_objects_destroy)
+Q_DECLARE_LOGGING_CATEGORY(memory_non_objects_create)
+Q_DECLARE_LOGGING_CATEGORY(memory_non_objects_destroy)
 
 #define MAKE_TRACKED_SHARED(T, ...) makeTrackedShared<T>(this, __VA_ARGS__)
 #define MAKE_TRACKED_SHARED_STATIC(T, ...) makeTrackedShared<T>(nullptr, __VA_ARGS__)
+#define TRACK_SCOPE qCDebug(memory_objects_track).noquote() << QString("%1()...").arg( __func__)
+#define TRACK_SCOPE_SUBCOMPONENT qCDebug(memory_objects_track).noquote() << QString("|%1| %2()...").arg(_log->getSubName(), __func__)
 
-// Custom Delete function templates
 template<typename T>
-void customDelete(T* ptr)
+void objectDeleter(T* ptr, const QString& subComponent, const QString& typeName)
 {
-	if (!ptr)
-	{
-		return;
-	}
+    if (!ptr)
+    {
+        return;
+    }
 
-	QString subComponent = "__";
-	QString typeName;	
-	//Only resolve subComponent and typeName if debug is enabled
-	if (memory_objects().isDebugEnabled())
-	{
-		if constexpr (std::is_base_of_v<QObject, T>)
-		{
-			QVariant prop = ptr->property("instance");
-			if (prop.isValid() && prop.canConvert<QString>())
-			{
-				subComponent = prop.toString();
-			}
-			typeName = ptr->metaObject()->className();
-		}
-		else
-		{
-			typeName = typeid(T).name();
-		}
-
-		// qCDebug(memory_objects).noquote() << QString("Deleting object of type '%1' at %2")
-		// 	.arg(typeName)
-		// 	.arg(QString("0x%1").arg(reinterpret_cast<quintptr>(ptr), 16, 16, QChar('0'))));
-	}
-
-	if constexpr (std::is_base_of_v<QObject, T>)
-	{
-		QThread const*  thread = ptr->thread();
-		if (thread && thread == QThread::currentThread()) {
-            qCDebug(memory_objects).noquote() << QString("|%1| QObject<%2> deleted immediately.").arg(subComponent,typeName);
+    if constexpr (std::is_base_of_v<QObject, T>)
+    {
+        QThread const* thread = ptr->thread();
+        if (thread && thread == QThread::currentThread()) {
+            qCDebug(memory_objects_destroy).noquote() << QString("|%1| QObject<%2> scheduled for deletion.").arg(subComponent, typeName);
             ptr->deleteLater();
         }
         else
@@ -65,22 +45,27 @@ void customDelete(T* ptr)
             if (thread && thread->isRunning())
             {
                 // Schedule deleteLater from the object's thread
-                qCDebug(memory_objects).noquote() << QString("|%1| QObject<%2>::deleteLater() scheduled via invokeMethod on thread '%3'").arg(subComponent,typeName).arg(thread->objectName());
+                qCDebug(memory_objects_destroy).noquote() << QString("|%1| QObject<%2>::deleteLater() scheduled via invokeMethod on thread '%3'").arg(subComponent, typeName).arg(thread->objectName());
                 QMetaObject::invokeMethod(ptr, "deleteLater", Qt::QueuedConnection);
             }
             else
             {
+				// The object's thread is not running, which is a potential issue.
+				// Log a critical error as this indicates a problem in the shutdown sequence.
                 // This should be an *extremely rare* fallback and indicates a bug in the thread shutdown sequence.
-                qCDebug(memory_objects).noquote() << QString("|%1| QObject<%2> object's owning thread is not running. Deleted immediately (thread not running)").arg(subComponent,typeName);
-                delete ptr;
+				qCritical().noquote() << QString("|%1| QObject<%2> could not be deleted. Owning thread is not running.").arg(subComponent, typeName);
+
+                //qCDebug(memory_objects).noquote() << QString("|%1| QObject<%2> object's owning thread is not running. Deleted immediately (thread not running)").arg(subComponent, typeName);
+				//direct delete will require friendship, to be added (to Logger)
+                //delete ptr;
             }
         }
-	}
-	else
-	{
-        qCDebug(memory_objects).noquote() << QString("|%1| Non-QObject<%2> deleted immediately.").arg(subComponent,typeName);
+    }
+    else
+    {
+        qCDebug(memory_objects_destroy).noquote() << QString("|%1| Non-QObject<%2> deleted immediately.").arg(subComponent, typeName);
         delete ptr;
-	}
+    }
 }
 
 // Factory function template to create tracked QSharedPointer
@@ -109,23 +94,27 @@ QSharedPointer<T> makeTrackedShared(Creator creator, Args&&... args)
     {
         if (creator != nullptr)
         {
-			creatorName = creator->metaObject()->className();
+            creatorName = creator->metaObject()->className();
 
-			QVariant prop = creator->property("instance");
-			if (prop.isValid() && prop.canConvert<QString>())
-			{
-				subComponent = prop.toString();
-			}
+            QVariant prop = creator->property("instance");
+            if (prop.isValid() && prop.canConvert<QString>())
+            {
+                subComponent = prop.toString();
+            }
         }
     }
 
-    qCDebug(creator != nullptr ? memory_objects : memory_non_objects).noquote() << QString("|%1| Creating object of type '%2' at %3 by '%4'")
+    qCDebug(creator != nullptr ? memory_objects_create : memory_non_objects_create).noquote() << QString("|%1| Creating object of type '%2' at %3 by '%4'")
         .arg(subComponent)
         .arg(typeName)
         .arg(QString("0x%1").arg(reinterpret_cast<quintptr>(rawPtr), 16, 16, QChar('0')))
         .arg(creatorName);
 
-    return QSharedPointer<T>(rawPtr, &customDelete<T>);
+    auto deleter = [subComponent, typeName](T* ptr) {
+        objectDeleter(ptr, subComponent, typeName);
+    };
+
+    return QSharedPointer<T>(rawPtr, deleter);
 }
 
 #endif // MEMORYTRACKER_H
