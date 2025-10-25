@@ -26,7 +26,7 @@ QMutex                 Logger::MapLock{ QMutex::Recursive };
 #endif
 
 QMap<QString, QWeakPointer<Logger>> Logger::LoggerMap{};
-QAtomicInteger<int>    Logger::GLOBAL_MIN_LOG_LEVEL{ static_cast<int>(Logger::LogLevel::Unset) };
+QAtomicInteger<int> Logger::GLOBAL_MIN_LOG_LEVEL{ static_cast<int>(Logger::LogLevel::Unset) };
 
 namespace
 {
@@ -69,7 +69,7 @@ QSharedPointer<Logger> Logger::getInstance(const QString& name, const QString& s
     }
 
     // Not found or expired, create a new one.
-    QSharedPointer<Logger> newLog = MAKE_TRACKED_SHARED(Logger, name, subName, minLevel);
+    QSharedPointer<Logger> newLog = MAKE_TRACKED_SHARED_STATIC(Logger, name, subName, minLevel);
 
     LoggerMap.insert(key, newLog);
     connect(newLog.get(), &Logger::newLogMessage, LoggerManager::getInstance().data(), &LoggerManager::handleNewLogMessage);
@@ -160,7 +160,6 @@ Logger::~Logger()
 void Logger::write(const Logger::T_LOG_MESSAGE& message)
 {
     QString location;
-    qDebug() << "Logger::write called for logger" << message.loggerName << "with level [" << static_cast<int>(message.level) << "] " << message.levelString ;
     if (message.level == Logger::LogLevel::Debug)
     {
         location = QString("%1:%2:%3() | ")

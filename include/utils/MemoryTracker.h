@@ -15,8 +15,10 @@
 #include <utils/Logger.h>
 
 Q_DECLARE_LOGGING_CATEGORY(memory_objects)
+Q_DECLARE_LOGGING_CATEGORY(memory_non_objects)
 
-#define MAKE_TRACKED_SHARED(T, ...) makeTrackedShared<T>(__VA_ARGS__)
+#define MAKE_TRACKED_SHARED(T, ...) makeTrackedShared<T>(this, __VA_ARGS__)
+#define MAKE_TRACKED_SHARED_STATIC(T, ...) makeTrackedShared<T>(nullptr, __VA_ARGS__)
 
 // Custom Delete function templates
 template<typename T>
@@ -82,35 +84,46 @@ void customDelete(T* ptr)
 }
 
 // Factory function template to create tracked QSharedPointer
-template<typename T, typename... Args>
-QSharedPointer<T> makeTrackedShared(Args&&... args)
+template<typename T, typename Creator, typename... Args>
+QSharedPointer<T> makeTrackedShared(Creator creator, Args&&... args)
 {
-	auto* rawPtr = new T(std::forward<Args>(args)...);
-	if (!rawPtr)
-	{
-		return QSharedPointer<T>();
-	}
+    auto* rawPtr = new T(std::forward<Args>(args)...);
+    if (!rawPtr)
+    {
+        return QSharedPointer<T>();
+    }
 
-	QString subComponent = "__";
-	QString typeName;
-	if constexpr (std::is_base_of_v<QObject, T>)
-	{
-		QVariant prop = rawPtr->property("instance");
-		if (prop.isValid() && prop.canConvert<QString>())
-		{
-			subComponent = prop.toString();
-		}
-		typeName = rawPtr->metaObject()->className();
-	}
-	else
-	{
-		typeName = typeid(T).name();
-	}
+    QString subComponent = "__";
+    QString typeName;
+    if constexpr (std::is_base_of_v<QObject, T>)
+    {
+        typeName = rawPtr->metaObject()->className();
+    }
+    else
+    {
+        typeName = typeid(T).name();
+    }
 
-    qCDebug(memory_objects).noquote() << QString("|%1| Creating object of type '%2' at %3")
+    QString creatorName = "non-QObject";
+    if constexpr (std::is_pointer_v<Creator> && std::is_base_of_v<QObject, std::remove_pointer_t<Creator>>)
+    {
+        if (creator != nullptr)
+        {
+			creatorName = creator->metaObject()->className();
+
+			QVariant prop = creator->property("instance");
+			if (prop.isValid() && prop.canConvert<QString>())
+			{
+				subComponent = prop.toString();
+			}
+        }
+    }
+
+    qCDebug(creator != nullptr ? memory_objects : memory_non_objects).noquote() << QString("|%1| Creating object of type '%2' at %3 by '%4'")
         .arg(subComponent)
         .arg(typeName)
-        .arg(QString("0x%1").arg(reinterpret_cast<quintptr>(rawPtr), 16, 16, QChar('0')));
+        .arg(QString("0x%1").arg(reinterpret_cast<quintptr>(rawPtr), 16, 16, QChar('0')))
+        .arg(creatorName);
 
     return QSharedPointer<T>(rawPtr, &customDelete<T>);
 }

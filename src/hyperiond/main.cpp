@@ -117,7 +117,7 @@ int main(int argc, char** argv)
 									 "memory.*.debug = false\n");
 
 	qSetMessagePattern(
-		"%{time yyyy-MM-ddTHH:mm:ss.zzz} |__|                   : <TRACE> %{category}"
+		"%{time yyyy-MM-ddTHH:mm:ss.zzz} |--|                   : <TRACE> %{category}"
 		"%{if-debug} %{function}()[%{line}] TID:%{threadid}"
 	#if (QT_VERSION >= QT_VERSION_CHECK(6, 10, 0))
 		" (%{threadname})"

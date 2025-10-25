@@ -51,6 +51,8 @@ class Logger : public QObject
     friend void customDelete<Logger>(Logger* ptr);
     template <typename T, typename... Args>
     friend QSharedPointer<T> makeTrackedShared(Args&&... args);
+    template<typename T, typename Creator, typename... Args>
+    friend QSharedPointer<T> makeTrackedShared(Creator&& creator, Args&&... args);
 
 public:
     enum class LogLevel
