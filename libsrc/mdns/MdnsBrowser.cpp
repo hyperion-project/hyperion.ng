@@ -30,12 +30,14 @@ MdnsBrowser::MdnsBrowser(QObject* parent)
 	, _server(nullptr)
 	, _cache(nullptr)
 {
+	TRACK_SCOPE;
 	qRegisterMetaType<QMdnsEngine::Message>("QMdnsEngine::Message");
 	qRegisterMetaType<QHostAddress>("QHostAddress");
 }
 
 MdnsBrowser::~MdnsBrowser()
 {
+	TRACK_SCOPE;
 }
 
 void MdnsBrowser::initMdns()

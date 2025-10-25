@@ -26,6 +26,7 @@ class JsonCallbacks : public QObject
 
 public:
 	JsonCallbacks(QSharedPointer<Logger> log, const QString& peerAddress, QObject* parent);
+	~JsonCallbacks() override;
 
 	///
 	/// @brief Subscribe to future data updates given by cmd

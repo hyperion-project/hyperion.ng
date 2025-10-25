@@ -25,7 +25,7 @@ class Grabber : public QObject
 
 public:
 	explicit Grabber(const QString &grabberName = "", int cropLeft = 0, int cropRight = 0, int cropTop = 0, int cropBottom = 0);
-
+	virtual ~Grabber();
 	///
 	/// Set the video mode (2D/3D)
 	/// @param[in] mode The new video mode

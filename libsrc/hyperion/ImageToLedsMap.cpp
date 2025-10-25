@@ -20,6 +20,7 @@ ImageToLedsMap::ImageToLedsMap(
 	, _clusterCount()
 	, _colorsMap()
 {
+	TRACK_SCOPE;
 	_nextPixelCount = reducedPixelSetFactor + 1;
 	setAccuracyLevel(accuracyLevel);
 
@@ -114,10 +115,10 @@ ImageToLedsMap::ImageToLedsMap(
 
 }
 
-	ImageToLedsMap::~ImageToLedsMap()
-	{
-		qDebug() << "ImageToLedsMap::~ImageToLedsMap()...";
-	}
+ImageToLedsMap::~ImageToLedsMap()
+{
+	TRACK_SCOPE;
+}
 
 int ImageToLedsMap::width() const
 {

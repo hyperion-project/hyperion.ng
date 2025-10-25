@@ -46,6 +46,9 @@ class SSDPDiscover : public QObject
 public:
 
 	SSDPDiscover(QObject* parent = nullptr);
+	~SSDPDiscover() override;
+
+	///
 
 	///
 	/// @brief Search for specified service, results will be returned by signal newService(). Calling this method again will reset all found urns and search again

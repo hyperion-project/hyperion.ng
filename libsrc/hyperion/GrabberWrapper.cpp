@@ -32,6 +32,7 @@ GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber * ggrabber, i
 	  , _ggrabber(ggrabber)
 	  , _isAvailable(true)
 {
+	TRACK_SCOPE;
 	GrabberWrapper::instance = this;
 
 	_timer.reset(new QTimer(this));
@@ -64,6 +65,7 @@ GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber * ggrabber, i
 
 GrabberWrapper::~GrabberWrapper()
 {
+	TRACK_SCOPE;
 	_timer->stop();
 	GrabberWrapper::instance = nullptr;
 }

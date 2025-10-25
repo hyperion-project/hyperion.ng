@@ -32,7 +32,8 @@ class CECHandler : public QObject
 {
 	Q_OBJECT
 public:
-	CECHandler(const QJsonDocument& config, QObject * parent = nullptr);
+	explicit CECHandler(const QJsonDocument& config, QObject * parent = nullptr);
+	~CECHandler() override;
 
 	QString scan() const;
 

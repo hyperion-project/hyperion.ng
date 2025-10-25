@@ -28,9 +28,15 @@ JsonCallbacks::JsonCallbacks(QSharedPointer<Logger> log, const QString& peerAddr
 	, _prioMuxerWeak(nullptr)
 	, _islogMsgStreamingActive(false)
 {
+	TRACK_SCOPE;
 	qRegisterMetaType<PriorityMuxer::InputsMap>("InputsMap");
 
 	connect(HyperionIManager::getInstance(), &HyperionIManager::instanceStateChanged, this, &JsonCallbacks::handleInstanceStateChange);
+}
+
+JsonCallbacks::~JsonCallbacks()
+{
+	TRACK_SCOPE;
 }
 
 void JsonCallbacks::handleInstanceStateChange(InstanceState state, quint8 instanceID, const QString& /*name */)

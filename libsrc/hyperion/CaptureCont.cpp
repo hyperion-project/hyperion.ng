@@ -33,11 +33,12 @@ CaptureCont::CaptureCont(const QSharedPointer<Hyperion>& hyperionInstance)
 	, _audioCapturePriority(0)
 	, _audioCaptureInactiveTimer(nullptr)
 {
+	TRACK_SCOPE;
 }
 
 CaptureCont::~CaptureCont()
 {
-	qDebug() << "CaptureCont::~CaptureCont()...";
+	TRACK_SCOPE;
 }
 
 void CaptureCont::start()

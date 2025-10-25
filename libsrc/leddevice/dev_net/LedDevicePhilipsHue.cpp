@@ -352,6 +352,8 @@ double CiColor::getDistanceBetweenTwoPoints(CiColor p1, XYColor p2)
 LedDevicePhilipsHueBridge::LedDevicePhilipsHueBridge(const QJsonObject &deviceConfig)
 	: ProviderUdpSSL(deviceConfig), _restApi(nullptr), _apiPort(API_DEFAULT_PORT), _api_major(0), _api_minor(0), _api_patch(0), _isPhilipsHueBridge(false), _isDiyHue(false), _isHueEntertainmentReady(false), _isAPIv2Ready(false), _useEntertainmentAPI(false), _useApiV2(true)
 {
+	TRACK_SCOPE_SUBCOMPONENT;
+	
 #ifdef ENABLE_MDNS
 	QMetaObject::invokeMethod(MdnsBrowser::getInstance().data(), "browseForServiceType",
 							  Qt::QueuedConnection, Q_ARG(QByteArray, MdnsServiceRegister::getServiceType(_activeDeviceType)));
@@ -360,7 +362,7 @@ LedDevicePhilipsHueBridge::LedDevicePhilipsHueBridge(const QJsonObject &deviceCo
 
 LedDevicePhilipsHueBridge::~LedDevicePhilipsHueBridge()
 {
-	qDebug() << "LedDevicePhilipsHueBridge::~LedDevicePhilipsHueBridge()";
+	TRACK_SCOPE_SUBCOMPONENT;
 }
 
 bool LedDevicePhilipsHueBridge::init(const QJsonObject &deviceConfig)

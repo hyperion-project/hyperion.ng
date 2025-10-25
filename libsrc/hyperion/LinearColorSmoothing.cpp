@@ -1,9 +1,4 @@
-// Qt includes
-#include <QDateTime>
-#include <QTimer>
-
 #include <hyperion/LinearColorSmoothing.h>
-#include <hyperion/Hyperion.h>
 
 #include <cmath>
 #include <chrono>
@@ -16,6 +11,11 @@
 #else
 #define ALWAYS_INLINE inline
 #endif
+
+#include <QDateTime>
+#include <QTimer>
+
+#include <hyperion/Hyperion.h>
 
 /// Clamps the rounded values to the byte-interval of [0, 255].
 ALWAYS_INLINE long clampRounded(const floatT x) {
@@ -83,6 +83,7 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonObject &config, const QSha
 		_prioMuxerWeak = hyperion->getMuxerInstance();
 	}
 	_log= Logger::getInstance("SMOOTHING", subComponent);
+	TRACK_SCOPE_SUBCOMPONENT;
 
 	// init cfg (default)
 	updateConfig(SmoothingConfigID::SYSTEM, DEFAULT_SETTLINGTIME, DEFAULT_UPDATEFREQUENCY, DEFAULT_OUTPUTDEPLAY);
@@ -92,13 +93,12 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonObject &config, const QSha
 }
 LinearColorSmoothing::~LinearColorSmoothing()
 {
-	qDebug() << "LinearColorSmoothing::~LinearColorSmoothing()...";
+	TRACK_SCOPE_SUBCOMPONENT;
 }
 
 void LinearColorSmoothing::start()
 {
 	Info(_log, "LinearColorSmoothing starting...");
-
 
 	_timer.reset(new QTimer(this));
 	_timer->setTimerType(Qt::PreciseTimer);

@@ -89,12 +89,13 @@ Hyperion::Hyperion(quint8 instance, QObject* parent)
 	this->setProperty("instance", QVariant::fromValue(subComponent));
 
 	_log = Logger::getInstance("HYPERION", subComponent);
+	TRACK_SCOPE_SUBCOMPONENT;
 }
 
 Hyperion::~Hyperion()
 {
 	Debug(_log, "Hyperion instance [%u] is stopping...", _instIndex);
-	qDebug() << "Hyperion::~Hyperion() - Hyperion instance [" << _instIndex << "] is stopping...";
+	TRACK_SCOPE_SUBCOMPONENT;
 }
 
 void Hyperion::start()

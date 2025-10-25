@@ -86,6 +86,7 @@ JsonAPI::JsonAPI(QString peerAddress, QSharedPointer<Logger> log, bool localConn
 	,_jsonCB (nullptr)
 	,_isServiceAvailable(false)
 {
+	TRACK_SCOPE;
 	Q_INIT_RESOURCE(JSONRPC_schemas);
 
 	qRegisterMetaType<Event>("Event");
@@ -99,6 +100,11 @@ JsonAPI::JsonAPI(QString peerAddress, QSharedPointer<Logger> log, bool localConn
 	});
 
 	_jsonCB = QSharedPointer<JsonCallbacks>(new JsonCallbacks( _log, _peerAddress, parent));
+}
+
+JsonAPI::~JsonAPI()
+{
+	TRACK_SCOPE;
 }
 
 QSharedPointer<JsonCallbacks> JsonAPI::getCallBack() const
