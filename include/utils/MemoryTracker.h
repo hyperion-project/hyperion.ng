@@ -104,14 +104,19 @@ QSharedPointer<T> makeTrackedShared(Creator creator, Args&&... args)
         }
     }
 
-    qCDebug(creator != nullptr ? memory_objects_create : memory_non_objects_create).noquote() << QString("|%1| Creating object of type '%2' at %3 by '%4'")
-        .arg(subComponent)
-        .arg(typeName)
-        .arg(QString("0x%1").arg(reinterpret_cast<quintptr>(rawPtr), 16, 16, QChar('0')))
-        .arg(creatorName);
+    if (creator != nullptr)
+    {
+        qCDebug(memory_objects_create).noquote() << QString("|%1| Creating object of type '%2' at %3 by '%4'")
+            .arg(subComponent, typeName, QString("0x%1").arg(reinterpret_cast<quintptr>(rawPtr), QT_POINTER_SIZE * 2, 16, QChar('0')), creatorName);
+    }
+    else
+    {
+        qCDebug(memory_non_objects_create).noquote() << QString("|%1| Creating object of type '%2' at %3 by '%4'")
+            .arg(subComponent, typeName, QString("0x%1").arg(reinterpret_cast<quintptr>(rawPtr), QT_POINTER_SIZE * 2, 16, QChar('0')), creatorName);
+    }
 
     auto deleter = [subComponent, typeName](T* ptr) {
-        objectDeleter(ptr, subComponent, typeName);
+        objectDeleter<T>(ptr, subComponent, typeName);
     };
 
     return QSharedPointer<T>(rawPtr, deleter);
