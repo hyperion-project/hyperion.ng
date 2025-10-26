@@ -113,17 +113,17 @@ QCoreApplication* createApplication(int& argc, char* argv[])
 int main(int argc, char** argv)
 {
 	//Turn off Qt debug logging per default - to be removed when qtlogging.ini is defined
-	QLoggingCategory::setFilterRules("*.debug = false\n"
-									 "memory.*.debug = false\n");
-
+	QLoggingCategory::setFilterRules("*.debug = false");
 	qSetMessagePattern(
 		"%{time yyyy-MM-ddTHH:mm:ss.zzz} |--|                   : <TRACE> %{category}"
 		"%{if-debug} %{function}()[%{line}] TID:%{threadid}"
 	#if (QT_VERSION >= QT_VERSION_CHECK(6, 10, 0))
 		" (%{threadname})"
 	#endif
-		"%{endif} %{message}"
-		// " << %{backtrace depth=3}"
+		"%{endif} %{message}\n"
+#if 0		
+		" << %{backtrace depth=3}"
+#endif
 	);
 
 	ErrorManager errorManager;
