@@ -71,7 +71,7 @@ bool AmlogicGrabber::isGbmSupported(bool logMsg) const
 {
 	// Check for the existence of gbm_create_device, a core GBM function, within libdrm.so
 	
-	QString libName  = "libMali";
+	QString libName = "libMali";
 	QString lib  = libName + ".so";
 
 	// 1. Attempt to open the library.

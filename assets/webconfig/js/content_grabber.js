@@ -217,7 +217,7 @@ $(document).ready(function () {
 
       var deviceProperties = getPropertiesOfDevice("screen", deviceSelected);
       
-      const videoInput = deviceProperties.video_inputs.find(input => input.inputIdx == videoInputSelected);
+      const videoInput = deviceProperties.video_inputs.find(input => input.inputIdx === parseInt(videoInputSelected));
       const formats = videoInput.formats;
       var formatIdx = 0;
 

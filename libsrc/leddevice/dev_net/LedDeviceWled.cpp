@@ -98,7 +98,7 @@ LedDeviceWled::LedDeviceWled(const QJsonObject &deviceConfig)
 	  ,_isSwitchOffOtherSegments(DEFAULT_IS_SWITCH_OFF_OTHER_SEGMENTS)
 	  ,_isStreamToSegment(false)
 {
-	TRACK_SCOPE_SUBCOMPONENT;;
+	TRACK_SCOPE_SUBCOMPONENT;
 #ifdef ENABLE_MDNS
 	QMetaObject::invokeMethod(MdnsBrowser::getInstance().data(), "browseForServiceType",
 							   Qt::QueuedConnection, Q_ARG(QByteArray, MdnsServiceRegister::getServiceType(_activeDeviceType)));

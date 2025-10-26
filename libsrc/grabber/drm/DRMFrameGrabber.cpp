@@ -224,58 +224,63 @@ bool DRMFrameGrabber::setWidthHeight(int width, int height)
     return false;
 }
 
-static bool processLinearFramebuffer(int deviceFd,
-                                    const drmModeFB2* framebuffer,
-                                    int w,
-                                    int h,
-                                    PixelFormat pixelFormat,
-                                    ImageResampler const& imageResampler,
-                                    Logger* log,
-                                    Image<ColorRgb>& image)
+struct LinearFramebufferParams
+{
+    int deviceFd;
+    const drmModeFB2* framebuffer;
+    int w;
+    int h;
+    PixelFormat pixelFormat;
+    const ImageResampler& imageResampler;
+    QSharedPointer<Logger> log;
+    Image<ColorRgb>& image;
+};
+
+static bool processLinearFramebuffer(const LinearFramebufferParams& params)
 {
     int size = 0;
     int lineLength = 0;
     int fb_dmafd = 0;
 
-    if (pixelFormat == PixelFormat::I420 || pixelFormat == PixelFormat::NV12
+    if (params.pixelFormat == PixelFormat::I420 || params.pixelFormat == PixelFormat::NV12
 #ifdef DRM_FORMAT_NV21
-        || pixelFormat == PixelFormat::NV21
+        || params.pixelFormat == PixelFormat::NV21
 #endif
     )
     {
-        size = (w * h * 3) / 2;
-        lineLength = w;
+        size = (params.w * params.h * 3) / 2;
+        lineLength = params.w;
     }
 #ifdef DRM_FORMAT_P030
-    else if (pixelFormat == PixelFormat::P030)
+    else if (params.pixelFormat == PixelFormat::P030)
     {
-        size = (w * h * 2) + (DIV_ROUND_UP(w, 2) * DIV_ROUND_UP(h, 2) * 4); // Y16 + UV32 per 2px
-        lineLength = w * 2; // 16bpp luma
+        size = (params.w * params.h * 2) + (DIV_ROUND_UP(params.w, 2) * DIV_ROUND_UP(params.h, 2) * 4); // Y16 + UV32 per 2px
+        lineLength = params.w * 2; // 16bpp luma
     }
 #endif
-    else if (pixelFormat == PixelFormat::RGB32 || pixelFormat == PixelFormat::BGR32)
+    else if (params.pixelFormat == PixelFormat::RGB32 || params.pixelFormat == PixelFormat::BGR32)
     {
-        size = w * h * 4;
-        lineLength = w * 4;
+        size = params.w * params.h * 4;
+        lineLength = params.w * 4;
     }
 
-    int ret = drmPrimeHandleToFD(deviceFd, framebuffer->handles[0], O_RDONLY, &fb_dmafd);
+    int ret = drmPrimeHandleToFD(params.deviceFd, params.framebuffer->handles[0], O_RDONLY, &fb_dmafd);
     if (ret != 0)
     {
-        Error(log, "drmPrimeHandleToFD failed (handle=%u): %s", framebuffer->handles[0], strerror(errno));
+        Error(params.log, "drmPrimeHandleToFD failed (handle=%u): %s", params.framebuffer->handles[0], strerror(errno));
         return false;
     }
 
     auto* mmapFrameBuffer = (uint8_t*)mmap(nullptr, size, PROT_READ, MAP_SHARED, fb_dmafd, 0);
     if (mmapFrameBuffer != MAP_FAILED)
     {
-        imageResampler.processImage(mmapFrameBuffer, w, h, lineLength, pixelFormat, image);
+        params.imageResampler.processImage(mmapFrameBuffer, params.w, params.h, lineLength, params.pixelFormat, params.image);
         munmap(mmapFrameBuffer, size);
         close(fb_dmafd);
         return true;
     }
 
-    Error(log, "Format: %s failed. Error: %s", QSTRING_CSTR(getDrmFormat(framebuffer->pixel_format)), strerror(errno));
+    Error(params.log, "Format: %s failed. Error: %s", QSTRING_CSTR(getDrmFormat(params.framebuffer->pixel_format)), strerror(errno));
     close(fb_dmafd);
     return false;
 }
@@ -598,7 +603,17 @@ int DRMFrameGrabber::grabFrame(Image<ColorRgb> &image)
         // Linear modifier path
         if (_pixelFormat != PixelFormat::NO_CHANGE && modifier == DRM_FORMAT_MOD_LINEAR)
         {
-            if (processLinearFramebuffer(_deviceFd, framebuffer, w, h, _pixelFormat, _imageResampler, _log.data(), image))
+            LinearFramebufferParams params{
+                _deviceFd,
+                framebuffer,
+                w,
+                h,
+                _pixelFormat,
+                _imageResampler,
+                _log,
+                image
+            };
+            if (processLinearFramebuffer(params))
             {
                 newImage = true;
             }
