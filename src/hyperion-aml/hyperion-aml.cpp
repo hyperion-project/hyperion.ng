@@ -29,7 +29,7 @@
 using namespace commandline;
 
 namespace {
-	inline const QString CAPTURE_TYPE = QStringLiteral("Amlogic");
+inline const QString CAPTURE_TYPE = QStringLiteral("Amlogic");
 }
 // save the image as screenshot
 void saveScreenshot(const QString& filename, const Image<ColorRgb> & image)
@@ -134,12 +134,13 @@ int main(int argc, char ** argv)
 	}
 	else
 	{
-		QString hostname;
-		int port{ FLATBUFFER_DEFAULT_PORT };
+		QString hostName;
+		int port{FLATBUFFER_DEFAULT_PORT};
 
 		// Split hostname and port (or use default port)
 		QString const givenAddress = argAddress.value(parser);
-		if (!NetUtils::resolveHostPort(givenAddress, hostname, port))
+
+		if (!NetUtils::resolveHostPort(givenAddress, hostName, port))
 		{
 			emit errorManager.errorOccurred(QString("Wrong address: unable to parse address (%1)").arg(givenAddress));
 			return 1;
@@ -157,8 +158,8 @@ int main(int argc, char ** argv)
 			emit errorManager.errorOccurred(QString("IP-address cannot be resolved for the given mDNS service- or hostname: \"%1\"").arg(QSTRING_CSTR(hostName)));
 			return 1;
 		}
-
-		// Create the Flabuf-connection
+		
+		// Create the FlatBuffer-connection
 		FlatBufferConnection const flatbuf(CAPTURE_TYPE + " Standalone",
 										   hostName,
 										   argPriority.getInt(parser),
@@ -185,6 +186,9 @@ int main(int argc, char ** argv)
 			grabber.stop();
 			emit errorManager.errorOccurred(error); 
 		});
+
+		// Start the application
+		QCoreApplication::exec();
 
 		// Start the application
 	}

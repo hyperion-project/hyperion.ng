@@ -22,7 +22,7 @@ add_executable(test_configfile TestConfigFile.cpp)
 link_to_hyperion(test_configfile)
 
 add_executable(test_ImageRgb TestRgbImage.cpp)
-link_to_hyperion(test_ImageRgb)
+link_to_hyperion(test_ImageRgb hyperion-utils)
 
 add_executable(test_blackborderdetector TestBlackBorderDetector.cpp)
 link_to_hyperion(test_blackborderdetector)
@@ -31,7 +31,7 @@ add_executable(test_qregexp TestQRegExp.cpp)
 target_link_libraries(test_qregexp Qt${QT_VERSION_MAJOR}::Widgets)
 
 add_executable(test_qtscreenshot TestQtScreenshot.cpp)
-target_link_libraries(test_qtscreenshot Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(test_qtscreenshot Qt${QT_VERSION_MAJOR}::Widgets hyperion-utils)
 
 if(ENABLE_X11)
 	find_package(X11 REQUIRED)
@@ -43,7 +43,7 @@ add_executable(test_versions TestVersions.cpp)
 target_link_libraries(test_versions Qt${QT_VERSION_MAJOR}::Core)
 
 add_executable(test_image2ledsmap TestImage2LedsMap.cpp "${CMAKE_BINARY_DIR}/resources.qrc")
-link_to_hyperion(test_image2ledsmap)
+link_to_hyperion(test_image2ledsmap hyperion-utils)
 
 ######### These tests are broken. May they fix someone ##########
 

@@ -10,6 +10,7 @@
 #include <utils/ImageData.h>
 #include <utils/ColorRgb.h>
 #include <utils/ColorRgba.h>
+#include <utils/ColorBgr.h>
 #include <utils/Logger.h>
 #include <utils/TrackedMemory.h>
 
@@ -67,6 +68,14 @@ struct PixelFormatTraits<ColorRgba> {
 	static constexpr QImage::Format format = QImage::Format_RGBA8888;
 	static_assert(sizeof(ColorRgba) == 4,
 		"ColorRgba must be exactly 4 bytes to match QImage::Format_RGBA8888");
+};
+
+// Specialization for ColorBgr
+template<>
+struct PixelFormatTraits<ColorBgr> {
+	static constexpr QImage::Format format = QImage::Format_BGR888;
+	static_assert(sizeof(ColorBgr) == 3,
+		"ColorBgr must be exactly 3 bytes to match QImage::Format_BGR888");
 };
 
 template <typename Pixel_T>

@@ -1,5 +1,6 @@
 #include <utils/ImageData.h>
 
+#include <utils/ColorBgr.h>
 #include <utils/ColorRgb.h>
 #include <utils/ColorRgba.h>
 #include <utils/Logger.h>
@@ -182,4 +183,6 @@ int ImageData<Pixel_T>::toIndex(int x, int y) const
 
 // Explicit template instantiations
 template class ImageData<ColorRgb>;
+template class ImageData<ColorBgr>;
 template class ImageData<ColorRgba>;
+

@@ -281,6 +281,8 @@ int Image<Pixel_T>::toIndex(int x, int y) const
 // Explicit template instantiations
 template class Image<ColorRgb>;
 template class Image<ColorRgba>;
+template class Image<ColorBgr>;
 
 template void imageDataCleanupHandler<ColorRgb>(void*);
 template void imageDataCleanupHandler<ColorRgba>(void*);
+template void imageDataCleanupHandler<ColorBgr>(void*);
