@@ -715,7 +715,7 @@ QJsonArray JsonInfo::discoverScreenInputs(const QJsonObject& params) const
 	discoverGrabber<DDAGrabber>(screenInputs, params);
 #endif
 
-#ifdef ENABLE_DRM && !defined(ENABLE_AMLOGIC)
+#if defined(ENABLE_DRM) && !defined(ENABLE_AMLOGIC)
 	discoverGrabber<DRMFrameGrabber>(screenInputs, params);
 #endif
 

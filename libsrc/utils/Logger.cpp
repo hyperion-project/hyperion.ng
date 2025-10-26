@@ -191,11 +191,15 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 {
     auto const globalLevel = static_cast<LogLevel>(int(GLOBAL_MIN_LOG_LEVEL));
 
-    if ((globalLevel == Logger::LogLevel::Unset && level < static_cast<LogLevel>(int(_minLevel))) // no global level, use level from logger
-        || (globalLevel > LogLevel::Unset && level < globalLevel)) // global level set, use global level
-    {
-        return;
-    }
+	// Determine the effective minimum level: prefer global if set, otherwise this logger's level
+	const auto effectiveMinLevel = (globalLevel == Logger::LogLevel::Unset)
+		? getMinLevel()
+		: globalLevel;
+
+	if (level < effectiveMinLevel)
+	{
+		return;
+	}
 
 	const size_t max_msg_length = 1024;
 	char msg[max_msg_length];

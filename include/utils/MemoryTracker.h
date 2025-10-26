@@ -53,10 +53,14 @@ void objectDeleter(T* ptr, const QString& subComponent, const QString& typeName)
 				// The object's thread is not running, which is a potential issue.
 				// Log a critical error as this indicates a problem in the shutdown sequence.
                 // This should be an *extremely rare* fallback and indicates a bug in the thread shutdown sequence.
-				qCritical().noquote() << QString("|%1| QObject<%2> could not be deleted. Owning thread is not running.").arg(subComponent, typeName);
+                qCritical().noquote() << QString("|%1| QObject<%2> could not be deleted. Owning thread is not running. This may cause a memory leak. Please check thread shutdown sequence and object ownership.")
+                    .arg(subComponent, typeName);
 
+                // [MEMORYTRACKER] CRITICAL: This code path indicates a potential memory leak, as the QObject cannot be safely deleted.
+                // To aid debugging, ensure that all threads are properly shut down before object destruction.
+                // Consider adding more diagnostics here, such as emitting a signal or logging additional context (e.g., stack trace, object address).
                 //qCDebug(memory_objects).noquote() << QString("|%1| QObject<%2> object's owning thread is not running. Deleted immediately (thread not running)").arg(subComponent, typeName);
-				//direct delete will require friendship, to be added (to Logger)
+                //direct delete will require friendship, to be added (to Logger)
                 //delete ptr;
             }
         }
