@@ -865,8 +865,12 @@ function updateJsonEditorRange(rootEditor, path, key, minimum, maximum, defaultV
   delete editor.cached_editors[key];
   editor.addObjectProperty(key);
 
-  // Restore the current value after updating the range
-  rootEditor.getEditor(path + "." + key).setValue(currentValue);
+  // restore the current value, if no default value given
+  if (typeof defaultValue === "undefined") {
+    rootEditor.getEditor(path + "." + key).setValue(currentValue);
+  } else {
+    rootEditor.getEditor(path + "." + key).setValue(defaultValue);
+  }
 }
 
 // Add custom host validation to JSON Editor

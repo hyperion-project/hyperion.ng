@@ -348,7 +348,7 @@ $(document).ready(function () {
       updateJsonEditorRange(conf_editor_video, "root.grabberV4L2", key,
         properties.minValue,
         properties.maxValue,
-        properties.current,
+        properties.default,
         properties.step,
         true);
 
@@ -411,73 +411,84 @@ $(document).ready(function () {
     });
 
     conf_editor_video.watch('root.grabberV4L2.available_devices', () => {
-      var deviceSelected = conf_editor_video.getEditor("root.grabberV4L2.available_devices").getValue();
-      if (deviceSelected === "SELECT" || deviceSelected === "NONE" || deviceSelected === "") {
+      const editor = conf_editor_video.getEditor("root.grabberV4L2.available_devices");
+      const deviceSelected = editor.getValue();
+      const invalidSelections = ["SELECT", "NONE", ""];
+
+      if (invalidSelections.includes(deviceSelected)) {
         $('#btn_submit_videograbber').prop('disabled', true);
         showInputOptionsForKey(conf_editor_video, "grabberV4L2", ["enable", "available_devices"], false);
+        return;
       }
-      else {
-        showInputOptionsForKey(conf_editor_video, "grabberV4L2", ["enable", "available_devices"], true);
-        var addSchemaElements = {};
-        var enumVals = [];
-        var enumTitelVals = [];
-        var enumDefaultVal = "";
 
-        var deviceProperties = getPropertiesOfDevice("video", deviceSelected);
+      showInputOptionsForKey(conf_editor_video, "grabberV4L2", ["enable", "available_devices"], true);
 
-        //Update hidden input element
-        conf_editor_video.getEditor("root.grabberV4L2.device").setValue(deviceProperties.device);
+      const deviceProperties = getPropertiesOfDevice("video", deviceSelected);
+      conf_editor_video.getEditor("root.grabberV4L2.device").setValue(deviceProperties.device);
 
-        if (deviceProperties.hasOwnProperty('default') && !jQuery.isEmptyObject(deviceProperties.default.properties)) {
-          $('#btn_videograbber_set_defaults').prop('disabled', false);
-        } else {
-          $('#btn_videograbber_set_defaults').prop('disabled', true);
+      const defaultProperties = deviceProperties.default?.properties ?? {};
+      const hasDefaults = Object.keys(defaultProperties).length > 0;
+      $('#btn_videograbber_set_defaults').prop('disabled', !hasDefaults);
+
+      const isConfiguredDevice = (deviceSelected === configuredDevice);
+      const { grabberV4L2 } = window.serverConfig;
+      const currentProps = deviceProperties.properties;
+
+      const propMappings = {
+        brightness: 'hardware_brightness',
+        contrast: 'hardware_contrast',
+        saturation: 'hardware_saturation',
+        hue: 'hardware_hue'
+      };
+
+      for (const prop in propMappings) {
+        if (hasDefaults) {
+          currentProps[prop].default = defaultProperties[prop];
+        }
+        // Ensure min,max and step values are set inline with the selected grabber to ensure valid input
+        updateDeviceProperties(currentProps, prop, [propMappings[prop]]);
+
+        let currentValue = 0;
+        if (isConfiguredDevice) {
+          currentValue = window.serverConfig.grabberV4L2[propMappings[prop]];
+        } else if (hasDefaults) {
+          currentValue = currentProps.default;
         }
 
-        //If configured device is selected, use the saved values as current values
-        if (deviceSelected === configuredDevice) {
-          // Only if the device reported properties, use the configured values. In case no properties are presented, the device properties cannot be controlled.
-          if (deviceProperties.hasOwnProperty('properties') && !jQuery.isEmptyObject(deviceProperties.properties)) {
-            let properties = {
-              brightness: { current: window.serverConfig.grabberV4L2.hardware_brightness },
-              contrast: { current: window.serverConfig.grabberV4L2.hardware_contrast },
-              saturation: { current: window.serverConfig.grabberV4L2.hardware_saturation },
-              hue: { current: window.serverConfig.grabberV4L2.hardware_hue }
-            };
-            deviceProperties.properties = properties;
+        if (currentValue !== undefined) {
+          conf_editor_video.getEditor("root.grabberV4L2." + propMappings[prop]).setValue(currentValue);
+        }
+      }
+
+      const { video_inputs = [] } = deviceProperties;
+      
+      const addSchemaElements = {};
+
+      if (video_inputs.length <= 1) {
+        addSchemaElements.access = "expert";
+      }
+
+      const enumVals = video_inputs.map(input => input.inputIdx.toString());
+      const enumTitelVals = video_inputs.map(input => input.name);
+
+      if (enumVals.length > 0) {
+        let enumDefaultVal = "";
+        if (isConfiguredDevice) {
+          const configuredInput = grabberV4L2.input.toString();
+          if (enumVals.includes(configuredInput)) {
+            enumDefaultVal = configuredInput;
           }
         }
 
-        updateDeviceProperties(deviceProperties.properties, "brightness", "hardware_brightness");
-        updateDeviceProperties(deviceProperties.properties, "contrast", "hardware_contrast");
-        updateDeviceProperties(deviceProperties.properties, "saturation", "hardware_saturation");
-        updateDeviceProperties(deviceProperties.properties, "hue", "hardware_hue");
+        updateJsonEditorSelection(
+          conf_editor_video, 'root.grabberV4L2', 'device_inputs',
+          addSchemaElements, enumVals, enumTitelVals, enumDefaultVal, false, false
+        );
+      }
 
-        var video_inputs = deviceProperties.video_inputs;
-        if (video_inputs.length <= 1) {
-          addSchemaElements.access = "expert";
-        }
-
-        for (const video_input of video_inputs) {
-          enumVals.push(video_input.inputIdx.toString());
-          enumTitelVals.push(video_input.name);
-        }
-
-        if (enumVals.length > 0) {
-          if (deviceSelected === configuredDevice) {
-            var configuredVideoInput = window.serverConfig.grabberV4L2.input.toString();
-            if ($.inArray(configuredVideoInput, enumVals) != -1) {
-              enumDefaultVal = configuredVideoInput;
-            }
-          }
-
-          updateJsonEditorSelection(conf_editor_video, 'root.grabberV4L2',
-            'device_inputs', addSchemaElements, enumVals, enumTitelVals, enumDefaultVal, false, false);
-        }
-
-        if (conf_editor_video.validate().length && !window.readOnlyMode) {
-          $('#btn_submit_videograbber').prop('disabled', false);
-        }
+      const isValid = conf_editor_video.validate().length === 0;
+      if (isValid && !window.readOnlyMode) {
+        $('#btn_submit_videograbber').prop('disabled', false);
       }
     });
 
@@ -983,14 +994,16 @@ $(document).ready(function () {
   }
 
   function getPropertiesOfDevice(type, deviceName) {
-    deviceProperties = {};
-    for (const deviceRecord of discoveredInputSources[type]) {
+    let props = {};
+    const sourceList = discoveredInputSources[type] || [];
+    for (const deviceRecord of sourceList) {
       if (deviceRecord.device_name === deviceName) {
-        deviceProperties = deviceRecord;
+        // Deep copy to prevent modifying the original object in discoveredInputSources
+        props = structuredClone(deviceRecord);
         break;
       }
     }
-    return deviceProperties;
+    return props;
   }
 
 });
