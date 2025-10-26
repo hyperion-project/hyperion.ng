@@ -76,13 +76,6 @@ public:
 	~DRMFrameGrabber() override;
 
 	/**
-	 * @brief Releases all allocated DRM resources.
-	 * This includes closing the device file descriptor and freeing memory associated with
-	 * connectors, encoders, CRTCs, planes, and framebuffers.
-	 */
-	void freeResources();
-
-	/**
 	 * @brief Captures a single frame from the configured DRM device.
 	 * The captured frame is processed (cropped and scaled) and stored in the provided image object.
 	 *
@@ -151,6 +144,13 @@ public:
 	QJsonObject discover(const QJsonObject& params);
 
 private:
+
+	/**
+	 * @brief Releases all allocated DRM resources.
+	 * This includes closing the device file descriptor and freeing memory associated with
+	 * connectors, encoders, CRTCs, planes, and framebuffers.
+	 */
+	void freeResources();
 
 	/**
 	 * @brief Opens the DRM device file descriptor.

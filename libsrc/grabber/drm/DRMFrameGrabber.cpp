@@ -810,15 +810,15 @@ void DRMFrameGrabber::enumerateConnectorsAndEncoders(const drmModeRes* resources
 
 void DRMFrameGrabber::findActiveCrtc(const drmModeRes* resources)
 {
-	for (int i = 0; i < resources->count_crtcs; i++)
-	{
-		_crtc = drmModeGetCrtc(_deviceFd, resources->crtcs[i]);
-		if (_crtc && _crtc->mode_valid)
-		{
-			return;
-		}
-		drmModeFreeCrtc(_crtc);
-		_crtc = nullptr;
+    for (int i = 0; i < resources->count_crtcs; i++)
+    {
+        _crtc = drmModeGetCrtc(_deviceFd, resources->crtcs[i]);
+        if (_crtc && _crtc->mode_valid)
+        {
+            return; // Found active CRTC, so we can exit
+        }
+        drmModeFreeCrtc(_crtc);
+        _crtc = nullptr;
     }
 }
 
@@ -826,27 +826,27 @@ bool DRMFrameGrabber::isPrimaryPlaneForCrtc(uint32_t planeId, const drmModeObjec
 {
     for (unsigned int j = 0; j < properties->count_props; ++j)
     {
-		auto prop = drmModeGetProperty(_deviceFd, properties->props[j]);
-		if (!prop) continue;
+        auto prop = drmModeGetProperty(_deviceFd, properties->props[j]);
+        if (!prop) continue;
 
-		bool isPrimary = (strcmp(prop->name, "type") == 0 && properties->prop_values[j] == DRM_PLANE_TYPE_PRIMARY);
-		drmModeFreeProperty(prop);
+        bool isPrimary = (strcmp(prop->name, "type") == 0 && properties->prop_values[j] == DRM_PLANE_TYPE_PRIMARY);
+        drmModeFreeProperty(prop);
 
-		if (isPrimary)
-		{
-			auto plane = drmModeGetPlane(_deviceFd, planeId);
-			if (plane && _crtc && plane->crtc_id == _crtc->crtc_id)
-			{
-				qCDebug(grabber_drm) << plane;
-				_planes.insert({planeId, plane});
-				return true;
-			}
-			if (plane)
-			{
-				drmModeFreePlane(plane);
-			}
-		}
-	}
+        if (isPrimary)
+        {
+            auto plane = drmModeGetPlane(_deviceFd, planeId);
+            if (plane && _crtc && plane->crtc_id == _crtc->crtc_id)
+            {
+                qCDebug(grabber_drm) << plane;
+                _planes.insert({planeId, plane});
+                return true;
+            }
+            if (plane)
+            {
+                drmModeFreePlane(plane);
+            }
+        }
+    }
     return false;
 }
 
