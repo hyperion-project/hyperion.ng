@@ -10,6 +10,8 @@
 #include <QSharedPointer>
 #include <QRgb>
 
+#include "utils/TrackedMemory.h"
+
 using namespace hyperion;
 
 void ImageProcessor::registerProcessingUnit(
@@ -20,7 +22,7 @@ void ImageProcessor::registerProcessingUnit(
 {
 	if (width > 0 && height > 0)
 	{
-		_imageToLedColors = QSharedPointer<ImageToLedsMap>(new ImageToLedsMap(
+		_imageToLedColors = MAKE_TRACKED_SHARED(ImageToLedsMap,
 								_log,
 								width,
 								height,
@@ -29,11 +31,11 @@ void ImageProcessor::registerProcessingUnit(
 								_ledString.leds(),
 								_reducedPixelSetFactorFactor,
 								_accuraryLevel
-								));
+		);
 	}
 	else
 	{
-		_imageToLedColors = QSharedPointer<ImageToLedsMap>(nullptr);
+		_imageToLedColors = MAKE_TRACKED_SHARED(ImageToLedsMap, _log, 0, 0, 0, 0, _ledString.leds());
 	}
 }
 
@@ -105,30 +107,39 @@ QString ImageProcessor::mappingTypeToStr(int mappingType)
 	return typeText;
 }
 
-ImageProcessor::ImageProcessor(const LedString& ledString, Hyperion* hyperion)
-	: QObject(hyperion)
+ImageProcessor::ImageProcessor(const LedString& ledString, const QSharedPointer<Hyperion>& hyperionInstance)
+	: QObject()
+	, _hyperionWeak(hyperionInstance)
 	, _log(nullptr)
 	, _ledString(ledString)
-	, _borderProcessor(new BlackBorderProcessor(hyperion, this))
+	, _borderProcessor(nullptr)
 	, _imageToLedColors(nullptr)
 	, _mappingType(0)
 	, _userMappingType(0)
 	, _hardMappingType(-1)
 	, _accuraryLevel(0)
 	, _reducedPixelSetFactorFactor(1)
-	, _hyperion(hyperion)
 {
-	QString subComponent = hyperion->property("instance").toString();
-	_log= Logger::getInstance("IMAGETOLED", subComponent);
+	QString subComponent{ "__" };
+
+	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
+	if (hyperion)
+	{
+		subComponent = hyperion->property("instance").toString();
+	}
+	_log = Logger::getInstance("IMAGETOLED", subComponent);
+
+	_borderProcessor.reset(new BlackBorderProcessor(hyperion, this));
 
 	// init
-	handleSettingsUpdate(settings::COLOR, _hyperion->getSetting(settings::COLOR));
+	handleSettingsUpdate(settings::COLOR, hyperion->getSetting(settings::COLOR));
 	// listen for changes in color - ledmapping
-	connect(_hyperion, &Hyperion::settingsChanged, this, &ImageProcessor::handleSettingsUpdate);
+	connect(hyperion.get(), &Hyperion::settingsChanged, this, &ImageProcessor::handleSettingsUpdate);
 }
 
 ImageProcessor::~ImageProcessor()
 {
+	qDebug() << "ImageProcessor::~ImageProcessor()...";
 }
 
 void ImageProcessor::handleSettingsUpdate(settings::type type, const QJsonDocument& config)

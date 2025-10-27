@@ -117,7 +117,7 @@ int ProviderUdpSSL::open()
 	int retval = -1;
 	_isDeviceReady = false;
 
-	Info(_log, "Open UDP SSL streaming to %s port: %d", QSTRING_CSTR(_address.toString()), _ssl_port);
+	Info(_log, "Open UDP SSL streaming to %s port: %d", QSTRING_CSTR(_hostName), _ssl_port);
 
 	if ( !initNetwork() )
 	{
@@ -126,7 +126,7 @@ int ProviderUdpSSL::open()
 	else
 	{
 		// Everything is OK -> enable device
-		Info(_log, "Stream UDP SSL data to %s port: %d", QSTRING_CSTR(_address.toString()), _ssl_port);
+		Info(_log, "Stream UDP SSL data to %s port: %d", QSTRING_CSTR(_hostName), _ssl_port);
 		_isDeviceReady = true;
 		retval = 0;
 	}
@@ -241,7 +241,7 @@ bool ProviderUdpSSL::startConnection()
 {
 	mbedtls_ssl_session_reset(&ssl);
 
-	int ret = mbedtls_net_connect(&client_fd, _address.toString().toUtf8(), std::to_string(_ssl_port).c_str(), MBEDTLS_NET_PROTO_UDP);
+	int ret = mbedtls_net_connect(&client_fd, _hostName.toUtf8(), std::to_string(_ssl_port).c_str(), MBEDTLS_NET_PROTO_UDP);
 
 	if (ret != 0)
 	{

@@ -12,7 +12,6 @@
 #include <QCloseEvent>
 #include <QSharedPointer>
 
-#include <hyperion/Hyperion.h>
 #include <hyperion/HyperionIManager.h>
 #include <events/EventHandler.h>
 

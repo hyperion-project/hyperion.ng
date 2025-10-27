@@ -39,20 +39,21 @@ jobs:
       fail-fast: false
       matrix:
         os: [
-          { description: Linux (x86_64),                      architecture: [ amd64, linux/amd64  ], platform: x11 },
+          { description: Linux (amd64),                       architecture: [ amd64, linux/amd64  ], platform: x11 },
           { description: Raspberry Pi 1 & Zero 1 (armv6),     architecture: [ armv6, linux/arm/v6 ], platform: rpi },
           { description: Raspberry Pi 2 (armv7),              architecture: [ armv7, linux/arm/v7 ], platform: rpi },
           { description: Raspberry Pi 3/4/5 & Zero 2 (arm64), architecture: [ arm64, linux/arm64  ], platform: rpi }
         ]
         target_lookup: [
-          { 'arm64': 'arm64', 'armv6': 'armv6l', 'armv7': 'armv7l' }
+          { 'amd64': 'amd64', 'arm64': 'arm64', 'armv6': 'armv6l', 'armv7': 'armv7l' }
         ]
 
     steps:
       - name: ⬇ Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: recursive
+          fetch-depth: 0  # Ensures all tags are fetched
 
       - name: 🔧 Prepare
         shell: bash
@@ -82,15 +83,19 @@ jobs:
             -v "${{ github.workspace }}:/source:rw" \
             -v "/tmp/deps:/tmp/deps:rw" \
             -w "/source" \
+            -e LANG="C.UTF-8" \
+            -e LC_ALL="C.UTF-8" \
             ghcr.io/hyperion-project/debian:${{ env.DOCKER_TAG }} \
-            /bin/bash -c "cmake --preset linux-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }} -DPLATFORM=${{ matrix.os.platform }} ${{ env.CPACK_SYSTEM_PROCESSOR }} &&
-            cmake --build --preset linux-${{ env.BUILD_TYPE }} --target package &&
-            cp /source/build/Hyperion-* /deploy/ 2>/dev/null"
+            /bin/bash -c "
+              git config --global --add safe.directory /source &&            
+              cmake --preset linux-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }} -DPLATFORM=${{ matrix.os.platform }} ${{ env.CPACK_SYSTEM_PROCESSOR }} &&
+              cmake --build --preset linux-${{ env.BUILD_TYPE }} --target package &&
+              cp /source/build/Hyperion-* /deploy/ 2>/dev/null"
         env:
           DOCKER_TAG: ${{ inputs.codename == 'bullseye' && matrix.os.architecture[0] == 'armv6' && inputs.codename || format('{0}-qt6', inputs.codename) }}
           BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
           ENTRYPOINT: ${{ matrix.os.architecture[0] != 'amd64' && '--entrypoint /usr/bin/env' || '' }}
-          CPACK_SYSTEM_PROCESSOR: ${{ matrix.os.architecture[0] != 'amd64' && format('-DCPACK_SYSTEM_PROCESSOR={0}', matrix.target_lookup[format('{0}', matrix.os.architecture[0])]) || '' }}
+          CPACK_SYSTEM_PROCESSOR: ${{ format('-DCPACK_SYSTEM_PROCESSOR={0}', matrix.target_lookup[format('{0}', matrix.os.architecture[0])]) || '' }}
           HINT: ${{ steps.dependencies.outputs.cmakeArgs != '' && '(with pre-built dependencies)' || '(full build)' }}
 
       - name: 📦 Upload

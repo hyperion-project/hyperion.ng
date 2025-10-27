@@ -19,9 +19,9 @@ namespace {
 	int DEFAULT_MAX_UPDATE_RATE_HZ { 200 };
 } //End of constants
 
-Effect::Effect(Hyperion *hyperion, int priority, int timeout, const QString &script, const QString &name, const QJsonObject &args, const QString &imageData)
+Effect::Effect(const QSharedPointer<Hyperion>& hyperionInstance, int priority, int timeout, const QString &script, const QString &name, const QJsonObject &args, const QString &imageData)
 	: QThread()
-	, _hyperion(hyperion)
+	, _hyperionWeak(hyperionInstance)
 	, _priority(priority)
 	, _timeout(timeout)
 	, _isEndless(timeout <= PriorityMuxer::ENDLESS)
@@ -31,16 +31,26 @@ Effect::Effect(Hyperion *hyperion, int priority, int timeout, const QString &scr
 	, _imageData(imageData)
 	, _endTime(-1)
 	, _interupt(false)
-	, _imageSize(hyperion->getLedGridSize())
-	, _image(_imageSize,QImage::Format_ARGB32_Premultiplied)
+	, _imageSize()
+	, _image()
 	, _lowestUpdateIntervalInSeconds(1/static_cast<double>(DEFAULT_MAX_UPDATE_RATE_HZ))
 {
-	_colors.resize(_hyperion->getLedCount());
+	QString subComponent{ "__" };
+
+	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
+	if (hyperion)
+	{
+		subComponent = hyperion->property("instane").toString();
+		_colors.resize(hyperion->getLedCount());
+		_imageSize = hyperion->getLedGridSize();
+	}
+
+	_log = Logger::getInstance("EFFECTENGINE", subComponent);
+
 	_colors.fill(ColorRgb::BLACK);
 
-	_log = Logger::getInstance("EFFECTENGINE");
-
 	// init effect image for image based effects, size is based on led layout
+	_image = QImage(_imageSize, QImage::Format_ARGB32_Premultiplied);
 	_image.fill(Qt::black);
 	_painter = new QPainter(&_image);
 
@@ -49,6 +59,7 @@ Effect::Effect(Hyperion *hyperion, int priority, int timeout, const QString &scr
 
 Effect::~Effect()
 {
+	qDebug() << "Effect::~Effect()...";
 	delete _painter;
 	_imageStack.clear();
 }
@@ -89,9 +100,11 @@ bool Effect::setModuleParameters()
 		return false;
 	}
 
+	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
+
 	// Add ledCount variable to the interpreter
 	int ledCount = 0;
-	QMetaObject::invokeMethod(_hyperion, "getLedCount", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, ledCount));
+	QMetaObject::invokeMethod(hyperion.get(), "getLedCount", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, ledCount));
 	PyObject* ledCountObj = Py_BuildValue("i", ledCount);
 	if (PyObject_SetAttrString(module, "ledCount", ledCountObj) < 0) {
 		PyErr_Print();  // Print error if setting attribute fails
@@ -100,7 +113,7 @@ bool Effect::setModuleParameters()
 
 	// Add minimumWriteTime variable to the interpreter
 	int latchTime = 0;
-	QMetaObject::invokeMethod(_hyperion, "getLatchTime", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, latchTime));
+	QMetaObject::invokeMethod(hyperion.get(), "getLatchTime", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, latchTime));
 	PyObject* latchTimeObj = Py_BuildValue("i", latchTime);
 	if (PyObject_SetAttrString(module, "latchTime", latchTimeObj) < 0) {
 		PyErr_Print();  // Print error if setting attribute fails

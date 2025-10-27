@@ -188,40 +188,38 @@ function updateHyperionInstanceListing() {
 }
 
 function initLanguageSelection() {
-  // Initialize language selection list with supported languages
+  const $select = $('#language-select');
+  $select.empty(); // clear existing options
+
   for (let i = 0; i < availLang.length; i++) {
-    $("#language-select").append(
-      '<option value="' + i + '" selected="">' + availLangText[i] + '</option>'
-    );
+    $select.append('<option value="' + availLang[i] + '">' + availLangText[i] + '</option>');
   }
 
   let langLocale = storedLang;
-  let langText = '';
+  if (!langLocale) {
+    langLocale = navigator.language?.substring(0, 2) || 'en';
+  }
 
-  // Test if the language is supported by Hyperion
   let langIdx = availLang.indexOf(langLocale);
-  if (langIdx > -1) {
-    langText = availLangText[langIdx];
-  } else {
-    // If the language is not supported, try the fallback language
+  if (langIdx === -1) {
+    // Try fallback
     langLocale = $.i18n().options.fallbackLocale.substring(0, 2);
     langIdx = availLang.indexOf(langLocale);
-    if (langIdx > -1) {
-      langText = availLangText[langIdx];
-    } else {
-      // Default to English if fallback language is also unsupported
-      langLocale = 'en';
-      langIdx = availLang.indexOf(langLocale);
-      if (langIdx > -1) {
-        langText = availLangText[langIdx];
-      }
-    }
+  }
+
+  if (langIdx === -1) {
+    // Default to English
+    langLocale = 'en';
   }
 
   // Update the language select dropdown
-  $('#language-select').prop('title', langText);
-  $("#language-select").val(langIdx);
-  $("#language-select").selectpicker("refresh");
+  $select.val(langLocale); 
+  $select.selectpicker({
+    container: 'body',
+    width: 'fit',
+    style: 'btn-transparent'
+  });
+  $select.selectpicker('refresh');
 }
 
 function updateUiOnInstance(inst) {
@@ -867,8 +865,12 @@ function updateJsonEditorRange(rootEditor, path, key, minimum, maximum, defaultV
   delete editor.cached_editors[key];
   editor.addObjectProperty(key);
 
-  // Restore the current value after updating the range
-  rootEditor.getEditor(path + "." + key).setValue(currentValue);
+  // restore the current value, if no default value given
+  if (typeof defaultValue === "undefined") {
+    rootEditor.getEditor(path + "." + key).setValue(currentValue);
+  } else {
+    rootEditor.getEditor(path + "." + key).setValue(defaultValue);
+  }
 }
 
 // Add custom host validation to JSON Editor
@@ -915,13 +917,13 @@ function addJsonEditorHostValidation() {
 // Build a link with localization
 function buildWL(link, linkt, cl) {
   const baseLink = "https://docs.hyperion-project.org/";
-  const lang = (storedLang === "de" || navigator.locale === "de") ? "de" : "en";
+  const lang = (storedLang === "de" || navigator.locale === "de") ? "de/" : "";
 
   if (cl) {
     linkt = $.i18n(linkt);
-    return `<div class="bs-callout bs-callout-primary"><h4>${linkt}</h4>${$.i18n('general_wiki_moreto', linkt)}: <a href="${baseLink}${lang}/${link}" target="_blank">${linkt}</a></div>`;
+    return `<div class="bs-callout bs-callout-primary"><h4>${linkt}</h4>${$.i18n('general_wiki_moreto', linkt)}: <a href="${baseLink}${lang}${link}" target="_blank">${linkt}</a></div>`;
   } else {
-    return `: <a href="${baseLink}${lang}/${link}" target="_blank">${linkt}</a>`;
+    return `: <a href="${baseLink}${lang}${link}" target="_blank">${linkt}</a>`;
   }
 }
 

@@ -44,7 +44,7 @@ inline const char* componentToString(Components c)
 		case COMP_SMOOTHING:     return "Smoothing";
 		case COMP_BLACKBORDER:   return "Blackborder detector";
 #if defined(ENABLE_FORWARDER)
-		case COMP_FORWARDER:     return "Json/Proto forwarder";
+		case COMP_FORWARDER:     return "JSON-/Flatbuffer forwarder";
 #endif
 #if defined(ENABLE_BOBLIGHT_SERVER)
 		case COMP_BOBLIGHTSERVER:return "Boblight server";

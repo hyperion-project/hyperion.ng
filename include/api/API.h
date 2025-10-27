@@ -383,7 +383,7 @@ protected:
 
 	// current instance index
 	quint8 _currInstanceIndex;
-	QSharedPointer<Hyperion> _hyperion;
+	QWeakPointer<Hyperion> _hyperionWeak;
 
 signals:
 	///

@@ -29,9 +29,7 @@ jobs:
 
   windows:
     name: ${{ matrix.os.description }}
-    runs-on: ${{ matrix.os.architecture == 'arm64' && 'windows-11-arm' || 'windows-2022' }}
-    env:
-      LIBJPEG_TURBO_VERSION: 3.1.0
+    runs-on: ${{ matrix.os.architecture == 'arm64' && 'windows-11-arm' || 'windows-2025' }}
     strategy:
       fail-fast: false
       matrix:
@@ -42,9 +40,10 @@ jobs:
 
     steps:
       - name: ⬇ Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: recursive
+          fetch-depth: 0  # Ensures all tags are fetched          
 
       - name: 🔧 Prepare
         shell: bash
@@ -57,9 +56,9 @@ jobs:
           fi
 
       - name: 📥 Install Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.13.3'
+          python-version: '3.13.7'
           architecture: ${{ matrix.os.architecture }}
 
       - name: 📥 Install Qt
@@ -74,12 +73,44 @@ jobs:
 
       - name: 📥 Install latest CMake and Ninja
         uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: latestrc
+          ninjaVersion: latest
 
       - name: 🛠️ Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: ${{ matrix.os.architecture }}
 
+      - name: Download/Install Inno Setup
+        run: |
+          echo "Checking pre-installation..."
+          
+          set "ISCC_PATH=%programfiles(x86)%\Inno Setup 6\ISCC.exe"
+          
+          if exist "%ISCC_PATH%" (
+            echo ::warning::Inno Setup is already installed
+            exit /b 0
+          )
+          
+          echo "Downloading Inno Setup..."
+  
+          set "_url_=https://jrsoftware.org/download.php/is.exe?site=1"
+          set "_file_=innosetup.exe"
+  
+          curl -L -o "%tmp%\%_file_%" "%_url_%"
+          
+          echo "Installing Inno Setup..."
+          "%tmp%\%_file_%" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-
+          
+          if not exist "%ISCC_PATH%" (
+            echo "::error::Inno Setup installation failed"
+            exit 1
+          )
+          
+          echo "Inno Setup installed successfully!"
+        shell: cmd
+          
       - name: 💾 Download Pre-Build Dependencies
         id: dependencies
         uses: ./.github/actions/download-pre-built-deps

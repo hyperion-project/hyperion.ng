@@ -75,24 +75,19 @@ void FlatBufferServer::newConnection()
 	{
 		if(QTcpSocket* socket = _server->nextPendingConnection())
 		{
-			if(_netOrigin->accessAllowed(socket->peerAddress(), socket->localAddress()))
-			{
-				Debug(_log, "New connection from %s", QSTRING_CSTR(socket->peerAddress().toString()));
-				FlatBufferClient *client = new FlatBufferClient(socket, _timeout, this);
+			Debug(_log, "New connection from %s", QSTRING_CSTR(socket->peerAddress().toString()));
+			FlatBufferClient *client = new FlatBufferClient(socket, _timeout, this);
 
-				client->setPixelDecimation(_pixelDecimation);
+			client->setPixelDecimation(_pixelDecimation);
 
-				// internal
-				connect(client, &FlatBufferClient::clientDisconnected, this, &FlatBufferServer::clientDisconnected);
-				connect(client, &FlatBufferClient::registerGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::registerGlobalInput);
-				connect(client, &FlatBufferClient::clearGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::clearGlobalInput);
-				connect(client, &FlatBufferClient::setGlobalInputImage, GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage);
-				connect(client, &FlatBufferClient::setGlobalInputColor, GlobalSignals::getInstance(), &GlobalSignals::setGlobalColor);
-				connect(client, &FlatBufferClient::setBufferImage, GlobalSignals::getInstance(), &GlobalSignals::setBufferImage);
-				_openConnections.append(client);
-			}
-			else
-				socket->close();
+			// internal
+			connect(client, &FlatBufferClient::clientDisconnected, this, &FlatBufferServer::clientDisconnected);
+			connect(client, &FlatBufferClient::registerGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::registerGlobalInput);
+			connect(client, &FlatBufferClient::clearGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::clearGlobalInput);
+			connect(client, &FlatBufferClient::setGlobalInputImage, GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage);
+			connect(client, &FlatBufferClient::setGlobalInputColor, GlobalSignals::getInstance(), &GlobalSignals::setGlobalColor);
+			connect(client, &FlatBufferClient::setBufferImage, GlobalSignals::getInstance(), &GlobalSignals::setBufferImage);
+			_openConnections.append(client);
 		}
 	}
 }

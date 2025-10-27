@@ -98,10 +98,16 @@ public:
 private slots:
 
 	///
-	/// @brief is called whenever the current _screen changes it's geometry
+	/// @brief is called whenever the current screen changes it's geometry
 	/// @param geo   The new geometry
 	///
 	void geometryChanged(const QRect &geo);
+
+	///
+	/// @brief is called whenever the current pixel ratio changed
+	/// @param dpi The new dots per inch
+	///
+	void pixelRatioChanged(qreal dpi);
 
 private:
 

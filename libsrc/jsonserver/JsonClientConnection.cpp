@@ -25,6 +25,17 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket, bool localConnect
 	_jsonAPI->initialize();
 }
 
+JsonClientConnection::~JsonClientConnection()
+{
+	if (_socket)
+	{
+		_socket->disconnectFromHost();
+		_socket->deleteLater();
+	}
+
+	delete _jsonAPI;
+}
+
 void JsonClientConnection::readRequest()
 {
 	_receiveBuffer += _socket->readAll();
@@ -48,11 +59,15 @@ void JsonClientConnection::readRequest()
 
 qint64 JsonClientConnection::sendMessage(QJsonObject message)
 {
+	if (!_socket || (_socket->state() != QAbstractSocket::ConnectedState))
+	{
+		return 0;
+	}
+
 	QJsonDocument writer(message);
 	QByteArray data = writer.toJson(QJsonDocument::Compact);
 	data.append('\n');
 
-	if (!_socket || (_socket->state() != QAbstractSocket::ConnectedState)) return 0;
 	return _socket->write(data.data(), data.size());
 }
 
