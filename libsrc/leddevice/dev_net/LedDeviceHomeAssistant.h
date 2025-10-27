@@ -39,6 +39,11 @@ public:
 	explicit LedDeviceHomeAssistant(const QJsonObject& deviceConfig);
 
 	///
+	/// @brief Destructor of the LED-device
+	///
+	~LedDeviceHomeAssistant() override;
+
+	///
 	/// @brief Constructs the LED-device
 	///
 	/// @param[in] deviceConfig Device's configuration as JSON-Object
@@ -152,7 +157,7 @@ private:
 	QJsonArray discoverSsdp() const;
 
 	QString _hostName;
-	QScopedPointer<ProviderRestApi> _restApi;
+	QScopedPointer<ProviderRestApi, QScopedPointerDeleteLater> _restApi;
 	int	_apiPort;
 	bool _useSsl;
 	QString _bearerToken;
