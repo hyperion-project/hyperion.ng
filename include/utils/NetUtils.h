@@ -194,6 +194,7 @@ inline bool resolveMdnsHostToAddress(Logger *log, QString &hostname, QAbstractSo
 					loop.quit();
 				} });
 
+	qRegisterMetaType<QAbstractSocket::NetworkLayerProtocol>("QAbstractSocket::NetworkLayerProtocol");				
 	// Call the function asynchronously in MdnsBrowser's thread
 	QMetaObject::invokeMethod(browser, "resolveFirstAddress",
 							  Qt::QueuedConnection, // Ensures it runs in the correct thread
