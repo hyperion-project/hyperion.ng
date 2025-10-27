@@ -25,7 +25,10 @@
     "dmx-max": {
       "type": "integer",
       "title": "edt_dev_spec_dmx_max_title",
+      "minimum": 1,
+      "maximum": 512,      
       "default": 512,
+      "access": "advanced",      
       "propertyOrder": 4
     },
     "latchTime": {
