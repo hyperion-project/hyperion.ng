@@ -1,7 +1,8 @@
 // Local-Hyperion includes
 #include "ProviderRestApi.h"
 
-// Qt includes
+#include <chrono>
+
 #include <QObject>
 #include <QEventLoop>
 #include <QNetworkReply>
@@ -16,9 +17,6 @@
 
 #include <QSslSocket>
 
-//std includes
-#include <chrono>
-
 // Constants
 namespace {
 
@@ -32,14 +30,17 @@ ProviderRestApi::ProviderRestApi(const QString& scheme, const QString& host, int
 	, _requestTimeout(DEFAULT_REST_TIMEOUT)
 	, _isSelfSignedCertificateAccpeted(false)
 {
-	_networkManager.reset(new QNetworkAccessManager());
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
-	_networkManager->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
-#endif
 	_apiUrl.setScheme(scheme);
 	_apiUrl.setHost(host);
 	_apiUrl.setPort(port);
 	_basePath = basePath;
+
+	_networkManager.reset(new QNetworkAccessManager());
+	_networkManager->moveToThread(this->thread());
+
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
+	_networkManager->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
+#endif
 }
 
 ProviderRestApi::ProviderRestApi(const QString& scheme, const QString& host, int port)
@@ -56,7 +57,7 @@ ProviderRestApi::ProviderRestApi()
 
 ProviderRestApi::~ProviderRestApi()
 {
-	qDebug() << "ProviderRestApi::~ProviderRestApi()";
+
 }
 
 void ProviderRestApi::setScheme(const QString& scheme)
