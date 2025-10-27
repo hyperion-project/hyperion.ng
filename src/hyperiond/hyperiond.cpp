@@ -223,10 +223,10 @@ void HyperionDaemon::stopServices()
 	stopGrabberServices();
 
 	// Ensure that all Instances and their threads are stopped
-	QEventLoop loopLedDevice;
-	QObject::connect(_instanceManager.get(), &HyperionIManager::areAllInstancesStopped, &loopLedDevice, &QEventLoop::quit);
+	QEventLoop loopInstances;
+	QObject::connect(_instanceManager.get(), &HyperionIManager::areAllInstancesStopped, &loopInstances, &QEventLoop::quit);
 	_instanceManager->stopAll();
-	loopLedDevice.exec();
+	loopInstances.exec();
 
 	stopNetworkOutputServices();
 	stopNetworkServices();
