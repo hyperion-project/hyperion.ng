@@ -17,6 +17,7 @@
 #include <utils/JsonUtils.h>
 
 Q_LOGGING_CATEGORY(mdns_browser, "mdns.browser")
+Q_LOGGING_CATEGORY(mdns_browser_cache, "mdns.browser.cache")
 
 namespace {
 const int SERVICE_LOOKUP_RETRIES = 5;
@@ -132,7 +133,7 @@ void MdnsBrowser::resolveFirstAddress(Logger* log, const QString& hostname, cons
 void MdnsBrowser::resolveFirstAddress(Logger* log, const QString& hostname, QAbstractSocket::NetworkLayerProtocol protocol)
 {
 	qCDebug(mdns_browser) << "Resolve first address for hostname:" << hostname << "with protocol:" << protocol;
-	resolveFirstAddress(log, hostname, protocol, DEFAULT_ADDRESS_RESOLVE_TIMEOUT*4);
+	resolveFirstAddress(log, hostname, protocol, DEFAULT_ADDRESS_RESOLVE_TIMEOUT);
 }
 
 void MdnsBrowser::resolveFirstAddress(Logger* log, const QString& hostname, QAbstractSocket::NetworkLayerProtocol protocol, const std::chrono::milliseconds timeout)
@@ -452,36 +453,36 @@ QJsonArray MdnsBrowser::getServicesDiscoveredJson(const QByteArray& serviceType,
 
 void MdnsBrowser::printCache(const QByteArray& name, quint16 type) const
 {
-	qCDebug(mdns_browser) << "mDNS Browser Cache for type:" << QMdnsEngine::typeName(type);
+	qCDebug(mdns_browser_cache) << "mDNS Browser Cache for type:" << QMdnsEngine::typeName(type);
 	QList<QMdnsEngine::Record> records;
 	if (!_cache.isNull() && _cache->lookupRecords(name, type, records))
 	{
 		foreach(QMdnsEngine::Record const record, records)
 		{
-			qCDebug(mdns_browser) << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", ttl       :" << record.ttl();
+			qCDebug(mdns_browser_cache) << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", ttl       :" << record.ttl();
 
 			switch (record.type()) {
 			case QMdnsEngine::PTR:
-				qCDebug(mdns_browser) << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", target    :" << record.target();
+				qCDebug(mdns_browser_cache) << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", target    :" << record.target();
 			break;
 
 			case QMdnsEngine::SRV:
-				qCDebug(mdns_browser) << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", target    :" << record.target();
-				qCDebug(mdns_browser) << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", port      :" << record.port();
-				qCDebug(mdns_browser) << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", priority  :" << record.priority();
-				qCDebug(mdns_browser) << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", weight    :" << record.weight();
+				qCDebug(mdns_browser_cache) << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", target    :" << record.target();
+				qCDebug(mdns_browser_cache) << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", port      :" << record.port();
+				qCDebug(mdns_browser_cache) << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", priority  :" << record.priority();
+				qCDebug(mdns_browser_cache) << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", weight    :" << record.weight();
 			break;
 			case QMdnsEngine::TXT:
-				qCDebug(mdns_browser) << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", attributes:" << record.attributes();
+				qCDebug(mdns_browser_cache) << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", attributes:" << record.attributes();
 			break;
 
 			case QMdnsEngine::NSEC:
-				qCDebug(mdns_browser) << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", nextDomNam:" << record.nextDomainName();
+				qCDebug(mdns_browser_cache) << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", nextDomNam:" << record.nextDomainName();
 			break;
 
 			case QMdnsEngine::A:
 			case QMdnsEngine::AAAA:
-				qCDebug(mdns_browser) << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", address   :" << record.address();
+				qCDebug(mdns_browser_cache) << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", address   :" << record.address();
 			break;
 			default:
 			break;
