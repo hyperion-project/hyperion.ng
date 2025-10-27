@@ -59,6 +59,10 @@ LedDeviceHomeAssistant::LedDeviceHomeAssistant(const QJsonObject& deviceConfig)
 	NetUtils::discoverMdnsServices(_activeDeviceType);
 }
 
+LedDeviceHomeAssistant::~LedDeviceHomeAssistant()
+{
+}
+
 LedDevice* LedDeviceHomeAssistant::construct(const QJsonObject& deviceConfig)
 {
 	return new LedDeviceHomeAssistant(deviceConfig);
