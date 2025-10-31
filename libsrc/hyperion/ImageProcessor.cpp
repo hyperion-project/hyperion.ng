@@ -10,6 +10,8 @@
 #include <QSharedPointer>
 #include <QRgb>
 
+#include "utils/TrackedMemory.h"
+
 using namespace hyperion;
 
 void ImageProcessor::registerProcessingUnit(
@@ -20,7 +22,7 @@ void ImageProcessor::registerProcessingUnit(
 {
 	if (width > 0 && height > 0)
 	{
-		_imageToLedColors = QSharedPointer<ImageToLedsMap>(new ImageToLedsMap(
+		_imageToLedColors = MAKE_TRACKED_SHARED(ImageToLedsMap,
 								_log,
 								width,
 								height,
@@ -29,22 +31,26 @@ void ImageProcessor::registerProcessingUnit(
 								_ledString.leds(),
 								_reducedPixelSetFactorFactor,
 								_accuraryLevel
-								));
+		);
 	}
 	else
 	{
-		_imageToLedColors = QSharedPointer<ImageToLedsMap>(nullptr);
+		_imageToLedColors = MAKE_TRACKED_SHARED(ImageToLedsMap, _log, 0, 0, 0, 0, _ledString.leds());
 	}
 }
 
 // global transform method
 int ImageProcessor::mappingTypeToInt(const QString& mappingType)
 {
-	if (mappingType == "unicolor_mean" )
+	if (mappingType == "multicolor_mean" )
+	{
+		return 0;
+	}
+	else if (mappingType == "multicolor_mean_squared" )
 	{
 		return 1;
 	}
-	else if (mappingType == "multicolor_mean_squared" )
+	else if (mappingType == "unicolor_mean" )
 	{
 		return 2;
 	}
@@ -52,9 +58,17 @@ int ImageProcessor::mappingTypeToInt(const QString& mappingType)
 	{
 		return 3;
 	}
-	else if (mappingType == "dominant_color_advanced" )
+	else if (mappingType == "unicolor_dominant" )
 	{
 		return 4;
+	}
+	else if (mappingType == "dominant_color_advanced" )
+	{
+		return 5;
+	}
+	else if (mappingType == "unicolor_dominant_advanced" )
+	{
+		return 6;
 	}
 	return 0;
 }
@@ -63,17 +77,27 @@ QString ImageProcessor::mappingTypeToStr(int mappingType)
 {
 	QString typeText;
 	switch (mappingType) {
+
+	case 0:
+		typeText = "multicolor_mean";
+		break;
 	case 1:
-		typeText = "unicolor_mean";
+		typeText = "multicolor_mean_squared";
 		break;
 	case 2:
-		typeText = "multicolor_mean_squared";
+		typeText = "unicolor_mean";
 		break;
 	case 3:
 		typeText = "dominant_color";
 		break;
 	case 4:
+		typeText = "unicolor_dominant";
+		break;
+	case 5:
 		typeText = "dominant_color_advanced";
+		break;
+	case 6:
+		typeText = "unicolor_dominant_advanced";
 		break;
 	default:
 		typeText = "multicolor_mean";
@@ -83,30 +107,39 @@ QString ImageProcessor::mappingTypeToStr(int mappingType)
 	return typeText;
 }
 
-ImageProcessor::ImageProcessor(const LedString& ledString, Hyperion* hyperion)
-	: QObject(hyperion)
+ImageProcessor::ImageProcessor(const LedString& ledString, const QSharedPointer<Hyperion>& hyperionInstance)
+	: QObject()
+	, _hyperionWeak(hyperionInstance)
 	, _log(nullptr)
 	, _ledString(ledString)
-	, _borderProcessor(new BlackBorderProcessor(hyperion, this))
+	, _borderProcessor(nullptr)
 	, _imageToLedColors(nullptr)
 	, _mappingType(0)
 	, _userMappingType(0)
 	, _hardMappingType(-1)
 	, _accuraryLevel(0)
 	, _reducedPixelSetFactorFactor(1)
-	, _hyperion(hyperion)
 {
-	QString subComponent = hyperion->property("instance").toString();
-	_log= Logger::getInstance("IMAGETOLED", subComponent);
+	QString subComponent{ "__" };
+
+	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
+	if (hyperion)
+	{
+		subComponent = hyperion->property("instance").toString();
+	}
+	_log = Logger::getInstance("IMAGETOLED", subComponent);
+
+	_borderProcessor.reset(new BlackBorderProcessor(hyperion, this));
 
 	// init
-	handleSettingsUpdate(settings::COLOR, _hyperion->getSetting(settings::COLOR));
+	handleSettingsUpdate(settings::COLOR, hyperion->getSetting(settings::COLOR));
 	// listen for changes in color - ledmapping
-	connect(_hyperion, &Hyperion::settingsChanged, this, &ImageProcessor::handleSettingsUpdate);
+	connect(hyperion.get(), &Hyperion::settingsChanged, this, &ImageProcessor::handleSettingsUpdate);
 }
 
 ImageProcessor::~ImageProcessor()
 {
+	qDebug() << "ImageProcessor::~ImageProcessor()...";
 }
 
 void ImageProcessor::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
@@ -142,7 +175,6 @@ void ImageProcessor::setSize(int width, int height)
 
 void ImageProcessor::setLedString(const LedString& ledString)
 {
-	Debug(_log,"");
 	if ( !_imageToLedColors.isNull() )
 	{
 		_ledString = ledString;

@@ -19,24 +19,22 @@ const char SERVICE_TYPE[] = "protobuffer";
 
 ProtoServer::ProtoServer(const QJsonDocument& config, QObject* parent)
 	: QObject(parent)
-	, _server(new QTcpServer(this))
+	, _server(nullptr)
 	, _log(Logger::getInstance("PROTOSERVER"))
 	, _timeout(5000)
 	, _config(config)
 {
-
 }
 
 ProtoServer::~ProtoServer()
 {
-	stopServer();
-	delete _server;
 }
 
 void ProtoServer::initServer()
 {
+	_server.reset(new QTcpServer());
 	_netOrigin = NetOrigin::getInstance();
-	connect(_server, &QTcpServer::newConnection, this, &ProtoServer::newConnection);
+	connect(_server.get(), &QTcpServer::newConnection, this, &ProtoServer::newConnection);
 
 	// apply config
 	handleSettingsUpdate(settings::PROTOSERVER, _config);
@@ -53,14 +51,14 @@ void ProtoServer::handleSettingsUpdate(settings::type type, const QJsonDocument&
 		// port check
 		if(_server->serverPort() != port)
 		{
-			stopServer();
+			stop();
 			_port = port;
 		}
 
 		// new timeout just for new connections
 		_timeout = obj["timeout"].toInt(5000);
 		// enable check
-		obj["enable"].toBool(true) ? startServer() : stopServer();
+		obj["enable"].toBool(true) ? start() : stop();
 	}
 }
 
@@ -70,22 +68,17 @@ void ProtoServer::newConnection()
 	{
 		if(QTcpSocket * socket = _server->nextPendingConnection())
 		{
-			if(_netOrigin->accessAllowed(socket->peerAddress(), socket->localAddress()))
-			{
-				Debug(_log, "New connection from %s", QSTRING_CSTR(socket->peerAddress().toString()));
-				ProtoClientConnection * client = new ProtoClientConnection(socket, _timeout, this);
-				// internal
-				connect(client, &ProtoClientConnection::clientDisconnected, this, &ProtoServer::clientDisconnected);
-				connect(client, &ProtoClientConnection::registerGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::registerGlobalInput);
-				connect(client, &ProtoClientConnection::clearGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::clearGlobalInput);
-				connect(client, &ProtoClientConnection::setGlobalInputImage, GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage);
-				connect(client, &ProtoClientConnection::setGlobalInputColor, GlobalSignals::getInstance(), &GlobalSignals::setGlobalColor);
-				connect(client, &ProtoClientConnection::setBufferImage, GlobalSignals::getInstance(), &GlobalSignals::setBufferImage);
-				connect(GlobalSignals::getInstance(), &GlobalSignals::globalRegRequired, client, &ProtoClientConnection::registationRequired);
-				_openConnections.append(client);
-			}
-			else
-				socket->close();
+			Debug(_log, "New connection from %s", QSTRING_CSTR(socket->peerAddress().toString()));
+			ProtoClientConnection * client = new ProtoClientConnection(socket, _timeout, this);
+			// internal
+			connect(client, &ProtoClientConnection::clientDisconnected, this, &ProtoServer::clientDisconnected);
+			connect(client, &ProtoClientConnection::registerGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::registerGlobalInput);
+			connect(client, &ProtoClientConnection::clearGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::clearGlobalInput);
+			connect(client, &ProtoClientConnection::setGlobalInputImage, GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage);
+			connect(client, &ProtoClientConnection::setGlobalInputColor, GlobalSignals::getInstance(), &GlobalSignals::setGlobalColor);
+			connect(client, &ProtoClientConnection::setBufferImage, GlobalSignals::getInstance(), &GlobalSignals::setBufferImage);
+			connect(GlobalSignals::getInstance(), &GlobalSignals::globalRegRequired, client, &ProtoClientConnection::registationRequired);
+			_openConnections.append(client);
 		}
 	}
 }
@@ -97,7 +90,7 @@ void ProtoServer::clientDisconnected()
 	_openConnections.removeAll(client);
 }
 
-void ProtoServer::startServer()
+void ProtoServer::start()
 {
 	if(!_server->isListening())
 	{
@@ -113,7 +106,7 @@ void ProtoServer::startServer()
 	}
 }
 
-void ProtoServer::stopServer()
+void ProtoServer::stop()
 {
 	if(_server->isListening())
 	{
@@ -122,7 +115,8 @@ void ProtoServer::stopServer()
 		{
 			client->forceClose();
 		}
+		_openConnections.clear();
 		_server->close();
-		Info(_log, "Stopped");
+		Info(_log, "ProtocolBuffer-Server stopped");
 	}
 }

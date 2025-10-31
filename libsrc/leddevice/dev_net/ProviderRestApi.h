@@ -1,14 +1,15 @@
-#ifndef PROVIDERRESTKAPI_H
-#define PROVIDERRESTKAPI_H
+#ifndef PROVIDERRESTAPI_H
+#define PROVIDERRESTAPI_H
 
 // Local-Hyperion includes
 #include <utils/Logger.h>
 
 // Qt includes
 #include <QNetworkAccessManager>
+#include <QNetworkRequest>
 #include <QNetworkReply>
-#include <QUrlQuery>
 #include <QJsonDocument>
+#include <QUrlQuery>
 
 #include <QFile>
 #include <QBasicTimer>
@@ -26,10 +27,10 @@ class ReplyTimeout : public QObject
 	Q_OBJECT
 
 public:
-	enum HandleMethod { Abort, Close };
+	enum class HandleMethod { Abort, Close };
 
-	ReplyTimeout(QNetworkReply* reply, const int timeout, HandleMethod method = Abort) :
-		QObject(reply), m_method(method), m_timedout(false)
+	ReplyTimeout(QNetworkReply* reply, const int timeout, HandleMethod method = HandleMethod::Abort) :
+		QObject(reply), m_method(method)
 	{
 		Q_ASSERT(reply);
 		if (reply && reply->isRunning()) {
@@ -43,15 +44,15 @@ public:
 		return m_timedout;
 	}
 
-	static ReplyTimeout * set(QNetworkReply* reply, const int timeout, HandleMethod method = Abort)
+	static std::unique_ptr<ReplyTimeout> set(QNetworkReply* reply, const int timeout, HandleMethod method = HandleMethod::Abort)
 	{
-		return new ReplyTimeout(reply, timeout, method);
+		return std::make_unique<ReplyTimeout>(reply, timeout, method);
 	}
 
 signals:
 	void timedout();
 
-protected:
+private:
 
 	void timerEvent(QTimerEvent * ev) override {
 		if (!m_timer.isActive() || ev->timerId() != m_timer.timerId())
@@ -61,9 +62,9 @@ protected:
 		{
 			m_timedout = true;
 			emit timedout();
-			if (m_method == Close)
+			if (m_method == HandleMethod::Close)
 				reply->close();
-			else if (m_method == Abort)
+			else if (m_method == HandleMethod::Abort)
 				reply->abort();
 			m_timer.stop();
 		}
@@ -71,7 +72,16 @@ protected:
 
 	QBasicTimer m_timer;
 	HandleMethod m_method;
-	bool m_timedout;
+	bool m_timedout{false};
+};
+
+enum class HttpStatusCode {
+	NoContent    = 204,
+	BadRequest   = 400,
+	UnAuthorized = 401,
+	Forbidden    = 403,
+	NotFound     = 404,
+	TooManyRequests = 429
 };
 
 ///
@@ -89,14 +99,14 @@ public:
 	void setBody(const QJsonDocument& body) { _responseBody = body; }
 
 
-	QByteArray getHeader(const QByteArray header) const;
+	QByteArray getHeader(const QByteArray& header) const;
 	void setHeaders(const QList<QNetworkReply::RawHeaderPair>& pairs);
 
 	QString getErrorReason() const { return _errorReason; }
 	void setErrorReason(const QString& errorReason) { _errorReason = errorReason; }
 
-	int getHttpStatusCode() const { return _httpStatusCode; }
-	void setHttpStatusCode(int httpStatusCode) { _httpStatusCode = httpStatusCode; }
+	HttpStatusCode getHttpStatusCode() const { return _httpStatusCode; }
+	void setHttpStatusCode(HttpStatusCode httpStatusCode) { _httpStatusCode = httpStatusCode; }
 
 	QNetworkReply::NetworkError getNetworkReplyError() const { return _networkReplyError; }
 	void setNetworkReplyError(const QNetworkReply::NetworkError networkReplyError) { _networkReplyError = networkReplyError; }
@@ -109,7 +119,7 @@ private:
 	bool _hasError = false;
 	QString _errorReason;
 
-	int _httpStatusCode = 0;
+	HttpStatusCode _httpStatusCode = HttpStatusCode::NoContent;
 	QNetworkReply::NetworkError _networkReplyError { QNetworkReply::NoError };
 };
 
@@ -119,7 +129,9 @@ private:
 /// Usage sample:
 /// @code
 ///
-/// ProviderRestApi* _restApi = new ProviderRestApi(hostname, port );
+/// QScopedPointer<ProviderRestApi> _restApi;
+///
+/// _restApi.reset(new ProviderRestApi(hostName, port));
 ///
 /// _restApi->setBasePath( QString("/api/%1/").arg(token) );
 /// _restApi->setPath( QString("%1/%2").arg( "groups" ).arg( groupId ) );
@@ -128,10 +140,10 @@ private:
 /// if ( !response.error() )
 ///		response.getBody();
 ///
-/// delete _restApi;
 ///
 ///@endcode
 ///
+
 class ProviderRestApi : public QObject
 {
 	Q_OBJECT
@@ -182,7 +194,7 @@ public:
 	///
 	/// @brief Destructor of the REST-API wrapper
 	///
-	virtual ~ProviderRestApi() override;
+	~ProviderRestApi() override;
 
 	///
 	/// @brief Set the API's scheme
@@ -196,7 +208,7 @@ public:
 	///
 	/// return schme
 	///
-	QString getScheme() { return _apiUrl.scheme(); }
+	QString getScheme() const { return _apiUrl.scheme(); }
 
 	///
 	/// @brief Set an API's host
@@ -217,7 +229,7 @@ public:
 	///
 	/// return port
 	///
-	int getPort() { return _apiUrl.port(); }
+	int getPort() const { return _apiUrl.port(); }
 
 	///
 	/// @brief Set an API's url
@@ -300,8 +312,8 @@ public:
 	void setQuery(const QUrlQuery& query);
 
 
-	QString getBasePath() {return _basePath;}
-	QString getPath() {return _path;}
+	QString getBasePath() const {return _basePath;}
+	QString getPath() const {return _path;}
 
 	///
 	/// @brief Execute GET request
@@ -380,7 +392,7 @@ public:
 	/// @param[in] reply Network reply
 	/// @return Response The body of the response in JSON
 	///
-	httpResponse getResponse(QNetworkReply* const& reply);
+	httpResponse getResponse(QNetworkReply* const& reply) const;
 
 	///
 	/// Adds a header field.
@@ -409,6 +421,7 @@ public:
 	///
 	/// @param[in] timeout in milliseconds.
 	void setTransferTimeout(std::chrono::milliseconds timeout = DEFAULT_REST_TIMEOUT) { _requestTimeout = timeout; }
+	void setTransferTimeout(int timeout = DEFAULT_REST_TIMEOUT.count()) { _requestTimeout = std::chrono::milliseconds(timeout); }
 
 
 	bool setCaCertificate(const QString& caFileName);
@@ -442,6 +455,8 @@ private:
 
 	httpResponse executeOperation(QNetworkAccessManager::Operation op, const QUrl& url, const QByteArray& body = {});
 
+	bool handleSslError(const QSslError& error, const QSslConfiguration& sslConfig);
+
 	bool checkServerIdentity(const QSslConfiguration& sslConfig) const;
 
 	bool matchesPinnedCertificate(const QSslCertificate& certificate);
@@ -449,7 +464,8 @@ private:
 	Logger* _log;
 
 	/// QNetworkAccessManager object for sending REST-requests.
-	QNetworkAccessManager* _networkManager;
+	QScopedPointer<QNetworkAccessManager, QScopedPointerDeleteLater> _networkManager;
+
 	std::chrono::milliseconds _requestTimeout;
 
 	QUrl _apiUrl;
@@ -463,7 +479,7 @@ private:
 	QNetworkRequest _networkRequestHeaders;
 
 	QString _serverIdentity;
-	bool _isSeflSignedCertificateAccpeted;
+	bool _isSelfSignedCertificateAccpeted;
 };
 
-#endif // PROVIDERRESTKAPI_H
+#endif // PROVIDERRESTAPI_H

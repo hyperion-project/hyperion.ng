@@ -6,8 +6,8 @@ import { ledDeviceWizardUtils as utils } from './LedDevice_utils.js';
 
 const philipshueWizard = (() => {
 
-  // External properties, 2-dimensional arry of [ledType][key]
-  let devicesProperties = {};
+  // External properties, 2-dimensional map of [ledType][key]
+  const devicesProperties = new Map();
 
   let hueIPs = [];
   let hueIPsinc = 0;
@@ -29,9 +29,10 @@ const philipshueWizard = (() => {
     if (hueIPs[hueIPsinc]) {
       const host = hueIPs[hueIPsinc].host;
       const port = hueIPs[hueIPsinc].port;
+      const bridgeid = hueIPs[hueIPsinc].bridgeid ? hueIPs[hueIPsinc].bridgeid.toUpperCase() : undefined;
 
       if (usr != '') {
-        getProperties(cb, decodeURIComponent(host), port, usr);
+        getProperties(cb, decodeURIComponent(host), port, bridgeid, usr);
       }
       else {
         cb(false, usr);
@@ -47,8 +48,9 @@ const philipshueWizard = (() => {
     if (reply) {
       //abort checking, first reachable result is used
       $('#wiz_hue_ipstate').html("");
-      $('#host').val(hueIPs[hueIPsinc].host)
-      $('#port').val(hueIPs[hueIPsinc].port)
+      $('#host').val(hueIPs[hueIPsinc].host);
+      $('#port').val(hueIPs[hueIPsinc].port);
+      $('#bridgeid').val(hueIPs[hueIPsinc].bridgeid);
 
       $('#usrcont').toggle(true);
 
@@ -243,12 +245,12 @@ const philipshueWizard = (() => {
     return layoutObjects;
   }
 
-  function updateBridgeDetails(properties) {
-    const ledDeviceProperties = properties.config;
+  function updateBridgeDetails(ledType, key, username) {
+    const ledDeviceProperties = getLedDeviceProperty(ledType, key, username);
 
     if (!jQuery.isEmptyObject(ledDeviceProperties)) {
-      isEntertainmentReady = properties.isEntertainmentReady;
-      isAPIv2Ready = properties.isAPIv2Ready;
+      isEntertainmentReady = ledDeviceProperties.isEntertainmentReady;
+      isAPIv2Ready = ledDeviceProperties.isAPIv2Ready;
 
       if (ledDeviceProperties.name && ledDeviceProperties.bridgeid && ledDeviceProperties.modelid) {
         $('#wiz_hue_discovered').html(
@@ -289,22 +291,26 @@ const philipshueWizard = (() => {
           if (device) {
             let host;
             let port;
+            let bridgeid;
             if (discoveryMethod === "ssdp") {
-              if (device.hostname && device.domain) {
+              // Use hostname + domain, if available and not an IP address
+              if (device.hostname && device.domain && !(isValidIPv4(device.hostname) || isValidIPv6(device.hostname))) {
                 host = device.hostname + "." + device.domain;
                 port = device.port;
               } else {
                 host = device.ip;
                 port = device.port;
               }
+              bridgeid = device.other?.["hue-bridgeid"]?.toUpperCase();
             } else {
-              host = device.service;
-              port = device.port;
+                host = device.service;
+                port = device.port;
+                bridgeid = device.txt?.["bridgeid"]?.toUpperCase();
             }
-            if (host) {
 
+            if (host) {
               if (!hueIPs.some(item => item.host === host)) {
-                hueIPs.push({ host: host, port: port });
+                hueIPs.push({ host, port, bridgeid });
               }
             }
           }
@@ -313,19 +319,20 @@ const philipshueWizard = (() => {
         $('#wiz_hue_ipstate').html("");
         $('#host').val(hueIPs[hueIPsinc].host)
         $('#port').val(hueIPs[hueIPsinc].port)
+        $('#bridgeid').val(hueIPs[hueIPsinc].bridgeid)
 
         $('#hue_bridge_select').html("");
 
         for (const key in hueIPs) {
-          $('#hue_bridge_select').append(createSelOpt(key, hueIPs[key].host));
+          $('#hue_bridge_select').append(createSelOpt(key, hueIPs[key].bridgeid));
         }
 
         $('.hue_bridge_sel_watch').on("click", function () {
           hueIPsinc = $(this).val();
 
-          const name = $("#hue_bridge_select option:selected").text();
-          $('#host').val(name);
-          $('#port').val(hueIPs[hueIPsinc].port)
+          $('#host').val(hueIPs[hueIPsinc].host);
+          $('#port').val(hueIPs[hueIPsinc].port);
+          $('#bridgeid').val(hueIPs[hueIPsinc].bridgeid);
 
           const usr = $('#user').val();
           if (usr != "") {
@@ -340,8 +347,29 @@ const philipshueWizard = (() => {
     }
   }
 
-  async function getProperties(cb, hostAddress, port, username, resourceFilter) {
-    let params = { host: hostAddress, username: username, filter: resourceFilter };
+  function getOrCreate(map, key, createValue) {
+      if (!map.has(key)) {
+          map.set(key, createValue());
+      }
+      return map.get(key);
+  }
+
+  function getLedDeviceProperty(ledType, key, username) {
+      const ledTypeMap = devicesProperties.get(ledType);
+      if (!ledTypeMap) return undefined;
+      const keyMap = ledTypeMap.get(key);
+      if (!keyMap) return undefined;
+      return keyMap.get(username);
+  }
+
+    function setLedDeviceProperty(ledType, key, username, ledDeviceProperties) {
+      const ledTypeMap = getOrCreate(devicesProperties, ledType, () => new Map());
+      const keyMap = getOrCreate(ledTypeMap, key, () => new Map());
+      keyMap.set(username, ledDeviceProperties);
+  }
+
+  async function getProperties(cb, hostAddress, port, bridgeid, username, resourceFilter) {
+    let params = { host: hostAddress, bridgeid, username, filter: resourceFilter };
     if (port !== 'undefined') {
       params.port = parseInt(port);
     }
@@ -349,30 +377,25 @@ const philipshueWizard = (() => {
     const ledType = 'philipshue';
     const key = hostAddress;
 
-    //Create ledType cache entry
-    if (!devicesProperties[ledType]) {
-      devicesProperties[ledType] = {};
-    }
-
-    // Use device's properties, if properties in chache
-    if (devicesProperties[ledType][key] && devicesProperties[ledType][key][username]) {
-      updateBridgeDetails(devicesProperties[ledType][key]);
+    const cachedLedProperties = getLedDeviceProperty(ledType, key, username);
+    // Use device's properties, if properties in cache
+    if (cachedLedProperties) {
+      updateBridgeDetails(ledType, key, username);
       cb(true, username);
     } else {
       const res = await requestLedDeviceProperties(ledType, params);
       if (res && !res.error) {
-        const ledDeviceProperties = res.info.properties;
+        let ledDeviceProperties = res.info.properties;
         if (!jQuery.isEmptyObject(ledDeviceProperties)) {
 
-          devicesProperties[ledType][key] = {};
-          devicesProperties[ledType][key][username] = ledDeviceProperties;
-
           isAPIv2Ready = res.info.isAPIv2Ready;
-          devicesProperties[ledType][key].isAPIv2Ready = isAPIv2Ready;
           isEntertainmentReady = res.info.isEntertainmentReady;
-          devicesProperties[ledType][key].isEntertainmentReady = isEntertainmentReady;
 
-          updateBridgeDetails(devicesProperties[ledType][key]);
+          ledDeviceProperties.isAPIv2Ready = isAPIv2Ready;
+          ledDeviceProperties.isEntertainmentReady = isEntertainmentReady;
+          setLedDeviceProperty(ledType, key, username, ledDeviceProperties);
+
+          updateBridgeDetails(ledType, key, username);
           if (username === "config") {
             cb(true);
           } else {
@@ -387,12 +410,12 @@ const philipshueWizard = (() => {
     }
   }
 
-  async function identify(hostAddress, port, username, name, id, id_v1) {
+  async function identify(hostAddress, port, bridgeid, username, name, id, id_v1) {
     const disabled = $('#btn_wiz_save').is(':disabled');
     // Take care that new record cannot be save during background process
     $('#btn_wiz_save').prop('disabled', true);
 
-    let params = { host: decodeURIComponent(hostAddress), username: username, lightName: decodeURIComponent(name), lightId: id, lightId_v1: id_v1 };
+    let params = { host: decodeURIComponent(hostAddress), bridgeid, username, lightName: decodeURIComponent(name), lightId: id, lightId_v1: id_v1 };
 
     if (port !== 'undefined') {
       params.port = parseInt(port);
@@ -434,7 +457,11 @@ const philipshueWizard = (() => {
       else {
         $('#port').val('');
       }
-      hueIPs.push({ host: host, port: port });
+
+      const bridgeid = utils.eV("bridgeid");
+      $('#bridgeid').val(bridgeid);
+
+      hueIPs.push({ host, port, bridgeid });
 
       if (usr != "") {
         checkHueBridge(checkUserResult, usr);
@@ -444,17 +471,20 @@ const philipshueWizard = (() => {
     }
 
     $('#retry_bridge').off().on('click', function () {
+
       const host = $('#host').val();
       const port = parseInt($('#port').val());
+      const bridgeid = $('#bridgeid').val();
 
       if (host != "") {
-
-        const idx = hueIPs.findIndex(item => item.host === host && item.port === port);
+        const idx = hueIPs.findIndex(item => item.host === host);
         if (idx === -1) {
-          hueIPs.push({ host: host, port: port });
+          hueIPs.push({ host, port, bridgeid });
           hueIPsinc = hueIPs.length - 1;
         } else {
           hueIPsinc = idx;
+          hueIPs[hueIPsinc].port = port;
+          hueIPs[hueIPsinc].bridgeid = bridgeid;
         }
       }
       else {
@@ -568,6 +598,7 @@ const philipshueWizard = (() => {
       let d = {};
       d.host = $('#host').val();
       d.port = parseInt($('#port').val());
+      d.bridgeid = $('#bridgeid').val();
       d.username = $('#user').val();
       d.type = 'philipshue';
       d.colorOrder = 'rgb';
@@ -625,8 +656,9 @@ const philipshueWizard = (() => {
   function createHueUser() {
     const host = hueIPs[hueIPsinc].host;
     const port = hueIPs[hueIPsinc].port;
+    const bridgeid = hueIPs[hueIPsinc].bridgeid;
 
-    let params = { host: host };
+    let params = { host, bridgeid };
     if (port !== 'undefined') {
       params.port = parseInt(port);
     }
@@ -666,6 +698,7 @@ const philipshueWizard = (() => {
                 conf_editor.getEditor("root.specificOptions.username").setValue(username);
                 conf_editor.getEditor("root.specificOptions.host").setValue(host);
                 conf_editor.getEditor("root.specificOptions.port").setValue(port);
+                conf_editor.getEditor("root.specificOptions.bridgeid").setValue(bridgeid);
               }
 
               if (isEntertainmentReady) {
@@ -691,34 +724,23 @@ const philipshueWizard = (() => {
   }
 
   function get_hue_groups(username) {
-    const host = hueIPs[hueIPsinc].host;
-
-    if (devicesProperties['philipshue'][host] && devicesProperties['philipshue'][host][username]) {
-      const ledProperties = devicesProperties['philipshue'][host][username];
-
-      if (isAPIv2Ready) {
-        if (!jQuery.isEmptyObject(ledProperties.data)) {
-          if (Object.keys(ledProperties.data).length > 0) {
-            hueEntertainmentConfigs = ledProperties.data.filter(config => {
-              return config.type === "entertainment_configuration";
-            });
-            hueEntertainmentServices = ledProperties.data.filter(config => {
-              return (config.type === "entertainment" && config.renderer === true);
-            });
-          }
-        }
-      } else if (!jQuery.isEmptyObject(ledProperties.groups)) {
-        hueEntertainmentConfigs = [];
-        let hueGroups = ledProperties.groups;
-        for (const groupid in hueGroups) {
-          if (hueGroups[groupid].type == 'Entertainment') {
-            hueGroups[groupid].id = groupid;
-            hueEntertainmentConfigs.push(hueGroups[groupid]);
-          }
+  const host = hueIPs[hueIPsinc]?.host;
+  const ledProperties = getLedDeviceProperty('philipshue', host, username);
+  if (ledProperties) {
+    if (isAPIv2Ready && Array.isArray(ledProperties?.data) && ledProperties.data.length > 0) {
+      hueEntertainmentConfigs = ledProperties.data.filter(config => config.type === "entertainment_configuration");
+      hueEntertainmentServices = ledProperties.data.filter(config => config.type === "entertainment" && config.renderer === true);
+    } else if (ledProperties?.groups && Object.keys(ledProperties.groups).length > 0) {
+      hueEntertainmentConfigs = [];
+      const hueGroups = ledProperties.groups;
+      for (const [groupid, group] of Object.entries(hueGroups)) {
+        if (group.type === 'Entertainment') {
+          hueEntertainmentConfigs.push({ ...group, id: groupid });
         }
       }
+    }
 
-      if (Object.keys(hueEntertainmentConfigs).length > 0) {
+  if (hueEntertainmentConfigs?.length > 0) {
 
         $('.lidsb').html("");
         $('#wh_topcontainer').toggle(false);
@@ -740,12 +762,13 @@ const philipshueWizard = (() => {
     $('#wizp2_body').on('click', '.btn-identify', function () {
       const hostname = $(this).data('hostname');
       const port = $(this).data('port');
+      const bridgeid = $(this).data('bridgeid');
       const user = $(this).data('user');
       const lightName = $(this).data('light-name');
       const lightId = $(this).data('light-id');
       const lightId_v1 = $(this).data('light-id-v1');
 
-      identify(hostname, port, user, lightName, lightId, lightId_v1);
+      identify(hostname, port, bridgeid, user, lightName, lightId, lightId_v1);
     });
   }
   function attachGroupButtonEvent() {
@@ -772,19 +795,16 @@ const philipshueWizard = (() => {
 
   function get_hue_lights(username) {
     const host = hueIPs[hueIPsinc].host;
+    const port = hueIPs[hueIPsinc].port;
 
-    if (devicesProperties['philipshue'][host] && devicesProperties['philipshue'][host][username]) {
-      const ledProperties = devicesProperties['philipshue'][host][username];
-
+    const ledProperties = getLedDeviceProperty('philipshue', host, username);
+    if (ledProperties) {
       if (isAPIv2Ready) {
-        if (!jQuery.isEmptyObject(ledProperties.data)) {
-          if (Object.keys(ledProperties.data).length > 0) {
-            hueLights = ledProperties.data.filter(config => {
-              return config.type === "light";
-            });
-          }
+        const data = ledProperties?.data;
+        if (Array.isArray(data) && data.length > 0) {
+          hueLights = data.filter(config => config.type === "light");
         }
-      } else if (!jQuery.isEmptyObject(ledProperties.lights)) {
+      } else if (Array.isArray(ledProperties?.lights) && ledProperties.lights.length > 0) {
         hueLights = ledProperties.lights;
       }
 
@@ -800,6 +820,7 @@ const philipshueWizard = (() => {
           lightOptions.unshift("entertainment");
         } else {
           lightOptions.unshift("disabled");
+          groupLights = [];
           if (isAPIv2Ready) {
             for (const light in hueLights) {
               groupLights.push(hueLights[light].id);
@@ -865,7 +886,7 @@ const philipshueWizard = (() => {
           '<select id="hue_' + lightId + '" class="hue_sel_watch form-control">'
           + options
           + '</select>',
-          '<button class="btn btn-sm btn-primary btn-identify" data-hostname="' + encodeURIComponent($(" #host").val()) + '" data-port="' + $('#port').val() + '" data-user="' + $("#user").val() + '" data-light-name="' + encodeURIComponent(lightName) + '" data-light-id="' + lightId + '" data-light-id-v1="' + lightId_v1 + '">'
+          '<button class="btn btn-sm btn-primary btn-identify" data-hostname="' + encodeURIComponent(host) + '" data-port="' + port + '" data-bridgeid="' + $('#bridgeid').val() + '" data-user="' + $("#user").val() + '" data-light-name="' + encodeURIComponent(lightName) + '" data-light-id="' + lightId + '" data-light-id-v1="' + lightId_v1 + '">'
           + $.i18n('wiz_hue_blinkblue', id)
           + '</button>']));
         }
@@ -914,23 +935,36 @@ const philipshueWizard = (() => {
       $('#wizp2_body').html('<div id="wh_topcontainer"></div>');
 
       let topContainer_html = '<p class="text-left" style="font-weight:bold">' + $.i18n(hue_desc1) + '</p>' +
-        '<div class="row">' +
+        '<div class="row" style="display: flex; align-items: center; margin-bottom: 10px;">' +
         '<div class="col-md-2">' +
-        '  <p class="text-left">' + $.i18n('wiz_hue_ip') + '</p></div>' +
+        '  <p class="text-left" style="margin:0;">' + $.i18n('wiz_hue_bridge') + '</p></div>' +
         '  <div class="col-md-7"><div class="input-group">' +
         '    <span class="input-group-addon" id="retry_bridge" style="cursor:pointer"><i class="fa fa-refresh"></i></span>' +
         '    <select id="hue_bridge_select" class="hue_bridge_sel_watch form-control">' + '</select>' + '</div></div>' +
-        '  <div class="col-md-7"><div class="input-group">' +
-        '    <span class="input-group-addon"><i class="fa fa-arrow-right"></i></span>' +
-        '    <input type="text" class="input-group form-control" id="host" placeholder="' + $.i18n('wiz_hue_ip') + '"></div></div>';
+        '</div>';
+
+      if (storedAccess === 'expert') {
+        topContainer_html += '<div class="row" style="display: flex; align-items: center; margin-bottom: 10px; margin-top: 30px;">' +
+          '<div class="col-md-2"><p class="text-left" style="margin:0;">' + $.i18n('edt_dev_spec_bridgeid_title') + '</p></div>' +
+          '<div class="col-md-7"><div class="input-group">' +
+          '<span class="input-group-addon"><i class="fa fa-qrcode"></i></span>' +
+          '<input type="text" class="input-group form-control" id="bridgeid" placeholder="' + $.i18n('edt_dev_spec_bridgeid_title') + '"></div></div></div>';
+      }
+
+      topContainer_html += '<div class="row" style="display: flex; align-items: center; margin-bottom: 10px;">' +
+        '<div class="col-md-2"><p class="text-left" style="margin:0;">' + $.i18n('edt_dev_spec_targetIpHost_title') + '</p></div>' +
+        '<div class="col-md-7"><div class="input-group">' +
+        '<span class="input-group-addon"><i class="fa fa-arrow-right"></i></span>' +
+        '<input type="text" class="input-group form-control" id="host" placeholder="' + $.i18n('edt_dev_spec_targetIpHost_title') + '"></div></div>';
 
       if (storedAccess === 'expert') {
         topContainer_html += '<div class="col-md-3"><div class="input-group">' +
           '<span class="input-group-addon">:</span>' +
           '<input type="text" class="input-group form-control" id="port" placeholder="' + $.i18n('edt_conf_general_port_title') + '"></div></div>';
       }
+      topContainer_html += '</div><div class="row" style="margin-top: 15px;"><div text-center"><p><span style="font-weight:bold;color:red" id="wiz_hue_ipstate"></span><span style="font-weight:bold;" id="wiz_hue_discovered"></span></p></div></div>';
 
-      topContainer_html += '</div><p><span style="font-weight:bold;color:red" id="wiz_hue_ipstate"></span><span style="font-weight:bold;" id="wiz_hue_discovered"></span></p>';
+      // Hidden fields
       topContainer_html += '<div class="form-group" id="usrcont" style="display:none"></div>';
 
       $('#wh_topcontainer').append(topContainer_html);

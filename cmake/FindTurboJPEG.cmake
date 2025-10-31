@@ -1,49 +1,49 @@
 #  FindTurboJPEG.cmake
 #  TURBOJPEG_FOUND
-#  TurboJPEG_INCLUDE_DIRS
+#  TurboJPEG_INCLUDE_DIR
 #  TurboJPEG_LIBRARY
 
-if (ENABLE_MF)
-	find_path(TurboJPEG_INCLUDE_DIRS
-		NAMES turbojpeg.h
-		PATHS
+set(TURBOJPEG_ROOT_DIR "${TURBOJPEG_ROOT_DIR}" CACHE PATH "Root directory to search for TurboJPEG")
+
+find_path(TurboJPEG_INCLUDE_DIR
+	NAMES
+		turbojpeg.h
+	PATHS
 		"C:/libjpeg-turbo64"
-		PATH_SUFFIXES include
-	)
+	HINTS
+		${TURBOJPEG_ROOT_DIR}
+	PATH_SUFFIXES
+		include
+)
 
-	find_library(TurboJPEG_LIBRARY
-		NAMES turbojpeg turbojpeg-static
-		PATHS
+find_library(TurboJPEG_LIBRARY
+	NAMES
+		turbojpeg-static
+		turbojpeg
+		libturbojpeg-static
+		libturbojpeg
+	PATHS
 		"C:/libjpeg-turbo64"
-		PATH_SUFFIXES bin lib
-	)
-else()
-	find_path(TurboJPEG_INCLUDE_DIRS
-		NAMES turbojpeg.h
-		PATH_SUFFIXES include
-	)
-
-	find_library(TurboJPEG_LIBRARY
-		NAMES turbojpeg turbojpeg-static
-		PATH_SUFFIXES bin lib
-	)
-endif()
-
-if(TurboJPEG_INCLUDE_DIRS AND TurboJPEG_LIBRARY)
-	include(CheckCSourceCompiles)
-	include(CMakePushCheckState)
-
-	cmake_push_check_state(RESET)
-	list(APPEND CMAKE_REQUIRED_INCLUDES ${TurboJPEG_INCLUDE_DIRS})
-	list(APPEND CMAKE_REQUIRED_LIBRARIES ${TurboJPEG_LIBRARY})
-
-	check_c_source_compiles("#include <turbojpeg.h>\nint main(void) { tjhandle h=tjInitCompress(); return 0; }" TURBOJPEG_WORKS)
-	cmake_pop_check_state()
-endif()
+	HINTS
+		${TURBOJPEG_ROOT_DIR}
+	PATH_SUFFIXES
+		bin
+		lib
+)
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(TurboJPEG
-	FOUND_VAR TURBOJPEG_FOUND
-	REQUIRED_VARS TurboJPEG_LIBRARY TurboJPEG_INCLUDE_DIRS TURBOJPEG_WORKS
-	TurboJPEG_INCLUDE_DIRS TurboJPEG_LIBRARY
+	FOUND_VAR
+		TurboJPEG_FOUND
+	REQUIRED_VARS
+		TurboJPEG_LIBRARY
+		TurboJPEG_INCLUDE_DIR
 )
+
+if(TurboJPEG_FOUND AND NOT TARGET turbojpeg)
+	add_library(turbojpeg UNKNOWN IMPORTED GLOBAL)
+	set_target_properties(turbojpeg PROPERTIES
+		INTERFACE_INCLUDE_DIRECTORIES "${TurboJPEG_INCLUDE_DIR}"
+		IMPORTED_LOCATION "${TurboJPEG_LIBRARY}"
+	)
+endif()

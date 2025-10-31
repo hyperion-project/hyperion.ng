@@ -4,6 +4,9 @@ import time
 # Get parameters
 sleepTime = float(hyperion.args.get('sleepTime', 0.5))
 
+# Limit update rate
+sleepTime = max(hyperion.lowestUpdateInterval(), sleepTime)
+
 def TestRgb( iteration ):
 
     switcher = {

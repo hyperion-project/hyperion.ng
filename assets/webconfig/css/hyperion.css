@@ -245,20 +245,17 @@ table.first_cell_borderless td:first-child{width: 25px !important;}
 .mdi-lead-pencil, .mdi-delete-forever {font-size: 22px;}
 
 /*led preview & led visualisation*/
-body {
-  --background-var: none;
-  --width-var: 0px;
-  --height-var: 0px;
-}
-
 #leds_canvas {
   position:absolute;
   margin:15px;
   background-repeat:no-repeat;
   background-position: center;
+  --background-var: none;
+  --width-var: 0px;
+  --height-var: 0px;
 }
 
-#leds_canvas:before {
+#leds_canvas::before {
   content: "";
   position:absolute;
 
@@ -279,6 +276,10 @@ body {
 
   filter: blur(10px);
   background-size: cover;
+
+  /* Safari optimization for pseudo-elements */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 .led { display:inline-block; border: 1px solid black; position:absolute; opacity:0.8; text-align:center; vertical-align:middle; padding:4px;  border-radius:2px;}

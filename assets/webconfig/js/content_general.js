@@ -1,171 +1,228 @@
 $(document).ready(function () {
+  // Perform translation on page load
   performTranslation();
 
-  var importedConf;
-  var confName;
-  var conf_editor = null;
+  let importedConf;
+  let confName;
+  let conf_editor = null;
 
+  // Initialize the configuration panel
   $('#conf_cont').append(createOptPanel('fa-wrench', $.i18n("edt_conf_gen_heading_title"), 'editor_container', 'btn_submit', 'panel-system'));
+
+  // Show help if needed
   if (window.showOptHelp) {
     $('#conf_cont').append(createHelpTable(window.schema.general.properties, $.i18n("edt_conf_gen_heading_title")));
-  }
-  else
+  } else {
     $('#conf_imp').appendTo('#conf_cont');
+  }
 
-  conf_editor = createJsonEditor('editor_container', {
-    general: window.schema.general
-  }, true, true);
+  // Create JSON editor
+  conf_editor = createJsonEditor('editor_container', { general: window.schema.general }, true, true);
 
+  // Handle editor change
   conf_editor.on('change', function () {
-    conf_editor.validate().length || window.readOnlyMode ? $('#btn_submit').prop('disabled', true) : $('#btn_submit').prop('disabled', false);
+    const isValid = !conf_editor.validate().length && !window.readOnlyMode;
+    $('#btn_submit').prop('disabled', !isValid);
   });
 
+  // Submit button click handler
   $('#btn_submit').off().on('click', function () {
     window.showOptHelp = conf_editor.getEditor("root.general.showOptHelp").getValue();
     requestWriteConfig(conf_editor.getValue());
   });
 
-  // Instance handling
-  function handleInstanceRename(e) {
+  createTable('ithead', 'itbody', 'itable');
 
-    var inst = e.currentTarget.id.split("_")[1];
-    showInfoDialog('renInst', $.i18n('conf_general_inst_renreq_t'), getInstanceNameByIndex(inst));
+  // Initialize the table header
+  if ($('#ithead').length === 0) {
+    $('.ithead').html(createTableRow([$.i18n('conf_general_inst_namehead'), "", $.i18n('conf_general_inst_actionhead'), ""], true, true));
+  }
 
+  buildInstanceList();
+
+  // Instance handling functions
+  function handleInstanceRename(instance) {
+    showInfoDialog('renInst', $.i18n('conf_general_inst_renreq_t'), getInstanceName(instance));
+
+    // Rename button click handler
     $("#id_btn_ok").off().on('click', function () {
-      requestInstanceRename(inst, encodeHTML($('#renInst_name').val()))
+      requestInstanceRename(instance, encodeHTML($('#renInst_name').val()));
     });
 
+    // Input handler for rename field
     $('#renInst_name').off().on('input', function (e) {
-      (e.currentTarget.value.length >= 5 && e.currentTarget.value != getInstanceNameByIndex(inst)) ? $('#id_btn_ok').prop('disabled', false) : $('#id_btn_ok').prop('disabled', true);
+      const isValid = e.currentTarget.value.length >= 5 && e.currentTarget.value !== getInstanceName(instance);
+      $('#id_btn_ok').prop('disabled', !isValid);
     });
   }
 
-  function handleInstanceDelete(e) {
-    var inst = e.currentTarget.id.split("_")[1];
-    showInfoDialog('delInst', $.i18n('conf_general_inst_delreq_h'), $.i18n('conf_general_inst_delreq_t', getInstanceNameByIndex(inst)));
+  function handleInstanceDelete(instance) {
+    showInfoDialog('delInst', $.i18n('conf_general_inst_delreq_h'), $.i18n('conf_general_inst_delreq_t', getInstanceName(instance)));
+
+    // Delete button click handler
     $("#id_btn_yes").off().on('click', function () {
-      requestInstanceDelete(inst)
+      requestInstanceDelete(instance);
     });
   }
 
+  // Build the instance list
   function buildInstanceList() {
-    var inst = serverInfo.instance
-    $('.itbody').html("");
-    for (var key in inst) {
-      var enable_style = inst[key].running ? "checked" : "";
-      var renameBtn = '<button id="instren_' + inst[key].instance + '" type="button" class="btn btn-primary"><i class="mdi mdi-lead-pencil""></i></button>';
-      var startBtn = ""
-      var delBtn = "";
-      if (inst[key].instance > 0) {
-        delBtn = '<button id="instdel_' + inst[key].instance + '" type="button" class="btn btn-danger"><i class="mdi mdi-delete-forever""></i></button>';
-        startBtn = '<input id="inst_' + inst[key].instance + '"' + enable_style + ' type="checkbox" data-toggle="toggle" data-onstyle="success font-weight-bold" data-on="' + $.i18n('general_btn_on') + '" data-offstyle="default font-weight-bold" data-off="' + $.i18n('general_btn_off') + '">';
 
+    const $itbody = $('.itbody');
+    if ($itbody.length === 0) {
+      console.warn("Element '.itbody' does not exist. Aborting instance list build.");
+      return;
+    }
+
+    const data = window.serverInfo.instance;
+    if (data) {
+      const instances = Object.values(data);
+
+      // Sort instances by friendly_name (case-insensitive)
+      instances.sort((a, b) => a.friendly_name.toLowerCase().localeCompare(b.friendly_name.toLowerCase()));
+
+      $itbody.empty(); // Explicitly clear the content before adding new rows
+
+      // Collect rows in a document fragment for efficient DOM updates
+      const $rows = $(document.createDocumentFragment());
+
+      // Build all instance rows
+      for (const instance of instances) {
+        const instanceID = instance.instance;
+        const enableStyle = instance.running ? "checked" : "";
+        const renameBtn = `<button id="instren_${instanceID}" type="button" class="btn btn-primary">
+                               <i class="mdi mdi-lead-pencil"></i>
+                           </button>`;
+        const delBtn = `<button id="instdel_${instanceID}" type="button" class="btn btn-danger">
+                            <i class="mdi mdi-delete-forever"></i>
+                        </button>`;
+        const startBtn = `<input id="inst_${instanceID}" ${enableStyle} type="checkbox" 
+                             class="toggle-instance" 
+                             data-toggle="toggle" data-onstyle="success font-weight-bold" 
+                             data-on="${$.i18n('general_btn_on')}" data-offstyle="default font-weight-bold" 
+                             data-off="${$.i18n('general_btn_off')}">`;
+
+        const $row = createTableRow(
+          [instance.friendly_name, startBtn, renameBtn, delBtn],
+          false,
+          true
+        );
+
+        $rows.append($row);
       }
-      $('.itbody').append(createTableRow([inst[key].friendly_name, startBtn, renameBtn, delBtn], false, true));
-      $('#instren_' + inst[key].instance).off().on('click', handleInstanceRename);
 
-      $('#inst_' + inst[key].instance).bootstrapToggle();
-      $('#inst_' + inst[key].instance).on("change", e => {
-        requestInstanceStartStop(e.currentTarget.id.split('_').pop(), e.currentTarget.checked);
-      });
-      $('#instdel_' + inst[key].instance).off().on('click', handleInstanceDelete);
+      $itbody.append($rows);
 
-      window.readOnlyMode ? $('#instren_' + inst[key].instance).prop('disabled', true) : $('#btn_submit').prop('disabled', false);
-      window.readOnlyMode ? $('#inst_' + inst[key].instance).prop('disabled', true) : $('#btn_submit').prop('disabled', false);
-      window.readOnlyMode ? $('#instdel_' + inst[key].instance).prop('disabled', true) : $('#btn_submit').prop('disabled', false);
+      // Apply Bootstrap toggles and event handlers
+      for (const instance of instances) {
+        const instanceID = instance.instance;
+        const readOnly = window.readOnlyMode;
+
+        $('#instren_' + instanceID).prop('disabled', readOnly).off().on('click', function () {
+          handleInstanceRename(instanceID);
+        });
+
+        $('#instdel_' + instanceID).prop('disabled', readOnly).off().on('click', function () {
+          handleInstanceDelete(instanceID);
+        });
+
+        const $toggle = $('#inst_' + instanceID);
+        $toggle.prop('disabled', readOnly);
+        $toggle.bootstrapToggle(); // Reapply toggle
+        $toggle.off('change').on('change', function () {
+          const isChecked = $(this).prop('checked');
+          requestInstanceStartStop(instanceID, isChecked);
+        });
+      }
     }
   }
 
-  createTable('ithead', 'itbody', 'itable');
-  $('.ithead').html(createTableRow([$.i18n('conf_general_inst_namehead'), "", $.i18n('conf_general_inst_actionhead'), ""], true, true));
-  buildInstanceList();
-
+  // Instance name input validation
   $('#inst_name').off().on('input', function (e) {
-    (e.currentTarget.value.length >= 5) && !window.readOnlyMode ? $('#btn_create_inst').prop('disabled', false) : $('#btn_create_inst').prop('disabled', true);
-    if (5 - e.currentTarget.value.length >= 1 && 5 - e.currentTarget.value.length <= 4)
-      $('#inst_chars_needed').html(5 - e.currentTarget.value.length + " " + $.i18n('general_chars_needed'))
-    else
-      $('#inst_chars_needed').html("<br />")
+    const isValid = e.currentTarget.value.length >= 5 && !window.readOnlyMode;
+    $('#btn_create_inst').prop('disabled', !isValid);
+
+    const charsNeeded = 5 - e.currentTarget.value.length;
+    $('#inst_chars_needed').html(charsNeeded >= 1 && charsNeeded <= 4 ? `${charsNeeded} ${$.i18n('general_chars_needed')}` : "<br />");
   });
 
+  // Instance creation button click handler
   $('#btn_create_inst').off().on('click', function (e) {
     requestInstanceCreate(encodeHTML($('#inst_name').val()));
     $('#inst_name').val("");
-    $('#btn_create_inst').prop('disabled', true)
+    $('#btn_create_inst').prop('disabled', true);
   });
 
+  // Instance updated event listener
   $(hyperion).off("instance-updated").on("instance-updated", function (event) {
-    buildInstanceList()
+    buildInstanceList();
   });
 
-  //import
+  // Import handling functions
   function dis_imp_btn(state) {
-    state || window.readOnlyMode ? $('#btn_import_conf').prop('disabled', true) : $('#btn_import_conf').prop('disabled', false);
+    $('#btn_import_conf').prop('disabled', state || window.readOnlyMode);
   }
 
   function readFile(evt) {
-    var f = evt.target.files[0];
-
+    const f = evt.target.files[0];
     if (f) {
-      var r = new FileReader();
+      const r = new FileReader();
       r.onload = function (e) {
-        var content = e.target.result.replace(/[^:]?\/\/.*/g, ''); //remove Comments
+        let content = e.target.result.replace(/[^:]?\/\/.*/g, ''); // Remove comments
 
-        //check file is json
-        var check = isJsonString(content);
-        if (check.length != 0) {
+        // Check if the content is valid JSON
+        const check = isJsonString(content);
+        if (check.length !== 0) {
           showInfoDialog('error', "", $.i18n('infoDialog_import_jsonerror_text', f.name, JSON.stringify(check.message)));
           dis_imp_btn(true);
-        }
-        else {
+        } else {
           content = JSON.parse(content);
-          //check for hyperion json
           if (typeof content.global === 'undefined' || typeof content.instances === 'undefined') {
             showInfoDialog('error', "", $.i18n('infoDialog_import_version_error_text', f.name));
             dis_imp_btn(true);
-          }
-          else {
+          } else {
             dis_imp_btn(false);
             importedConf = content;
             confName = f.name;
           }
         }
-      }
+      };
       r.readAsText(f);
     }
   }
 
+  // Import button click handler
   $('#btn_import_conf').off().on('click', function () {
     showInfoDialog('import', $.i18n('infoDialog_import_confirm_title'), $.i18n('infoDialog_import_confirm_text', confName));
 
-      $('#id_btn_import').off().on('click', function () {
+    $('#id_btn_import').off().on('click', function () {
       requestRestoreConfig(importedConf);
     });
-
   });
 
+  // Import file selection change handler
   $('#select_import_conf').off().on('change', function (e) {
-    if (window.File && window.FileReader && window.FileList && window.Blob)
+    if (window.File && window.FileReader && window.FileList && window.Blob) {
       readFile(e);
-    else
+    } else {
       showInfoDialog('error', "", $.i18n('infoDialog_import_comperror_text'));
+    }
   });
 
-  //export
-  $('#btn_export_conf').off().on('click', async () => 
-  {
+  // Export configuration
+  $('#btn_export_conf').off().on('click', async () => {
     const d = new Date();
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
     const timestamp = `${d.getFullYear()}-${month}-${day}`;
 
-	const configBackup = await requestConfig();
-	if (configBackup.success === true) {
-      download(JSON.stringify(configBackup.info, null, "\t"), 'HyperionBackup-' + timestamp + '_v' + window.currentVersion + '.json', "application/json");
+    const configBackup = await requestServerConfig.async();
+    if (configBackup.success) {
+      download(JSON.stringify(configBackup.info, null, "\t"), `HyperionBackup-${timestamp}_v${window.currentVersion}.json`, "application/json");
     }
   });
 
-  //create introduction
+  // Create introduction hints if help is shown
   if (window.showOptHelp) {
     createHint("intro", $.i18n('conf_general_intro'), "editor_container");
     createHint("intro", $.i18n('conf_general_tok_desc'), "tok_desc_cont");
@@ -175,7 +232,8 @@ $(document).ready(function () {
   removeOverlay();
 });
 
-$(window.hyperion).on("cmd-config-restoreconfig", function (event) {
+// Command for restoring config
+$(window.hyperion).on("cmd-config-restoreconfig", function () {
   setTimeout(initRestart, 100);
 });
 

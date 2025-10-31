@@ -146,17 +146,17 @@ int ProviderHID::writeBytes(unsigned size, const uint8_t * data)
 	}
 
 	// Prepend report ID to the buffer
-	uint8_t ledData[size + 1];
+	std::vector<uint8_t> ledData(size + 1);
 	ledData[0] = 0; // Report ID
-	memcpy(ledData + 1, data, size_t(size));
+	std::memcpy(ledData.data() + 1, data, size);
 
 	// Send data via feature or out report
 	int ret;
 	if(_useFeature){
-		ret = hid_send_feature_report(_deviceHandle, ledData, size + 1);
+		ret = hid_send_feature_report(_deviceHandle, ledData.data(), size + 1);
 	}
 	else{
-		ret = hid_write(_deviceHandle, ledData, size + 1);
+		ret = hid_write(_deviceHandle, ledData.data(), size + 1);
 	}
 
 	// Handle first error
@@ -167,11 +167,11 @@ int ProviderHID::writeBytes(unsigned size, const uint8_t * data)
 		// Try again
 		if(_useFeature)
 		{
-			ret = hid_send_feature_report(_deviceHandle, ledData, size + 1);
+			ret = hid_send_feature_report(_deviceHandle, ledData.data(), size + 1);
 		}
 		else
 		{
-			ret = hid_write(_deviceHandle, ledData, size + 1);
+			ret = hid_write(_deviceHandle, ledData.data(), size + 1);
 		}
 
 		// Writing failed again, device might have disconnected

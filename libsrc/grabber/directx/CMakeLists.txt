@@ -9,9 +9,5 @@ add_library(directx-grabber
 
 target_link_libraries(directx-grabber
 	hyperion
-	${DIRECTX9_LIBRARIES}
-)
-
-target_include_directories(directx-grabber PUBLIC
-	${DIRECTX9_INCLUDE_DIRS}
+	directx9
 )

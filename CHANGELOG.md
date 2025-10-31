@@ -4,57 +4,209 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.0.16...HEAD)
+## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.1.1...HEAD)
 
-### Breaking
+### ⚠️ Breaking Changes
 
-**JSON-API**
-- Align JSON subscription update elements. `ledcolors-imagestream-update, ledcolors-ledstream-update, logmsg-update` now return data via `data` and not `result
-- Global global configuration elements are now separated form instance specific ones
+- Align Hue Bridge processing to Philips' guidance on security, i.e. no self-signed certificates for orginal bridges
 
-### Added
+---
 
-- Support for ftdi chip based LED-devices with ws2812, sk6812 apa102 LED types (Many thanks to @nurikk) (#1746)
-- Support for Skydimo devices (being an Adalight variant)
-- Support gaps on Matrix Layout (#1696)
-- Windows: Added a new grabber that uses the DXGI DDA (Desktop Duplication API). This has much better performance than the DX grabber as it does more of its work on the GPU.
+### ✨ Added
 
-- Support to import, export and backup Hyperion's full configuration via the UI, JSON-API and commandline (`--importConfig, --exportConfig`) (#804)
-- Allow to force starting Hyperion in read-only mode (`--readonlyMode`)
-- JSON-API: Support to query for a dedicated set of configuration items for a set of instances
-- JSON-API: Support to save a dedicated set of configuration items for a set of instances
+- HTTPS support for homeassistant LED devices (#1886)
+- Hue Bridge - Use https and certificates for all API calls, support Bridge Pro (V3)
+- Hue Bridge - Alternate certificate support
 
-**JSON-API**
-- New subscription support for event updates, i.e. `Suspend, Resume, Idle, idleResume, Restart, Quit`.
-- Support direct or multiple instance addressing via single requests (#809)
-- Support of `serverinfo` subcommands: `getInfo, subscribe, unsubscribe, getSubscriptions, getSubscriptionCommands`
-- [Overview](https://github.com/hyperion-project/hyperion.ng/blob/API_Auth/doc/development/JSON-API%20_Commands_Overview.md) of API commands and subscription updates
+---
 
-### Changed
+### 🔧 Changed
 
-- Fixed: Cross Site Scripting Vulnerability (CVE-2024-4174, CVE-2024-4175)
-- Fixed: hyperion-v4l2 taking screenshot failed (#1722)
-- Nanoleaf: Support new devices and do not restore ExtControl state
-- Workaround to address Web UI keeps forcing browser to download the html instead (#1692)
-- Fixed: Kodi Color Calibration, Refactor Wizards (#1674)
-- Fixed: Token Dialog not closing
-- Fixed: Philip Hue APIv2 support without Entertainment group defined (#1742)
-- Refactored: Database access layer
-- Refactored: Hyperion's configuration database is validated before start-up (and migrated, if required)
+- Hue Bridge - Wizard updates to support bridge-ids, overall code refactoring
+- USB Grabber - Default hardware control properties are now applied when a new USB grabber is selected (avoids black images)
 
-**JSON-API**
-- Refactored JSON-API to ensure consistent authorization behaviour across sessions and single requests with token authorization.
-- Provide additional error details with API responses, esp. on JSON parsing, validation or token errors.
-- Generate random TANs for every API request from the Hyperion UI
-- Fixed: Handling of IP4 addresses wrapped in IPv6 for external network connections-
-- Fixed: Local Admin API Authentication rejects valid tokens (#1251)
+- **Fixes:**
+  - UI - Language is not selectable (#1877)
+  - CEC-Handler is not stopped properly
+  - Qt-Grabber (Windows) does not apply pixel ratio (#1882) - _Thanks to @SolberLight_
+  - LED-devices are not retrying to establish connectivity, if supported by the device
+  - LED-devices are resolving IP-addresses for API and UDP two times in sequence
+  - LED-device updates queue up and let Hyperion crash (#1887)
 
-### Removed
+---
 
-**JSON-API**
-- Removed ability to enable/disable local admin authorization. All admin commands require authorization, i.e. `authorize-adminRequired` will always be `true`.
-- Removed `session-updates` subscription
-- `serverinfo/subscribe` element will be deprecated and replaced by corresponding subcommand
+### 🗑️ Removed
+
+### Technical
+
+- Update mbedTLS to v3.6.4, Update flatbuffers to v25.9.23, Update rpi_ws281x library
+
+
+## [2.1.1](https://github.com/hyperion-project/hyperion.ng/compare/2.1.1...HEAD) - 2025-06-14
+
+### 🔧 Changed
+
+- **Fixes:**
+  - WebUI unreachable via IPv6 (#1871)
+  - Align install_pr script working with default Qt6 builds & show authentication failures (#1871)
+  
+- **Build:**
+    - Added Debian Trixie to PR-builds for early testing
+
+## [2.1.0](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.1.0) - 2025-06-12
+
+### ⚠️ Breaking Changes
+
+- Rename "-v" & "--verbose" options to "-i" & "--info to not overlap with version information
+
+#### JSON-API
+- Standardized subscription update elements: `ledcolors-imagestream-update`, `ledcolors-ledstream-update`, and `logmsg-update` now return data under `data` instead of `result`.
+- Global configuration elements are now separated from instance-specific ones.
+
+---
+
+### ✨ Added
+
+- **Windows:** Added a new grabber using **DXGI DDA (Desktop Duplication API)** for improved GPU-based performance. _Thanks to @davidsansome_ (#1745, #1753)
+- Support for **bottom-up image** handling using the MF grabber. _Thanks to @Thinner77_ (#1752)
+- Support for **FTDI** chip-based LED devices (`WS2812`, `SK6812`, `APA102`). _Thanks to @nurikk_ (#1746)
+- Support for **16-bit HD108 LEDs** via SPI. _Thanks to @FutureMan0_ (#1826)
+- Support for **HomeAssistant** devices (#1763)
+- Support for **Skydimo** devices
+- Support for new **Nanoleaf device types**
+- Support for **gaps in matrix layout** (#1696)
+- Support for **NV12 format** in Flat-Buffer image streams
+- Support for **SizeDecimation** in Flat-Buffer inputs
+- Support for **temperature adjustment** (#658)
+- Configurable **grabber inactivity detection** interval (#1740)
+- **Dominant color processing** across the full image, applied to all LEDs (#1853)
+- Selectable **source and target instances** in the forwarder
+- Import, export, and backup of **Hyperion's configuration** via UI, JSON-API, and CLI (`--importConfig`, `--exportConfig`) (#804)
+- Option to **force read-only mode** at startup (`--readonlyMode`)
+- **Effects:** Limit update rate to 200 Hz
+- **Systray:** Support for multiple instances
+- **UI:**
+  - Validation to ensure key ports do not overlap across editors/pages
+  - Enhanced error dialog with additional details
+  - LED preview displays the associated instance name
+- **HTTP Server:** Support for **Cross-Origin Resource Sharing (CORS)** (#1496)
+- **GitHub builds** Added Windows 11 on arm64 platform
+
+#### JSON-API
+- New event subscriptions: `Suspend`, `Resume`, `Idle`, `IdleResume`, `Restart`, `Quit`
+- Support for **direct/multi-instance addressing** within single requests (#809)
+- `serverinfo` subcommands: `getInfo`, `subscribe`, `unsubscribe`, `getSubscriptions`, `getSubscriptionCommands`
+  - [API Overview](https://api.hyperion-project.org/)
+- Query/save specific configuration items per instance
+- Update frequency limits:
+  - Images: 25 Hz
+  - Raw LED colors: 40 Hz
+  - LED device data: 200 Hz
+- Request **instance data** (e.g., image snapshots, LED colors). _Thanks to @xIronic_ (#1839)
+
+---
+
+### 🔧 Changed
+
+- Instances no longer depend on the first instance; any can be created, started, stopped, or removed independently.
+
+- **Security Fixes:**
+  - Fixed Cross-Site Scripting (XSS) vulnerabilities (CVE-2024-4174, CVE-2024-4175)
+  - Added detailed logs for "Trust on first use" certificates, especially when a certificate can't be stored
+
+- **Fixes:**
+  - Broken links in README. _Thanks to @blueicehaller_ (#1780)
+  - RGB24/BGR24 cleanup. _Thanks to @Thinner77_ (#1748, #1749)
+  - Clarifying comments in MF grabber. _Thanks to @Thinner77_ (#1754)
+  - Nanoleaf LED strip overlap error. _Thanks to @geekykayaker_ (#1844)
+  - Philips Hue APIv2 support without Entertainment group (#1742)
+  - `hyperion-v4l2` screenshot failures (#1722)
+  - Token dialog not closing
+  - Kodi color calibration and wizard refactor (#1674)
+  - Forwarding to custom targets (#1713)
+  - Screen capture error (#1824)
+  - Python 3.12 crash fixes (#1747)
+  - UI LED buffer/layout sync issues
+  - Last effect event not cleared in source overview
+  - Smoothing issues (#1863)
+  - Crash when switching display managers (XCB/X11 to Wayland)
+  - Effect not suspended when instance is stopped (#1586)
+  - Background effect incorrectly starts when instance is disabled
+  - Incorrect target directory built during effect export
+  - Removed stale `_logger` object
+  - Windows: improper use of “/dev/null”
+  - Fragmented HTTP headers causing "incorrect HTTP headers" error (#1688)
+  - Misleading "Access Denied" message; disabled "Identify" for the same serial device type (#1737)
+
+- **Web UI:**
+  - Workaround that Content type is wrongly resoved (#1692)
+  - Sorted instance lists; active instances are now highlighted in dropdowns
+
+- **Networking/UI:**
+  - Replaced custom WebSocket implementation with `QWebSockets` (#1816, #1448, #1247, #1130)
+  - Fixed mDNS browser deadlock by moving it to a dedicated thread
+
+- **Platform-Specific:**
+  - **macOS:** Use `ScreenCaptureKit` on macOS 15+
+  - Standalone grabber no longer captures without a connected remote host
+
+- **Layout:**
+  - Removed maximum LED limit from matrix layout schema to match UI (#1804)
+
+- **Refactors:**
+  - ImageResampler improvements. _Thanks to @Thinner77_ (#1744)
+  - Corrected confusing `_noSignalDetected` logic. _Thanks to @Thinner77_ (#1731)
+  - Removed unused libraries for Amlogic. _Thanks to @Portisch_ (#1725)
+  - GrabberWrapper constructors (#1714)
+  - Database access and validation/migration on startup
+  - Forwarder cleanup
+  - Flatbuffer client/connection handling
+  - Decoupled effect definitions from instances
+  - Decoupled WebServer from SSDP handler
+  - Python effects: support parallel processing (Python 3.12)
+  - Corrected threads' affinity
+  - Use of smart pointers
+  - UI code streamlining
+  - Improved `install_pr` script
+  - Replaced exceptions by signaling errors in main program and standalone grabbers
+  - Enhanced resilience and error handling
+
+  - **Build:**
+    - Updated **CompileHowto for macOS**. _Thanks to @Rastafabisch_ (#1757)
+    - Added missing `ENABLE_MDNS`. _Thanks to @Links2004_ (#1711)
+    - Build system now uses **pre-built dependencies** to reduce resource usage
+    - Introduced **CMakePresets** and a **CMakeUserPresets** template
+    - GitHub Windows, Pull request artifacts are built with RelWithDebInfo (#1865 )
+
+#### JSON-API
+- Consistent token authorization across sessions and single requests
+- Improved error messages (e.g., JSON parsing, token issues)
+- Random TAN generation per API request (from UI)
+- Configuration requests no longer require a running instance
+- Commands are ignored during shutdown
+- Fixed IPv4-in-IPv6 handling for external connections
+- Fixed admin authentication token validation (#1251)
+- Fixed error on missing effects in builds
+- Corrected mapping type for running instances
+
+---
+
+### 🗑️ Removed
+
+#### JSON-API
+- Removed the ability to disable local admin authorization
+  - `authorize-adminRequired` is now always `true`
+- Removed: `session-updates` subscription
+- Deprecated: `serverinfo/subscribe`
+  - Use `subscribe` / `unsubscribe` subcommands instead
+- Deprecated: DirectX grabber in favour of the new DXGI DDA grabber
+- Removed "-c" console option on Windows. Hyperion can be started via terminal to get the required console output
+
+#### Builds
+-  Removed builds for following operating system LTS or software component versions, as they are End-of-Life and do not receive maintenance nor security updates any longer
+    - Debian Buster
+    - Ubuntu Focal Fossa (20.04)
+    - Qt5
 
 ## [2.0.16](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.16) - 2024-01
 

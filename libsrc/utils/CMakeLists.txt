@@ -6,6 +6,8 @@ add_library(hyperion-utils
 	# Global defines/signal sharing
 	${CMAKE_SOURCE_DIR}/include/utils/global_defines.h
 	${CMAKE_SOURCE_DIR}/include/utils/GlobalSignals.h
+	# Error signal handler
+	${CMAKE_SOURCE_DIR}/include/utils/ErrorManager.h
 	# JSON Schema Checker
 	${CMAKE_SOURCE_DIR}/include/utils/jsonschema/QJsonFactory.h
 	${CMAKE_SOURCE_DIR}/include/utils/jsonschema/QJsonUtils.h
@@ -62,6 +64,7 @@ add_library(hyperion-utils
 	${CMAKE_SOURCE_DIR}/libsrc/utils/RgbToRgbw.cpp
 	${CMAKE_SOURCE_DIR}/include/utils/RgbTransform.h
 	${CMAKE_SOURCE_DIR}/libsrc/utils/RgbTransform.cpp
+	${CMAKE_SOURCE_DIR}/include/utils/KelvinToRgb.h	
 	# System info class
 	${CMAKE_SOURCE_DIR}/include/utils/SysInfo.h
 	${CMAKE_SOURCE_DIR}/libsrc/utils/SysInfo.cpp
@@ -79,6 +82,8 @@ add_library(hyperion-utils
 	${CMAKE_SOURCE_DIR}/include/utils/Sleep.h
 	# Wait event loop function
 	${CMAKE_SOURCE_DIR}/include/utils/WaitTime.h
+	# Tracking Shared objects' memory
+	${CMAKE_SOURCE_DIR}/include/utils/TrackedMemory.h
 	# Weak connection
 	${CMAKE_SOURCE_DIR}/include/utils/WeakConnect.h
 	# Semver namespace
@@ -97,6 +102,10 @@ target_link_libraries(hyperion-utils
 	Qt${QT_VERSION_MAJOR}::Gui
 	Qt${QT_VERSION_MAJOR}::Network
 )
+
+if(WIN32)
+	target_link_libraries(hyperion-utils dbghelp)
+endif()
 
 if(ENABLE_EFFECTENGINE)
 	target_link_libraries(hyperion-utils python)

@@ -124,13 +124,11 @@
 				"ledshoriz": {
 					"type": "integer",
 					"minimum": 0,
-					"maximum": 50,
 					"default": 0
 				},
 				"ledsvert": {
 					"type": "integer",
 					"minimum": 0,
-					"maximum": 50,
 					"default": 0
 				},
 				"cabling": {
@@ -179,6 +177,7 @@
 			"items": {
 				"type": "object",
 				"title": "conf_leds_layout_blacklist_rule_title",
+				"allowEmptyArray": true,
 				"required": true,
 				"properties": {
 					"start": {

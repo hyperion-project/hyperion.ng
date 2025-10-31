@@ -7,11 +7,14 @@
 			"required" : true,
 			"enum" : ["adjustment"]
 		},
-		"instance" : {
+		"instance": {
 			"type": "array",
-			"required": false,
-			"items" : {},
-			"minItems": 1
+			"items": {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 254
+			},
+			"uniqueItems": true
 		},
 		"tan" : {
 			"type" : "integer"
@@ -152,6 +155,13 @@
 					"required" : false,
 					"minimum" : 0.1,
 					"maximum": 10.0
+				},
+				"temperature" :
+				{
+					"type" : "integer",
+					"required" : false,
+					"minimum" : 1000,
+					"maximum": 40000
 				}
 			},
 			"additionalProperties": false

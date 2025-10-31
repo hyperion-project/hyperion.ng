@@ -33,7 +33,10 @@ public:
 	static const QByteArray & SetCookie;
 	static const QByteArray & TransferEncoding;
 	static const QByteArray & ContentDisposition;
-	static const QByteArray & AccessControlAllow;
+	static const QByteArray & AccessControlAllowOrigin;
+	static const QByteArray & AccessControlAllowMethods;
+	static const QByteArray & AccessControlAllowHeaders;
+	static const QByteArray & AccessControlMaxAge;
 	// Websocket specific headers
 	static const QByteArray & Upgrade;
 	static const QByteArray & SecWebSocketKey;

@@ -16,15 +16,26 @@ class CaptureCont : public QObject
 {
 	Q_OBJECT
 public:
-	CaptureCont(Hyperion* hyperion);
+	explicit CaptureCont(const QSharedPointer<Hyperion>& hyperionInstance);
+	~CaptureCont() override;
 
-	void setSystemCaptureEnable(bool enable);
-	void setV4LCaptureEnable(bool enable);
+	void setScreenCaptureEnable(bool enable);
+	void setVideoCaptureEnable(bool enable);
 	void setAudioCaptureEnable(bool enable);
+
+	///
+	/// @brief Start Capture Control and its timers
+	///
+	void start();
+
+	///
+	/// @brief Stop Capture Control and its timers
+	///
+	void stop();
 
 private slots:
 	///
-	/// @brief Handle component state change of V4L and SystemCapture
+	/// @brief Handle component state change of Video- (V4L/MF) and Screen capture
 	/// @param component  The component from enum
 	/// @param enable     The new state
 	///
@@ -38,16 +49,16 @@ private slots:
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 	///
-	/// @brief forward system image
+	/// @brief forward screen image
 	/// @param image  The image
 	///
-	void handleSystemImage(const QString& name, const Image<ColorRgb>& image);
+	void handleScreenImage(const QString& name, const Image<ColorRgb>& image);
 
 	///
-	/// @brief forward v4l image
+	/// @brief forward video (v4l, MF) image
 	/// @param image  The image
 	///
-	void handleV4lImage(const QString& name, const Image<ColorRgb> & image);
+	void handleVideoImage(const QString& name, const Image<ColorRgb> & image);
 
 	///
 	/// @brief forward audio image
@@ -56,39 +67,40 @@ private slots:
 	void handleAudioImage(const QString& name, const Image<ColorRgb>& image);
 
 	///
-	/// @brief Is called from _v4lInactiveTimer to set source after specific time to inactive
+	/// @brief Sets the video source to inactive
 	///
-	void setV4lInactive();
+	void onVideoIsInactive();
 
 	///
-	/// @brief Is called from _audioInactiveTimer to set source after specific time to inactive
+	/// @brief Sets the screen source to inactive
 	///
-	void setAudioInactive();
+	void onScreenIsInactive();
 
 	///
-	/// @brief Is called from _systemInactiveTimer to set source after specific time to inactive
+	/// @brief Sets the audio source to inactive
 	///
-	void setSystemInactive();
+	void onAudioIsInactive();
+
 
 private:
-	/// Hyperion instance
-	Hyperion* _hyperion;
+	/// Hyperion instance pointer
+	QWeakPointer<Hyperion> _hyperionWeak;
 
-	/// Reflect state of System capture and prio
-	bool _systemCaptEnabled;
-	quint8 _systemCaptPrio;
-	QString _systemCaptName;
-	QTimer* _systemInactiveTimer;
+	/// Reflect state of screen capture and prio
+	bool _screenCaptureEnabled;
+	int _screenCapturePriority;
+	QString _screenCaptureName;
+	QScopedPointer<QTimer> _screenCaptureInactiveTimer;
 
-	/// Reflect state of v4l capture and prio
-	bool _v4lCaptEnabled;
-	quint8 _v4lCaptPrio;
-	QString _v4lCaptName;
-	QTimer* _v4lInactiveTimer;
+	/// Reflect state of video capture and prio
+	bool _videoCaptureEnabled;
+	int _videoCapturePriority;
+	QString _videoCaptureName;
+	QScopedPointer<QTimer> _videoInactiveTimer;
 
 	/// Reflect state of audio capture and prio
-	bool _audioCaptEnabled;
-	quint8 _audioCaptPrio;
-	QString _audioCaptName;
-	QTimer* _audioInactiveTimer;
+	bool _audioCaptureEnabled;
+	int _audioCapturePriority;
+	QString _audioCaptureName;
+	QScopedPointer<QTimer> _audioCaptureInactiveTimer;
 };

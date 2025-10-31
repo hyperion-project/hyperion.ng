@@ -81,31 +81,31 @@ namespace settings {
 	///
 	inline type stringToType(const QString& type)
 	{
-		if      (type == "backgroundEffect")     return BGEFFECT;
-		else if (type == "foregroundEffect")     return FGEFFECT;
-		else if (type == "blackborderdetector")  return BLACKBORDER;
-		else if (type == "boblightServer")       return BOBLSERVER;
-		else if (type == "color")                return COLOR;
-		else if (type == "device")               return DEVICE;
-		else if (type == "effects")              return EFFECTS;
-		else if (type == "forwarder")            return NETFORWARD;
-		else if (type == "framegrabber")         return SYSTEMCAPTURE;
-		else if (type == "general")              return GENERAL;
-		else if (type == "grabberV4L2")          return V4L2;
-		else if (type == "grabberAudio")		 return AUDIO;
-		else if (type == "jsonServer")           return JSONSERVER;
-		else if (type == "ledConfig")            return LEDCONFIG;
-		else if (type == "leds")                 return LEDS;
-		else if (type == "logger")               return LOGGER;
-		else if (type == "smoothing")            return SMOOTHING;
-		else if (type == "webConfig")            return WEBSERVER;
-		else if (type == "instCapture")          return INSTCAPTURE;
-		else if (type == "network")              return NETWORK;
-		else if (type == "flatbufServer")        return FLATBUFSERVER;
-		else if (type == "protoServer")          return PROTOSERVER;
-		else if (type == "osEvents")             return OSEVENTS;
-		else if (type == "cecEvents")            return CECEVENTS;
-		else if (type == "schedEvents")          return SCHEDEVENTS;
-		else                                     return INVALID;
+		if (type == "backgroundEffect")     return BGEFFECT;
+		if (type == "foregroundEffect")     return FGEFFECT;
+		if (type == "blackborderdetector")  return BLACKBORDER;
+		if (type == "boblightServer")       return BOBLSERVER;
+		if (type == "color")                return COLOR;
+		if (type == "device")               return DEVICE;
+		if (type == "effects")              return EFFECTS;
+		if (type == "forwarder")            return NETFORWARD;
+		if (type == "framegrabber")         return SYSTEMCAPTURE;
+		if (type == "general")              return GENERAL;
+		if (type == "grabberV4L2")          return V4L2;
+		if (type == "grabberAudio")         return AUDIO;
+		if (type == "jsonServer")           return JSONSERVER;
+		if (type == "ledConfig")            return LEDCONFIG;
+		if (type == "leds")                 return LEDS;
+		if (type == "logger")               return LOGGER;
+		if (type == "smoothing")            return SMOOTHING;
+		if (type == "webConfig")            return WEBSERVER;
+		if (type == "instCapture")          return INSTCAPTURE;
+		if (type == "network")              return NETWORK;
+		if (type == "flatbufServer")        return FLATBUFSERVER;
+		if (type == "protoServer")          return PROTOSERVER;
+		if (type == "osEvents")             return OSEVENTS;
+		if (type == "cecEvents")            return CECEVENTS;
+		if (type == "schedEvents")          return SCHEDEVENTS;
+		return INVALID;
 	}
 }

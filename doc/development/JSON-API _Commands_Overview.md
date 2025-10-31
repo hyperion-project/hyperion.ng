@@ -10,84 +10,91 @@ _Authorization (via password or bearer token)_
 **Yes** - Authorization required, but can be disabled for local network calls<br>
 **Admin**: Authorization is always required
 
-_Instance specific_
+_Instance Cmd_
 
-**Yes** - A specific instance can be addressed<br>
+**Single** - A specific instance can be addressed<br>
 **Multi** - Multiple instances can be addressed via one request<br>
 **No** - The command is not instance related
+
+_Instance must Run_
+
+**No** - The instance is not required to run<br>
+**Yes** - The instance the command is to be applied to must be running<br>
 
 _http/s Support_
 
 **Yes** - Command can be used by individual http/s requests<br>
 **No** - Applies only to WebSocket or http/s sessions
 
-| Command        | Sub-Command             | Authorization | Instance specific | http/s Support |
-|:---------------|:------------------------|:--------------|:------------------|:---------------|
-| adjustment     | -                       | Yes           | Multi             | Yes            |
-| authorize      | adminRequired           | No            | No                | Yes            |
-| authorize      | answerRequest           | Admin         | No                | No             |
-| authorize      | createToken             | Admin         | No                | No             |
-| authorize      | deleteToken             | Admin         | No                | Yes            |
-| authorize      | getPendingTokenRequests | Admin         | No                | No             |
-| authorize      | getTokenList            | Admin         | No                | Yes            |
-| authorize      | login                   | No            | No                | No             |
-| authorize      | logout                  | No            | No                | No             |
-| authorize      | newPassword             | Admin         | No                | Yes            |
-| authorize      | newPasswordRequired     | No            | No                | Yes            |
-| authorize      | renameToken             | Admin         | No                | Yes            |
-| authorize      | requestToken            | No            | No                | Yes            |
-| authorize      | tokenRequired           | No            | No                | Yes            |
-| clear          | -                       | Yes           | Multi             | Yes            |
-| clearall       | -                       | Yes           | Multi             | Yes            |
-| color          | -                       | Yes           | Multi             | Yes            |
-| componentstate | -                       | Yes           | Multi             | Yes            |
-| config         | getconfig               | Admin         | Yes               | Yes            |
-| config         | getschema               | Admin         | Yes               | Yes            |
-| config         | reload                  | Admin         | Yes               | Yes            |
-| config         | restoreconfig           | Admin         | Yes               | Yes            |
-| config         | setconfig               | Admin         | Yes               | Yes            |
-| correction     | -                       | Yes           | Yes               | Yes            |
-| create-effect  | -                       | Yes           | Yes               | Yes            |
-| delete-effect  | -                       | Yes           | Yes               | Yes            |
-| effect         | -                       | Yes           | Multi             | Yes            |
-| image          | -                       | Yes           | Multi             | Yes            |
-| inputsource    | discover                | Yes           | No                | Yes            |
-| inputsource    | getProperties           | Yes           | No                | Yes            |
-| instance       | createInstance          | Admin         | No                | Yes            |
-| instance       | deleteInstance          | Admin         | No                | Yes            |
-| instance       | saveName                | Admin         | No                | Yes            |
-| instance       | startInstance           | Yes           | No                | Yes            |
-| instance       | stopInstance            | Yes           | No                | Yes            |
-| instance       | switchTo                | Yes           | No                | Yes            |
-| ledcolors      | imagestream-start       | Yes           | Yes               | Yes            |
-| ledcolors      | imagestream-stop        | Yes           | Yes               | Yes            |
-| ledcolors      | ledstream-start         | Yes           | Yes               | Yes            |
-| ledcolors      | ledstream-stop          | Yes           | Yes               | Yes            |
-| leddevice      | addAuthorization        | Yes           | Yes               | Yes            |
-| leddevice      | discover                | Yes           | Yes               | Yes            |
-| leddevice      | getProperties           | Yes           | Yes               | Yes            |
-| leddevice      | identify                | Yes           | Yes               | Yes            |
-| logging        | start                   | Yes           | No                | Yes            |
-| logging        | stop                    | Yes           | No                | Yes            |
-| processing     | -                       | Yes           | Multi             | Yes            |
-| serverinfo     | -                       | Yes           | Yes               | Yes            |
-| serverinfo     | getInfo                 | Yes           | Yes               | Yes            |
-| serverinfo     | subscribe               | Yes           | Yes               | No             |
-| serverinfo     | unsubscribe             | Yes           | Yes               | No             |
-| serverinfo     | getSubscriptions        | Yes           | Yes               | No             |
-| serverinfo     | getSubscriptionCommands | No            | No                | No             |
-| service        | discover                | Yes           | No                | Yes            |
-| sourceselect   | -                       | Yes           | Multi             | Yes            |
-| sysinfo        | -                       | Yes           | No                | Yes            |
-| system         | restart                 | Yes           | No                | Yes            |
-| system         | resume                  | Yes           | No                | Yes            |
-| system         | suspend                 | Yes           | No                | Yes            |
-| system         | toggleSuspend           | Yes           | No                | Yes            |
-| system         | idle                    | Yes           | No                | Yes            |
-| system         | toggleIdle              | Yes           | No                | Yes            |
-| temperature    | -                       | Yes           | Yes               | Yes            |
-| transform      | -                       | Yes           | Yes               | Yes            |
-| videomode      | -                       | Yes           | No                | Yes            |
+| Command        | Sub-Command             | Authorization | Instance Cmd | Instance must Run | http/s Support |
+|----------------|-------------------------|---------------|--------------|-------------------|----------------|
+| adjustment     |                         | Yes           | Multi        | Yes               | Yes            |
+| authorize      | adminRequired           | No            | No           | No                | Yes            |
+| authorize      | answerRequest           | Admin         | No           | No                | No             |
+| authorize      | createToken             | Admin         | No           | No                | No             |
+| authorize      | deleteToken             | Admin         | No           | No                | Yes            |
+| authorize      | getPendingTokenRequests | Admin         | No           | No                | No             |
+| authorize      | getTokenList            | Admin         | No           | No                | Yes            |
+| authorize      | login                   | No            | No           | No                | No             |
+| authorize      | logout                  | No            | No           | No                | No             |
+| authorize      | newPassword             | Admin         | No           | No                | Yes            |
+| authorize      | newPasswordRequired     | No            | No           | No                | Yes            |
+| authorize      | renameToken             | Admin         | No           | No                | Yes            |
+| authorize      | requestToken            | No            | No           | No                | Yes            |
+| authorize      | tokenRequired           | No            | No           | No                | Yes            |
+| clear          |                         | Yes           | Multi        | Yes               | Yes            |
+| clearall       |                         | Yes           | Multi        | Yes               | Yes            |
+| color          |                         | Yes           | Multi        | Yes               | Yes            |
+| componentstate |                         | Yes           | No or Multi  | Yes               | Yes            |
+| config         | getconfig               | Admin         | No           | No                | Yes            |
+| config         | getschema               | Admin         | No           | No                | Yes            |
+| config         | reload                  | Admin         | No           | No                | Yes            |
+| config         | restoreconfig           | Admin         | No           | No                | Yes            |
+| config         | setconfig               | Admin         | No           | No                | Yes            |
+| correction     |                         | Yes           | Single       | Yes               | Yes            |
+| create-effect  |                         | Yes           | No           | No                | Yes            |
+| delete-effect  |                         | Yes           | No           | No                | Yes            |
+| effect         |                         | Yes           | Multi        | Yes               | Yes            |
+| image          |                         | Yes           | Multi        | Yes               | Yes            |
+| inputsource    | discover                | Yes           | No           | No                | Yes            |
+| inputsource    | getProperties           | Yes           | No           | No                | Yes            |
+| instance       | createInstance          | Admin         | No           | No                | Yes            |
+| instance       | deleteInstance          | Admin         | No           | No                | Yes            |
+| instance       | saveName                | Admin         | No           | No                | Yes            |
+| instance       | startInstance           | Yes           | No           | No                | Yes            |
+| instance       | stopInstance            | Yes           | No           | No                | Yes            |
+| instance       | switchTo                | Yes           | No           | No                | Yes            |
+| instance-data  | getImageSnapshot        | Yes           | Single       | Yes               | Yes            |
+| instance-data  | getLedSnapshot          | Yes           | Single       | Yes               | Yes            |
+| ledcolors      | imagestream-start       | Yes           | Single       | Yes               | No             |
+| ledcolors      | imagestream-stop        | Yes           | Single       | Yes               | No             |
+| ledcolors      | ledstream-start         | Yes           | Single       | Yes               | No             |
+| ledcolors      | ledstream-stop          | Yes           | Single       | Yes               | No             |
+| leddevice      | addAuthorization        | Yes           | Single       | Yes               | Yes            |
+| leddevice      | discover                | Yes           | No           | No                | Yes            |
+| leddevice      | getProperties           | Yes           | No           | No                | Yes            |
+| leddevice      | identify                | Yes           | No           | No                | Yes            |
+| logging        | start                   | Yes           | No           | No                | Yes            |
+| logging        | stop                    | Yes           | No           | No                | Yes            |
+| processing     |                         | Yes           | Multi        | Yes               | Yes            |
+| serverinfo     |                         | Yes           | Single       | Yes               | Yes            |
+| serverinfo     | getInfo                 | Yes           | No or Single | Yes               | Yes            |
+| serverinfo     | subscribe               | Yes           | No or Single | Yes               | No             |
+| serverinfo     | unsubscribe             | Yes           | No or Single | Yes               | No             |
+| serverinfo     | getSubscriptions        | Yes           | No or Single | Yes               | No             |
+| serverinfo     | getSubscriptionCommands | No            | No           | No                | No             |
+| service        | discover                | Yes           | No           | No                | Yes            |
+| sourceselect   |                         | Yes           | Multi        | Yes               | Yes            |
+| sysinfo        |                         | Yes           | No           | No                | Yes            |
+| system         | restart                 | Yes           | No           | No                | Yes            |
+| system         | resume                  | Yes           | No           | No                | Yes            |
+| system         | suspend                 | Yes           | No           | No                | Yes            |
+| system         | toggleSuspend           | Yes           | No           | No                | Yes            |
+| system         | idle                    | Yes           | No           | No                | Yes            |
+| system         | toggleIdle              | Yes           | No           | No                | Yes            |
+| temperature    |                         | Yes           | Single       | Yes               | Yes            |
+| transform      |                         | Yes           | Single       | Yes               | Yes            |
+| videomode      |                         | Yes           | No           | No                | Yes            |
 
 ## Subscription updates
 

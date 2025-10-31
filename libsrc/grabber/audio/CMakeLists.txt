@@ -4,7 +4,7 @@ if(WIN32)
 		${CMAKE_SOURCE_DIR}/include/grabber/audio/AudioGrabberWindows.h
 		${CMAKE_SOURCE_DIR}/libsrc/grabber/audio/AudioGrabberWindows.cpp
 	)
-elseif(CMAKE_HOST_UNIX AND NOT APPLE)
+elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	set(AUDIO_GRABBER_SOURCES
 		${CMAKE_SOURCE_DIR}/include/grabber/audio/AudioGrabberLinux.h
 		${CMAKE_SOURCE_DIR}/libsrc/grabber/audio/AudioGrabberLinux.cpp
@@ -21,7 +21,7 @@ add_library(audio-grabber
 
 if(WIN32)
 	set(AUDIO_LIBS DSound)
-elseif(CMAKE_HOST_UNIX AND NOT APPLE)
+elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	set(THREADS_PREFER_PTHREAD_FLAG ON)
 	find_package(ALSA REQUIRED)
 	find_package(Threads REQUIRED)
@@ -33,6 +33,6 @@ target_link_libraries(audio-grabber
 	${AUDIO_LIBS}
 )
 
-if(CMAKE_HOST_UNIX AND NOT APPLE)
+if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	target_include_directories(audio-grabber PUBLIC ${ALSA_INCLUDE_DIRS})
 endif()

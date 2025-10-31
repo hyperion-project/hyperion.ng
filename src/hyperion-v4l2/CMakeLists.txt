@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.0)
+cmake_minimum_required(VERSION 3.10.0)
 project(hyperion-v4l2)
 
 add_executable(${PROJECT_NAME}
@@ -10,9 +10,7 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
 	v4l2-grabber
 	commandline
-	hyperion-utils
 	flatbufconnect
-	flatbuffers
 	Qt${QT_VERSION_MAJOR}::Widgets
 )
 
@@ -22,10 +20,14 @@ else()
 	target_link_libraries(${PROJECT_NAME} ssdp)
 endif()
 
-install (TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin" COMPONENT "hyperion_v4l2")
+target_link_libraries(${PROJECT_NAME}
+	hyperion-utils
+)
+
+install(TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin" COMPONENT "hyperion_v4l2" OPTIONAL)
 
 if(CMAKE_HOST_UNIX)
 	install(CODE "execute_process(COMMAND ln -sf \"../share/hyperion/bin/${PROJECT_NAME}\" \"${CMAKE_BINARY_DIR}/symlink_${PROJECT_NAME}\")" COMPONENT "hyperion_v4l2")
 	install(FILES "${CMAKE_BINARY_DIR}/symlink_${PROJECT_NAME}" DESTINATION "bin" RENAME "${PROJECT_NAME}" COMPONENT "hyperion_v4l2")
 	install(CODE "file (REMOVE ${CMAKE_BINARY_DIR}/symlink_${PROJECT_NAME})" COMPONENT "hyperion_v4l2")
-endif(CMAKE_HOST_UNIX)
+endif()

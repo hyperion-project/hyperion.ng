@@ -2,7 +2,7 @@
 # Script for downloading a specific open Pull Request Artifact from Hyperion.NG
 
 # Fixed variables
-api_url="https://api.github.com/repos/hyperion-project/hyperion.ng"
+api_url="https://api.github.com/repos"
 type wget >/dev/null 2>/dev/null
 hasWget=$?
 type curl >/dev/null 2>/dev/null
@@ -12,10 +12,10 @@ hasPython3=$?
 type python >/dev/null 2>/dev/null
 hasPython2=$?
 
+REPOSITORY="hyperion-project/hyperion.ng"
 DISTRIBUTION="debian"
-CODENAME="bullseye"
+CODEBASE=""
 ARCHITECTURE=""
-WITH_QT5=false
 
 BASE_PATH='.'
 
@@ -35,28 +35,66 @@ else
 	exit 1
 fi
 
-function request_call() {
+request_call() {
+	local url="$1"
+	local response body status_code
+
 	if [ $hasWget -eq 0 ]; then
-		echo $(wget --quiet --header="Authorization: token ${PR_TOKEN}" -O - $1)
+		# Use a temp file to store headers
+		local headers_file=$(mktemp)
+		body=$(wget --quiet --server-response --header="Authorization: token ${PR_TOKEN}" -O - "$url" 2> "$headers_file")
+		status_code=$(awk '/^  HTTP/{code=$2} END{print code}' "$headers_file")
+		rm -f "$headers_file"
+
 	elif [ $hasCurl -eq 0 ]; then
-		echo $(curl -skH "Authorization: token ${PR_TOKEN}" $1)
+		# Append status code at the end of the response
+		response=$(curl -sk -w "\n%{http_code}" -H "Authorization: token ${PR_TOKEN}" "$url")
+		body=$(echo "$response" | sed '$d')                      # All but last line
+		status_code=$(echo "$response" | tail -n1)               # Last line = status code
+	else
+		echo "---> Neither wget nor curl is available." >&2
+		exit 1
 	fi
+
+	# Handle common HTTP errors
+	case "$status_code" in
+		401)
+			echo "---> Error: 401 Unauthorized. Check your token." >&2
+			exit 1
+			;;
+		403)
+			echo "---> Error: 403 Forbidden. You might be rate-limited or lack permissions." >&2
+			exit 1
+			;;
+		404)
+			echo "---> Error: 404 Not Found. URL is incorrect or resource doesn't exist." >&2
+			exit 1
+			;;
+		5*)
+			echo "---> Error: Server error ($status_code). Try again later." >&2
+			exit 1
+			;;
+	esac
+
+	# Success: print response body
+	echo "$body"
 }
 
-while getopts ":a:c:r:t:5" opt; do
+while getopts ":a:b:c:g:r:t:" opt; do
 	case "$opt" in
 	a) ARCHITECTURE=$OPTARG ;;
+	b) CODEBASE=$OPTARG ;;
 	c) CONFIGDIR=$OPTARG ;;
+	g) REPOSITORY=$OPTARG ;;
 	r) run_id=$OPTARG ;;
 	t) PR_TOKEN=$OPTARG ;;
-	5) WITH_QT5=true ;;
 	esac
 done
 shift $((OPTIND - 1))
 
 # Check for a command line argument (PR number)
 if [ "$1" == "" ] || [ $# -gt 1 ] || [ -z ${PR_TOKEN} ]; then
-	echo "Usage: $0 -t <git_token> -a <architecture> -r <run_id> -c <hyperion config directory> <PR_NUMBER>" >&2
+	echo "Usage: $0 -t <git_token> -a <architecture> -b <codebase> -r <run_id> -c <hyperion config directory> -g <github project/repository> <PR_NUMBER>" >&2
 	exit 1
 else
 	pr_number="$1"
@@ -102,21 +140,17 @@ if [ $? -ne 0 ]; then
 	echo "---> Critical Error: Target architecture $ARCHITECTURE is unknown -> abort"
 	exit 1
 else
-	PACKAGE="${ARCHITECTURE}"
-
-	# armv6 has no Qt6 support yet
-	if [[ "${PACKAGE}" == "armv6" ]]; then
-		WITH_QT5=true
+	if [[ -z ${CODEBASE} ]]; then
+		PACKAGE="${ARCHITECTURE}"
+		echo "---> Download package for identified runtime architecture: $ARCHITECTURE"
+	else
+		PACKAGE="${CODEBASE}_${ARCHITECTURE}"
+		echo "---> Download package for identified runtime architecture: $ARCHITECTURE and selected codebase: $CODEBASE"
 	fi
-
-	QTVERSION="5"
-	if [ ${WITH_QT5} == false ]; then
-		QTVERSION="6"
-		PACKAGE="${PACKAGE}_qt6"
-	fi
-
-	echo "---> Download package for identified runtime architecture: $ARCHITECTURE and Qt$QTVERSION"
 fi
+
+api_url="${api_url}/${REPOSITORY}"
+
 
 # Determine if PR number exists
 pulls=$(request_call "$api_url/pulls?state=open")
@@ -132,12 +166,15 @@ for i in data:
 """ 2>/dev/null)
 
 if [ "$pr_exists" != "exists" ]; then
-	echo "---> Pull Request $pr_number not found as open PR -> abort"
-	exit 1
-fi
-
-# Get head_sha value from 'pr_number'
-head_sha=$(echo "$pulls" | tr '\r\n' ' ' | ${pythonCmd} -c """
+	if [ -z "$run_id" ]; then
+		echo "---> Pull Request $pr_number not found as open PR -> abort"
+		exit 1
+	else
+		echo "---> Pull Request $pr_number not found as open PR -> use run_id: ${run_id}"
+	fi
+else
+	# Get head_sha value from 'pr_number'
+	head_sha=$(echo "$pulls" | tr '\r\n' ' ' | ${pythonCmd} -c """
 import json,sys
 data = json.load(sys.stdin)
 
@@ -147,17 +184,20 @@ for i in data:
 		break
 """ 2>/dev/null)
 
-if [ -z "$head_sha" ]; then
-	echo "---> The specified PR #$pr_number has no longer any artifacts or has been closed."
-	echo "---> It may be older than 14 days or a new build currently in progress. Ask the PR creator to recreate the artifacts at the following URL:"
-	echo "---> https://github.com/hyperion-project/hyperion.ng/pull/$pr_number"
-	exit 1
-fi
+	if [ -z "$head_sha" ]; then
 
-if [ -z "$run_id" ]; then
-	# Determine run_id from head_sha
-	runs=$(request_call "$api_url/actions/runs?head_sha=$head_sha")
-	run_id=$(echo "$runs" | tr '\r\n' ' ' | ${pythonCmd} -c """
+		if [ -z "$run_id" ]; then
+			echo "---> The specified PR #$pr_number has no longer any artifacts or has been closed."
+			echo "---> It may be older than 14 days or a new build currently in progress. Ask the PR creator to recreate the artifacts at the following URL:"
+			echo "---> https://github.com/hyperion-project/hyperion.ng/pull/$pr_number"
+		  	exit 1
+		fi
+	fi
+
+	if [ -z "$run_id" ]; then
+		# Determine run_id from head_sha
+		runs=$(request_call "$api_url/actions/runs?head_sha=$head_sha")
+		run_id=$(echo "$runs" | tr '\r\n' ' ' | ${pythonCmd} -c """
 import json,sys,os
 data = json.load(sys.stdin)
 
@@ -166,6 +206,7 @@ for i in data['workflow_runs']:
 		print(i['id'])
 		break
 """ 2>/dev/null)
+	fi
 fi
 
 if [ -z "$run_id" ]; then
@@ -175,6 +216,7 @@ if [ -z "$run_id" ]; then
 	exit 1
 fi
 
+
 # Get archive_download_url from workflow
 artifacts=$(request_call "$api_url/actions/runs/$run_id/artifacts")
 
@@ -183,7 +225,7 @@ import json,sys, re
 data = json.load(sys.stdin)
 
 for i in data['artifacts']:
-     if re.match('.*{}$'.format(re.escape('$PACKAGE')), i['name']):
+     if re.match('^(?!macOS|windows).*{}$'.format(re.escape('$PACKAGE')), i['name'], re.IGNORECASE):
         print(i['name'])
         break
 """ 2>/dev/null)
@@ -193,7 +235,7 @@ import json,sys, re
 data = json.load(sys.stdin)
 
 for i in data['artifacts']:
-    if re.match('.*{}$'.format(re.escape('$PACKAGE')), i['name']):
+    if re.match('^(?!macOS|windows).*{}$'.format(re.escape('$PACKAGE')), i['name'], re.IGNORECASE):
         print(i['archive_download_url'])
         break
 """ 2>/dev/null)
@@ -206,7 +248,7 @@ if [ -z "$archive_download_url" ]; then
 fi
 
 # Download packed PR artifact
-echo "---> Downloading Pull Request #$pr_number, package: $PACKAGE_NAME"
+echo "---> Downloading Pull Request #$pr_number, run_id: $run_id, package: $PACKAGE_NAME"
 if [ $hasCurl -eq 0 ]; then
 	curl -# -kH "Authorization: token ${PR_TOKEN}" -o $BASE_PATH/temp.zip -L --get $archive_download_url
 elif [ $hasWget -eq 0 ]; then

@@ -6,6 +6,7 @@
 // Qt includes
 #include <QSet>
 #include <QJsonDocument>
+#include <QWeakPointer>
 
 // Hyperion includes
 #include <utils/Logger.h>
@@ -31,7 +32,7 @@ public:
 	/// @param hyperion Hyperion instance
 	/// @param port port number on which to start listening for connections
 	///
-	BoblightServer(Hyperion* hyperion, const QJsonDocument& config);
+	explicit BoblightServer(const QSharedPointer<Hyperion>& hyperionInstance, const QJsonDocument& config);
 	~BoblightServer() override;
 
 	///
@@ -76,8 +77,8 @@ private slots:
 	void closedConnection(BoblightClientConnection * connection);
 
 private:
-	/// Hyperion instance
-	Hyperion * _hyperion;
+	/// Hyperion instance pointer
+	QWeakPointer<Hyperion> _hyperionWeak;
 
 	/// The TCP server object
 	QTcpServer * _server;

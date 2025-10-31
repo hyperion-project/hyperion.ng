@@ -116,17 +116,21 @@ QJsonObject SettingsTable::initializeDefaultSettings() const
 
 bool SettingsTable::createSettingsRecord(const QString& type, const QString& config) const
 {
-	QVariantMap map;
-	map["config"] = config;
-	map["updated_at"] = QDateTime::currentDateTimeUtc().toString(Qt::ISODate);
-
 	VectorPair cond;
 	cond.append(CPair("type",type));
-	// when a setting is not global we are searching also for the instance
+
+	QVariant instance {};
 	if(!isGlobalSettingType(type))
 	{
-		cond.append(CPair("AND hyperion_inst",_instance));
+		instance = _instance;
 	}
+	cond.append(CPair("AND hyperion_inst", instance));
+
+	QVariantMap map;
+	map.insert("config", config);
+	map.insert("updated_at", QDateTime::currentDateTimeUtc().toString(Qt::ISODate));
+	map.insert("hyperion_inst", instance);
+
 	return createRecord(cond, map);
 }
 
@@ -134,40 +138,42 @@ bool SettingsTable::recordExist(const QString& type) const
 {
 	VectorPair cond;
 	cond.append(CPair("type",type));
-	// when a setting is not global we are searching also for the instance
+
+	QVariant instance {};
 	if(!isGlobalSettingType(type))
 	{
-		cond.append(CPair("AND hyperion_inst",_instance));
+		instance = _instance;
 	}
+	cond.append(CPair("AND hyperion_inst", instance));
+
 	return recordExists(cond);
 }
 
-QJsonDocument SettingsTable::getSettingsRecord(const QString& type) const
+QVariant SettingsTable::getSettingsRecord(const QString& type) const
 {
 	QVariantMap results;
 	VectorPair cond;
 	cond.append(CPair("type",type));
-	// when a setting is not global we are searching also for the instance
+
+	QVariant instance {};
 	if(!isGlobalSettingType(type))
 	{
-		cond.append(CPair("AND hyperion_inst",_instance));
+		instance.setValue(static_cast<int>(_instance));
 	}
+	cond.append(CPair("AND hyperion_inst", instance));
+
 	getRecord(cond, results, QStringList("config"));
-	return QJsonDocument::fromJson(results["config"].toByteArray());
+	return results.value("config");
+}
+
+QJsonDocument SettingsTable::getSettingsRecordJson(const QString& type) const
+{
+	return QJsonDocument::fromJson(getSettingsRecord(type).toByteArray());
 }
 
 QString SettingsTable::getSettingsRecordString(const QString& type) const
 {
-	QVariantMap results;
-	VectorPair cond;
-	cond.append(CPair("type",type));
-	// when a setting is not global we are searching also for the instance
-	if(!isGlobalSettingType(type))
-	{
-		cond.append(CPair("AND hyperion_inst",_instance));
-	}
-	getRecord(cond, results, QStringList("config"));
-	return results["config"].toString();
+	return getSettingsRecord(type).toString();
 }
 
 QJsonObject SettingsTable::getSettings(const QStringList& filteredTypes ) const
@@ -177,12 +183,17 @@ QJsonObject SettingsTable::getSettings(const QStringList& filteredTypes ) const
 
 QJsonObject SettingsTable::getSettings(const QVariant& instance, const QStringList& filteredTypes ) const
 {
+	if (filteredTypes.contains("__none__"))
+	{
+		return {};
+	}
+
 	QJsonObject settingsObject;
 	QStringList settingsKeys({ "type", "config" });
 	QString settingsCondition;
 	QVariantList conditionValues;
 
-	if (instance.isNull() || instance == GLOABL_INSTANCE_ID )
+	if (instance.isNull() || instance == NO_INSTANCE_ID )
 	{
 		settingsCondition = "hyperion_inst IS NULL";
 	}
@@ -234,7 +245,7 @@ QStringList SettingsTable::nonExtingTypes() const
 {
 	QStringList testTypes;
 	QString condition {"hyperion_inst"};
-	if(_instance == GLOABL_INSTANCE_ID)
+	if(_instance == NO_INSTANCE_ID)
 	{
 		condition += " IS NULL";
 		testTypes = getGlobalSettingTypes().toList();
@@ -263,7 +274,7 @@ QPair<bool, QStringList> SettingsTable::addMissingDefaults()
 	QStringList errorList;
 
 	QJsonObject defaultSettings;
-	if (_instance == GLOABL_INSTANCE_ID)
+	if (_instance == NO_INSTANCE_ID)
 	{
 		defaultSettings = getDefaultSettings().value("global").toObject();
 	}
@@ -275,7 +286,7 @@ QPair<bool, QStringList> SettingsTable::addMissingDefaults()
 	const QStringList missingTypes = nonExtingTypes();
 	if (missingTypes.empty())
 	{
-		Debug(_log, "Instance [%u]: No missing configuration items identified", _instance);
+		Debug(_log, "%s settings: No missing configuration items identified", _instance == NO_INSTANCE_ID ? "Global" : QSTRING_CSTR(QString("Instance [%1]").arg(_instance)) );
 		return qMakePair (true, errorList );
 	}
 
@@ -288,7 +299,7 @@ QPair<bool, QStringList> SettingsTable::addMissingDefaults()
 
 	bool errorOccured {false};
 
-	Info(_log, "Instance [%u]: Add default settings for %d missing configuration items",_instance, missingTypes.size());
+	Info(_log, "%s settings: Add default settings for %d missing configuration items", _instance == NO_INSTANCE_ID ? "Global" : QSTRING_CSTR(QString("Instance [%1]").arg(_instance)), missingTypes.size() );
 	for (const auto &missingType: missingTypes)
 	{
 		if (!createSettingsRecord(missingType, JsonUtils::jsonValueToQString(defaultSettings.value(missingType))))
@@ -299,7 +310,7 @@ QPair<bool, QStringList> SettingsTable::addMissingDefaults()
 
 	if (errorOccured)
 	{
-		QString errorText = "Errors occured while adding missing settings to instance configuration items";
+		QString errorText = "Errors occured while adding missing settings to configuration items";
 		Error(_log, "'%s'", QSTRING_CSTR(errorText));
 		errorList.append(errorText);
 
@@ -315,7 +326,7 @@ QPair<bool, QStringList> SettingsTable::addMissingDefaults()
 
 	if(errorList.isEmpty())
 	{
-		Debug(_log, "Instance [%u]: Successfully defaulted settings for %d missing configuration items", _instance, missingTypes.size());
+		Debug(_log, "%s settings: Successfully defaulted settings for %d missing configuration items", _instance == NO_INSTANCE_ID ? "Global" : QSTRING_CSTR(QString("Instance [%1]").arg(_instance)), missingTypes.size() );
 	}
 
 	return qMakePair (errorList.isEmpty(), errorList );
@@ -349,7 +360,7 @@ QString SettingsTable::fixVersion(const QString& version)
 
 bool SettingsTable::resolveConfigVersion()
 {
-	QJsonObject generalConfig = getSettingsRecord({"general"}).object();
+	QJsonObject generalConfig = getSettingsRecordJson({"general"}).object();
 	return resolveConfigVersion(generalConfig);
 }
 

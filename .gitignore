@@ -43,11 +43,12 @@ deploy/*
 # ccache/buildcache
 .*cache/
 
-# release-deps/debug-deps
-*-deps/
-
 # User defined CMake preset file.
-CMakeUserPresets.json
+/CMakeUserPresets.json
 
 #Configurations created under config for testing
 /configs
+
+#Config database & backups created for testing
+HyperionBackup_*
+hyperion.db

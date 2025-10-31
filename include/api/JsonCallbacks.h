@@ -8,6 +8,7 @@
 #include <QObject>
 #include <QJsonObject>
 #include <QSet>
+#include <QSharedPointer>
 
 #include <utils/Components.h>
 #include <utils/VideoMode.h>
@@ -35,7 +36,7 @@ public:
 
 	///
 	/// @brief Subscribe to future data updates given by subscription list
-	/// @param type   Array of subscriptionsm
+	/// @param type   Array of subscriptions, an empty array subscribes to all updates
 	///
 	QStringList subscribe(const QJsonArray& subscriptions);
 
@@ -55,7 +56,7 @@ public:
 
 	///
 	/// @brief Unsubscribe to future data updates given by subscription list
-	/// @param type   Array of subscriptions
+	/// @param type   Array of subscriptions, an empty array will unsubcribe all current subscriptions
 	///
 	QStringList unsubscribe(const QJsonArray& subscriptions);
 
@@ -86,14 +87,14 @@ public:
 	///
 	/// @brief Re-apply all current subs to a new Hyperion instance, the connections to the old instance will be dropped
 	///
-	void setSubscriptionsTo(Hyperion* hyperion);
+	void setSubscriptionsTo(quint8 instanceID);
 
 signals:
 	///
 	/// @brief Emits whenever a new json mesage callback is ready to send
 	/// @param The JsonObject message
 	///
-	void newCallback(QJsonObject);
+	void callbackReady(QJsonObject);
 
 private slots:
 	///
@@ -178,22 +179,33 @@ private slots:
 	///
 	void handleEventUpdate(const Event &event);
 
+	///
+	/// @brief Handle whenever the state of a instance (HyperionIManager) changes according to enum instanceState
+	/// @param instaneState  A state from enum
+	/// @param instanceId    The index of instance
+	/// @param name          The name of the instance, just available with H_CREATED
+	///
+	void handleInstanceStateChange(InstanceState state, quint8 instanceId, const QString &name = QString());
+
 private:
 
 	/// construct callback msg
 	void doCallback(Subscription::Type cmd, const QVariant& data);
+	void doCallback(Subscription::Type cmd, const QJsonArray& data);
+	void doCallback(Subscription::Type cmd, const QJsonObject& data);
 
 	Logger *_log;
-	Hyperion* _hyperion;
+	quint8 _instanceID;
+	QWeakPointer<Hyperion> _hyperionWeak;
 
 	/// The peer address of the client
 	QString _peerAddress;
 
 	/// pointer of comp register
-	ComponentRegister* _componentRegister;
+	QWeakPointer<ComponentRegister> _componentRegisterWeak;
 
 	/// priority muxer instance
-	PriorityMuxer* _prioMuxer;
+	QWeakPointer<PriorityMuxer> _prioMuxerWeak;
 
 	/// contains active subscriptions
 	QSet<Subscription::Type> _subscribedCommands;

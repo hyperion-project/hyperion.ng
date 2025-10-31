@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SYSTRAY_H
+#define SYSTRAY_H
 
 #ifdef Status
 	#undef Status
@@ -9,51 +10,58 @@
 #include <QWidget>
 #include <QColorDialog>
 #include <QCloseEvent>
+#include <QSharedPointer>
 
-#include <hyperion/Hyperion.h>
 #include <hyperion/HyperionIManager.h>
 #include <events/EventHandler.h>
 
 class HyperionDaemon;
 
-class SysTray : public QWidget
+class SysTray : public QSystemTrayIcon
 {
 	Q_OBJECT
 
 public:
-	SysTray(HyperionDaemon *hyperiond);
-	~SysTray() override;
-
-
-public slots:
-	void showColorDialog();
-	void setColor(const QColor & color);
-	void closeEvent(QCloseEvent *event) override;
-	void settings() const;
-#if defined(ENABLE_EFFECTENGINE)
-	void setEffect();
-#endif
-	void clearEfxColor();
-	void setAutorunState();
+	explicit SysTray(HyperionDaemon* hyperiond);
 
 private slots:
-	void iconActivated(QSystemTrayIcon::ActivationReason reason);
 
-	///
-	/// @brief is called whenever the webserver changes the port
-	///
-	void webserverPortChanged(quint16 port) { _webPort = port; }
+	void onIconActivated(QSystemTrayIcon::ActivationReason reason);
 
-	///
-	/// @brief is called whenever a hyperion instance state changes
-	///
 	void handleInstanceStateChange(InstanceState state, quint8 instance, const QString& name);
 
+	void onWebserverPortChanged(quint16 port) { _webPort = port; }
+
+#if defined(ENABLE_EFFECTENGINE)
+	void onEffectListChanged();
+#endif
+
+private:
 signals:
 	void signalEvent(Event event);
 
 private:
-	void createTrayIcon();
+	void settings() const;
+	void setAutorunState();
+
+	void showColorDialog(int instance);
+
+	void setColor(int instance, const QColor &color);
+	void clearSource(int instance);
+
+#if defined(ENABLE_EFFECTENGINE)
+	void setEffect(int instance, const QString& effectName);
+#endif
+
+	void handleInstanceStarted(quint8 instance);
+	void handleInstanceStopped(quint8 instance);
+
+	QAction *createAction(const QString &text, const QString &iconPath, const std::function<void()> &method);
+
+	// Helper Methods
+	void setupConnections();
+	void createBaseTrayMenu();
+
 
 #ifdef _WIN32
 	///
@@ -63,28 +71,27 @@ private:
 	bool getCurrentAutorunState();
 #endif
 
-	QAction          *quitAction;
-	QAction          *restartAction;
-	QAction          *suspendAction;
-	QAction          *resumeAction;
-	QAction          *startAction;
-	QAction          *stopAction;
-	QAction          *colorAction;
-	QAction          *settingsAction;
-	QAction          *clearAction;
+	// Members
+	HyperionDaemon* _hyperiond;
+	HyperionIManager* _instanceManager;
+	int _webPort = 8090;
+
+	// UI Elements
+	QMenu* _trayMenu;
+	QMap<quint8, QMenu *> _instanceMenus; // Maps instance numbers to their menus
+
+	// Actions
+	QAction* _settingsAction;
+	QAction* _suspendAction;
+	QAction* _resumeAction;
+	QAction* _restartAction;
+	QAction* _quitAction;
+
 #ifdef _WIN32
-	QAction          *autorunAction;
+	QAction* _autorunAction;
 #endif
 
-	QSystemTrayIcon  *_trayIcon;
-	QMenu            *_trayIconMenu;
-#if defined(ENABLE_EFFECTENGINE)
-	QMenu            *_trayIconEfxMenu;
-#endif
-	QMenu            *_trayIconSystemMenu;
-	QColorDialog      _colorDlg;
-	HyperionDaemon   *_hyperiond;
-	Hyperion         *_hyperion;
-	HyperionIManager *_instanceManager;
-	quint16           _webPort;
+	QColorDialog _colorDlg;
 };
+
+#endif // SYSTRAY_H

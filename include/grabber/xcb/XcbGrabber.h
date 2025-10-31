@@ -29,6 +29,13 @@ public:
 
 	~XcbGrabber() override;
 
+	///
+	/// @brief Determine if the grabber is available.
+	///
+	/// @return true, on success (i.e. Window Manager is not Wayland), else false
+	///
+	bool isAvailable(bool logError = true) override;
+
 	bool open();
 	bool setupDisplay();
 
@@ -83,8 +90,6 @@ private:
 	bool _XcbShmAvailable;
 	bool _XcbShmPixmapAvailable;
 	bool _isWayland;
-
-	Logger * _logger;
 
 	uint8_t * _shmData;
 

@@ -14,20 +14,13 @@
 		"instance" : {
 			"type" : "integer",
 			"minimum": 0,
-			"maximum": 255
-		},
-		"data": {
-		  "type": ["null", "array"],
-		  "properties": {
-			"subscriptions": {
-			  "type": "array",
-			  "items": {}
-			}
-		  },
-		  "additionalProperties": false
+			"maximum": 254
 		},
 		"subscribe" : {
-			"type" : "array"
+			"type" : "array",
+			"items": {
+				"type" : "string"
+			}
 		},
 		"tan" : {
 			"type" : "integer"

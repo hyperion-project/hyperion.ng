@@ -1,0 +1,132 @@
+set(MAC_BUNDLE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/@MAC_BUNDLE_NAME@.app")
+set(MAC_BUNDLE_INSTALL_BIN_DIR "${MAC_BUNDLE_INSTALL_DIR}/Contents/MacOS")
+set(MAC_BUNDLE_INSTALL_LIB_DIR "${MAC_BUNDLE_INSTALL_DIR}/Contents/Frameworks")
+set(MAC_BUNDLE_INSTALL_PLUGIN_DIR "${MAC_BUNDLE_INSTALL_DIR}/Contents/plugins")
+set(MAC_BUNDLE_INSTALL_TMP_DIR "${MAC_BUNDLE_INSTALL_DIR}/Contents/tmp")
+set(PYTHON_MODULES_DIR "@PYTHON_MODULES_DIR@")
+set(PYTHON_VERSION "@PYTHON_VERSION@")
+
+foreach(QUERY "QT_INSTALL_PLUGINS" "QT_HOST_LIBS")
+	execute_process(COMMAND "@QMAKE_EXECUTABLE@" -query ${QUERY} OUTPUT_VARIABLE QUERY_OUT OUTPUT_STRIP_TRAILING_WHITESPACE)
+	set(${QUERY} "${QUERY_OUT}")
+endforeach()
+
+if(EXISTS ${MAC_BUNDLE_INSTALL_BIN_DIR}/@MAC_BUNDLE_NAME@)
+	file(GET_RUNTIME_DEPENDENCIES
+		EXECUTABLES
+			${MAC_BUNDLE_INSTALL_BIN_DIR}/@MAC_BUNDLE_NAME@
+		RESOLVED_DEPENDENCIES_VAR
+			DEPS_RESOLVED
+		UNRESOLVED_DEPENDENCIES_VAR
+			DEPS_UNRESOLVED
+	)
+
+	foreach(dependency ${DEPS_UNRESOLVED})
+		message(WARNING "Runtime dependency ${dependency} could not be resolved.")
+	endforeach()
+
+	foreach(dependency ${DEPS_RESOLVED})
+		if(dependency MATCHES "\\.(dylib)$")
+			file(INSTALL
+				FILES
+					${dependency}
+				DESTINATION
+					${MAC_BUNDLE_INSTALL_LIB_DIR}
+				TYPE SHARED_LIBRARY
+			)
+		else()
+			file(INSTALL
+				FILES
+					${dependency}
+				DESTINATION
+					${MAC_BUNDLE_INSTALL_TMP_DIR}
+				TYPE SHARED_LIBRARY
+				FOLLOW_SYMLINK_CHAIN
+			)
+		endif()
+	endforeach()
+
+	foreach(plugin "platforms" "sqldrivers" "imageformats" "tls")
+		if(EXISTS ${QT_INSTALL_PLUGINS}/${plugin})
+			file(GLOB files "${QT_INSTALL_PLUGINS}/${plugin}/*.dylib")
+			list(FILTER files EXCLUDE REGEX ".*(sqlodbc|sqlpsql)\\.(dylib)$")
+
+			file(GET_RUNTIME_DEPENDENCIES
+				LIBRARIES
+					${files}
+				RESOLVED_DEPENDENCIES_VAR
+					DEPS_RESOLVED
+				UNRESOLVED_DEPENDENCIES_VAR
+					DEPS_UNRESOLVED
+			)
+
+			file(INSTALL
+				FILES
+					${DEPS_RESOLVED}
+				DESTINATION
+					${MAC_BUNDLE_INSTALL_TMP_DIR}
+				TYPE
+					SHARED_LIBRARY
+				FOLLOW_SYMLINK_CHAIN
+			)
+
+			file(INSTALL
+				FILES
+					${files}
+				DESTINATION
+					${MAC_BUNDLE_INSTALL_PLUGIN_DIR}/${plugin}
+				TYPE
+					SHARED_LIBRARY
+			)
+
+			foreach(dependency ${DEPS_UNRESOLVED})
+				message(WARNING "Qt plugin dependency ${dependency} could not be resolved.")
+			endforeach()
+		endif()
+	endforeach()
+
+	# Create a qt.conf file to override hard-coded search paths in Qt plugins
+	file(WRITE "${MAC_BUNDLE_INSTALL_DIR}/Contents/Resources/qt.conf" "[Paths]\nPlugins=plugins\n")
+
+	include(BundleUtilities)
+	file(GLOB_RECURSE QT_PLUGINS LIST_DIRECTORIES OFF "${MAC_BUNDLE_INSTALL_PLUGIN_DIR}/*")
+	fixup_bundle("${MAC_BUNDLE_INSTALL_DIR}" "${QT_PLUGINS}" "${MAC_BUNDLE_INSTALL_TMP_DIR};${QT_HOST_LIBS}" IGNORE_ITEM "Python")
+	file(REMOVE_RECURSE "${MAC_BUNDLE_INSTALL_TMP_DIR}")
+
+	if(NOT PYTHON_MODULES_DIR STREQUAL "" AND NOT PYTHON_VERSION STREQUAL "")
+		string(REGEX MATCHALL "[0-9]+" VERSION ${PYTHON_VERSION})
+		list(GET VERSION 0 PYTHON_VERSION_MAJOR)
+		list(GET VERSION 1 PYTHON_VERSION_MINOR)
+		set(PYTHON_FRAMEWORK "${MAC_BUNDLE_INSTALL_DIR}/Contents/Frameworks/Python.framework")
+		file(INSTALL
+			FILES ${PYTHON_MODULES_DIR}/
+			DESTINATION "${PYTHON_FRAMEWORK}/Versions/Current/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
+			PATTERN "*.pyc"														EXCLUDE # compiled bytecodes
+			PATTERN "__pycache__"												EXCLUDE # any cache
+			PATTERN "config-${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}*"	EXCLUDE # static libs
+			PATTERN "lib2to3"													EXCLUDE # automated Python 2 to 3 code translation
+			PATTERN "tkinter"													EXCLUDE # Tk interface
+			PATTERN "lib-dynload/_tkinter.*"									EXCLUDE
+			PATTERN "idlelib"													EXCLUDE
+			PATTERN "turtle.py"													EXCLUDE # Tk demo
+			PATTERN "test"														EXCLUDE # unittest module
+			PATTERN "sitecustomize.py"											EXCLUDE # site-specific configs
+		)
+	endif()
+
+	file(GLOB_RECURSE LIBS FOLLOW_SYMLINKS "${MAC_BUNDLE_INSTALL_DIR}/*.dylib")
+	file(GLOB FRAMEWORKS FOLLOW_SYMLINKS LIST_DIRECTORIES ON "${MAC_BUNDLE_INSTALL_LIB_DIR}/*")
+	foreach(item ${LIBS} ${FRAMEWORKS} ${PYTHON_FRAMEWORK} ${MAC_BUNDLE_INSTALL_DIR})
+		set(cmd codesign --deep --force --sign - "${item}")
+		execute_process(
+			COMMAND ${cmd}
+			RESULT_VARIABLE codesign_result
+		)
+
+		if(NOT codesign_result EQUAL 0)
+			message(WARNING "macOS signing failed; ${cmd} returned ${codesign_result}")
+		endif()
+	endforeach()
+elseif(EXISTS ${MAC_BUNDLE_INSTALL_DIR})
+	file(REMOVE_RECURSE ${MAC_BUNDLE_INSTALL_DIR})
+endif()

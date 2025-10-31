@@ -1,0 +1,140 @@
+name: Windows Builds
+
+on:
+  # Reusable from push_pull.yml
+  workflow_call:
+    inputs:
+      event_name:
+        type: string
+        description: The event name
+        default: ''
+        required: false
+      pull_request_number:
+        type: string
+        description: The corresponding PR number
+        default: ''
+        required: false
+      nightly:
+        type: boolean
+        description: Nightly build
+        default: false
+        required: false
+      publish:
+        type: boolean
+        description: Package publishing
+        default: false
+        required: false
+
+jobs:
+
+  windows:
+    name: ${{ matrix.os.description }}
+    runs-on: ${{ matrix.os.architecture == 'arm64' && 'windows-11-arm' || 'windows-2025' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [
+          { architecture: 'arm64', description: 'Windows 11 (arm64)' },
+          { architecture: 'x64', description: 'Windows 11 (x64)' }
+        ]
+
+    steps:
+      - name: ⬇ Checkout
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          fetch-depth: 0  # Ensures all tags are fetched          
+
+      - name: 🔧 Prepare
+        shell: bash
+        run: |
+          tr -d '\n' < .version > temp && mv temp .version
+          if [[ "${{ inputs.event_name }}" == "pull_request" ]]; then
+            echo -n "+PR${{ inputs.pull_request_number }}" >> .version
+          elif [[ "${{ inputs.nightly }}" = true ]]; then
+            echo -n "+nightly$(date '+%Y%m%d')" >> .version
+          fi
+
+      - name: 📥 Install Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13.7'
+          architecture: ${{ matrix.os.architecture }}
+
+      - name: 📥 Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.*'
+          target: 'desktop'
+          modules: 'qtserialport qtwebsockets'
+          cache: 'true'
+          cache-key-prefix: 'cache-qt-windows'
+          setup-python: 'false'
+
+      - name: 📥 Install latest CMake and Ninja
+        uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: latestrc
+          ninjaVersion: latest
+
+      - name: 🛠️ Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.os.architecture }}
+
+      - name: Download/Install Inno Setup
+        run: |
+          echo "Checking pre-installation..."
+          
+          set "ISCC_PATH=%programfiles(x86)%\Inno Setup 6\ISCC.exe"
+          
+          if exist "%ISCC_PATH%" (
+            echo ::warning::Inno Setup is already installed
+            exit /b 0
+          )
+          
+          echo "Downloading Inno Setup..."
+  
+          set "_url_=https://jrsoftware.org/download.php/is.exe?site=1"
+          set "_file_=innosetup.exe"
+  
+          curl -L -o "%tmp%\%_file_%" "%_url_%"
+          
+          echo "Installing Inno Setup..."
+          "%tmp%\%_file_%" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-
+          
+          if not exist "%ISCC_PATH%" (
+            echo "::error::Inno Setup installation failed"
+            exit 1
+          )
+          
+          echo "Inno Setup installed successfully!"
+        shell: cmd
+          
+      - name: 💾 Download Pre-Build Dependencies
+        id: dependencies
+        uses: ./.github/actions/download-pre-built-deps
+        with:
+          os: 'windows'
+          architecture: ${{ matrix.os.architecture }}
+          build_type: ${{ inputs.event_name == 'pull_request' && 'relwithdebinfo' || 'release' }}
+
+      - name: 👷 Build ${{ env.HINT }}
+        shell: cmd
+        run: |
+           cmake --preset windows-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }}
+           cmake --build --preset windows-${{ env.BUILD_TYPE }} --target package
+        env:
+          BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'relwithdebinfo' || 'release' }}
+          HINT: ${{ steps.dependencies.outputs.cmakeArgs != '' && '(with pre-built dependencies)' || '(full build)' }}
+
+      - name: 📦 Upload
+        if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.event_name == 'pull_request' && env.NAME || format('artifact-{0}', env.NAME) }}
+          path: |
+            build/Hyperion-*
+            !build/*.json
+        env:
+          NAME: ${{ format('windows_{0}', matrix.os.architecture) }}

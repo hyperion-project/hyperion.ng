@@ -33,6 +33,10 @@ struct ColorRgb
 	static const ColorRgb YELLOW;
 	/// 'White' RgbColor (255, 255, 255)
 	static const ColorRgb WHITE;
+	/// 'Cyan' RgbColor (0, 255, 255)
+	static const ColorRgb CYAN;
+	/// 'Magenta' RgbColor (255, 0,255)
+	static const ColorRgb MAGENTA;
 
 	ColorRgb() = default;
 
@@ -42,6 +46,11 @@ struct ColorRgb
 		  blue(_blue)
 	{
 
+	}
+
+	ColorRgb(const QRgb rgb): ColorRgb()
+	{
+		setRgb(rgb);
 	}
 
 	ColorRgb operator-(const ColorRgb& b) const

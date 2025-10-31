@@ -1,7 +1,6 @@
 #include "HyperionConfig.h"
 
 #if defined(ENABLE_EFFECTENGINE)
-// Python includes
 #include <Python.h>
 #endif
 

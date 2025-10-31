@@ -1,0 +1,108 @@
+name: Debian Builds
+
+on:
+  # Reusable from push_pull.yml
+  workflow_call:
+    inputs:
+      codename:
+        type: string
+        description: The Debian codename
+        default: 'bullseye'
+        required: false
+      event_name:
+        type: string
+        description: The event name
+        default: ''
+        required: false
+      pull_request_number:
+        type: string
+        description: The corresponding PR number
+        default: ''
+        required: false
+      nightly:
+        type: boolean
+        description: Nightly build
+        default: false
+        required: false
+      publish:
+        type: boolean
+        description: Package publishing
+        default: false
+        required: false
+
+jobs:
+
+  debian:
+    name: ${{ matrix.os.description }}
+    runs-on: ${{ matrix.os.architecture[0] == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [
+          { description: Linux (amd64),                       architecture: [ amd64, linux/amd64  ], platform: x11 },
+          { description: Raspberry Pi 1 & Zero 1 (armv6),     architecture: [ armv6, linux/arm/v6 ], platform: rpi },
+          { description: Raspberry Pi 2 (armv7),              architecture: [ armv7, linux/arm/v7 ], platform: rpi },
+          { description: Raspberry Pi 3/4/5 & Zero 2 (arm64), architecture: [ arm64, linux/arm64  ], platform: rpi }
+        ]
+        target_lookup: [
+          { 'amd64': 'amd64', 'arm64': 'arm64', 'armv6': 'armv6l', 'armv7': 'armv7l' }
+        ]
+
+    steps:
+      - name: ⬇ Checkout
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          fetch-depth: 0  # Ensures all tags are fetched
+
+      - name: 🔧 Prepare
+        shell: bash
+        run: |
+          tr -d '\n' < .version > temp && mv temp .version
+          if [[ "${{ inputs.event_name }}" == "pull_request" ]]; then
+            echo -n "+PR${{ inputs.pull_request_number }}" >> .version
+          elif [[ "${{ inputs.nightly }}" = true ]]; then
+            echo -n "+nightly$(date '+%Y%m%d')" >> .version
+          fi
+
+      - name: 💾 Download Pre-Build Dependencies
+        id: dependencies
+        uses: ./.github/actions/download-pre-built-deps
+        with:
+          os: debian_${{ inputs.codename }}
+          architecture: ${{ matrix.os.architecture[0] }}
+          qt_version: ${{ inputs.codename == 'bullseye' && matrix.os.architecture[0] == 'armv6' && '5' || '6' }}
+          build_type: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
+
+      - name: 👷 Build ${{ env.HINT }}
+        shell: bash
+        run: |
+          mkdir deploy
+          docker run --rm --platform=${{ matrix.os.architecture[1] }} ${{ env.ENTRYPOINT }} \
+            -v "${{ github.workspace }}/deploy:/deploy" \
+            -v "${{ github.workspace }}:/source:rw" \
+            -v "/tmp/deps:/tmp/deps:rw" \
+            -w "/source" \
+            -e LANG="C.UTF-8" \
+            -e LC_ALL="C.UTF-8" \
+            ghcr.io/hyperion-project/debian:${{ env.DOCKER_TAG }} \
+            /bin/bash -c "
+              git config --global --add safe.directory /source &&            
+              cmake --preset linux-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }} -DPLATFORM=${{ matrix.os.platform }} ${{ env.CPACK_SYSTEM_PROCESSOR }} &&
+              cmake --build --preset linux-${{ env.BUILD_TYPE }} --target package &&
+              cp /source/build/Hyperion-* /deploy/ 2>/dev/null"
+        env:
+          DOCKER_TAG: ${{ inputs.codename == 'bullseye' && matrix.os.architecture[0] == 'armv6' && inputs.codename || format('{0}-qt6', inputs.codename) }}
+          BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
+          ENTRYPOINT: ${{ matrix.os.architecture[0] != 'amd64' && '--entrypoint /usr/bin/env' || '' }}
+          CPACK_SYSTEM_PROCESSOR: ${{ format('-DCPACK_SYSTEM_PROCESSOR={0}', matrix.target_lookup[format('{0}', matrix.os.architecture[0])]) || '' }}
+          HINT: ${{ steps.dependencies.outputs.cmakeArgs != '' && '(with pre-built dependencies)' || '(full build)' }}
+
+      - name: 📦 Upload
+        if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.event_name == 'pull_request' && env.NAME || format('artifact-{0}', env.NAME) }}
+          path: ${{ inputs.event_name == 'pull_request' && 'deploy/*.tar.gz' || 'deploy/Hyperion-*' }}
+        env:
+          NAME: ${{ format('debian_{0}_{1}', inputs.codename, matrix.os.architecture[0]) }}

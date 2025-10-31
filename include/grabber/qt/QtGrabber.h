@@ -73,6 +73,13 @@ public:
 	bool setupDisplay();
 
 	///
+	/// @brief Determine if the grabber is available.
+	///
+	/// @return true, on success (i.e. Window Manager is not Wayland), else false
+	///
+	bool isAvailable(bool logError = true) override;
+
+	///
 	/// @brief Opens the input device.
 	///
 	/// @return Zero, on success (i.e. device is ready), else negative
@@ -91,10 +98,16 @@ public:
 private slots:
 
 	///
-	/// @brief is called whenever the current _screen changes it's geometry
+	/// @brief is called whenever the current screen changes it's geometry
 	/// @param geo   The new geometry
 	///
 	void geometryChanged(const QRect &geo);
+
+	///
+	/// @brief is called whenever the current pixel ratio changed
+	/// @param dpi The new dots per inch
+	///
+	void pixelRatioChanged(qreal dpi);
 
 private:
 
@@ -123,6 +136,4 @@ private:
 
 	QScreen* _screen;
 	bool _isVirtual;
-
-	Logger * _logger;
 };

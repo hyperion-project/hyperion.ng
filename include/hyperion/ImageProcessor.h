@@ -35,8 +35,7 @@ public:
 	///	@param[in] ledString    LedString data
 	/// @param[in] hyperion     Hyperion instance pointer
 	///
-	ImageProcessor(const LedString& ledString, Hyperion* hyperion);
-
+	explicit ImageProcessor(const LedString& ledString, const QSharedPointer<Hyperion>& hyperionInstance);
 	~ImageProcessor() override;
 
 	///
@@ -141,13 +140,19 @@ public:
 				colors = _imageToLedColors->getUniLedColor(image);
 				break;
 			case 2:
-				colors = _imageToLedColors->getMeanLedColorSqrt(image);
+				colors = _imageToLedColors->getMeanSqrtLedColor(image);
 				break;
 			case 3:
 				colors = _imageToLedColors->getDominantLedColor(image);
 				break;
 			case 4:
-				colors = _imageToLedColors->getDominantLedColorAdv(image);
+				colors = _imageToLedColors->getDominantUniLedColor(image);
+				break;
+			case 5:
+				colors = _imageToLedColors->getDominantAdvLedColor(image);
+				break;
+			case 6:
+				colors = _imageToLedColors->getDominantAdvUniLedColor(image);
 				break;
 			default:
 				colors = _imageToLedColors->getMeanLedColor(image);
@@ -186,14 +191,21 @@ public:
 				_imageToLedColors->getUniLedColor(image, ledColors);
 				break;
 			case 2:
-				_imageToLedColors->getMeanLedColorSqrt(image, ledColors);
+				_imageToLedColors->getMeanSqrtLedColor(image, ledColors);
 				break;
 			case 3:
 				_imageToLedColors->getDominantLedColor(image, ledColors);
 				break;
 			case 4:
-				_imageToLedColors->getDominantLedColorAdv(image, ledColors);
+				_imageToLedColors->getDominantUniLedColor(image, ledColors);
 				break;
+			case 5:
+				_imageToLedColors->getDominantAdvLedColor(image, ledColors);
+				break;
+			case 6:
+				_imageToLedColors->getDominantAdvUniLedColor(image, ledColors);
+				break;
+
 			default:
 				_imageToLedColors->getMeanLedColor(image, ledColors);
 			}
@@ -257,13 +269,14 @@ private slots:
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 private:
+	/// Logger instance
+	Logger* _log;
 
-	Logger * _log;
 	/// The Led-string specification
 	LedString _ledString;
 
 	/// The processor for black border detection
-	hyperion::BlackBorderProcessor * _borderProcessor;
+	QScopedPointer <hyperion::BlackBorderProcessor> _borderProcessor;
 
 	/// The mapping of image-pixels to LEDs
 	QSharedPointer<hyperion::ImageToLedsMap> _imageToLedColors;
@@ -279,5 +292,5 @@ private:
 	int _reducedPixelSetFactorFactor;
 
 	/// Hyperion instance pointer
-	Hyperion* _hyperion;
+	QWeakPointer<Hyperion> _hyperionWeak;
 };

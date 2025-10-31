@@ -1,6 +1,7 @@
 // project includes
 #include "JsonClientConnection.h"
 #include <api/JsonAPI.h>
+#include <api/JsonCallbacks.h>
 
 // qt inc
 #include <QTcpSocket>
@@ -17,10 +18,22 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket, bool localConnect
 	// create a new instance of JsonAPI
 	_jsonAPI = new JsonAPI(socket->peerAddress().toString(), _log, localConnection, this);
 	// get the callback messages from JsonAPI and send it to the client
-	connect(_jsonAPI, &JsonAPI::callbackMessage, this , &JsonClientConnection::sendMessage);
+	connect(_jsonAPI, &JsonAPI::callbackReady, this , &JsonClientConnection::sendMessage);
 	connect(_jsonAPI, &JsonAPI::forceClose, this , [&](){ _socket->close(); } );
+	connect(_jsonAPI->getCallBack().get(), &JsonCallbacks::callbackReady, this, &JsonClientConnection::sendMessage);
 
 	_jsonAPI->initialize();
+}
+
+JsonClientConnection::~JsonClientConnection()
+{
+	if (_socket)
+	{
+		_socket->disconnectFromHost();
+		_socket->deleteLater();
+	}
+
+	delete _jsonAPI;
 }
 
 void JsonClientConnection::readRequest()
@@ -46,10 +59,15 @@ void JsonClientConnection::readRequest()
 
 qint64 JsonClientConnection::sendMessage(QJsonObject message)
 {
-	QJsonDocument writer(message);
-	QByteArray data = writer.toJson(QJsonDocument::Compact) + "\n";
+	if (!_socket || (_socket->state() != QAbstractSocket::ConnectedState))
+	{
+		return 0;
+	}
 
-	if (!_socket || (_socket->state() != QAbstractSocket::ConnectedState)) return 0;
+	QJsonDocument writer(message);
+	QByteArray data = writer.toJson(QJsonDocument::Compact);
+	data.append('\n');
+
 	return _socket->write(data.data(), data.size());
 }
 

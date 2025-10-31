@@ -18,12 +18,12 @@ var bottomRight2bottomLeft = null;
 var bottomLeft2topLeft = null;
 var toggleKeystoneCorrectionArea = false;
 
-var devSPI = ['apa102', 'apa104', 'ws2801', 'lpd6803', 'lpd8806', 'p9813', 'sk6812spi', 'sk6822spi', 'sk9822', 'ws2812spi'];
+var devSPI = ['apa102', 'apa104', 'hd108', 'lpd6803', 'lpd8806', 'p9813', 'sk6812spi', 'sk6822spi', 'sk9822', 'ws2801', 'ws2812spi'];
 var devFTDI = ['apa102_ftdi', 'sk6812_ftdi', 'ws2812_ftdi'];
 var devRPiPWM = ['ws281x'];
 var devRPiGPIO = ['piblaster'];
 var devNET = ['atmoorb', 'cololight', 'fadecandy', 'homeassistant', 'philipshue', 'nanoleaf', 'razer', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udpddp', 'udph801', 'udpraw', 'wled', 'yeelight'];
-var devSerial = ['adalight', 'dmx', 'atmo', 'sedu', 'tpm2', 'karate'];
+var devSerial = ['adalight', 'dmx', 'atmo', 'sedu', 'skydimo', 'tpm2', 'karate'];
 var devHID = ['hyperionusbasp', 'lightpack', 'paintpack', 'rawhid'];
 
 var infoTextDefault = '<span>' + $.i18n("conf_leds_device_info_log") + ' </span><a href="" onclick="SwitchToMenuItem(\'MenuItemLogging\')" style="cursor:pointer">' + $.i18n("main_menu_logging_token") + '</a>';
@@ -649,6 +649,12 @@ $(document).ready(function () {
     $('#led_vis_help').html('<div><div class="led_ex" style="background-color:black;margin-right:5px;margin-top:3px"></div><div style="display:inline-block;vertical-align:top">' + $.i18n('conf_leds_layout_preview_l1') + '</div></div><div class="led_ex" style="background-color:grey;margin-top:3px;margin-right:2px"></div><div class="led_ex" style="background-color: rgb(169, 169, 169);margin-right:5px;margin-top:3px;"></div><div style="display:inline-block;vertical-align:top">' + $.i18n('conf_leds_layout_preview_l2') + '</div>');
   }
 
+  if (isInstanceRunning(window.currentHyperionInstance)) {
+    $("#leds_prev_toggle_live_video").show();
+  } else {
+    $("#leds_prev_toggle_live_video").hide();
+  }
+
   //**************************************************
   // Handle LED-Layout Configuration
   //**************************************************
@@ -978,7 +984,7 @@ $(document).ready(function () {
     //Only update Image, if LED Layout Tab is visible
     if (onLedLayoutTab && window.imageStreamActive) {
       setClassByBool('#leds_prev_toggle_live_video', window.imageStreamActive, "btn-danger", "btn-success");
-      var imageData = (event.response.result.image);
+      var imageData = (event.response.data.image);
 
       var image = new Image();
       image.onload = function () {
@@ -1115,6 +1121,7 @@ $(document).ready(function () {
         case "ws2812spi":
         case "piblaster":
         case "ws281x":
+        case "hd108":
 
         //Serial devices
         case "adalight":
@@ -1122,6 +1129,7 @@ $(document).ready(function () {
         case "dmx":
         case "karate":
         case "sedu":
+        case "skydimo":
         case "tpm2":
 
         //FTDI devices
@@ -1231,6 +1239,7 @@ $(document).ready(function () {
         case "karate":
         case "dmx":
         case "sedu":
+        case "skydimo":
         case "tpm2": {
           let currentDeviceType = window.serverConfig.device.type;
           if ($.inArray(currentDeviceType, devSerial) === -1) {
@@ -1403,24 +1412,30 @@ $(document).ready(function () {
             break;
 
           case "homeassistant":
-            var token = conf_editor.getEditor("root.specificOptions.token").getValue();
+            {
+            const port = conf_editor.getEditor("root.specificOptions.port").getValue();
+            const useSsl = conf_editor.getEditor("root.specificOptions.useSsl").getValue();
+            const token = conf_editor.getEditor("root.specificOptions.token").getValue();
             if (token === "") {
               return;
             }
 
-            params = { host: host, token: token, filter: "states" };
+            params = { host, port, useSsl, token, filter: "states" };
             getProperties_device(ledType, host, params);
+            }
             break;
 
           case "nanoleaf":
-            $('#btn_wiz_holder').show();
+            {
+              $('#btn_wiz_holder').show();
 
-            var token = conf_editor.getEditor("root.specificOptions.token").getValue();
-            if (token === "") {
-              return;
+              const token = conf_editor.getEditor("root.specificOptions.token").getValue();
+              if (token === "") {
+                return;
+              }
+              params = { host, token };
+              getProperties_device(ledType, host, params);
             }
-            params = { host: host, token: token };
-            getProperties_device(ledType, host, params);
             break;
 
           case "wled":
@@ -1462,6 +1477,7 @@ $(document).ready(function () {
           case "adalight":
           case "dmx":
           case "sedu":
+          case "skydimo":
           case "tpm2":
           case "apa102":
           case "apa104":
@@ -1477,6 +1493,7 @@ $(document).ready(function () {
           case "apa102_ftdi":
           case "sk6812_ftdi":
           case "ws2812_ftdi":
+          case "hd108":
           default:
         }
 
@@ -1575,25 +1592,69 @@ $(document).ready(function () {
       if (token !== "") {
         let params = {};
 
-        var host = "";
+        let host = "";
         switch (ledType) {
           case "homeassistant":
-            host = conf_editor.getEditor("root.specificOptions.host").getValue();
-            if (host === "") {
-              return
+            {
+              host = conf_editor.getEditor("root.specificOptions.host").getValue();
+              if (host === "") {
+                return
+              }
+              const port = conf_editor.getEditor("root.specificOptions.port").getValue();
+              const useSsl = conf_editor.getEditor("root.specificOptions.useSsl").getValue();
+              params = { host, port, useSsl, token, filter: "states" };
             }
-            params = { host: host, token: token, filter: "states" };
             break;
 
           case "nanoleaf":
-            host = conf_editor.getEditor("root.specificOptions.host").getValue();
-            if (host === "") {
-              return
+            {
+              host = conf_editor.getEditor("root.specificOptions.host").getValue();
+              if (host === "") {
+                return
+              }
+              params = { host, token };
             }
-            params = { host: host, token: token };
             break;
           default:
         }
+
+        getProperties_device(ledType, host, params);
+      }
+    });
+
+    conf_editor.watch('root.specificOptions.port', () => {
+
+      const port = conf_editor.getEditor("root.specificOptions.port").getValue();
+      if (port !== "") {
+        let params = {};
+        if (ledType === "homeassistant") {
+          const host = conf_editor.getEditor("root.specificOptions.host").getValue();
+          const token = conf_editor.getEditor("root.specificOptions.token").getValue();
+
+          if (host === "" || token == "") {
+            return
+          }
+          const useSsl = conf_editor.getEditor("root.specificOptions.useSsl").getValue();
+          params = { host, port, useSsl, token, filter: "states" };
+
+          getProperties_device(ledType, host, params);
+        }
+      }
+    });
+
+    conf_editor.watch('root.specificOptions.useSsl', () => {
+
+      let params = {};
+      if (ledType === "homeassistant") {
+        const host = conf_editor.getEditor("root.specificOptions.host").getValue();
+        const token = conf_editor.getEditor("root.specificOptions.token").getValue();
+
+        if (host === "" || token == "") {
+          return
+        }
+        const port = conf_editor.getEditor("root.specificOptions.port").getValue();
+        const useSsl = conf_editor.getEditor("root.specificOptions.useSsl").getValue();
+        params = { host, port, useSsl, token, filter: "states" };
 
         getProperties_device(ledType, host, params);
       }
@@ -1734,7 +1795,7 @@ $(document).ready(function () {
       optArr[6].push(ledDevices[idx]);
   }
 
-  $("#leddevices").append(createSel(optArr[0], $.i18n('conf_leds_optgroup_RPiSPI')));
+  $("#leddevices").append(createSel(optArr[0], $.i18n('conf_leds_optgroup_SPI')));
   $("#leddevices").append(createSel(optArr[1], $.i18n('conf_leds_optgroup_RPiPWM')));
   $("#leddevices").append(createSel(optArr[2], $.i18n('conf_leds_optgroup_RPiGPIO')));
   $("#leddevices").append(createSel(optArr[3], $.i18n('conf_leds_optgroup_network')));
@@ -1777,35 +1838,46 @@ $(document).ready(function () {
 
   // Identify/ Test LED-Device
   $("#btn_test_controller").off().on("click", function () {
-    var ledType = $("#leddevices").val();
+    const ledType = $("#leddevices").val();
     let params = {};
 
     switch (ledType) {
       case "cololight":
       case "wled":
-        var host = conf_editor.getEditor("root.specificOptions.host").getValue();
-        params = { host: host };
+        {
+          const host = conf_editor.getEditor("root.specificOptions.host").getValue();
+          params = { host: host };
+        }
         break;
 
       case "homeassistant":
-        var host = conf_editor.getEditor("root.specificOptions.host").getValue();
-        var token = conf_editor.getEditor("root.specificOptions.token").getValue();
-        const entityIds = conf_editor.getEditor("root.specificOptions.entityIds").getValue();
-        params = { host: host, token: token, entity_id: entityIds };
+        {
+          const host = conf_editor.getEditor("root.specificOptions.host").getValue();
+          const port = conf_editor.getEditor("root.specificOptions.port").getValue();
+          const useSsl = conf_editor.getEditor("root.specificOptions.useSsl").getValue();
+          const token = conf_editor.getEditor("root.specificOptions.token").getValue();
+          const entityIds = conf_editor.getEditor("root.specificOptions.entityIds").getValue();
+          params = { host, port, useSsl, token, entity_id: entityIds };
+        }
         break;
 
       case "nanoleaf":
-        var host = conf_editor.getEditor("root.specificOptions.host").getValue();
-        var token = conf_editor.getEditor("root.specificOptions.token").getValue();
-        params = { host: host, token: token };
+        {
+          const host = conf_editor.getEditor("root.specificOptions.host").getValue();
+          const token = conf_editor.getEditor("root.specificOptions.token").getValue();
+          params = { host, token };
+        }
         break;
 
       case "adalight":
-        var currentLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount").getValue();
-        params = Object.assign(conf_editor.getEditor("root.generalOptions").getValue(),
-          conf_editor.getEditor("root.specificOptions").getValue(),
-          { currentLedCount }
-        );
+      case "skydimo":
+        {
+          const currentLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount").getValue();
+          params = Object.assign(conf_editor.getEditor("root.generalOptions").getValue(),
+            conf_editor.getEditor("root.specificOptions").getValue(),
+            { currentLedCount }
+          );
+        }
       default:
     }
 
@@ -1942,6 +2014,7 @@ function saveLedConfig(genDefLayout = false) {
     case "dmx":
     case "karate":
     case "sedu":
+    case "skydimo":
     case "tpm2":
     case "apa102":
     case "apa104":
@@ -1957,6 +2030,7 @@ function saveLedConfig(genDefLayout = false) {
     case "apa102_ftdi":
     case "sk6812_ftdi":
     case "ws2812_ftdi":
+    case "hd108":
     default:
       if (genDefLayout === true) {
         ledConfig = {
@@ -1976,7 +2050,7 @@ function saveLedConfig(genDefLayout = false) {
       break;
   }
 
-  //Rewrite whole LED & Layout configuration, in case changes were done accross tabs and no default layout
+  //Rewrite whole LED & Layout configuration, in case changes were done across tabs and no default layout
   if (genDefLayout !== true) {
     result.ledConfig = getLedConfig();
     result.leds = JSON.parse(aceEdt.getText());
@@ -2105,6 +2179,7 @@ var updateOutputSelectList = function (ledType, discoveryInfo) {
           case "dmx":
           case "karate":
           case "sedu":
+          case "skydimo":
           case "tpm2":
             for (const device of discoveryInfo.devices) {
               if (device.udev) {
@@ -2213,6 +2288,7 @@ var updateOutputSelectList = function (ledType, discoveryInfo) {
           case "sk6822spi":
           case "sk9822":
           case "ws2812spi":
+          case "hd108":
           case "piblaster":
             for (const device of discoveryInfo.devices) {
               enumVals.push(device.systemLocation);
@@ -2466,7 +2542,7 @@ function validateWledLedCount(hardwareLedCount) {
 
   if (!jQuery.isEmptyObject(devicesProperties)) {
     var host = conf_editor.getEditor("root.specificOptions.host").getValue();
-    var ledDeviceProperties = devicesProperties["wled"][host];
+    var ledDeviceProperties = devicesProperties["wled"]?.[host] || {};
 
     if (ledDeviceProperties) {
 

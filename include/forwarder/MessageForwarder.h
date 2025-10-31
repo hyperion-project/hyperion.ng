@@ -13,6 +13,8 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QSharedPointer>
+#include <QWeakPointer>
 
 // Utils includes
 #include <utils/ColorRgb.h>
@@ -22,6 +24,10 @@
 #include <utils/Image.h>
 
 // Hyperion includes
+#ifdef ENABLE_MDNS
+#include <mdns/MdnsBrowser.h>
+#endif
+#include <db/SettingsTable.h>
 #include <hyperion/PriorityMuxer.h>
 
 // Forward declaration
@@ -33,6 +39,7 @@ class MessageForwarderFlatbufferClientsHelper;
 struct TargetHost {
 	QHostAddress host;
 	quint16 port;
+	QJsonArray instanceIds;
 
 	bool operator == (TargetHost const& a) const
 	{
@@ -44,7 +51,7 @@ class MessageForwarder : public QObject
 {
 	Q_OBJECT
 public:
-	MessageForwarder(Hyperion* hyperion);
+	MessageForwarder(const QJsonDocument& config);
 	~MessageForwarder() override;
 
 	void addJsonTarget(const QJsonObject& targetConfig);
@@ -57,6 +64,12 @@ public slots:
 	/// @param config configuration object
 	///
 	void handleSettingsUpdate(settings::type type, const QJsonDocument &config);
+
+	void init();
+	bool connect(quint8 instanceID);
+	void disconnect(quint8 instanceID);
+	void start();
+	void stop();
 
 private slots:
 	///
@@ -76,7 +89,7 @@ private slots:
 	/// @brief Forward message to all json target hosts
 	/// @param message The JSON message to send
 	///
-	void forwardJsonMessage(const QJsonObject &message);
+	void forwardJsonMessage(const QJsonObject &message, quint8 instanceId);
 
 #if defined(ENABLE_FLATBUF_SERVER) || defined(ENABLE_PROTOBUF_SERVER)
 	///
@@ -91,12 +104,17 @@ private slots:
 	/// @brief Forward message to a single json target host
 	/// @param message The JSON message to send
 	/// @param socket The TCP-Socket with the connection to the target host
+	/// @param targetInstanceIds The instances the command shoulkd be applied to
 	///
-	void sendJsonMessage(const QJsonObject &message, QTcpSocket *socket);
+	void sendJsonMessage(const QJsonObject &message, QTcpSocket *socket, const QJsonArray& targetInstanceIds = {});
 
 private:
 
-	void enableTargets(bool enable, const QJsonObject& config);
+	void handleTargets(bool enable, const QJsonObject& config = {});
+	bool activateFlatbufferTargets(int priority = PriorityMuxer::LOWEST_PRIORITY);
+
+	bool isFlatbufferComponent(int priority);
+	void disconnectFlatBufferComponents(int priority = PriorityMuxer::LOWEST_PRIORITY);
 
 	int startJsonTargets(const QJsonObject& config);
 	void stopJsonTargets();
@@ -104,14 +122,23 @@ private:
 	int startFlatbufferTargets(const QJsonObject& config);
 	void stopFlatbufferTargets();
 
-	/// Hyperion instance
-	Hyperion *_hyperion;
-
 	/// Logger instance
 	Logger   *_log;
 
+	QJsonDocument _config;
+	bool _isActive = true;
+	const int _priority;
+	bool _isEnabled;
+	quint8 _toBeForwardedInstanceID;
+
+	SettingsTable _settings;
+
+	/// Hyperion instance forwarded
+	///  Hyperion instance
+	QWeakPointer<Hyperion> _hyperionWeak;
+
 	/// Muxer instance
-	PriorityMuxer *_muxer;
+	QWeakPointer<PriorityMuxer> _muxerWeak;
 
 	// JSON connections for forwarding
 	QList<TargetHost> _jsonTargets;
@@ -119,12 +146,11 @@ private:
 	/// Flatbuffer connection for forwarding
 	QList<TargetHost> _flatbufferTargets;
 
-	/// Flag if forwarder is enabled
-	bool _forwarder_enabled = true;
+	QSharedPointer<MessageForwarderFlatbufferClientsHelper> _messageForwarderFlatBufHelper;
 
-	const int _priority;
-
-	MessageForwarderFlatbufferClientsHelper* _messageForwarderFlatBufHelper;
+#ifdef ENABLE_MDNS
+	QSharedPointer<MdnsBrowser> _mdnsBrowser = MdnsBrowser::getInstance();
+#endif
 };
 
 class MessageForwarderFlatbufferClientsHelper : public QObject
@@ -149,6 +175,7 @@ public slots:
 
 private:
 
-	QList<FlatBufferConnection*> _forwardClients;
-	bool _free;
+	QList<QSharedPointer<FlatBufferConnection>> _forwardClients;
+
+	bool _isFree;
 };

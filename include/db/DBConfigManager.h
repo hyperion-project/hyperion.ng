@@ -1,5 +1,5 @@
 #ifndef DBCONFGMANAGER_H
-#define DBConfigManager_H
+#define DBCONFGMANAGER_H
 
 #include <db/DBManager.h>
 #include "db/SettingsTable.h"
@@ -13,7 +13,7 @@ public:
 	QPair<bool, QStringList> importJson(const QString& configFile);
 	bool exportJson(const QString& path = "") const;
 
-	QJsonObject getConfiguration(const QList<quint8>& instances = {}, const QStringList& instanceFilteredTypes = {}, const QStringList& globalFilterTypes = {} ) const;
+	QJsonObject getConfiguration(const QList<quint8>& instanceIdsFilter = {}, const QStringList& instanceFilteredTypes = {}, const QStringList& globalFilterTypes = {} ) const;
 
 	QPair<bool, QStringList> validateConfiguration();
 	QPair<bool, QStringList> validateConfiguration(QJsonObject& config, bool doCorrections = false);
@@ -24,6 +24,8 @@ public:
 	QPair<bool, QStringList> updateConfiguration(QJsonObject& config, bool doCorrections = false);
 
 	QPair<bool, QStringList> migrateConfiguration();
+
+	bool isConfigVersionCompatible();
 
 private:
 	// Function to import global settings from the configuration

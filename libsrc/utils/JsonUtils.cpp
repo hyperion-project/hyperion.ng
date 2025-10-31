@@ -87,10 +87,10 @@ QPair<bool, QStringList> parse(const QString& path, const QString& data, QJsonDo
 
 	if (error.error != QJsonParseError::NoError)
 	{
-		int errorLine = 1;
-		int errorColumn = 1;
+		qsizetype errorLine = 1;
+		qsizetype errorColumn = 1;
 
-		int lastNewlineIndex = data.lastIndexOf("\n", error.offset - 1);
+		qsizetype const lastNewlineIndex = data.lastIndexOf("\n", error.offset - 1);
 		if (lastNewlineIndex != -1)
 		{
 			errorColumn = error.offset - lastNewlineIndex ;
@@ -98,8 +98,7 @@ QPair<bool, QStringList> parse(const QString& path, const QString& data, QJsonDo
 		errorLine += data.left(error.offset).count('\n');
 
 		const QString errorMessage = QString("JSON parse error @(%1): %2, line: %3, column: %4, Data: '%5'")
-									 .arg(path)
-									 .arg(error.errorString())
+									 .arg(path, error.errorString())
 									 .arg(errorLine)
 									 .arg(errorColumn)
 									 .arg(data);
@@ -137,7 +136,7 @@ QPair<bool, QStringList> validate(const QString& file, const QJsonValue& json, c
 		const QStringList &errors = schemaChecker.getMessages();
 		for (const auto& error : errors)
 		{
-			QString errorMessage = QString("JSON parse error @(%1) -  %2")
+			QString const errorMessage = QString("JSON parse error @(%1) -  %2")
 								   .arg(file, error);
 			errorList.push_back(errorMessage);
 			Error(log, "%s", QSTRING_CSTR(errorMessage));
@@ -151,7 +150,6 @@ QPair<bool, QStringList> correct(const QString& file, QJsonValue& json, const QJ
 {
 	bool wasCorrected {false};
 	QStringList corrections;
-	QJsonValue correctJson;
 
 	QJsonSchemaChecker schemaChecker;
 	schemaChecker.setSchema(schema);
@@ -164,7 +162,7 @@ QPair<bool, QStringList> correct(const QString& file, QJsonValue& json, const QJ
 		const QStringList &correctionMessages = schemaChecker.getMessages();
 		for (const auto& correction : correctionMessages)
 		{
-			QString message = QString("JSON fix @(%1) -  %2")
+			QString const message = QString("JSON fix @(%1) -  %2")
 							  .arg(file, correction);
 			corrections.push_back(message);
 			Warning(log, "%s", QSTRING_CSTR(message));
@@ -178,7 +176,7 @@ bool write(const QString& filename, const QJsonObject& json, Logger* log)
 	QJsonDocument doc;
 
 	doc.setObject(json);
-	QByteArray data = doc.toJson(QJsonDocument::Indented);
+	QByteArray const data = doc.toJson(QJsonDocument::Indented);
 
 	return FileUtils::writeFile(filename, data, log);
 }
@@ -187,7 +185,7 @@ bool resolveRefs(const QJsonObject& schema, QJsonObject& obj, Logger* log)
 {
 	for (QJsonObject::const_iterator i = schema.begin(); i != schema.end(); ++i)
 	{
-		QString attribute = i.key();
+		QString const attribute = i.key();
 		const QJsonValue & attributeValue = *i;
 
 		if (attribute == "$ref" && attributeValue.isString())
@@ -222,14 +220,20 @@ QString jsonValueToQString(const QJsonValue &value, QJsonDocument::JsonFormat fo
 		return QJsonDocument(value.toArray()).toJson(format);
 	}
 	case QJsonValue::String:
-	case QJsonValue::Double:
-	case QJsonValue::Bool:
 	{
 		return value.toString();
 	}
+	case QJsonValue::Double:
+	{
+		return QString::number(value.toDouble());
+	}
+	case QJsonValue::Bool:
+	{
+		return value.toBool() ? "true" : "false";
+	}
 	case QJsonValue::Null:
 	{
-		return "Null";
+		return "null";
 	}
 	default:
 	break;

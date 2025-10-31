@@ -3,6 +3,8 @@
 
 #include <db/DBManager.h>
 
+#include <QSet>
+
 ///
 /// @brief Hyperion instance manager specific database interface. prepares also the Hyperion database for all follow up usage (Init QtSqlConnection) along with db name
 ///
@@ -21,9 +23,9 @@ public:
 	bool createInstance(const QString& name, quint8& inst);
 
 	///
-	/// @brief Create first Hyperion instance entry, if index 0 is not found.
+	/// @brief Create first Hyperion instance entry
 	///
-	void createDefaultInstance();
+	void createInitialInstance();
 
 	///
 	/// @brief Delete a Hyperion instance
@@ -52,14 +54,14 @@ public:
 	/// @param onlyEnabled  return only enabled instance IDs if true
 	/// @return The found instances
 	///
-	QList<quint8> getAllInstanceIDs (bool onlyEnabled = false);
+	QSet<quint8> getAllInstanceIDs (bool onlyEnabled = false);
 
 	///
 	/// @brief      Test if  instance record exists
 	/// @param[in]  user   The user id
 	/// @return     true on success else false
 	///
-	bool instanceExist(quint8 inst);
+	bool doesInstanceExist(quint8 inst);
 
 	///
 	/// @brief Get instance name by instance index

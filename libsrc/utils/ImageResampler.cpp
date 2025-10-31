@@ -22,7 +22,7 @@ void ImageResampler::setCropping(int cropLeft, int cropRight, int cropTop, int c
 	_cropBottom = cropBottom;
 }
 
-void ImageResampler::processImage(const uint8_t * data, int width, int height, int lineLength, PixelFormat pixelFormat, Image<ColorRgb> &outputImage) const
+void ImageResampler::processImage(const uint8_t * data, int width, int height, size_t lineLength, PixelFormat pixelFormat, Image<ColorRgb> &outputImage) const
 {
 	int cropLeft = _cropLeft;
 	int cropRight  = _cropRight;
@@ -50,16 +50,15 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 
 	outputImage.resize(outputWidth, outputHeight);
 
-	int xDestStart, xDestEnd;
-	int yDestStart, yDestEnd;
+	int xDestStart {0};
+	int xDestEnd = {outputWidth-1};
+	int yDestStart = {0};
+	int yDestEnd = {outputHeight-1};
 
 	switch (_flipMode)
 	{
 		case FlipMode::NO_CHANGE:
-			xDestStart = 0;
-			xDestEnd = outputWidth-1;
-			yDestStart = 0;
-			yDestEnd = outputHeight-1;
+		//use the initalized values
 			break;
 		case FlipMode::HORIZONTAL:
 			xDestStart = 0;
@@ -90,7 +89,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 				for (int xDest = xDestStart, xSource = cropLeft + (_horizontalDecimation >> 1); xDest <= xDestEnd; xSource += _horizontalDecimation, ++xDest)
 				{
 					ColorRgb & rgb = outputImage(abs(xDest), abs(yDest));
-					int index = lineLength * ySource + (xSource << 1);
+					size_t index = lineLength * ySource + (xSource << 1);
 					uint8_t y = data[index+1];
 					uint8_t u = ((xSource&1) == 0) ? data[index  ] : data[index-2];
 					uint8_t v = ((xSource&1) == 0) ? data[index+2] : data[index  ];
@@ -107,7 +106,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 				for (int xDest = xDestStart, xSource = cropLeft + (_horizontalDecimation >> 1); xDest <= xDestEnd; xSource += _horizontalDecimation, ++xDest)
 				{
 					ColorRgb & rgb = outputImage(abs(xDest), abs(yDest));
-					int index = lineLength * ySource + (xSource << 1);
+					size_t index = lineLength * ySource + (xSource << 1);
 					uint8_t y = data[index];
 					uint8_t u = ((xSource&1) == 0) ? data[index+1] : data[index-1];
 					uint8_t v = ((xSource&1) == 0) ? data[index+3] : data[index+1];
@@ -124,7 +123,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 				for (int xDest = xDestStart, xSource = cropLeft + (_horizontalDecimation >> 1); xDest <= xDestEnd; xSource += _horizontalDecimation, ++xDest)
 				{
 					ColorRgb & rgb = outputImage(abs(xDest), abs(yDest));
-					int index = lineLength * ySource + (xSource << 1);
+					size_t index = lineLength * ySource + (xSource << 1);
 					rgb.blue  = (data[index] & 0x1f) << 3;
 					rgb.green = (((data[index+1] & 0x7) << 3) | (data[index] & 0xE0) >> 5) << 2;
 					rgb.red   = (data[index+1] & 0xF8);
@@ -140,7 +139,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 				for (int xDest = xDestStart, xSource = cropLeft + (_horizontalDecimation >> 1); xDest <= xDestEnd; xSource += _horizontalDecimation, ++xDest)
 				{
 					ColorRgb & rgb = outputImage(abs(xDest), abs(yDest));
-					int index = lineLength * ySource + (xSource << 1) + xSource;
+					size_t index = lineLength * ySource + (xSource << 1) + xSource;
 					rgb.red   = data[index  ];
 					rgb.green = data[index+1];
 					rgb.blue  = data[index+2];
@@ -156,7 +155,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 				for (int xDest = xDestStart, xSource = cropLeft + (_horizontalDecimation >> 1); xDest <= xDestEnd; xSource += _horizontalDecimation, ++xDest)
 				{
 					ColorRgb & rgb = outputImage(abs(xDest), abs(yDest));
-					int index = lineLength * ySource + (xSource << 1) + xSource;
+					size_t index = lineLength * ySource + (xSource << 1) + xSource;
 					rgb.blue  = data[index  ];
 					rgb.green = data[index+1];
 					rgb.red   = data[index+2];
@@ -172,7 +171,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 				for (int xDest = xDestStart, xSource = cropLeft + (_horizontalDecimation >> 1); xDest <= xDestEnd; xSource += _horizontalDecimation, ++xDest)
 				{
 					ColorRgb & rgb = outputImage(abs(xDest), abs(yDest));
-					int index = lineLength * ySource + (xSource << 2);
+					size_t index = lineLength * ySource + (xSource << 2);
 					rgb.red   = data[index  ];
 					rgb.green = data[index+1];
 					rgb.blue  = data[index+2];
@@ -188,7 +187,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 				for (int xDest = xDestStart, xSource = cropLeft + (_horizontalDecimation >> 1); xDest <= xDestEnd; xSource += _horizontalDecimation, ++xDest)
 				{
 					ColorRgb & rgb = outputImage(abs(xDest), abs(yDest));
-					int index = lineLength * ySource + (xSource << 2);
+					size_t index = lineLength * ySource + (xSource << 2);
 					rgb.blue  = data[index  ];
 					rgb.green = data[index+1];
 					rgb.red   = data[index+2];
@@ -201,7 +200,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 		{
 			for (int yDest = yDestStart, ySource = cropTop + (_verticalDecimation >> 1); yDest <= yDestEnd; ySource += _verticalDecimation, ++yDest)
 			{
-				int uOffset = (height + ySource / 2) * lineLength;
+				size_t uOffset = (height + ySource / 2) * lineLength;
 				for (int xDest = xDestStart, xSource = cropLeft + (_horizontalDecimation >> 1); xDest <= xDestEnd; xSource += _horizontalDecimation, ++xDest)
 				{
 					ColorRgb & rgb = outputImage(abs(xDest), abs(yDest));

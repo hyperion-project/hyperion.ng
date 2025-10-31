@@ -10,8 +10,7 @@ typedef enum ProtocolType
 {
 	ADA = 0,
 	LBAPA,
-	AWA,
-	SKYDIMO
+	AWA
 } PROTOCOLTYPE;
 }
 

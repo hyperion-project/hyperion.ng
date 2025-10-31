@@ -7,31 +7,35 @@
 
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QSharedPointer>
+
 
 class JsonInfo
 {
 
 public:
-	static QJsonArray getAdjustmentInfo(const Hyperion* hyperion, Logger* log);
-	static QJsonArray getPrioritiestInfo(const Hyperion* hyperion);
+	static QJsonObject getInfo(const QSharedPointer<Hyperion>& hyperionInstance, Logger* log);
+	static QJsonArray getAdjustmentInfo(const QSharedPointer<Hyperion>& hyperionInstance, Logger* log);
+	static QJsonArray getPrioritiestInfo(const QSharedPointer<Hyperion>& hyperionInstance);
 	static QJsonArray getPrioritiestInfo(int currentPriority, const PriorityMuxer::InputsMap& activeInputs);
-	static QJsonArray getEffects(const Hyperion* hyperion);
+	static QJsonArray getEffects();
+	static QJsonArray getEffectSchemas();
 	static QJsonArray getAvailableScreenGrabbers();
 	static QJsonArray getAvailableVideoGrabbers();
 	static QJsonArray getAvailableAudioGrabbers();
-	static QJsonObject getGrabbers(const Hyperion* hyperion);
+	static QJsonObject getGrabbers(const QSharedPointer<Hyperion>& hyperionInstance);
 	static QJsonObject getAvailableLedDevices();
 	static QJsonObject getCecInfo();
 	static QJsonArray getServices();
-	static QJsonArray getComponents(const Hyperion* hyperion);
+	static QJsonArray getComponents(const QSharedPointer<Hyperion>& hyperionInstance);
 	static QJsonArray getInstanceInfo();
-	static QJsonArray getActiveEffects(const Hyperion* hyperion);
-	static QJsonArray getActiveColors(const Hyperion* hyperion);
-	static QJsonArray getTransformationInfo(const Hyperion* hyperion);
-	static QJsonObject getSystemInfo(const Hyperion* hyperion);
+	static QJsonArray getActiveEffects(const QSharedPointer<Hyperion>& hyperionInstance);
+	static QJsonArray getActiveColors(const QSharedPointer<Hyperion>& hyperionInstance);
+	static QJsonArray getTransformationInfo(const QSharedPointer<Hyperion>& hyperionInstance);
+	static QJsonObject getSystemInfo();
 	QJsonObject discoverSources (const QString& sourceType, const QJsonObject& params);
 
-	static QJsonObject getConfiguration(const QList<quint8>& instances = {}, const QStringList& instanceFilteredTypes = {}, const QStringList& globalFilterTypes = {} );
+	static QJsonObject getConfiguration(const QList<quint8>& instanceIds = {}, const QStringList& instanceFilteredTypes = {}, const QStringList& globalFilterTypes = {} );
 
 private:
 

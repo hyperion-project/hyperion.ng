@@ -21,21 +21,16 @@ bool DBMigrationManager::isMigrationRequired()
 
 	if (settingsTableGlobal.resolveConfigVersion())
 	{
-		semver::version BUILD_VERSION(HYPERION_VERSION);
+		semver::version const BUILD_VERSION(HYPERION_VERSION);
 
 		if (!BUILD_VERSION.isValid())
 		{
+			// Must not happen, otherwise the version must be fixed immediatly
 			Error(_log, "Current Hyperion version [%s] is invalid. Exiting...", BUILD_VERSION.getVersion().c_str());
-			exit(1);
+			assert(false);
 		}
 
 		const semver::version& currentVersion = settingsTableGlobal.getConfigVersion();
-		if (currentVersion > BUILD_VERSION)
-		{
-			Error(_log, "Database version [%s] is greater than current Hyperion version [%s]. Exiting...", currentVersion.getVersion().c_str(), BUILD_VERSION.getVersion().c_str());
-			exit(1);
-		}
-
 		if (currentVersion < BUILD_VERSION)
 		{
 			isNewRelease = true;
@@ -47,14 +42,14 @@ bool DBMigrationManager::isMigrationRequired()
 bool DBMigrationManager::migrateSettings(QJsonObject& config)
 {
 	bool migrated = false;
-	semver::version BUILD_VERSION(HYPERION_VERSION);
+	semver::version const BUILD_VERSION(HYPERION_VERSION);
 
 	SettingsTable settingsTableGlobal;
 	QJsonObject generalConfig = config.value("global").toObject().value("settings").toObject().value("general").toObject();
 
 	if (settingsTableGlobal.resolveConfigVersion(generalConfig))
 	{
-		semver::version currentVersion = settingsTableGlobal.getConfigVersion();
+		semver::version const currentVersion = settingsTableGlobal.getConfigVersion();
 
 		if (currentVersion < BUILD_VERSION)
 		{
@@ -63,7 +58,6 @@ bool DBMigrationManager::migrateSettings(QJsonObject& config)
 			// Extract, modify, and reinsert the global settings
 			QJsonObject globalSettings = config.value("global").toObject().value("settings").toObject();
 			upgradeGlobalSettings(currentVersion, globalSettings);
-
 			QJsonObject globalConfig = config.value("global").toObject();
 			globalConfig.insert("settings", globalSettings);
 			config.insert("global", globalConfig);
@@ -105,6 +99,8 @@ bool DBMigrationManager::upgradeGlobalSettings(const semver::version& currentVer
 	upgradeGlobalSettings_2_0_16(migratedVersion, config);
 	//Migration step for versions < 2.0.17
 	upgradeGlobalSettings_2_1_0(migratedVersion, config);
+	//Migration step for versions < 2.1.1
+	upgradeGlobalSettings_2_1_2(migratedVersion, config);
 
 	// Set the daqtabase version to the current build version
 	QJsonObject generalConfig = config["general"].toObject();
@@ -125,13 +121,15 @@ bool DBMigrationManager::upgradeInstanceSettings(const semver::version& currentV
 	semver::version migratedVersion = currentVersion;
 
 	//Migration step for versions < alpha 9
-	upgradeInstanceSettings_alpha_9(migratedVersion, instance, config);
+	migrated |= upgradeInstanceSettings_alpha_9(migratedVersion, instance, config);
 	//Migration step for versions < 2.0.12
-	upgradeInstanceSettings_2_0_12(migratedVersion, instance, config);
+	migrated |= upgradeInstanceSettings_2_0_12(migratedVersion, instance, config);
 	//Migration step for versions < 2.0.13
-	upgradeInstanceSettings_2_0_13(migratedVersion, instance, config);
+	migrated |= upgradeInstanceSettings_2_0_13(migratedVersion, instance, config);
 	//Migration step for versions < 2.0.16
-	upgradeInstanceSettings_2_0_16(migratedVersion, instance, config);
+	migrated |= upgradeInstanceSettings_2_0_16(migratedVersion, instance, config);
+	//Migration step for versions < 2.0.17
+	migrated |= upgradeInstanceSettings_2_1_0(migratedVersion, instance, config);
 
 	return migrated;
 }
@@ -396,12 +394,21 @@ bool DBMigrationManager::upgradeGlobalSettings_2_0_16(semver::version& currentVe
 bool DBMigrationManager::upgradeGlobalSettings_2_1_0(semver::version& currentVersion, QJsonObject& config)
 {
 	bool migrated = false;
-	const semver::version targetVersion{ "2.0.17-beta.2" };
+	const semver::version targetVersion{ "2.0.17-beta.3" };
 
 	if (currentVersion < targetVersion)
 	{
 		Info(_log, "Global settings: Migrate from version [%s] to version [%s] or later", currentVersion.getVersion().c_str(), targetVersion.getVersion().c_str());
 		currentVersion = targetVersion;
+
+		SettingsTable instanceSettingsTable(0);
+		QJsonObject effectsSettings = instanceSettingsTable.getSettings(QStringList("effects"));
+		if (!effectsSettings.isEmpty())
+		{
+			config.insert("effects", effectsSettings.value("effects"));
+
+			Debug(_log, "Effect settings migrated");
+		}
 
 		if (config.contains("general"))
 		{
@@ -410,7 +417,6 @@ bool DBMigrationManager::upgradeGlobalSettings_2_1_0(semver::version& currentVer
 			config.insert("general", newGeneralConfig);
 
 			Debug(_log, "General settings migrated");
-			migrated = true;
 		}
 
 		if (config.contains("network"))
@@ -421,15 +427,39 @@ bool DBMigrationManager::upgradeGlobalSettings_2_1_0(semver::version& currentVer
 			config.insert("network", newNetworkConfig);
 
 			Debug(_log, "Network settings migrated");
-			migrated = true;
 		}
-
 	}
 
 	//Remove wrong instance 255 configuration records, created by the global instance #255
 	SettingsTable globalSettingsTable(255);
 	globalSettingsTable.deleteInstance();
 	migrated = true;
+
+	return migrated;
+}
+
+bool DBMigrationManager::upgradeGlobalSettings_2_1_2(semver::version& currentVersion, QJsonObject& config)
+{
+	bool migrated = false;
+	const semver::version targetVersion{ "2.1.2" };
+
+	if (currentVersion < targetVersion)
+	{
+		Info(_log, "Global settings: Migrate from version [%s] to version [%s] or later", currentVersion.getVersion().c_str(), targetVersion.getVersion().c_str());
+		currentVersion = targetVersion;
+
+		if (config.contains("network"))
+		{
+			QJsonObject newNetworkConfig = config["network"].toObject();
+			newNetworkConfig.remove("internetAccessAPI");
+			newNetworkConfig.remove("restirctedInternetAccessAPI");
+			newNetworkConfig.remove("ipWhitelist");
+			config.insert("network", newNetworkConfig);
+
+			Debug(_log, "Network settings migrated");
+			migrated = true;
+		}
+	}
 
 	return migrated;
 }
@@ -562,7 +592,7 @@ bool DBMigrationManager::upgradeInstanceSettings_alpha_9(semver::version& curren
 			if (migrated)
 			{
 				config["device"] = newDeviceConfig;
-				Debug(_log, "LED-Device records migrated");
+				Debug(_log, "Instance [%u] - LED-Device records migrated", instance);
 			}
 		}
 	}
@@ -624,7 +654,7 @@ bool DBMigrationManager::upgradeInstanceSettings_2_0_12(semver::version& current
 			if (migrated)
 			{
 				config["device"] = newDeviceConfig;
-				Debug(_log, "LED-Device records migrated");
+				Debug(_log, "Instance [%u] - LED-Device records migrated", instance);
 			}
 		}
 
@@ -684,7 +714,7 @@ bool DBMigrationManager::upgradeInstanceSettings_2_0_13(semver::version& current
 			if (migrated)
 			{
 				config["device"] = newDeviceConfig;
-				Debug(_log, "LED-Device records migrated");
+				Debug(_log, "Instance [%u] - LED-Device records migrated", instance);
 			}
 		}
 	}
@@ -758,10 +788,29 @@ bool DBMigrationManager::upgradeInstanceSettings_2_0_16(semver::version& current
 		if (migrated)
 		{
 			config["device"] = newDeviceConfig;
-			Debug(_log, "LED-Device records migrated");
+			Debug(_log, "Instance [%u] - LED-Device records migrated", instance);
 		}
 	}
 
 	return migrated;
 }
 
+bool DBMigrationManager::upgradeInstanceSettings_2_1_0(semver::version& currentVersion, quint8 instance, QJsonObject& config)
+{
+	bool migrated = false;
+	const semver::version targetVersion{ "2.0.17-beta.2" };
+
+	if (currentVersion < targetVersion)
+
+	Info(_log, "Settings instance [%u]: Migrate from version [%s] to version [%s] or later", instance, currentVersion.getVersion().c_str(), targetVersion.getVersion().c_str());
+	currentVersion = targetVersion;
+
+	if (config.contains("effects"))
+	{
+		config.remove("effects");
+
+		Debug(_log, "Instance [%u] - Effects settings deleted", instance);
+		migrated = true;
+	}
+	return migrated;
+}

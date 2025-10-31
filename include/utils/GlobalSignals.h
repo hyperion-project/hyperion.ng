@@ -117,4 +117,13 @@ signals:
 	///
 	void requestSource(hyperion::Components component, int hyperionInd, bool listen);
 
+	///////////////////////////////////////
+	///////////// TO FORWARDER ////////////
+	///////////////////////////////////////
+
+	///
+	/// @brief Forward message to all json target hosts
+	/// @param message The JSON message to send
+	///
+	void forwardJsonMessage(const QJsonObject &message, quint8 instanceId);
 };

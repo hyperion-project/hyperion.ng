@@ -100,17 +100,12 @@ void JsonServer::newConnection()
 	{
 		if (QTcpSocket * socket = _server->nextPendingConnection())
 		{
-			if(_netOrigin->accessAllowed(socket->peerAddress(), socket->localAddress()))
-			{
-				Debug(_log, "New connection from: %s",QSTRING_CSTR(socket->peerAddress().toString()));
-				JsonClientConnection * connection = new JsonClientConnection(socket, _netOrigin->isLocalAddress(socket->peerAddress(), socket->localAddress()));
-				_openConnections.insert(connection);
+			Debug(_log, "New connection from: %s",QSTRING_CSTR(socket->peerAddress().toString()));
+			JsonClientConnection * connection = new JsonClientConnection(socket, _netOrigin->isLocalAddress(socket->peerAddress(), socket->localAddress()));
+			_openConnections.insert(connection);
 
-				// register slot for cleaning up after the connection closed
-				connect(connection, &JsonClientConnection::connectionClosed, this, &JsonServer::closedConnection);
-			}
-			else
-				socket->close();
+			// register slot for cleaning up after the connection closed
+			connect(connection, &JsonClientConnection::connectionClosed, this, &JsonServer::closedConnection);
 		}
 	}
 }

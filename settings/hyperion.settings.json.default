@@ -13,6 +13,12 @@
          ],
          "enable":false
       },
+      "effects":{
+         "paths":[
+            "$ROOT/custom-effects"
+         ],
+         "disable":[""]
+      },
       "flatbufServer":{
          "enable":true,
          "port":19400,
@@ -20,12 +26,10 @@
       },
       "forwarder":{
          "enable":false,
-         "jsonapi":[
-            
-         ],
-         "flatbuffer":[
-            
-         ]
+         "instance":255,
+         "instanceList": "NONE",
+         "jsonapi":[],
+         "flatbuffer":[]
       },
       "framegrabber":{
          "enable":false,
@@ -109,11 +113,6 @@
          "level":"warn"
       },
       "network":{
-         "internetAccessAPI":false,
-         "restirctedInternetAccessAPI":false,
-         "ipWhitelist":[
-            
-         ],
          "localApiAuth":false
       },
       "osEvents":{
@@ -211,7 +210,8 @@
                "brightness":100,
                "brightnessCompensation":100,
                "saturationGain":1.0,
-               "brightnessGain":1.0
+               "brightnessGain":1.0,
+               "temperature" : 6600
             }
          ]
       },
@@ -225,14 +225,6 @@
          "rewriteTime":0,
          "enableAttempts":6,
          "enableAttemptsInterval":15
-      },
-      "effects":{
-         "paths":[
-            "$ROOT/custom-effects"
-         ],
-         "disable":[
-            ""
-         ]
       },
       "foregroundEffect":{
          "enable":true,

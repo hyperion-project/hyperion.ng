@@ -34,8 +34,14 @@ public:
 
 	~X11Grabber() override;
 
-	bool open();
+	///
+	/// @brief Determine if the grabber is available.
+	///
+	/// @return true, on success (i.e. Window Manager is not Wayland), else false
+	///
+	bool isAvailable(bool logError = true) override;
 
+	bool open();
 	bool setupDisplay();
 
 	///
@@ -123,8 +129,6 @@ private:
 	bool _xRenderAvailable;
 	bool _xRandRAvailable;
 	bool _isWayland;
-
-	Logger * _logger;
 
 	Image<ColorRgb> _image;
 };

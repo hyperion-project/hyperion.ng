@@ -6,6 +6,7 @@
 
 // qt
 #include <QVector>
+#include <QScopedPointer>
 
 class QTcpServer;
 class FlatBufferClient;
@@ -34,6 +35,11 @@ public slots:
 
 	void initServer();
 
+	///
+	/// @brief Stop server
+	///
+	void stop();
+
 signals:
 	///
 	/// @emits whenever the server would like to announce its service details
@@ -55,21 +61,17 @@ private:
 	///
 	/// @brief Start the server with current _port
 	///
-	void startServer();
-
-	///
-	/// @brief Stop server
-	///
-	void stopServer();
-
+	void start();
 
 private:
-	QTcpServer* _server;
+	QScopedPointer<QTcpServer> _server;
 	NetOrigin* _netOrigin;
 	Logger* _log;
 	int _timeout;
 	quint16 _port;
 	const QJsonDocument _config;
+
+	int _pixelDecimation;
 
 	QVector<FlatBufferClient*> _openConnections;
 };

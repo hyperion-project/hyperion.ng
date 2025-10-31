@@ -22,7 +22,10 @@ def getPoint(rand = True ,x = 0.5, y = 0.5):
 def getSTime(rt, steps = 360):
 	rt = float(rt)
 	sleepTime = max(0.1, rt) / steps
-	
+
+	# Limit update rate
+	sleepTime = max(hyperion.lowestUpdateInterval(), sleepTime)
+
 	# adapt sleeptime to hardware
 	minStepTime= float(hyperion.latchTime)/1000.0
 	if minStepTime == 0: minStepTime = 0.001

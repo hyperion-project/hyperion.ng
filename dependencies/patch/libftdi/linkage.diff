@@ -1,0 +1,21 @@
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index e145af1..81e04ce 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -20,7 +20,7 @@ configure_file(ftdi_version_i.h.in "${CMAKE_CURRENT_BINARY_DIR}/ftdi_version_i.h
+ # Targets
+ set(c_sources     ${CMAKE_CURRENT_SOURCE_DIR}/ftdi.c ${CMAKE_CURRENT_SOURCE_DIR}/ftdi_stream.c CACHE INTERNAL "List of c sources" )
+ set(c_headers     ${CMAKE_CURRENT_SOURCE_DIR}/ftdi.h CACHE INTERNAL "List of c headers" )
+-
++if( NOT STATICLIBS )
+ add_library(ftdi1 SHARED ${c_sources})
+ 
+ math(EXPR VERSION_FIXUP "${MAJOR_VERSION} + 1")    # Compatibility with previous releases
+@@ -37,6 +37,7 @@ install ( TARGETS ftdi1
+           LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+           ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+ )
++endif()
+ 
+ if ( STATICLIBS )
+   add_library(ftdi1-static STATIC ${c_sources})

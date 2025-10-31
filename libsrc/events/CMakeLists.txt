@@ -8,7 +8,7 @@ add_library(events
 	${CMAKE_SOURCE_DIR}/libsrc/events/EventScheduler.cpp
 )
 
-if(UNIX AND NOT APPLE)
+if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	find_package(Qt${QT_VERSION_MAJOR} COMPONENTS DBus QUIET)
 	if(Qt${QT_VERSION_MAJOR}DBus_FOUND)
 		target_link_libraries(events Qt${QT_VERSION_MAJOR}::DBus)
@@ -21,7 +21,7 @@ target_link_libraries(events
 	Qt${QT_VERSION_MAJOR}::Widgets
 )
 
-if(APPLE)
+if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 	set_source_files_properties(OsEventHandler.cpp PROPERTIES COMPILE_FLAGS "-x objective-c++")
 	target_link_libraries(events "-framework AppKit")
 endif()

@@ -1,5 +1,4 @@
 #include <hyperion/ComponentRegister.h>
-#include <iostream>
 
 #include <hyperion/Hyperion.h>
 
@@ -7,21 +6,28 @@
 
 using namespace hyperion;
 
-ComponentRegister::ComponentRegister(Hyperion* hyperion)
-	: _hyperion(hyperion)
+ComponentRegister::ComponentRegister(const QSharedPointer<Hyperion>& hyperionInstance)
+	: QObject()
+	, _hyperionWeak(hyperionInstance)
 	, _log(nullptr)
 {
-	QString subComponent = hyperion->property("instance").toString();
-	_log= Logger::getInstance("COMPONENTREG", subComponent);
+	QString subComponent{ "__" };
+
+	QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
+	if (hyperion)
+	{
+		subComponent = hyperion->property("instance").toString();
+	}
+	_log = Logger::getInstance("COMPONENTREG", subComponent);
 
 	// init all comps to false
 	QVector<hyperion::Components> vect;
 	vect << COMP_ALL << COMP_SMOOTHING << COMP_LEDDEVICE;
 
-	bool areScreenGrabberAvailable = !GrabberWrapper::availableGrabbers(GrabberTypeFilter::VIDEO).isEmpty();
-	bool areVideoGrabberAvailable = !GrabberWrapper::availableGrabbers(GrabberTypeFilter::VIDEO).isEmpty();
-	bool areAudioGrabberAvailable = !GrabberWrapper::availableGrabbers(GrabberTypeFilter::AUDIO).isEmpty();
-	bool flatBufServerAvailable { false };
+	bool const areScreenGrabberAvailable = !GrabberWrapper::availableGrabbers(GrabberTypeFilter::SCREEN).isEmpty();
+	bool const areVideoGrabberAvailable = !GrabberWrapper::availableGrabbers(GrabberTypeFilter::VIDEO).isEmpty();
+	bool const areAudioGrabberAvailable = !GrabberWrapper::availableGrabbers(GrabberTypeFilter::AUDIO).isEmpty();
+	bool flatBufServerAvailable{ false };
 	bool protoBufServerAvailable{ false };
 
 #if defined(ENABLE_FLATBUF_SERVER)
@@ -61,27 +67,31 @@ ComponentRegister::ComponentRegister(Hyperion* hyperion)
 	vect << COMP_FORWARDER;
 #endif
 
-	for(auto e : std::as_const(vect))
+	for (auto e : std::as_const(vect))
 	{
 		_componentStates.emplace(e, (e == COMP_ALL));
 	}
 
-	connect(_hyperion, &Hyperion::compStateChangeRequest, this, &ComponentRegister::handleCompStateChangeRequest);
-	connect(_hyperion, &Hyperion::compStateChangeRequestAll, this, &ComponentRegister::handleCompStateChangeRequestAll);
+	if (hyperion)
+	{
+		connect(hyperion.get(), &Hyperion::compStateChangeRequest, this, &ComponentRegister::handleCompStateChangeRequest);
+		connect(hyperion.get(), &Hyperion::compStateChangeRequestAll, this, &ComponentRegister::handleCompStateChangeRequestAll);
+	}
 }
 
 ComponentRegister::~ComponentRegister()
 {
+	qDebug() << "ComponentRegister::~ComponentRegister()...";
 }
 
 int ComponentRegister::isComponentEnabled(hyperion::Components comp) const
 {
-	return (_componentStates.count(comp)) ? _componentStates.at(comp) : -1;
+	auto iter = _componentStates.find(comp);
+	return (iter != _componentStates.end()) ? int(iter->second) : -1;
 }
 
 void ComponentRegister::setNewComponentState(hyperion::Components comp, bool isActive)
 {
-
 	if (_componentStates.count(comp) > 0)
 	{
 		if (_componentStates[comp] != isActive)
@@ -118,7 +128,7 @@ void ComponentRegister::handleCompStateChangeRequestAll(bool isActive, const Com
 				Debug(_log,"Disable selected Hyperion components, store their current state");
 			}
 
-			for(const auto &comp : _componentStates)
+			for (const auto& comp : _componentStates)
 			{
 				if (!excludeList.contains(comp.first) && comp.first != COMP_ALL)
 				{
@@ -127,7 +137,11 @@ void ComponentRegister::handleCompStateChangeRequestAll(bool isActive, const Com
 					// disable if enabled
 					if(comp.second)
 					{
-						emit _hyperion->compStateChangeRequest(comp.first, false);
+						QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
+						if (hyperion)
+						{
+							emit hyperion->compStateChangeRequest(comp.first, false);
+						}
 					}
 				}
 			}
@@ -157,7 +171,11 @@ void ComponentRegister::handleCompStateChangeRequestAll(bool isActive, const Com
 						// if comp was enabled, enable again
 						if(comp.second)
 						{
-							emit _hyperion->compStateChangeRequest(comp.first, true);
+							QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
+							if (hyperion)
+							{
+								emit hyperion->compStateChangeRequest(comp.first, true);
+							}
 						}
 					}
 				}

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.0)
+cmake_minimum_required(VERSION 3.10.0)
 project(hyperion-framebuffer)
 
 add_executable(${PROJECT_NAME}
@@ -9,9 +9,7 @@ add_executable(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
 	commandline
-	hyperion-utils
 	flatbufconnect
-	flatbuffers
 	framebuffer-grabber
 	Qt${QT_VERSION_MAJOR}::Widgets
 )
@@ -22,10 +20,14 @@ else()
 	target_link_libraries(${PROJECT_NAME} ssdp)
 endif()
 
-install (TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin" COMPONENT "hyperion_framebuffer")
+target_link_libraries(${PROJECT_NAME}
+	hyperion-utils
+)
+
+install(TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin" COMPONENT "hyperion_framebuffer" OPTIONAL)
 
 if(CMAKE_HOST_UNIX)
 	install(CODE "execute_process(COMMAND ln -sf \"../share/hyperion/bin/${PROJECT_NAME}\" \"${CMAKE_BINARY_DIR}/symlink_${PROJECT_NAME}\")" COMPONENT  "hyperion_framebuffer")
 	install(FILES "${CMAKE_BINARY_DIR}/symlink_${PROJECT_NAME}" DESTINATION "bin" RENAME "${PROJECT_NAME}" COMPONENT "hyperion_framebuffer")
 	install(CODE "file (REMOVE ${CMAKE_BINARY_DIR}/symlink_${PROJECT_NAME})" COMPONENT  "hyperion_framebuffer")
-endif(CMAKE_HOST_UNIX)
+endif()

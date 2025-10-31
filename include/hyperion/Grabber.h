@@ -118,7 +118,7 @@ public:
 	///
 	/// @return true, on success (i.e. library is present), else false
 	///
-	virtual bool isAvailable() { return _isAvailable; }
+	virtual bool isAvailable(bool logError = true)  { return _isAvailable; }
 
 public slots:
 
@@ -174,6 +174,8 @@ protected:
 	int _cropLeft, _cropRight, _cropTop, _cropBottom;
 
 	// Device states
+
+	bool _isCropping;
 
 	/// Is the device available?
 	bool _isAvailable;
