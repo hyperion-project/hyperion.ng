@@ -1,5 +1,6 @@
 #ifndef OSEVENTHANDLER_H
 #define OSEVENTHANDLER_H
+
 #include <QObject>
 #include <QJsonDocument>
 
@@ -13,6 +14,7 @@
 #include <powrprof.h>
 #endif
 
+#include <utils/Logger.h>
 #include <utils/settings.h>
 
 class Logger;
@@ -51,7 +53,7 @@ protected:
 
 	bool _isService;
 
-	Logger* _log{};
+	QSharedPointer<Logger> _log;
 };
 
 #if defined(_WIN32)

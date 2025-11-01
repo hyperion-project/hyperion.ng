@@ -45,7 +45,7 @@ namespace hyperion
 		/// @param[in] accuraryLevel    The accuracy used during processing (only for selected types)
 		///
 		ImageToLedsMap(
-				Logger* log,
+				QSharedPointer<Logger> log,
 				int width,
 				int height,
 				int horizontalBorder,
@@ -355,7 +355,7 @@ namespace hyperion
 
 	private:
 
-		Logger* _log;
+		QSharedPointer<Logger> _log;
 
 		/// The width of the indexed image
 		const int _width;

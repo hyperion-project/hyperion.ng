@@ -12,4 +12,5 @@ add_library(amlogic-grabber
 
 target_link_libraries(amlogic-grabber
 	hyperion
+	drm-grabber
 )

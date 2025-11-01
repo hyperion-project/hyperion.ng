@@ -45,7 +45,7 @@ private slots:
 private:
 
 	/// The logger instance for mDNS-Service
-	Logger* _log;
+	QSharedPointer<Logger> _log;
 
 	QScopedPointer<QMdnsEngine::Server> _server;
 	QScopedPointer<QMdnsEngine::Hostname> _hostname;

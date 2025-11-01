@@ -1,3 +1,5 @@
+#include <grabber/framebuffer/FramebufferFrameGrabber.h>
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -6,8 +8,6 @@
 #include <sys/mman.h>
 #include <sys/ioctl.h>
 #include <cstring>
-
-// STL includes
 #include <iostream>
 
 //Qt
@@ -25,14 +25,11 @@ const bool verbose = false;
 const char DISCOVERY_DIRECTORY[] = "/dev/";
 const char DISCOVERY_FILEPATTERN[] = "fb?";
 
-} //End of constants
-
-// Local includes
-#include <grabber/framebuffer/FramebufferFrameGrabber.h>
+}; //End of constants
 
 FramebufferFrameGrabber::FramebufferFrameGrabber(int deviceIdx)
 	: Grabber("GRABBER-FB")
-	, _fbfd (-1)
+	, _deviceFd(-1)
 {
 	_input = deviceIdx;
 	_useImageResampler = true;
@@ -45,156 +42,150 @@ FramebufferFrameGrabber::~FramebufferFrameGrabber()
 
 bool FramebufferFrameGrabber::setupScreen()
 {
-	bool rc (false);
-
-	if ( _fbfd >= 0 )
+	if ( _deviceFd >= 0 )
 	{
 		closeDevice();
 	}
 
-	rc = getScreenInfo();
-	setEnabled(rc);
+	bool success = getScreenInfo();
+	setEnabled(success);
 
-	return rc;
+	return success;
 }
 
 bool FramebufferFrameGrabber::setWidthHeight(int width, int height)
 {
-	bool rc (false);
-	if(Grabber::setWidthHeight(width, height))
+	if (Grabber::setWidthHeight(width, height))
 	{
-		rc = setupScreen();
+		return setupScreen();
 	}
-	return rc;
+
+	return false;
 }
 
 int FramebufferFrameGrabber::grabFrame(Image<ColorRgb> & image)
 {
-	int rc = 0;
-
-	if (_isEnabled && !_isDeviceInError)
+	if (!_isEnabled || _isDeviceInError)
 	{
-		if ( getScreenInfo() )
-		{
-			/* map the device to memory */
-			uint8_t * fbp = static_cast<uint8_t*>(mmap(nullptr, _fixInfo.smem_len, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, _fbfd, 0));
-			if (fbp == MAP_FAILED) {
-
-				QString errorReason = QString ("Error mapping %1, [%2] %3").arg(_fbDevice).arg(errno).arg(std::strerror(errno));
-				this->setInError ( errorReason );
-				closeDevice();
-				rc = -1;
-			}
-			else
-			{
-				_imageResampler.processImage(fbp,
-											  static_cast<int>(_varInfo.xres),
-											  static_cast<int>(_varInfo.yres),
-											  static_cast<int>(_fixInfo.line_length),
-											  _pixelFormat,
-											  image);
-				munmap(fbp, _fixInfo.smem_len);
-			}
-		}
-		closeDevice();
+		return -1;
 	}
-	return rc;
+
+	if ( !getScreenInfo() )
+	{
+		return -1;
+	}
+
+	/* map the device to memory */
+	auto * fbp = static_cast<uint8_t*>(mmap(nullptr, _fixInfo.smem_len, PROT_READ, MAP_SHARED, _deviceFd, 0));
+	if (fbp == MAP_FAILED)
+	{
+		QString errorReason = QString ("Error mapping %1, [%2] %3").arg(getDeviceName()).arg(errno).arg(std::strerror(errno));
+		this->setInError ( errorReason );
+		closeDevice();
+		return -1;
+	}
+
+	_imageResampler.processImage(fbp,
+									static_cast<int>(_varInfo.xres),
+									static_cast<int>(_varInfo.yres),
+									static_cast<int>(_fixInfo.line_length),
+									_pixelFormat,
+									image);
+	munmap(fbp, _fixInfo.smem_len);
+
+	closeDevice();
+
+	return 0;
 }
 
 bool FramebufferFrameGrabber::openDevice()
 {
-	bool rc = true;
-
-	_fbDevice = getPath();
 	/* Open the framebuffer device */
-	_fbfd = ::open(QSTRING_CSTR(_fbDevice), O_RDONLY);
-	if (_fbfd < 0)
+	_deviceFd = ::open(QSTRING_CSTR(getDeviceName()), O_RDONLY);
+	if (_deviceFd < 0)
 	{
-		QString errorReason = QString ("Error opening %1, [%2] %3").arg(_fbDevice).arg(errno).arg(std::strerror(errno));
+		QString errorReason = QString ("Error opening %1, [%2] %3").arg(getDeviceName()).arg(errno).arg(std::strerror(errno));
 		this->setInError ( errorReason );
-		rc = false;
+		return false;
 	}
-	return rc;
+	return true;
 }
 
 bool FramebufferFrameGrabber::closeDevice()
 {
-	bool rc = false;
-	if (_fbfd >= 0)
+	if (_deviceFd < 0)
 	{
-		if( ::close(_fbfd) == 0) {
-			rc = true;
-		}
-		_fbfd = -1;
+		return true;
 	}
-	return rc;
+
+	bool success = (::close(_deviceFd) == 0);
+	_deviceFd = -1;
+
+	return success;
 }
 
 QSize FramebufferFrameGrabber::getScreenSize() const
 {
-	return getScreenSize(_fbDevice);
+	return getScreenSize(getDeviceName());
 }
 
 QSize FramebufferFrameGrabber::getScreenSize(const QString& device) const
 {
-	QSize size;
-
 	int fbfd = ::open(QSTRING_CSTR(device), O_RDONLY);
-	if (fbfd != -1)
+	if (fbfd == -1)
 	{
-		struct fb_var_screeninfo vinfo;
-		int result = ioctl (fbfd, FBIOGET_VSCREENINFO, &vinfo);
-		if (result == 0)
-		{
-			size.setWidth(static_cast<int>(vinfo.xres));
-			size.setHeight(static_cast<int>(vinfo.yres));
-			DebugIf(verbose, _log, "FB device [%s] found with resolution: %dx%d", QSTRING_CSTR(device), size.width(), size.height());
-		}
-		::close(fbfd);
+		return {};
 	}
+
+	QSize size;
+	struct fb_var_screeninfo vinfo;
+	int result = ioctl (fbfd, FBIOGET_VSCREENINFO, &vinfo);
+	if (result == 0)
+	{
+		size.setWidth(static_cast<int>(vinfo.xres));
+		size.setHeight(static_cast<int>(vinfo.yres));
+		DebugIf(verbose, _log, "FB device [%s] found with resolution: %dx%d", QSTRING_CSTR(device), size.width(), size.height());
+	}
+	::close(fbfd);
+
 	return size;
 }
 
 bool FramebufferFrameGrabber::getScreenInfo()
 {
-	bool rc (false);
-
-	if ( openDevice() )
+	if ( !openDevice() )
 	{
-		if (ioctl(_fbfd, FBIOGET_FSCREENINFO, &_fixInfo) < 0 || ioctl (_fbfd, FBIOGET_VSCREENINFO, &_varInfo) < 0)
-		{
-			QString errorReason = QString ("Error getting screen information for %1, [%2] %3").arg(_fbDevice).arg(errno).arg(std::strerror(errno));
-			this->setInError ( errorReason );
-			closeDevice();
-		}
-		else
-		{
-			rc = true;
-			switch (_varInfo.bits_per_pixel)
-			{
-			case 16: _pixelFormat = PixelFormat::BGR16;
-				break;
-			case 24: _pixelFormat = PixelFormat::BGR24;
-				break;
-			case 32: _pixelFormat = PixelFormat::BGR32;
-				break;
-			default:
-				rc= false;
-				QString errorReason = QString ("Unknown pixel format: %1 bits per pixel").arg(static_cast<int>(_varInfo.bits_per_pixel));
-				this->setInError ( errorReason );
-				closeDevice();
-			}
-		}
+		return false;
 	}
-	return rc;
+
+	if (ioctl(_deviceFd, FBIOGET_FSCREENINFO, &_fixInfo) < 0 || ioctl (_deviceFd, FBIOGET_VSCREENINFO, &_varInfo) < 0)
+	{
+		QString errorReason = QString ("Error getting screen information for %1, [%2] %3").arg(getDeviceName()).arg(errno).arg(std::strerror(errno));
+		this->setInError ( errorReason );
+		closeDevice();
+		return false;
+	}
+
+	switch (_varInfo.bits_per_pixel)
+	{
+	case 16: _pixelFormat = PixelFormat::BGR16;
+		break;
+	case 24: _pixelFormat = PixelFormat::BGR24;
+		break;
+	case 32: _pixelFormat = PixelFormat::BGR32;
+		break;
+	default:
+		QString errorReason = QString ("Unknown pixel format: %1 bits per pixel").arg(static_cast<int>(_varInfo.bits_per_pixel));
+		this->setInError ( errorReason );
+		closeDevice();
+		return false;
+	}
+
+	return true;
 }
 
-QJsonObject FramebufferFrameGrabber::discover(const QJsonObject& params)
+QJsonArray FramebufferFrameGrabber::getInputDeviceDetails() const
 {
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
-	QJsonObject inputsDiscovered;
-
 	//Find framebuffer devices 0-9
 	QDir deviceDirectory (DISCOVERY_DIRECTORY);
 	QStringList deviceFilter(DISCOVERY_FILEPATTERN);
@@ -202,14 +193,13 @@ QJsonObject FramebufferFrameGrabber::discover(const QJsonObject& params)
 	deviceDirectory.setSorting(QDir::Name);
 	QFileInfoList deviceFiles = deviceDirectory.entryInfoList(QDir::System);
 
-	int fbIdx (0);
 	QJsonArray video_inputs;
-
-	QFileInfoList::const_iterator deviceFileIterator;
-	for (deviceFileIterator = deviceFiles.constBegin(); deviceFileIterator != deviceFiles.constEnd(); ++deviceFileIterator)
+	for (const auto &deviceFile : deviceFiles)
 	{
-		fbIdx = (*deviceFileIterator).fileName().right(1).toInt();
-		QString device = (*deviceFileIterator).absoluteFilePath();
+		QString const fileName = deviceFile.fileName();
+		int deviceIdx = fileName.right(1).toInt();
+		QString device = deviceFile.absoluteFilePath();
+
 		DebugIf(verbose, _log, "FB device [%s] found", QSTRING_CSTR(device));
 
 		QSize screenSize = getScreenSize(device);
@@ -220,10 +210,10 @@ QJsonObject FramebufferFrameGrabber::discover(const QJsonObject& params)
 			QJsonObject in;
 
 			QString displayName;
-			displayName = QString("FB%1").arg(fbIdx);
+			displayName = QString("FB%1").arg(deviceIdx);
 
 			in["name"] = displayName;
-			in["inputIdx"] = fbIdx;
+			in["inputIdx"] = deviceIdx;
 
 			QJsonArray formats;
 			QJsonObject format;
@@ -244,26 +234,39 @@ QJsonObject FramebufferFrameGrabber::discover(const QJsonObject& params)
 			in["formats"] = formats;
 			video_inputs.append(in);
 		}
-
-		if (!video_inputs.isEmpty())
-		{
-			inputsDiscovered["device"] = "framebuffer";
-			inputsDiscovered["device_name"] = "Framebuffer";
-			inputsDiscovered["type"] = "screen";
-			inputsDiscovered["video_inputs"] = video_inputs;
-
-			QJsonObject defaults, video_inputs_default, resolution_default;
-			resolution_default["fps"] = _fps;
-			video_inputs_default["resolution"] = resolution_default;
-			video_inputs_default["inputIdx"] = 0;
-			defaults["video_input"] = video_inputs_default;
-			inputsDiscovered["default"] = defaults;
-		}
 	}
 
-	if (inputsDiscovered.isEmpty())
+	return video_inputs;
+}
+
+QJsonObject FramebufferFrameGrabber::discover(const QJsonObject& params)
+{
+	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
+
+	QJsonObject inputsDiscovered;
+
+	QJsonArray const video_inputs = getInputDeviceDetails();
+	if (video_inputs.isEmpty())
 	{
 		DebugIf(verbose, _log, "No displays found to capture from!");
+		return {};
+	}
+
+	if (!video_inputs.isEmpty())
+	{
+		inputsDiscovered["device"] = "framebuffer";
+		inputsDiscovered["device_name"] = "Framebuffer";
+		inputsDiscovered["type"] = "screen";
+		inputsDiscovered["video_inputs"] = video_inputs;
+
+		QJsonObject defaults;
+		QJsonObject video_inputs_default;
+		QJsonObject resolution_default;
+		resolution_default["fps"] = _fps;
+		video_inputs_default["resolution"] = resolution_default;
+		video_inputs_default["inputIdx"] = 0;
+		defaults["video_input"] = video_inputs_default;
+		inputsDiscovered["default"] = defaults;
 	}
 
 	DebugIf(verbose, _log, "device: [%s]", QString(QJsonDocument(inputsDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());

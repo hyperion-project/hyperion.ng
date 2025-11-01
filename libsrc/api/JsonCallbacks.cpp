@@ -19,7 +19,7 @@
 
 using namespace hyperion;
 
-JsonCallbacks::JsonCallbacks(Logger *log, const QString& peerAddress, QObject* parent)
+JsonCallbacks::JsonCallbacks(QSharedPointer<Logger> log, const QString& peerAddress, QObject* parent)
 	: QObject(parent)
 	, _log (log)
 	, _hyperionWeak(nullptr)
@@ -28,9 +28,15 @@ JsonCallbacks::JsonCallbacks(Logger *log, const QString& peerAddress, QObject* p
 	, _prioMuxerWeak(nullptr)
 	, _islogMsgStreamingActive(false)
 {
+	TRACK_SCOPE;
 	qRegisterMetaType<PriorityMuxer::InputsMap>("InputsMap");
 
 	connect(HyperionIManager::getInstance(), &HyperionIManager::instanceStateChanged, this, &JsonCallbacks::handleInstanceStateChange);
+}
+
+JsonCallbacks::~JsonCallbacks()
+{
+	TRACK_SCOPE;
 }
 
 void JsonCallbacks::handleInstanceStateChange(InstanceState state, quint8 instanceID, const QString& /*name */)

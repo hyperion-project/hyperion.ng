@@ -1343,6 +1343,8 @@ function getReleases(callback) {
 
       // Iterate through releases
       releases.forEach((release) => {
+
+        if (release.tag_name === "nightly") return;
         if (release.draft) return;
 
         if (release.tag_name.includes('alpha') && semverLite.gt(release.tag_name, highestAlphaRelease.tag_name)) {

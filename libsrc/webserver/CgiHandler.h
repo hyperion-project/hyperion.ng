@@ -29,7 +29,7 @@ private:
 	QtHttpRequest *     _request;
 	QStringList         _args;
 	QString             _baseUrl;
-	Logger *            _log;
+	QSharedPointer<Logger> _log;
 };
 
 #endif // CGIHANDLER_H

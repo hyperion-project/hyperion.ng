@@ -24,7 +24,7 @@ private slots:
 private:
 	QWebSocket* _websocket;
 
-	Logger* _log;
+	QSharedPointer<Logger> _log;
 	QScopedPointer<JsonAPI> _jsonAPI;
 	QString _peerAddress;
 	QString _origin;

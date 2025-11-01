@@ -34,7 +34,7 @@ private:
 	QString         _baseUrl;
 	QMimeDatabase * _mimeDb;
 	CgiHandler      _cgi;
-	Logger        * _log;
+	QSharedPointer<Logger> _log;
 	QByteArray      _ssdpDescription;
 
 	void printErrorToReply (QtHttpReply * reply, QtHttpReply::StatusCode code, const QString& errorMessage);

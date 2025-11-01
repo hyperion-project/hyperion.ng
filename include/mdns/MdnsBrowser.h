@@ -67,7 +67,7 @@ public slots:
 
 	void resolveServiceInstance(const QByteArray& serviceInstance, std::chrono::milliseconds waitTime = DEFAULT_DISCOVER_TIMEOUT) const;
 
-	void resolveFirstAddress(Logger* log, const QString& hostname, std::chrono::milliseconds timeout = DEFAULT_ADDRESS_RESOLVE_TIMEOUT);
+	void resolveFirstAddress(QSharedPointer<Logger> log, const QString& hostname, std::chrono::milliseconds timeout = DEFAULT_ADDRESS_RESOLVE_TIMEOUT);
 
 Q_SIGNALS:
 
@@ -105,7 +105,7 @@ private slots:
 
 private:
 	/// The logger instance for mDNS-Service
-	Logger* _log;
+	QSharedPointer<Logger> _log;
 
 	QScopedPointer<QMdnsEngine::Server, QScopedPointerDeleteLater> _server;
 	QScopedPointer<QMdnsEngine::Cache, QScopedPointerDeleteLater> _cache;

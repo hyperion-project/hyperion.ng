@@ -47,7 +47,7 @@
 // settings utils
 #include <utils/settings.h>
 
-#include <utils/TrackedMemory.h>
+#include <utils/MemoryTracker.h>
 
 // Forward class declaration
 class ImageProcessor;
@@ -565,7 +565,7 @@ private:
 #endif
 
 	/// Logger instance
-	Logger * _log;
+	QSharedPointer<Logger> _log;
 
 	/// count of hardware leds
 	int _hwLedCount;

@@ -157,7 +157,7 @@ protected:
 
 private:
 	/// The common Logger instance for all LED-devices
-	Logger * _log;
+	QSharedPointer<Logger> _log;
 
 	/// Hyperion instance pointer
 	QWeakPointer<Hyperion> _hyperionWeak;

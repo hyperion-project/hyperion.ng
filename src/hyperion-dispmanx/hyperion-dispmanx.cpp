@@ -47,8 +47,8 @@ int main(int argc, char ** argv)
 	DefaultSignalHandler::install();
 	ErrorManager errorManager;
 
-	Logger *log = Logger::getInstance(CAPTURE_TYPE.toUpper());
-	Logger::setLogLevel(Logger::LOG_INFO);
+	QSharedPointer<Logger> log = Logger::getInstance(CAPTURE_TYPE.toUpper());
+	Logger::setLogLevel(Logger::LogLevel::Info);
 	
 	QCoreApplication const app(argc, argv);
 
@@ -94,7 +94,7 @@ int main(int argc, char ** argv)
 	// check if debug logging is required
 	if (parser.isSet(argDebug))
 	{
-		Logger::setLogLevel(Logger::LOG_DEBUG);
+		Logger::setLogLevel(Logger::LogLevel::Debug);
 	}
 
 

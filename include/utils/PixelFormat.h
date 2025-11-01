@@ -15,6 +15,8 @@ enum class PixelFormat {
 	RGB32,
 	BGR32,
 	NV12,
+	NV21,
+	P030,
 	I420,
 	MJPEG,
 	NO_CHANGE

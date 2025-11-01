@@ -46,6 +46,7 @@ Effect::Effect(const QSharedPointer<Hyperion>& hyperionInstance, int priority, i
 	}
 
 	_log = Logger::getInstance("EFFECTENGINE", subComponent);
+	TRACK_SCOPE_SUBCOMPONENT;
 
 	_colors.fill(ColorRgb::BLACK);
 
@@ -59,7 +60,7 @@ Effect::Effect(const QSharedPointer<Hyperion>& hyperionInstance, int priority, i
 
 Effect::~Effect()
 {
-	qDebug() << "Effect::~Effect()...";
+	TRACK_SCOPE_SUBCOMPONENT;
 	delete _painter;
 	_imageStack.clear();
 }

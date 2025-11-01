@@ -10,7 +10,7 @@
 #include <QTimer>
 #include <QDateTime>
 #include <QScopedPointer>
-
+#include <QMutex>
 
 // STL includes
 #include <vector>
@@ -58,7 +58,7 @@ public:
 	///
 	/// @param[in] log The logger to be used
 	///
-	void setLogger(Logger* log);
+	void setLogger(QSharedPointer<Logger> log);
 
 	///
 	/// @brief Set the current active LED-device type.
@@ -435,7 +435,7 @@ protected:
 	QJsonObject _devConfig;
 
 	/// The common Logger instance for all LED-devices
-	Logger * _log;
+	QSharedPointer<Logger> _log;
 
 	/// The buffer containing the packed RGB values
 	std::vector<uint8_t> _ledBuffer;

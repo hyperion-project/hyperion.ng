@@ -72,7 +72,6 @@ public:
 	V4L2Grabber();
 	~V4L2Grabber() override;
 
-	int grabFrame(Image<ColorRgb> &);
 	void setDevice(const QString& devicePath, const QString& deviceName);
 	bool setInput(int input) override;
 	bool setWidthHeight(int width, int height) override;

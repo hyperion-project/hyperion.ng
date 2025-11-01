@@ -5,7 +5,7 @@
 
 NetOrigin* NetOrigin::instance = nullptr;
 
-NetOrigin::NetOrigin(QObject* parent, Logger* log)
+NetOrigin::NetOrigin(QObject* parent, QSharedPointer<Logger> log)
 	: QObject(parent)
 	, _log(log)
 {

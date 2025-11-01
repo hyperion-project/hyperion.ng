@@ -78,7 +78,7 @@ private:
 
 
 	/// Logger instance
-	Logger* _log;
+	QSharedPointer<Logger> _log;
 
 	/// Instance number
 	quint8 _instance;

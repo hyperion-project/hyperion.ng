@@ -77,7 +77,7 @@ private:
 
 private:
 	QJsonObject _effectConfig;
-	Logger* _log;
+	QSharedPointer<Logger> _log;
 	const QString _rootPath;
 
 	// available effects

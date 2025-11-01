@@ -13,6 +13,7 @@
 #include <utils/ColorRgb.h>
 #include <utils/Image.h>
 #include <utils/Components.h>
+#include <utils/Logger.h>
 
 // global defines
 constexpr auto SMOOTHING_MODE_DEFAULT = 0;
@@ -265,7 +266,7 @@ private:
 	hyperion::Components getComponentOfPriority(int priority) const;
 
 	/// Logger instance
-	Logger* _log;
+	QSharedPointer<Logger> _log;
 
 	/// The current priority (lowest value in _activeInputs)
 	int _currentPriority;

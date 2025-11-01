@@ -147,7 +147,7 @@ private:
 	void sendErrorReply(const std::string & error);
 
 private:
-	Logger*_log;
+	QSharedPointer<Logger> _log;
 
 	/// The TCP-Socket that is connected tot the Proto-client
 	QTcpSocket* _socket;

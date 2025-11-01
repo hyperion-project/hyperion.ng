@@ -146,7 +146,7 @@ private:
 	QByteArray _receiveBuffer;
 
 	QTimer _timer;
-	Logger * _log;
+	QSharedPointer<Logger> _log;
 
 	flatbuffers::FlatBufferBuilder _builder;
 	bool _isRegistered;

@@ -17,7 +17,7 @@ public:
 	///
 	/// @param[in] device The framebuffer device name/path
 	///
-	FramebufferFrameGrabber(int deviceIdx = 0);
+	explicit FramebufferFrameGrabber(int deviceIdx = 0);
 
 	~FramebufferFrameGrabber() override;
 
@@ -29,23 +29,25 @@ public:
 	/// @param[out] image  The snapped screenshot (should be initialized with correct width and
 	/// height)
 	///
-	int grabFrame(Image<ColorRgb> & image);
+	int grabFrame(Image<ColorRgb> & image) override;
 
 	///
 	/// @brief Setup a new capture screen, will free the previous one
 	/// @return True on success, false if no screen is found
 	///
-	bool setupScreen();
+	bool setupScreen() override;
 
 
-	QSize getScreenSize() const;
+	QSize getScreenSize() const override;
 	QSize getScreenSize(const QString& device) const;
 
 	///
 	///@brief Set new width and height for framegrabber, overwrite Grabber.h implementation
 	bool setWidthHeight(int width, int height) override;
 
-	QString getPath() const {return QString("/dev/fb%1").arg(_input);}
+	QString getDeviceName() const {return QString("/dev/fb%1").arg(_input);}
+
+	QJsonArray getInputDeviceDetails() const override;
 
 	///
 	/// @brief Discover Framebuffer screens available (for configuration).
@@ -62,10 +64,7 @@ private:
 	bool closeDevice();
 	bool getScreenInfo();
 
-	// /// Framebuffer device e.g. /dev/fb0
-	QString _fbDevice;
-
-	int _fbfd;
+	int _deviceFd;
 	struct fb_var_screeninfo _varInfo;
 	struct fb_fix_screeninfo _fixInfo;
 

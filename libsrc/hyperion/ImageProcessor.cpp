@@ -1,3 +1,5 @@
+#include <QSharedPointer>
+#include <QRgb>
 
 // Hyperion includes
 #include <hyperion/Hyperion.h>
@@ -7,10 +9,7 @@
 // Blackborder includes
 #include <blackborder/BlackBorderProcessor.h>
 
-#include <QSharedPointer>
-#include <QRgb>
-
-#include "utils/TrackedMemory.h"
+#include "utils/MemoryTracker.h"
 
 using namespace hyperion;
 

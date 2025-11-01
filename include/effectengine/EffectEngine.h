@@ -110,7 +110,7 @@ private:
 
 	std::list<ActiveEffectDefinition> _cachedActiveEffects;
 
-	Logger * _log;
+	QSharedPointer<Logger> _log;
 
 	// The global effect file handler
 	EffectFileHandler * _effectFileHandler;

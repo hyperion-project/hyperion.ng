@@ -112,12 +112,26 @@ QCoreApplication* createApplication(int& argc, char* argv[])
 
 int main(int argc, char** argv)
 {
+	//Turn off Qt debug logging per default - to be removed when qtlogging.ini is defined
+	QLoggingCategory::setFilterRules("*.debug = false");
+	qSetMessagePattern(
+		"%{time yyyy-MM-ddTHH:mm:ss.zzz} |--|                   : <TRACE> %{category}"
+		"%{if-debug} %{function}()[%{line}] TID:%{threadid}"
+	#if (QT_VERSION >= QT_VERSION_CHECK(6, 10, 0))
+		" (%{threadname})"
+	#endif
+		"%{endif} %{message}\n"
+#if 0		
+		" << %{backtrace depth=3}"
+#endif
+	);
+
 	ErrorManager errorManager;
 	DefaultSignalHandler::install();
 
 	// initialize main logger and set global log level
-	Logger* log = Logger::getInstance("MAIN");
-	Logger::setLogLevel(Logger::LOG_WARNING);
+	QSharedPointer<Logger> log = Logger::getInstance("MAIN");
+	Logger::setLogLevel(Logger::LogLevel::Warning);
 
 	// Initialising QCoreApplication
 	QScopedPointer<QCoreApplication> app(createApplication(argc, argv));
@@ -216,19 +230,19 @@ int main(int argc, char** argv)
 	int logLevelCheck = 0;
 	if (parser.isSet(silentLogOption))
 	{
-		Logger::setLogLevel(Logger::LOG_OFF);
+		Logger::setLogLevel(Logger::LogLevel::Off);
 		logLevelCheck++;
 	}
 
 	if (parser.isSet(infoLogOption))
 	{
-		Logger::setLogLevel(Logger::LOG_INFO);
+		Logger::setLogLevel(Logger::LogLevel::Info);
 		logLevelCheck++;
 	}
 
 	if (parser.isSet(debugLogOption))
 	{
-		Logger::setLogLevel(Logger::LOG_DEBUG);
+		Logger::setLogLevel(Logger::LogLevel::Debug);
 		logLevelCheck++;
 	}
 
@@ -273,7 +287,7 @@ int main(int argc, char** argv)
 					QFile::remove(destinationFilePath);
 				}
 
-				if (Logger::getLogLevel() == Logger::LOG_DEBUG)
+				if (Logger::getLogLevel() == Logger::LogLevel::Debug)
 				{
 					std::cout << "Copy \"" << sourceFilePath.toStdString() << "\" -> \"" << destinationFilePath.toStdString() << "\"" << '\n';
 				}

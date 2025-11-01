@@ -23,7 +23,13 @@ Grabber::Grabber(const QString& grabberName, int cropLeft, int cropRight, int cr
 	, _isEnabled(true)
 	, _isDeviceInError(false)
 {
+	TRACK_SCOPE;
 	Grabber::setCropping(cropLeft, cropRight, cropTop, cropBottom);
+}
+
+Grabber::~Grabber()
+{
+	TRACK_SCOPE;
 }
 
 void Grabber::setEnabled(bool enable)

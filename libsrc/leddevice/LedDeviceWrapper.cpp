@@ -39,13 +39,12 @@ LedDeviceWrapper::LedDeviceWrapper(const QSharedPointer<Hyperion>& hyperionInsta
 		hyperion->setNewComponentState(hyperion::COMP_LEDDEVICE, false);
 	}
 	_log = Logger::getInstance("LEDDEVICE", subComponent);
-
-	
+	TRACK_SCOPE_SUBCOMPONENT;
 }
 
 LedDeviceWrapper::~LedDeviceWrapper()
 {
-	qDebug() << "LedDeviceWrapper::~LedDeviceWrapper()...";
+	TRACK_SCOPE_SUBCOMPONENT;
 }
 
 void LedDeviceWrapper::createLedDevice(const QJsonObject& config)

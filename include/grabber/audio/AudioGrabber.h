@@ -54,7 +54,7 @@ class AudioGrabber : public Grabber
 		/// 
 		void restart();
 
-		Logger* getLog();
+		QSharedPointer<Logger> getLog();
 
 		/// 
 		/// Set Device

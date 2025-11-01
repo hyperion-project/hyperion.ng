@@ -245,7 +245,7 @@ private:
 	void stopAll();
 
 private:
-	Logger* _log;
+	QSharedPointer<Logger> _log;
 	QScopedPointer<InstanceTable> _instanceTable;
 	QMap<quint8, QSharedPointer<Hyperion>> _runningInstances;
 	QMap<quint8, QSharedPointer<Hyperion>> _startingInstances;
