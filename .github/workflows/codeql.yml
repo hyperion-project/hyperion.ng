@@ -36,7 +36,7 @@ jobs:
           submodules: recursive
 
       - name: 🔁 Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
           queries: +security-and-quality
@@ -44,7 +44,7 @@ jobs:
 
       - name: 👷 Build (Python & JavaScript)
         if: ${{ matrix.language != 'cpp' }}
-        uses: github/codeql-action/autobuild@v3
+        uses: github/codeql-action/autobuild@v4
 
       - name: 📥 Install jq (C++)
         if: ${{ matrix.language == 'cpp' }}
@@ -70,7 +70,7 @@ jobs:
           BUILD_TYPE: ${{ github.event_name == 'pull_request' && 'debug' || 'release' }}
 
       - name: 🏃 Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
         with:
           category: "/language:${{ matrix.language }}"
           upload: False
@@ -86,7 +86,7 @@ jobs:
           output: sarif-results/${{ matrix.language }}.sarif
 
       - name: 📦 Upload SARIF
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: sarif-results/${{ matrix.language }}.sarif
 
