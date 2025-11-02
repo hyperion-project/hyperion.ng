@@ -14,8 +14,8 @@ class JsonInfo
 {
 
 public:
-	static QJsonObject getInfo(const QSharedPointer<Hyperion>& hyperionInstance, Logger* log);
-	static QJsonArray getAdjustmentInfo(const QSharedPointer<Hyperion>& hyperionInstance, Logger* log);
+	static QJsonObject getInfo(const QSharedPointer<Hyperion>& hyperionInstance, QSharedPointer<Logger> log);
+	static QJsonArray getAdjustmentInfo(const QSharedPointer<Hyperion>& hyperionInstance, QSharedPointer<Logger> log);
 	static QJsonArray getPrioritiestInfo(const QSharedPointer<Hyperion>& hyperionInstance);
 	static QJsonArray getPrioritiestInfo(int currentPriority, const PriorityMuxer::InputsMap& activeInputs);
 	static QJsonArray getEffects();

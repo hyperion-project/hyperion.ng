@@ -185,7 +185,7 @@ private:
 	QJsonObject _smoothConfig;
 
 	/// Logger instance
-	Logger *_log;
+	QSharedPointer<Logger> _log;
 
 	/// Hyperion instance
 	QWeakPointer<Hyperion> _hyperionWeak;

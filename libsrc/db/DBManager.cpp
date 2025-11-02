@@ -34,6 +34,12 @@ DBManager::DBManager(QObject* parent)
 	: QObject(parent)
 	, _log(Logger::getInstance("DB"))
 {
+	TRACK_SCOPE;
+}
+
+DBManager::~DBManager()
+{
+	TRACK_SCOPE;
 }
 
 void DBManager::initializeDatabase(const QDir& dataDirectory, bool isReadOnly)

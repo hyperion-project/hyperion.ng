@@ -129,7 +129,7 @@ public:
 	/// @param onBlackTimeToPowerOff Timeframe of Black output that triggers powering off the light
 	/// @param onBlackTimeToPowerOn Timeframe of non Black output that triggers powering on the light
 	///
-	PhilipsHueLight(Logger* log, bool useApiV2, const QString& id, const QJsonObject& lightAttributes,
+	PhilipsHueLight(QSharedPointer<Logger> log, bool useApiV2, const QString& id, const QJsonObject& lightAttributes,
 					int onBlackTimeToPowerOff,
 					int onBlackTimeToPowerOn);
 
@@ -180,7 +180,7 @@ public:
 
 private:
 
-	Logger* _log;
+	QSharedPointer<Logger> _log;
 	bool _isUsingApiV2;
 
 	QString _id;

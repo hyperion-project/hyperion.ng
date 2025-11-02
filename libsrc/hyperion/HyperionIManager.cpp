@@ -4,7 +4,7 @@
 #include <hyperion/Hyperion.h>
 #include <db/InstanceTable.h>
 #include <db/SettingsTable.h>
-#include <utils/TrackedMemory.h>
+#include <utils/MemoryTracker.h>
 
 // qt
 #include <QThread>
@@ -16,6 +16,7 @@ HyperionIManager::HyperionIManager(QObject* parent)
 	, _log(Logger::getInstance("HYPERION-INSTMGR"))
 	, _instanceTable(new InstanceTable(this))
 {
+	TRACK_SCOPE;
 	HIMinstance = this;
 	qRegisterMetaType<InstanceState>("InstanceState");
 
@@ -24,6 +25,7 @@ HyperionIManager::HyperionIManager(QObject* parent)
 
 HyperionIManager::~HyperionIManager()
 {
+	TRACK_SCOPE;
 }
 
 QSharedPointer<Hyperion> HyperionIManager::getHyperionInstance(quint8 instanceId)

@@ -52,5 +52,5 @@ private:
 	QByteArray _receiveBuffer;
 
 	/// The logger instance
-	Logger * _log;
+	QSharedPointer<Logger> _log;
 };

@@ -13,7 +13,7 @@ QtWrapper::QtWrapper( int updateRate_Hz,
 
 QtWrapper::QtWrapper(const QJsonDocument& grabberConfig)
 	: QtWrapper(GrabberWrapper::DEFAULT_RATE_HZ,
-				0,
+				grabberConfig["input"].toInt(0),
 				GrabberWrapper::DEFAULT_PIXELDECIMATION,
 				0,0,0,0)
 {

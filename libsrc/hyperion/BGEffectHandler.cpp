@@ -17,6 +17,7 @@ BGEffectHandler::BGEffectHandler(const QSharedPointer<Hyperion>& hyperionInstanc
 		 subComponent = hyperion->property("instance").toString();
 	}
 	_log = Logger::getInstance("HYPERION", subComponent);
+	TRACK_SCOPE_SUBCOMPONENT;
 
 	if (hyperion)
 	{
@@ -30,7 +31,7 @@ BGEffectHandler::BGEffectHandler(const QSharedPointer<Hyperion>& hyperionInstanc
 
 BGEffectHandler::~BGEffectHandler()
 {
-	qDebug() << "BGEffectHandler::~BGEffectHandler()...";
+	TRACK_SCOPE_SUBCOMPONENT;
 }
 
 void BGEffectHandler::disconnect()

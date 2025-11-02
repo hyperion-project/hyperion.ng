@@ -123,7 +123,7 @@ private:
 	void stopFlatbufferTargets();
 
 	/// Logger instance
-	Logger   *_log;
+	QSharedPointer<Logger> _log;
 
 	QJsonDocument _config;
 	bool _isActive = true;

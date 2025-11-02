@@ -70,7 +70,7 @@ private:
 	QSet<JsonClientConnection *> _openConnections;
 
 	/// the logger instance
-	Logger * _log;
+	QSharedPointer<Logger> _log;
 
 	NetOrigin* _netOrigin;
 

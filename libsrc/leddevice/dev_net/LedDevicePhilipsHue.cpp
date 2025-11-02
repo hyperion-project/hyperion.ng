@@ -352,6 +352,8 @@ double CiColor::getDistanceBetweenTwoPoints(CiColor p1, XYColor p2)
 LedDevicePhilipsHueBridge::LedDevicePhilipsHueBridge(const QJsonObject &deviceConfig)
 	: ProviderUdpSSL(deviceConfig), _restApi(nullptr), _apiPort(API_DEFAULT_PORT), _api_major(0), _api_minor(0), _api_patch(0), _isPhilipsHueBridge(false), _isDiyHue(false), _isHueEntertainmentReady(false), _isAPIv2Ready(false), _useEntertainmentAPI(false), _useApiV2(true)
 {
+	TRACK_SCOPE_SUBCOMPONENT;
+	
 #ifdef ENABLE_MDNS
 	QMetaObject::invokeMethod(MdnsBrowser::getInstance().data(), "browseForServiceType",
 							  Qt::QueuedConnection, Q_ARG(QByteArray, MdnsServiceRegister::getServiceType(_activeDeviceType)));
@@ -360,7 +362,7 @@ LedDevicePhilipsHueBridge::LedDevicePhilipsHueBridge(const QJsonObject &deviceCo
 
 LedDevicePhilipsHueBridge::~LedDevicePhilipsHueBridge()
 {
-	qDebug() << "LedDevicePhilipsHueBridge::~LedDevicePhilipsHueBridge()";
+	TRACK_SCOPE_SUBCOMPONENT;
 }
 
 bool LedDevicePhilipsHueBridge::init(const QJsonObject &deviceConfig)
@@ -1534,7 +1536,7 @@ const std::set<QString> PhilipsHueLight::GAMUT_B_MODEL_IDS =
 const std::set<QString> PhilipsHueLight::GAMUT_C_MODEL_IDS =
 	{"LCA001", "LCA002", "LCA003", "LCG002", "LCP001", "LCP002", "LCT010", "LCT011", "LCT012", "LCT014", "LCT015", "LCT016", "LCT024", "LCX001", "LCX002", "LLC020", "LST002"};
 
-PhilipsHueLight::PhilipsHueLight(Logger *log, bool useApiV2, const QString &id, const QJsonObject &lightAttributes, int onBlackTimeToPowerOff,
+PhilipsHueLight::PhilipsHueLight(QSharedPointer<Logger> log, bool useApiV2, const QString &id, const QJsonObject &lightAttributes, int onBlackTimeToPowerOff,
 								 int onBlackTimeToPowerOn)
 	: _log(log), _isUsingApiV2(useApiV2), _id(id), _on(false), _transitionTime(0), _color({0.0, 0.0, 0.0}), _hasColor(false), _colorBlack({0.0, 0.0, 0.0}), _lastSendColorTime(0), _lastBlackTime(-1), _lastWhiteTime(-1), _blackScreenTriggered(false), _onBlackTimeToPowerOff(onBlackTimeToPowerOff), _onBlackTimeToPowerOn(onBlackTimeToPowerOn)
 {

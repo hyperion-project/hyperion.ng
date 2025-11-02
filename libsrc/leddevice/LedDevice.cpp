@@ -65,12 +65,13 @@ LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 	, _isRefreshEnabled(false)
 	, _isAutoStart(true)
 {
+	TRACK_SCOPE;
 	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDevice::~LedDevice()
 {
-		qDebug() << "LedDevice::~LedDevice()...";
+	TRACK_SCOPE_SUBCOMPONENT;
 }
 
 void LedDevice::start()
@@ -594,7 +595,7 @@ QJsonObject LedDevice::getProperties(const QJsonObject& params)
 	return properties;
 }
 
-void LedDevice::setLogger(Logger* log)
+void LedDevice::setLogger(QSharedPointer<Logger> log)
 {
 	_log = log;
 }

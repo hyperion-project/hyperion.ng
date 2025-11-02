@@ -33,6 +33,11 @@ BlackBorderProcessor::BlackBorderProcessor(const QSharedPointer<Hyperion>& hyper
 	{
 		subComponent = hyperion->property("instance").toString();
 		_log = Logger::getInstance("BLACKBORDER", subComponent);
+	}
+	TRACK_SCOPE_SUBCOMPONENT;
+
+	if (hyperion)
+	{
 
 		// init
 		handleSettingsUpdate(settings::BLACKBORDER, _hyperionWeak.toStrongRef()->getSetting(settings::BLACKBORDER));
@@ -43,6 +48,7 @@ BlackBorderProcessor::BlackBorderProcessor(const QSharedPointer<Hyperion>& hyper
 		// listen for component state changes
 		connect(hyperion.get(), &Hyperion::compStateChangeRequest, this, &BlackBorderProcessor::handleCompStateChangeRequest);
 	}
+
 	_detector = std::make_unique<BlackBorderDetector>(_oldThreshold);
 }
 
