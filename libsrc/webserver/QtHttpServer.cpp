@@ -14,7 +14,12 @@ QtHttpServerWrapper::QtHttpServerWrapper (QObject * parent)
 	: QTcpServer (parent)
 	, m_useSsl   (false)
 {
+	TRACK_SCOPE;
+}
 
+QtHttpServerWrapper::~QtHttpServerWrapper (void)
+{
+	TRACK_SCOPE;
 }
 
 void QtHttpServerWrapper::setUseSecure (const bool ssl)

@@ -65,5 +65,5 @@ private:
 	QVector<ColorAdjustment*> _ledAdjustments;
 
 	// logger instance
-	Logger * _log;
+	QSharedPointer<Logger> _log;
 };

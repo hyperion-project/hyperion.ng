@@ -1636,18 +1636,23 @@ void V4L2Grabber::enumVideoCaptureDevices()
 			}
 
 			if (!deviceControlList.isEmpty())
+			{
 				_deviceControls.insert("/dev/"+it.fileName(), deviceControlList);
+			}
 
 			if (close(fd) < 0) continue;
 
 			QFile devNameFile(dev+"/name");
-			if (devNameFile.exists())
+			if (devNameFile.exists() && devNameFile.open(QFile::ReadOnly))
 			{
-				devNameFile.open(QFile::ReadOnly);
 				devName = devNameFile.readLine();
 				devName = devName.trimmed();
 				properties.name = devName;
 				devNameFile.close();
+			}
+			else
+			{
+				Error(_log, "Device file '%s' cannot be opened.", QSTRING_CSTR(devNameFile.fileName()));
 			}
 
 			_deviceProperties.insert("/dev/"+it.fileName(), properties);

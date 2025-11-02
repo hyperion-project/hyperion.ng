@@ -79,18 +79,19 @@ const char SETTINGS_UI_SCHEMA_FILE[] = ":/schema-settings-ui.json";
 const bool verbose = false;
 }
 
-JsonAPI::JsonAPI(QString peerAddress, Logger *log, bool localConnection, bool noListener)
+JsonAPI::JsonAPI(QString peerAddress, QSharedPointer<Logger> log, bool localConnection, bool noListener)
 	: JsonAPI(peerAddress, log, localConnection, nullptr, noListener)
 {
 }
 
-JsonAPI::JsonAPI(QString peerAddress, Logger *log, bool localConnection, QObject *parent, bool noListener)
+JsonAPI::JsonAPI(QString peerAddress, QSharedPointer<Logger> log, bool localConnection, QObject *parent, bool noListener)
 	: API(log, localConnection, parent)
 	,_noListener(noListener)
 	,_peerAddress (std::move(peerAddress))
 	,_jsonCB (nullptr)
 	,_isServiceAvailable(false)
 {
+	TRACK_SCOPE;
 	Q_INIT_RESOURCE(JSONRPC_schemas);
 
 	qRegisterMetaType<Event>("Event");
@@ -104,6 +105,11 @@ JsonAPI::JsonAPI(QString peerAddress, Logger *log, bool localConnection, QObject
 	});
 
 	_jsonCB = QSharedPointer<JsonCallbacks>(new JsonCallbacks( _log, _peerAddress, parent));
+}
+
+JsonAPI::~JsonAPI()
+{
+	TRACK_SCOPE;
 }
 
 QSharedPointer<JsonCallbacks> JsonAPI::getCallBack() const

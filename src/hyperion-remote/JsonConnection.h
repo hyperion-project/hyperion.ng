@@ -277,7 +277,7 @@ private:
 	bool parseReply(const QJsonObject & reply);
 
 	// Logger class
-	Logger* _log;
+	QSharedPointer<Logger> _log;
 
 	/// The TCP-Socket with the connection to the server
 	QScopedPointer<QTcpSocket,QScopedPointerDeleteLater> _socket;

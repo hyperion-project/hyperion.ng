@@ -7,10 +7,11 @@
 #include <algorithm>
 #include <vector>
 
+#include <QLoggingCategory>
+
 #include "HyperionConfig.h"
 #include <utils/ColorRgb.h>
 #include <utils/Logger.h>
-#include <utils/TrackedMemory.h>
 
 // QT includes
 #include <QSharedData>
@@ -22,27 +23,18 @@
 typedef SSIZE_T ssize_t;
 #endif
 
+Q_DECLARE_LOGGING_CATEGORY(memory_objects_image_create)
+Q_DECLARE_LOGGING_CATEGORY(memory_objects_image_copy)
+Q_DECLARE_LOGGING_CATEGORY(memory_objects_image_move)
+Q_DECLARE_LOGGING_CATEGORY(memory_objects_image_assign)
+Q_DECLARE_LOGGING_CATEGORY(memory_objects_image_destroy)
+
 // Define to enable memory tracing for Image objects.
 // Define as TraceEvent::All; for all events, or a combination of TraceEvent flags.
 // e.g. constexpr TraceEvent TRACE_IMAGE_DATA_MEMORY_EVENTS = TraceEvent::Alloc | TraceEvent::Release
 
 template <typename Pixel_T>
 class ImageData;
-
-#if defined(ENABLE_TRACE_IMAGE_DATA_MEMORY)
-constexpr TraceEvent TRACE_IMAGE_DATA_MEMORY_EVENTS = TraceEvent::All;
-template<typename Pixel_T>
-struct ComponentTracer<ImageData<Pixel_T>> {
-	static constexpr bool enabled = true;
-	static inline TraceEvent active_events = TRACE_IMAGE_DATA_MEMORY_EVENTS;
-};
-#else
-template<typename Pixel_T>
-struct ComponentTracer<ImageData<Pixel_T>> {
-	static constexpr bool enabled = false;
-	static inline TraceEvent active_events = TraceEvent::NoTrace;
-};
-#endif
 
 // Base class to hold the static instance counter
 class ImageDataCounter {

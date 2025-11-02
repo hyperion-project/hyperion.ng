@@ -28,7 +28,6 @@ class JsonAPI : public API
 
 public:
 
-public:
 	///
 	/// Constructor
 	///
@@ -37,7 +36,7 @@ public:
 	/// @param localConnection True when the sender has origin home network
 	/// @param noListener  if true, this instance won't listen for hyperion push events
 	///
-	JsonAPI(QString peerAddress, Logger *log, bool localConnection, bool noListener = false);
+	JsonAPI(QString peerAddress, QSharedPointer<Logger> log, bool localConnection, bool noListener = false);
 
 	///
 	/// Constructor
@@ -48,7 +47,8 @@ public:
 	/// @param parent      Parent QObject
 	/// @param noListener  if true, this instance won't listen for hyperion push events
 	///
-	JsonAPI(QString peerAddress, Logger *log, bool localConnection, QObject *parent, bool noListener = false);
+	JsonAPI(QString peerAddress, QSharedPointer<Logger> log, bool localConnection, QObject *parent, bool noListener = false);
+	~JsonAPI() override;
 
 	///
 	/// Handle an incoming JSON message

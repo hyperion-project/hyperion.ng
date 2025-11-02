@@ -53,7 +53,7 @@ public:
 	/// @param localConnection Is this a local network connection? Use utils/NetOrigin to check that
 	/// @param parent          Parent QObject
 	///
-	API(Logger *log, bool localConnection, QObject *parent);
+	API(QSharedPointer<Logger> log, bool localConnection, QObject *parent);
 
 protected:
 	///
@@ -380,7 +380,7 @@ protected:
 	AuthManager *_authManager;
 	HyperionIManager *_instanceManager;
 
-	Logger *_log;
+	QSharedPointer<Logger> _log;
 
 	// current instance index
 	quint8 _currInstanceIndex;

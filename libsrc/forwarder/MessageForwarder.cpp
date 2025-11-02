@@ -49,12 +49,13 @@ MessageForwarder::MessageForwarder(const QJsonDocument& config)
 	, _muxerWeak(nullptr)
 	, _messageForwarderFlatBufHelper(nullptr)
 {
+	TRACK_SCOPE;
 	qRegisterMetaType<TargetHost>("TargetHost");
 }
 
 MessageForwarder::~MessageForwarder()
 {
-	qDebug() << "MessageForwarder::~MessageForwarder()...";
+	TRACK_SCOPE;
 }
 
 void MessageForwarder::init()

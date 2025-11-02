@@ -30,6 +30,7 @@ public:
 	/// @param deviceConfig Device's configuration as JSON-Object
 	///
 	explicit LedDeviceWled(const QJsonObject &deviceConfig);
+	~LedDeviceWled() override;
 
 	///
 	/// @brief Constructs the WLED-device

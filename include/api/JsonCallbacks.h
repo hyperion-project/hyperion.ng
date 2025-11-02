@@ -25,7 +25,8 @@ class JsonCallbacks : public QObject
 	Q_OBJECT
 
 public:
-	JsonCallbacks(Logger* log, const QString& peerAddress, QObject* parent);
+	JsonCallbacks(QSharedPointer<Logger> log, const QString& peerAddress, QObject* parent);
+	~JsonCallbacks() override;
 
 	///
 	/// @brief Subscribe to future data updates given by cmd
@@ -204,7 +205,7 @@ private:
 	void doCallback(Subscription::Type cmd, const QJsonArray& data);
 	void doCallback(Subscription::Type cmd, const QJsonObject& data);
 
-	Logger *_log;
+	QSharedPointer<Logger> _log;
 	quint8 _instanceID;
 	QWeakPointer<Hyperion> _hyperionWeak;
 

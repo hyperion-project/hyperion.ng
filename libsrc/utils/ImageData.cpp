@@ -4,7 +4,14 @@
 #include <utils/ColorRgb.h>
 #include <utils/ColorRgba.h>
 #include <utils/Logger.h>
-#include <vector>
+
+#include <QLoggingCategory>
+
+Q_LOGGING_CATEGORY(memory_objects_image_create, "memory.objects.image.create");
+Q_LOGGING_CATEGORY(memory_objects_image_copy, "memory.objects.image.copy");
+Q_LOGGING_CATEGORY(memory_objects_image_move, "memory.objects.image.move");
+Q_LOGGING_CATEGORY(memory_objects_image_assign, "memory.objects.image.assign");
+Q_LOGGING_CATEGORY(memory_objects_image_destroy, "memory.objects.image.destroy");
 
 // The static instance counter needs to be defined in a .cpp file.
 QAtomicInteger<quint64> ImageDataCounter::_imageData_instance_counter(0);
@@ -16,7 +23,7 @@ ImageData<Pixel_T>::ImageData(int width, int height, const pixel_type background
 	_pixels(static_cast<size_t>(width) * static_cast<size_t>(height), background),
 	_instanceId(++_imageData_instance_counter)
 {
-	DebugIf(is_tracing<ImageData<pixel_type>>(TraceEvent::Alloc), Logger::getInstance("MEMORY-ImageData"), "ALLOC (DATA): New ImageData [%d] created (%dx%d).", _instanceId, width, height);
+	qCDebug(memory_objects_image_create).noquote() << QString("|ImageData| CREATE: Creating new ImageData [%1] of size %2x%3").arg(_instanceId).arg(width).arg(height);
 }
 
 template <typename Pixel_T>
@@ -26,13 +33,13 @@ ImageData<Pixel_T>::ImageData(const ImageData& other) :
 	_pixels(other._pixels),
 	_instanceId(++_imageData_instance_counter)
 {
-	DebugIf(is_tracing<ImageData<pixel_type>>(TraceEvent::Deep), Logger::getInstance("MEMORY-ImageData"), "COPY (DEEP DATA): New ImageData [%d] created as a deep copy of [%d].", _instanceId, other._instanceId);
+	qCDebug(memory_objects_image_copy).noquote() << QString("|ImageData| COPY (DEEP): New ImageData [%1] created as a deep copy of [%2].").arg(_instanceId).arg(other._instanceId);
 }
 
 template <typename Pixel_T>
 ImageData<Pixel_T>::~ImageData()
 {
-	DebugIf(is_tracing<ImageData<pixel_type>>(TraceEvent::Release), Logger::getInstance("MEMORY-ImageData"), "RELEASE (DATA): ImageData [%d] destroyed and memory freed.", _instanceId);
+	qCDebug(memory_objects_image_destroy).noquote() << QString("|ImageData| DESTROY: Destroying ImageData [%1]").arg(_instanceId);
 }
 
 template <typename Pixel_T>

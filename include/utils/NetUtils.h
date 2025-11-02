@@ -28,7 +28,7 @@ const int MAX_PORT = 65535;
 /// @param         log   The logger of the caller to print
 /// @return        True on success else false
 ///
-inline bool portAvailable(quint16& port, Logger* log)
+inline bool portAvailable(quint16& port, QSharedPointer<Logger> log)
 {
 	const quint16 prevPort = port;
 	QTcpServer server;
@@ -53,7 +53,7 @@ inline bool portAvailable(quint16& port, Logger* log)
 /// @param[in] host  A hostname/IP-address to make reference to during logging
 /// @return          True on success else false
 ///
-inline bool isValidPort(Logger* log, int port, const QString& host)
+inline bool isValidPort(QSharedPointer<Logger> log, int port, const QString& host)
 {
 	if ((port <= 0 || port > MAX_PORT) && port != -1)
 	{
@@ -168,7 +168,7 @@ inline QMdnsEngine::Record resolveMdnsServiceRecord(const QByteArray& serviceIns
 /// @param[out]    hostAddress The resolved IP-Address
 /// @return        True on success else false
 ///
-inline bool resolveMdnsHostToAddress(Logger *log, QString &hostname, QAbstractSocket::NetworkLayerProtocol protocol = QAbstractSocket::AnyIPProtocol)
+inline bool resolveMdnsHostToAddress(QSharedPointer<Logger> log, QString &hostname, QAbstractSocket::NetworkLayerProtocol protocol = QAbstractSocket::AnyIPProtocol)
 {
 	if (hostname.isEmpty())
 	{
@@ -198,7 +198,7 @@ inline bool resolveMdnsHostToAddress(Logger *log, QString &hostname, QAbstractSo
 	// Call the function asynchronously in MdnsBrowser's thread
 	QMetaObject::invokeMethod(browser, "resolveFirstAddress",
 							  Qt::QueuedConnection, // Ensures it runs in the correct thread
-							  Q_ARG(Logger *, log),
+							  Q_ARG(QSharedPointer<Logger>, log),
 							  Q_ARG(QString, hostname),
 							  Q_ARG(QAbstractSocket::NetworkLayerProtocol, protocol));
 
@@ -228,7 +228,7 @@ inline bool resolveMdnsHostToAddress(Logger *log, QString &hostname, QAbstractSo
 /// @param[in/out] port        The port provided by the mDNS service, if not mDNS the input port is returned
 /// @return        True on success else false
 ///
-inline bool convertMdnsToIp(Logger* log, QString& mdnsName, int& port, QAbstractSocket::NetworkLayerProtocol protocol = QAbstractSocket::AnyIPProtocol)
+inline bool convertMdnsToIp(QSharedPointer<Logger> log, QString& mdnsName, int& port, QAbstractSocket::NetworkLayerProtocol protocol = QAbstractSocket::AnyIPProtocol)
 {
 	if (!MdnsBrowser::isMdns(mdnsName))
 	{
@@ -279,7 +279,7 @@ inline bool convertMdnsToIp(Logger* log, QString& mdnsName, int& port, QAbstract
 	return true;
 }
 
-inline bool convertMdnsToIp(Logger* log, QString& mdnsName)
+inline bool convertMdnsToIp(QSharedPointer<Logger> log, QString& mdnsName)
 {
 	int ignoredPort {MAX_PORT};
 	return convertMdnsToIp(log, mdnsName, ignoredPort);
@@ -293,7 +293,7 @@ inline bool convertMdnsToIp(Logger* log, QString& mdnsName)
 /// @param[in/out] port        The port provided by the mDNS service, if not mDNS the input port is returned
 /// @return        True on success else false
 ///
-inline bool resolveHostToAddress(Logger *log, const QString &hostname, QHostAddress &hostAddress, int &port, QAbstractSocket::NetworkLayerProtocol protocol = QAbstractSocket::AnyIPProtocol)
+inline bool resolveHostToAddress(QSharedPointer<Logger> log, const QString &hostname, QHostAddress &hostAddress, int &port, QAbstractSocket::NetworkLayerProtocol protocol = QAbstractSocket::AnyIPProtocol)
 {
 	QString resolvedHost{hostname};
 
@@ -321,7 +321,7 @@ inline bool resolveHostToAddress(Logger *log, const QString &hostname, QHostAddr
 	return true;
 }
 
-inline bool resolveHostToAddress(Logger* log, const QString& hostname, QHostAddress& hostAddress)
+inline bool resolveHostToAddress(QSharedPointer<Logger> log, const QString& hostname, QHostAddress& hostAddress)
 {
 	int ignoredPort {MAX_PORT};
 	return resolveHostToAddress(log, hostname, hostAddress, ignoredPort);

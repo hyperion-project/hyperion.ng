@@ -535,19 +535,23 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 		std::string const level = logConfig["level"].toString("warn").toStdString(); // silent warn verbose debug
 		if (level == "silent")
 		{
-			Logger::setLogLevel(Logger::LOG_OFF);
+			Logger::setLogLevel(Logger::LogLevel::Off);
+		}
+		else if (level == "off")
+		{
+			Logger::setLogLevel(Logger::LogLevel::Off);
 		}
 		else if (level == "warn")
 		{
-			Logger::setLogLevel(Logger::LOG_WARNING);
+			Logger::setLogLevel(Logger::LogLevel::Warning);
 		}
 		else if (level == "verbose")
 		{
-			Logger::setLogLevel(Logger::LOG_INFO);
+			Logger::setLogLevel(Logger::LogLevel::Info);
 		}
 		else if (level == "debug")
 		{
-			Logger::setLogLevel(Logger::LOG_DEBUG);
+			Logger::setLogLevel(Logger::LogLevel::Debug);
 		}
 	}
 
@@ -569,7 +573,7 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 
 void HyperionDaemon::updateScreenGrabbers(const QJsonDocument& grabberConfig)
 {
-#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB) && !defined(ENABLE_X11) && !defined(ENABLE_XCB) && !defined(ENABLE_AMLOGIC) && !defined(ENABLE_QT) && !defined(ENABLE_DX) && !defined(ENABLE_DDA)
+#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB) && !defined(ENABLE_X11) && !defined(ENABLE_XCB) && !defined(ENABLE_AMLOGIC) && !defined(ENABLE_QT) && !defined(ENABLE_DX) && !defined(ENABLE_DDA) && !defined(ENABLE_DRM)
 	Info(_log, "No screen capture supported on this platform");
 	return;
 #endif
@@ -617,6 +621,12 @@ void HyperionDaemon::updateScreenGrabbers(const QJsonDocument& grabberConfig)
 		else if (type == "dda")
 		{
 			startGrabber<DDAWrapper>(_screenGrabber, grabberConfig);
+		}
+#endif
+#ifdef ENABLE_DRM
+		else if (type == "drm")
+		{
+			startGrabber<DRMWrapper>(_screenGrabber, grabberConfig);
 		}
 #endif
 #ifdef ENABLE_FB

@@ -3,7 +3,7 @@
 using namespace hyperion;
 
 ImageToLedsMap::ImageToLedsMap(
-		Logger* log,
+		QSharedPointer<Logger> log,
 		int width,
 		int height,
 		int horizontalBorder,
@@ -20,6 +20,7 @@ ImageToLedsMap::ImageToLedsMap(
 	, _clusterCount()
 	, _colorsMap()
 {
+	TRACK_SCOPE;
 	_nextPixelCount = reducedPixelSetFactor + 1;
 	setAccuracyLevel(accuracyLevel);
 
@@ -112,10 +113,10 @@ ImageToLedsMap::ImageToLedsMap(
 		totalCount, totalCapacity, reducedPixelSetFactor, accuracyLevel, width, height, leds.size());
 }
 
-	ImageToLedsMap::~ImageToLedsMap()
-	{
-		qDebug() << "ImageToLedsMap::~ImageToLedsMap()...";
-	}
+ImageToLedsMap::~ImageToLedsMap()
+{
+	TRACK_SCOPE;
+}
 
 int ImageToLedsMap::width() const
 {

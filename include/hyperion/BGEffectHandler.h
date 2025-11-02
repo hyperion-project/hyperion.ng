@@ -50,7 +50,7 @@ private slots:
 private:
 	/// Hyperion instance pointer
 	QWeakPointer<Hyperion> _hyperionWeak;
-	Logger * _log;
+	QSharedPointer<Logger> _log;
 
 	QJsonDocument _bgEffectConfig;
 	bool _isBgEffectEnabled;

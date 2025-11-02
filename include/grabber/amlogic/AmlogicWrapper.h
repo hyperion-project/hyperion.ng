@@ -19,15 +19,17 @@ public:
 	/// Constructs the Amlogic frame grabber
 	///
 	/// @param[in] updateRate_Hz     The image grab rate [Hz]
-	/// @param[in] pixelDecimation   Decimation factor for image [pixels]///
+	/// @param[in] deviceIdx Framebuffer device index	
+	/// @param[in] pixelDecimation   Decimation factor for image [pixels]
 	///
-	AmlogicWrapper(int updateRate_Hz=GrabberWrapper::DEFAULT_RATE_HZ,
+	explicit AmlogicWrapper(int updateRate_Hz=GrabberWrapper::DEFAULT_RATE_HZ,
+				   int deviceIdx=0,
 				   int pixelDecimation=GrabberWrapper::DEFAULT_PIXELDECIMATION);
 
 	///
 	/// Constructs the Amlogic frame grabber from configuration settings
 	///
-	AmlogicWrapper(const QJsonDocument& grabberConfig = QJsonDocument());
+	explicit AmlogicWrapper(const QJsonDocument& grabberConfig = QJsonDocument());
 
 
 public slots:

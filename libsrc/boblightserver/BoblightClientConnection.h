@@ -140,7 +140,7 @@ private:
 	QVector<ColorRgb> _ledColors;
 
 	/// logger instance
-	Logger * _log;
+	QSharedPointer<Logger> _log;
 
 	/// address of client
 	QString _clientAddress;

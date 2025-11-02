@@ -23,6 +23,7 @@ class MdnsProvider : public QObject
 public:
 
 	explicit MdnsProvider(QObject* parent = nullptr);
+	~MdnsProvider() override;
 
 	QList<QByteArray> getServiceTypesProvided() const { return _providedServiceTypes.keys(); }
 
@@ -47,7 +48,7 @@ private slots:
 private:
 
 	/// The logger instance for mDNS-Service
-	Logger* _log;
+	QSharedPointer<Logger> _log;
 
 	QScopedPointer<QMdnsEngine::Server> _server;
 	QScopedPointer<QMdnsEngine::Hostname> _hostname;

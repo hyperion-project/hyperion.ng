@@ -19,7 +19,7 @@
 #include <utils/Logger.h>
 #include <utils/JsonUtils.h>
 #include "utils/WaitTime.h"
-#include "utils/TrackedMemory.h"
+#include "utils/MemoryTracker.h"
 
 // LedDevice includes
 #include <leddevice/LedDeviceWrapper.h>
@@ -63,7 +63,7 @@ Hyperion::Hyperion(quint8 instance, QObject* parent)
 #endif	
 #if defined(ENABLE_BOBLIGHT_SERVER)
 	, _boblightServer(nullptr)
-#endif	
+#endif
 	, _log(nullptr)
 	, _hwLedCount(0)
 	, _layoutLedCount(0)
@@ -76,12 +76,13 @@ Hyperion::Hyperion(quint8 instance, QObject* parent)
 	this->setProperty("instance", QVariant::fromValue(subComponent));
 
 	_log = Logger::getInstance("HYPERION", subComponent);
+	TRACK_SCOPE_SUBCOMPONENT;
 }
 
 Hyperion::~Hyperion()
 {
 	Debug(_log, "Hyperion instance [%u] is stopping...", _instIndex);
-	qDebug() << "Hyperion::~Hyperion() - Hyperion instance [" << _instIndex << "] is stopping...";
+	TRACK_SCOPE_SUBCOMPONENT;
 }
 
 void Hyperion::start()

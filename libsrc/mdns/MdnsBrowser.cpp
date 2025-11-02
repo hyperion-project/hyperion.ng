@@ -31,8 +31,14 @@ MdnsBrowser::MdnsBrowser(QObject* parent)
 	, _server(nullptr)
 	, _cache(nullptr)
 {
+	TRACK_SCOPE;
 	qRegisterMetaType<QMdnsEngine::Message>("QMdnsEngine::Message");
 	qRegisterMetaType<QHostAddress>("QHostAddress");
+}
+
+MdnsBrowser::~MdnsBrowser()
+{
+	TRACK_SCOPE;
 }
 
 void MdnsBrowser::initMdns()
@@ -124,19 +130,20 @@ void MdnsBrowser::onHostNameResolved(const QString& hostname, const QHostAddress
 	}
 }
 
-void MdnsBrowser::resolveFirstAddress(Logger* log, const QString& hostname, const std::chrono::milliseconds timeout)
+
+void MdnsBrowser::resolveFirstAddress(QSharedPointer<Logger> log, const QString& hostname, const std::chrono::milliseconds timeout)
 {
 	qCDebug(mdns_browser) << "Resolve first address for hostname:" << hostname << "with timeout of:" << timeout.count() << "ms";
 	resolveFirstAddress(log, hostname, QAbstractSocket::AnyIPProtocol, timeout);
 }
 
-void MdnsBrowser::resolveFirstAddress(Logger* log, const QString& hostname, QAbstractSocket::NetworkLayerProtocol protocol)
+void MdnsBrowser::resolveFirstAddress(QSharedPointer<Logger> log, const QString& hostname, QAbstractSocket::NetworkLayerProtocol protocol)
 {
 	qCDebug(mdns_browser) << "Resolve first address for hostname:" << hostname << "with protocol:" << protocol;
 	resolveFirstAddress(log, hostname, protocol, DEFAULT_ADDRESS_RESOLVE_TIMEOUT);
 }
 
-void MdnsBrowser::resolveFirstAddress(Logger* log, const QString& hostname, QAbstractSocket::NetworkLayerProtocol protocol, const std::chrono::milliseconds timeout)
+void MdnsBrowser::resolveFirstAddress(QSharedPointer<Logger> log, const QString& hostname, QAbstractSocket::NetworkLayerProtocol protocol, const std::chrono::milliseconds timeout)
 {
 	qRegisterMetaType<QMdnsEngine::Message>("Message");
 

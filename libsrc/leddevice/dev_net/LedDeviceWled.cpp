@@ -93,7 +93,13 @@ LedDeviceWled::LedDeviceWled(const QJsonObject &deviceConfig)
 	  ,_isSwitchOffOtherSegments(DEFAULT_IS_SWITCH_OFF_OTHER_SEGMENTS)
 	  ,_isStreamToSegment(false)
 {
+	TRACK_SCOPE_SUBCOMPONENT;
 	NetUtils::discoverMdnsServices(_activeDeviceType);
+}
+
+LedDeviceWled::~LedDeviceWled()
+{
+	TRACK_SCOPE_SUBCOMPONENT;
 }
 
 LedDevice* LedDeviceWled::construct(const QJsonObject &deviceConfig)

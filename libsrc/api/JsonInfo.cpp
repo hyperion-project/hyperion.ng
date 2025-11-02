@@ -20,7 +20,7 @@
 #include <effectengine/EffectFileHandler.h>
 #endif
 
-QJsonObject JsonInfo::getInfo(const QSharedPointer<Hyperion>& hyperionInstance, Logger* log)
+QJsonObject JsonInfo::getInfo(const QSharedPointer<Hyperion>& hyperionInstance, QSharedPointer<Logger> log)
 {
 	QJsonObject info {};
 
@@ -63,7 +63,7 @@ QJsonObject JsonInfo::getInfo(const QSharedPointer<Hyperion>& hyperionInstance, 
 	return info;
 }
 
-QJsonArray JsonInfo::getAdjustmentInfo(const QSharedPointer<Hyperion>& hyperionInstance, Logger* log)
+QJsonArray JsonInfo::getAdjustmentInfo(const QSharedPointer<Hyperion>& hyperionInstance, QSharedPointer<Logger> log)
 {
 	if (hyperionInstance.isNull())
 	{
@@ -706,16 +706,20 @@ QJsonArray JsonInfo::discoverScreenInputs(const QJsonObject& params) const
 {
 	QJsonArray screenInputs;
 
-#ifdef ENABLE_QT
-	discoverGrabber<QtGrabber>(screenInputs, params);
-#endif
-
-#ifdef ENABLE_DX
-	discoverGrabber<DirectXGrabber>(screenInputs, params);
-#endif
-
 #ifdef ENABLE_DDA
 	discoverGrabber<DDAGrabber>(screenInputs, params);
+#endif
+
+#if defined(ENABLE_DRM) && !defined(ENABLE_AMLOGIC)
+	discoverGrabber<DRMFrameGrabber>(screenInputs, params);
+#endif
+
+#ifdef ENABLE_OSX
+	discoverGrabber<OsxFrameGrabber>(screenInputs, params);
+#endif
+
+#ifdef ENABLE_QT
+	discoverGrabber<QtGrabber>(screenInputs, params);
 #endif
 
 #ifdef ENABLE_X11
@@ -738,8 +742,8 @@ QJsonArray JsonInfo::discoverScreenInputs(const QJsonObject& params) const
 	discoverGrabber<AmlogicGrabber>(screenInputs, params);
 #endif
 
-#ifdef ENABLE_OSX
-	discoverGrabber<OsxFrameGrabber>(screenInputs, params);
+#ifdef ENABLE_DX
+	discoverGrabber<DirectXGrabber>(screenInputs, params);
 #endif
 
 	return screenInputs;

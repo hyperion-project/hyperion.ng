@@ -1,4 +1,5 @@
 #include <utils/Image.h>
+
 #include <utils/ImageData.h>
 #include <utils/ColorRgb.h>
 #include <utils/ColorRgba.h>
@@ -36,16 +37,15 @@ Image<Pixel_T>::Image(int width, int height, const Pixel_T background) :
 	_d_ptr(new ImageData<Pixel_T>(width, height, background)),
 	_instanceId(++_image_instance_counter)
 {
-	DebugIf(is_tracing<Image<pixel_type>>(TraceEvent::Alloc), Logger::getInstance("MEMORY-Image"), "ALLOC (HANDLE): New Image handle [%d] created.", _instanceId);
+	qCDebug(memory_objects_image_create).noquote() << QString("|Image| CREATE: Creating Image [%1] of size %2x%3").arg(_instanceId).arg(width).arg(height);
 }
-
 
 template <typename Pixel_T>
 Image<Pixel_T>::Image(const Image& other) :
 	_d_ptr(other._d_ptr), // This just increments the ref-counter
 	_instanceId(++_image_instance_counter)
 {
-	DebugIf(is_tracing<Image<pixel_type>>(TraceEvent::Shallow), Logger::getInstance("MEMORY-Image"), "COPY (SHALLOW HANDLE): Image handle [%d] created, sharing data with handle [%d].", _instanceId, other._instanceId);
+	qCDebug(memory_objects_image_copy).noquote() << QString("|Image| COPY (SHALLOW): Image handle [%1] created, sharing data with handle [%2].").arg(_instanceId).arg(other._instanceId);
 }
 
 template <typename Pixel_T>
@@ -54,7 +54,7 @@ Image<Pixel_T>::Image(Image&& src) noexcept :
 	_instanceId(src._instanceId)
 {
 	src._instanceId = 0; // Invalidate moved-from handle
-	DebugIf(is_tracing<Image<pixel_type>>(TraceEvent::Move), Logger::getInstance("MEMORY-Image"), "MOVE: Image handle [%d] has been moved into a new instance.", _instanceId);
+	qCDebug(memory_objects_image_move).noquote() << QString("|Image| MOVE: Image handle [%1] has been moved into a new instance.").arg(_instanceId);
 }
 
 template <typename Pixel_T>
@@ -67,11 +67,11 @@ Image<Pixel_T>::~Image()
 
 	if (isDetached())
 	{
-		DebugIf(is_tracing<Image<pixel_type>>(TraceEvent::Release), Logger::getInstance("MEMORY-Image"), "RELEASE (HANDLE): Image handle [%d] destroyed. This was the last handle.", _instanceId);
+		qCDebug(memory_objects_image_destroy).noquote() << QString("|Image| DESTROY (HANDLE): Image handle [%1] destroyed. This was the last handle.").arg(_instanceId);
 	}
 	else
 	{
-		DebugIf(is_tracing<Image<pixel_type>>(TraceEvent::Release), Logger::getInstance("MEMORY-Image"), "RELEASE (HANDLE): Image handle [%d] destroyed. Other handles still exist.", _instanceId);
+		qCDebug(memory_objects_image_destroy).noquote() << QString("|Image| DESTROY (HANDLE): Image handle [%1] destroyed. Other handles still exist.").arg(_instanceId);
 	}
 }
 
@@ -81,7 +81,7 @@ Image<Pixel_T>& Image<Pixel_T>::operator=(const Image& other)
 	if (this != &other)
 	{
 		_d_ptr = other._d_ptr;
-		DebugIf(is_tracing<Image<pixel_type>>(TraceEvent::Shallow), Logger::getInstance("MEMORY-Image"), "ASSIGN (SHALLOW HANDLE): Image handle [%d]  now shares data with handle [%d].", _instanceId, other._instanceId);
+		qCDebug(memory_objects_image_assign).noquote() << QString("|Image| ASSIGN (SHALLOW HANDLE): Image handle [%1] now shares data with handle [%2].").arg(_instanceId).arg(other._instanceId);
 	}
 	return *this;
 }
@@ -94,7 +94,7 @@ Image<Pixel_T>& Image<Pixel_T>::operator=(Image&& other) noexcept
 		_d_ptr = std::move(other._d_ptr);
 		_instanceId = other._instanceId;
 		other._instanceId = 0;
-		DebugIf(is_tracing<Image<pixel_type>>(TraceEvent::Move), Logger::getInstance("MEMORY-Image"), "MOVE ASSIGN: Image handle [%d] has taken ownership from another handle.", _instanceId);
+		qCDebug(memory_objects_image_assign).noquote() << QString("|Image| ASSIGN (MOVE): Image handle [%1] has taken ownership from another handle.").arg(_instanceId);
 	}
 	return *this;
 }
@@ -165,7 +165,7 @@ typename Image<Pixel_T>::pixel_type* Image<Pixel_T>::memptr()
 {
 	if (!isDetached())
 	{
-		DebugIf(is_tracing<Image<pixel_type>>(TraceEvent::Deep), Logger::getInstance("MEMORY-Image"), "COPY (DEEP): memptr() on shared Image handle [%d] is causing a detach.", _instanceId);
+		qCDebug(memory_objects_image_copy).noquote() << QString("|Image| COPY (DEEP): memptr() on shared Image handle [%1] is causing a detach.").arg(_instanceId);
 	}
 	_d_ptr.detach();
 	return _d_ptr->memptr();

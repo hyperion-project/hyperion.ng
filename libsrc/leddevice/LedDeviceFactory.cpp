@@ -15,7 +15,7 @@
 
 LedDevice * LedDeviceFactory::construct(const QJsonObject & deviceConfig)
 {
-	Logger * log = Logger::getInstance("LEDDEVICE");
+	QSharedPointer<Logger> log = Logger::getInstance("LEDDEVICE");
 	QJsonDocument config(deviceConfig);
 
 	QString type = deviceConfig["type"].toString("UNSPECIFIED").toLower();

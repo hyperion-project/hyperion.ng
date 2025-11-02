@@ -21,7 +21,7 @@ namespace FileUtils {
 		return fi.path();
 	}
 
-	bool removeDir(const QString& path, Logger* log)
+	bool removeDir(const QString& path, QSharedPointer<Logger> log)
 	{
 		if(!QDir(path).removeRecursively())
 		{
@@ -31,7 +31,7 @@ namespace FileUtils {
 		return true;
 	}
 
-	bool fileExists(const QString& path, Logger* log, bool ignError)
+	bool fileExists(const QString& path, QSharedPointer<Logger> log, bool ignError)
 	{
 		if(!QFile::exists(path))
 		{
@@ -41,7 +41,7 @@ namespace FileUtils {
 		return true;
 	}
 
-	bool readFile(const QString& path, QString& data, Logger* log, bool ignError)
+	bool readFile(const QString& path, QString& data, QSharedPointer<Logger> log, bool ignError)
 	{
 		QFile file(path);
 		if(!fileExists(path, log, ignError))
@@ -61,7 +61,7 @@ namespace FileUtils {
 		return true;
 	}
 
-	bool writeFile(const QString& path, const QByteArray& data, Logger* log)
+	bool writeFile(const QString& path, const QByteArray& data, QSharedPointer<Logger> log)
 	{
 		QFile file(path);
 		if (!file.open(QFile::WriteOnly | QFile::Truncate))
@@ -80,7 +80,7 @@ namespace FileUtils {
 		return true;
 	}
 
-	bool removeFile(const QString& path, Logger* log, bool ignError)
+	bool removeFile(const QString& path, QSharedPointer<Logger> log, bool ignError)
 	{
 		QFile file(path);
 		if(!file.remove())
@@ -92,7 +92,7 @@ namespace FileUtils {
 		return true;
 	}
 
-	void resolveFileError(const QFile& file, Logger* log)
+	void resolveFileError(const QFile& file, QSharedPointer<Logger> log)
 	{
 		QFile::FileError error = file.error();
 		QByteArray fileNameUtf8 = file.fileName().toUtf8();

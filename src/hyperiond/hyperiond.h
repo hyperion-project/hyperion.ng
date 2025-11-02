@@ -10,16 +10,35 @@
 
 #include <hyperion/HyperionIManager.h>
 
+
+#ifdef ENABLE_AMLOGIC
+	#include <grabber/amlogic/AmlogicWrapper.h>
+#else
+	using AmlogicWrapper = QObject;
+#endif
+
 #ifdef ENABLE_DISPMANX
 	#include <grabber/dispmanx/DispmanxWrapper.h>
 #else
 	using DispmanxWrapper = QObject;
 #endif
 
-#if defined(ENABLE_V4L2) || defined(ENABLE_MF)
-	#include <grabber/video/VideoWrapper.h>
+#ifdef ENABLE_DDA
+	#include <grabber/dda/DDAWrapper.h>
 #else
-	using VideoWrapper = QObject;
+	using DDAWrapper = QObject;
+#endif
+
+#ifdef ENABLE_DRM
+	#include <grabber/drm/DRMWrapper.h>
+#else
+	using FramebufferWrapper = QObject;
+#endif
+
+#ifdef ENABLE_DX
+	#include <grabber/directx/DirectXWrapper.h>
+#else
+	using DirectXWrapper = QObject;
 #endif
 
 #ifdef ENABLE_FB
@@ -28,14 +47,14 @@
 	using FramebufferWrapper = QObject;
 #endif
 
-#ifdef ENABLE_AMLOGIC
-	#include <grabber/amlogic/AmlogicWrapper.h>
-#else
-	using AmlogicWrapper = QObject;
-#endif
-
 #ifdef ENABLE_OSX
 	#include <grabber/osx/OsxWrapper.h>
+#else
+	using OsxWrapper = QObject;
+#endif
+
+#ifdef ENABLE_QT
+	#include <grabber/qt/QtWrapper.h>
 #else
 	using OsxWrapper = QObject;
 #endif
@@ -52,22 +71,10 @@
 	using XcbWrapper = QObject;
 #endif
 
-#ifdef ENABLE_QT
-	#include <grabber/qt/QtWrapper.h>
+#if defined(ENABLE_V4L2) || defined(ENABLE_MF)
+	#include <grabber/video/VideoWrapper.h>
 #else
-	using QtWrapper = QObject;
-#endif
-
-#ifdef ENABLE_DX
-	#include <grabber/directx/DirectXWrapper.h>
-#else
-	using DirectXWrapper = QObject;
-#endif
-
-#ifdef ENABLE_DDA
-	#include <grabber/dda/DDAWrapper.h>
-#else
-	using DDAWrapper = QObject;
+	using VideoWrapper = QObject;
 #endif
 
 #include <hyperion/GrabberWrapper.h>
@@ -249,7 +256,7 @@ private:
 		}
 	}
 
-	Logger* _log;
+	QSharedPointer<Logger> _log;
 
 	/// Core services
 	QScopedPointer<HyperionIManager, QScopedPointerDeleteLater> _instanceManager;

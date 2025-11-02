@@ -7,6 +7,7 @@
 #include <Python.h>
 #define slots Q_SLOTS
 
+#include <utils/Logger.h>
 #include <python/PythonUtils.h>
 
 class Logger;
@@ -14,7 +15,7 @@ class Logger;
 class PythonProgram
 {
 public:
-	PythonProgram(const QString & name, Logger * log);
+	PythonProgram(const QString & name, QSharedPointer<Logger> log);
 	~PythonProgram();
 
 	operator PyThreadState* ()
@@ -27,6 +28,6 @@ public:
 private:
 
 	QString _name;
-	Logger* _log;
+	QSharedPointer<Logger> _log;
 	PyThreadState* _tstate;
 };

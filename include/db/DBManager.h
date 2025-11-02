@@ -34,6 +34,7 @@ class DBManager : public QObject
 
 public:
 	explicit DBManager(QObject* parent = nullptr);
+	~DBManager() override;
 
 	static void initializeDatabase(const QDir& dataDirectory, bool isReadOnly);
 
@@ -165,7 +166,7 @@ public:
 	void logErrorAndAppend(const QString& errorText, QStringList& errorList);
 
 protected:
-		Logger* _log;
+		QSharedPointer<Logger> _log;
 
 private:
 		static QDir _dataDirectory;

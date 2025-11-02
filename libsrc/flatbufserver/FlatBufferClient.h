@@ -147,7 +147,7 @@ private:
 	void processNV12Image(const uint8_t* nv12_data, int32_t width, int32_t height, int32_t stride_y, const ImageResampler& resampler, Image<ColorRgb>& outputImage) const;
 
 private:
-	Logger * _log;
+	QSharedPointer<Logger> _log;
 	QTcpSocket * _socket;
 	QString _origin;
 	const QString _clientAddress;

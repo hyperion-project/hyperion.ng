@@ -17,22 +17,15 @@
 #include <QImage>
 #include <QBuffer>
 
-#include <chrono>
-
-using namespace hyperion;
-
 // Constants
 namespace {
 	bool const IS_IMAGE_SIZE_LIMITED{ true };
 	int const MAX_CALLBACK_IMAGE_WIDTH{ 1280 };
 	constexpr std::chrono::milliseconds MAX_IMAGE_EMISSION_INTERVAL{ 40 }; // 25 Hz
 	constexpr std::chrono::milliseconds MAX_LED_DEVICE_DATA_EMISSION_INTERVAL{ 10 }; // 100 Hz
-
-	bool const verbose {false};
-
 } //End of constants
 
-JsonCallbacks::JsonCallbacks(Logger *log, const QString& peerAddress, QObject* parent)
+JsonCallbacks::JsonCallbacks(QSharedPointer<Logger> log, const QString& peerAddress, QObject* parent)
 	: QObject(parent)
 	, _log (log)
 	, _hyperionWeak(nullptr)
@@ -44,9 +37,15 @@ JsonCallbacks::JsonCallbacks(Logger *log, const QString& peerAddress, QObject* p
 	, _lastImageUpdateTime(0)
 	, _isImageSizeLimited(IS_IMAGE_SIZE_LIMITED)
 {
+	TRACK_SCOPE;
 	qRegisterMetaType<PriorityMuxer::InputsMap>("InputsMap");
 
 	connect(HyperionIManager::getInstance(), &HyperionIManager::instanceStateChanged, this, &JsonCallbacks::handleInstanceStateChange);
+}
+
+JsonCallbacks::~JsonCallbacks()
+{
+	TRACK_SCOPE;
 }
 
 void JsonCallbacks::handleInstanceStateChange(InstanceState state, quint8 instanceID, const QString& /*name */)
@@ -570,7 +569,7 @@ void JsonCallbacks::processLedUpdate()
 	else
 	{
 		// It's useful to know when we are skipping, but this can be very noisy.
-		DebugIf(verbose, _log, "Skipping LED color update as last update was only %lld ms ago", elapsedTimeMs);
+		qDebug("Skipping LED color update as last update was only %lld ms ago", elapsedTimeMs);
 	}
 
 	_ledColorsUpdatePending.store(false);
@@ -634,7 +633,7 @@ void JsonCallbacks::processImageUpdate()
 	}
 	else
 	{
-		DebugIf(verbose,_log, "Skipping image update as last update was only %lld ms ago", elapsedTimeMs);
+		qDebug("Skipping image update as last update was only %lld ms ago", elapsedTimeMs);
 	}
 
 	qDebug() << "JsonCallbacks::processImageUpdate DONE - image [" << imageToProcess.id() << "]";

@@ -271,7 +271,7 @@ private slots:
 
 private:
 	/// Logger instance
-	Logger* _log;
+	QSharedPointer<Logger> _log;
 
 	/// The Led-string specification
 	LedString _ledString;

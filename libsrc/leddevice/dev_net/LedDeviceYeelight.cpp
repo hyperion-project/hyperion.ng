@@ -91,7 +91,7 @@ const quint16 SSDP_PORT = 1982;
 
 } //End of constants
 
-YeelightLight::YeelightLight( Logger *log, const QString &hostName, quint16 port = API_DEFAULT_PORT)
+YeelightLight::YeelightLight( QSharedPointer<Logger> log, const QString &hostName, quint16 port = API_DEFAULT_PORT)
 	:_log(log)
 	  ,_debugLevel(0)
 	  ,_isInError(false)
@@ -117,10 +117,10 @@ YeelightLight::YeelightLight( Logger *log, const QString &hostName, quint16 port
 	_name = hostName;
 }
 
-void YeelightLight::setHostname( const QString &hostname, quint16 port = API_DEFAULT_PORT )
+void YeelightLight::setHostname( const QString &hostName, quint16 port = API_DEFAULT_PORT )
 {
 	log (3,"setHostname()","" );
-	_hostName = hostname;
+	_hostName = hostName;
 	_port =port;
 }
 

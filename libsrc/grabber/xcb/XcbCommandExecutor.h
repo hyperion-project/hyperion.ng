@@ -7,7 +7,7 @@
 void check_error(xcb_generic_error_t * error)
 {
 	if (error) {
-		Logger * LOGGER = Logger::getInstance("XCB");
+		QSharedPointer<Logger> LOGGER = Logger::getInstance("XCB");
 		Error(LOGGER,
 			"XCB request failed, event_error: response_type:%u error_code:%u "
 			"sequence:%u resource_id:%u minor_code:%u major_code:%u.\n",

@@ -103,7 +103,8 @@ private:
 	/// Buffer for colorData
 	QVector<ColorRgb> _colors;
 
-	Logger* _log;
+		/// Logger instance
+	QSharedPointer<Logger> _log;
 	// Reflects whenever this effects should interrupt (timeout or external request)
 	std::atomic<bool> _interupt{};
 

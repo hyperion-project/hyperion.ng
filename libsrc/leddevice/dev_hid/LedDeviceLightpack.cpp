@@ -82,7 +82,7 @@ bool LedDeviceLightpack::init(const QJsonObject &deviceConfig)
 	
 	Debug(_log, "USB context initialized");
 
-	if ( _log->getMinLevel() == Logger::LogLevel::LOG_DEBUG )
+	if ( _log->getMinLevel() == Logger::LogLevel::Debug )
 	{
 		int logLevel = LIBUSB_LOG_LEVEL_INFO;
 		#if LIBUSB_API_VERSION >= 0x01000106

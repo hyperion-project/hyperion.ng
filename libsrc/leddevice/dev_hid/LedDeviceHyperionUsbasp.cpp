@@ -191,7 +191,7 @@ int LedDeviceHyperionUsbasp::write(const QVector<ColorRgb> &ledValues)
 
 libusb_device_handle * LedDeviceHyperionUsbasp::openDevice(libusb_device *device)
 {
-	Logger * log = Logger::getInstance("LedDevice");
+	QSharedPointer<Logger> log = Logger::getInstance("LedDevice");
 	libusb_device_handle * handle = nullptr;
 
 	int error = libusb_open(device, &handle);

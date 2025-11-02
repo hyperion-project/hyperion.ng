@@ -31,6 +31,7 @@ GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber * ggrabber, i
 	, _timer(nullptr)
 	, _updateInterval_ms(1000/updateRate_Hz)
 {
+	TRACK_SCOPE;
 	GrabberWrapper::instance = this;
 
 	_timer.reset(new QTimer());
@@ -63,6 +64,7 @@ GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber * ggrabber, i
 
 GrabberWrapper::~GrabberWrapper()
 {
+	TRACK_SCOPE;
 	_timer->stop();
 	GrabberWrapper::instance = nullptr;
 }
@@ -176,6 +178,10 @@ QStringList GrabberWrapper::availableGrabbers(GrabberTypeFilter type)
 		#ifdef ENABLE_DDA
 				grabbers << "dda";
 		#endif
+
+		#ifdef ENABLE_DRM
+				grabbers << "drm";
+		#endif
 	}
 
 	if (type == GrabberTypeFilter::VIDEO || type == GrabberTypeFilter::ALL)
@@ -250,6 +256,8 @@ void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocume
 		{
 			// width/height
 			_ggrabber->setWidthHeight(obj["width"].toInt(96), obj["height"].toInt(96));
+
+			_ggrabber->setInput(obj["input"].toInt(0));
 
 			// display index for MAC
 			_ggrabber->setDisplayIndex(obj["input"].toInt(0));

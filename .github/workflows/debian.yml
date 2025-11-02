@@ -71,7 +71,6 @@ jobs:
         with:
           os: debian_${{ inputs.codename }}
           architecture: ${{ matrix.os.architecture[0] }}
-          qt_version: ${{ inputs.codename == 'bullseye' && matrix.os.architecture[0] == 'armv6' && '5' || '6' }}
           build_type: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
 
       - name: 👷 Build ${{ env.HINT }}
@@ -87,7 +86,7 @@ jobs:
             -e LC_ALL="C.UTF-8" \
             ghcr.io/hyperion-project/debian:${{ env.DOCKER_TAG }} \
             /bin/bash -c "
-              git config --global --add safe.directory /source &&            
+              git config --global --add safe.directory /source &&
               cmake --preset linux-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }} -DPLATFORM=${{ matrix.os.platform }} ${{ env.CPACK_SYSTEM_PROCESSOR }} &&
               cmake --build --preset linux-${{ env.BUILD_TYPE }} --target package &&
               cp /source/build/Hyperion-* /deploy/ 2>/dev/null"
@@ -100,7 +99,7 @@ jobs:
 
       - name: 📦 Upload
         if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ inputs.event_name == 'pull_request' && env.NAME || format('artifact-{0}', env.NAME) }}
           path: ${{ inputs.event_name == 'pull_request' && 'deploy/*.tar.gz' || 'deploy/Hyperion-*' }}

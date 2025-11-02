@@ -191,7 +191,7 @@ protected:
 	void updateTimer(int interval);
 
 	/// The Logger instance
-	Logger * _log;
+	QSharedPointer<Logger> _log;
 
 private:
 

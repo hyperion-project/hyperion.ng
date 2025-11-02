@@ -29,11 +29,13 @@ JsonServer::JsonServer(const QJsonDocument& config)
 	, _netOrigin(NetOrigin::getInstance())
 	, _config(config)
 {
+	TRACK_SCOPE;
 	Debug(_log, "JSON API  server created");
 }
 
 JsonServer::~JsonServer()
 {
+	TRACK_SCOPE;
 	stop();
 	qDeleteAll(_openConnections);
 	_openConnections.clear();

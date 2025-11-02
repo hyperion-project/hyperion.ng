@@ -5,6 +5,9 @@
 #include <events/EventEnum.h>
 
 #include <QObject>
+#include <QSharedPointer>
+#include <QScopedPointer>
+
 
 class Logger;
 
@@ -36,7 +39,7 @@ signals:
 	void signalEvent(Event event);
 
 protected:
-	Logger * _log {};
+	QSharedPointer<Logger> _log;
 
 private:
 	EventHandler();

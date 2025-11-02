@@ -38,7 +38,7 @@ const int IMAGE_WIDTH_MAX = 2000;
 const int IMAGE_SCALE = 2000;
 }
 
-API::API(Logger *log, bool localConnection, QObject *parent)
+API::API(QSharedPointer<Logger> log, bool localConnection, QObject *parent)
 	: QObject(parent),
 	_currInstanceIndex (NO_INSTANCE_ID)
 	, _hyperionWeak(nullptr)

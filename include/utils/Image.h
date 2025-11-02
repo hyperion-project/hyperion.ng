@@ -12,32 +12,12 @@
 #include <utils/ColorRgba.h>
 #include <utils/ColorBgr.h>
 #include <utils/Logger.h>
-#include <utils/TrackedMemory.h>
 
 #include <cstdint>
 #include <utils/Logger.h>
 
-// Define to enable memory tracing for Image objects.
-// Define as TraceEvent::All; for all events, or a combination of TraceEvent flags.
-// e.g. constexpr TraceEvent TRACE_IMAGE_MEMORY_EVENTS = TraceEvent::Alloc | TraceEvent::Release
-
 template <typename Pixel_T>
 class Image;
-
-#if defined(ENABLE_TRACE_IMAGE_MEMORY)
-constexpr TraceEvent TRACE_IMAGE_MEMORY_EVENTS = TraceEvent::All;
-template<typename Pixel_T>
-struct ComponentTracer<Image<Pixel_T>> {
-	static constexpr bool enabled = true;
-	static inline TraceEvent active_events = TRACE_IMAGE_MEMORY_EVENTS;
-};
-#else
-template<typename Pixel_T>
-struct ComponentTracer<Image<Pixel_T>> {
-	static constexpr bool enabled = false;
-	static inline TraceEvent active_events = TraceEvent::NoTrace;
-};
-#endif
 
 // Base class to hold the static instance counter
 class ImageCounter {
