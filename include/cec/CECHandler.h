@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QVector>
 #include <QMap>
+#include <QSharedPointer>
 
 #include <iostream>
 
