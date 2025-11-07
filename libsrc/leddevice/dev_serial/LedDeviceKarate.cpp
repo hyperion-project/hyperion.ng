@@ -1,10 +1,6 @@
 // hyperion local includes
 #include "LedDeviceKarate.h"
 
-namespace {
-	const bool verbose = false;
-} //End of constants
-
 LedDeviceKarate::LedDeviceKarate(const QJsonObject& deviceConfig)
 	: ProviderRs232(deviceConfig)
 {
@@ -62,7 +58,6 @@ int LedDeviceKarate::write(const QVector<ColorRgb>& ledValues)
 
 QJsonObject LedDeviceKarate::getProperties(const QJsonObject& params)
 {
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 	QJsonObject properties;
 
 	QString serialPort = params["serialPort"].toString("");
@@ -73,6 +68,5 @@ QJsonObject LedDeviceKarate::getProperties(const QJsonObject& params)
 
 	properties.insert("properties", propertiesDetails);
 
-	DebugIf(verbose, _log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData());
 	return properties;
 }

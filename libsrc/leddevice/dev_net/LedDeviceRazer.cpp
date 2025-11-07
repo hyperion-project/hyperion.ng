@@ -17,8 +17,6 @@ using namespace Chroma::Chromalink;
 
 // Constants
 namespace {
-	const bool verbose = false;
-
 	// Configuration settings
 	const char CONFIG_RAZER_DEVICE_TYPE[] = "subType";
 	const char CONFIG_SINGLE_COLOR[] = "singleColor";
@@ -185,7 +183,7 @@ int LedDeviceRazer::open()
 			_uri = jsonObj.value("uri").toString();
 			_restApi->setUrl(_uri);
 
-			DebugIf(verbose, _log, "Session-ID: %d, uri [%s]", jsonObj.value("sessionid").toInt(), QSTRING_CSTR(_uri.toString()));
+			qCDebug(leddevice_control) << "Session-ID:" << jsonObj.value("sessionid").toInt() << ", uri:" << _uri.toString();
 
 			QJsonObject effectObj;
 			effectObj.insert("effect", "CHROMA_STATIC");
@@ -362,9 +360,7 @@ bool LedDeviceRazer::resolveDeviceProperties(const QString& deviceType)
 
 QJsonObject LedDeviceRazer::getProperties(const QJsonObject& params)
 {
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 	QJsonObject properties;
-
 	_razerDeviceType = params[CONFIG_RAZER_DEVICE_TYPE].toString("invalid").toLower();
 	if (resolveDeviceProperties(_razerDeviceType))
 	{
@@ -374,8 +370,6 @@ QJsonObject LedDeviceRazer::getProperties(const QJsonObject& params)
 		propertiesDetails.insert("maxLedCount", _maxLeds);
 
 		properties.insert("properties", propertiesDetails);
-
-		DebugIf(verbose, _log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData());
 	}
 	return properties;
 }

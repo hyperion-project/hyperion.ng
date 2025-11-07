@@ -12,8 +12,6 @@
 
 // Constants
 namespace {
-	const bool verbose = false;
-
 	// Pi-Blaster discovery service
 	const char DISCOVERY_DIRECTORY[] = "/dev/";
 	const char DISCOVERY_FILEPATTERN[] = "pi-blaster";
@@ -206,8 +204,6 @@ QJsonObject LedDevicePiBlaster::discover(const QJsonObject& /*params*/)
 		deviceList.append(deviceInfo);
 	}
 	devicesDiscovered.insert("devices", deviceList);
-
-	DebugIf(verbose,_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return devicesDiscovered;
 }

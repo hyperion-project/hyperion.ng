@@ -318,13 +318,6 @@ public:
 	///
 	void setInError( const QString& errorMsg );
 
-	///
-	/// @brief Set the Yeelight light debug-level
-	///
-	/// @param[in] level Debug level (0: no debug output, 1-3: verbosity level)
-	///
-	void setDebuglevel ( int level ) { _debugLevel = level; }
-
 private:
 
 	YeelightResponse handleResponse(int correlationID, QByteArray const &response );
@@ -345,18 +338,7 @@ private:
 	///
 	void mapProperties(const QJsonObject &properties);
 
-	///
-	/// @brief Write a Yeelight light specific log-line for debugging purposed
-	///
-	/// @param[in] logLevel Debug level (0: no debug output, 1-3: verbosity level)
-	/// @param[in] msg  Log message prefix (max 20 characters)
-	/// @param[in] type log message text
-	/// @param[in] ... variable input to log message text
-	/// 	///
-	void log(int logLevel,const char* msg, const char* type, ...);
-
 	QSharedPointer<Logger> _log;
-	int _debugLevel;
 
 	/// Error status of Yeelight light
 	bool _isInError;
@@ -616,8 +598,6 @@ private:
 	double _brightnessFactor;
 
 	int _waitTimeQuota;
-
-	int _debuglevel;
 
 	///Music mode Server details
 	QHostAddress _musicModeServerAddress;

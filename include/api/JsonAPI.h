@@ -1,5 +1,11 @@
 #pragma once
 
+#include <QJsonObject>
+#include <QString>
+#include <QSharedPointer>
+#include <QScopedPointer>
+#include <QLoggingCategory>
+
 // parent class
 #include <api/API.h>
 #include <api/JsonApiCommand.h>
@@ -12,11 +18,12 @@
 #include <hyperion/HyperionIManager.h>
 #include <utils/RgbChannelAdjustment.h>
 
-// qt includes
-#include <QJsonObject>
-#include <QString>
-#include <QSharedPointer>
-#include <QScopedPointer>
+Q_DECLARE_LOGGING_CATEGORY(api_msg_request);
+Q_DECLARE_LOGGING_CATEGORY(api_msg_reply_success);
+Q_DECLARE_LOGGING_CATEGORY(api_msg_reply_error);
+Q_DECLARE_LOGGING_CATEGORY(api_msg_new);
+Q_DECLARE_LOGGING_CATEGORY(api_inputsource);
+Q_DECLARE_LOGGING_CATEGORY(api_leddevice);
 
 class QTimer;
 class JsonCallbacks;

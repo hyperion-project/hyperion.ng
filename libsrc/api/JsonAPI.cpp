@@ -1,7 +1,4 @@
-// project includes
-#include "hyperion/SettingsManager.h"
 #include <api/JsonAPI.h>
-#include <api/JsonInfo.h>
 
 // Qt includes
 #include <QResource>
@@ -15,6 +12,10 @@
 #include <QRegularExpression>
 #include <QStringList>
 #include <QEventLoop>
+
+// project includes
+#include "hyperion/SettingsManager.h"
+#include <api/JsonInfo.h>
 
 // hyperion includes
 #include <leddevice/LedDeviceWrapper.h>
@@ -58,6 +59,13 @@
 #include <chrono>
 #include <utility>
 
+Q_LOGGING_CATEGORY(api_msg_request, "api.msg.request");
+Q_LOGGING_CATEGORY(api_msg_reply_success, "api.msg.reply.success");
+Q_LOGGING_CATEGORY(api_msg_reply_error, "api.msg.reply.error");
+Q_LOGGING_CATEGORY(api_msg_new, "api.msg.new");
+Q_LOGGING_CATEGORY(api_inputsource, "api.inputsource");
+Q_LOGGING_CATEGORY(api_leddevice, "api.leddevice");
+
 using namespace hyperion;
 
 // Constants
@@ -75,8 +83,6 @@ const int MIN_PASSWORD_LENGTH = 8;
 const int APP_TOKEN_LENGTH = 36;
 
 const char SETTINGS_UI_SCHEMA_FILE[] = ":/schema-settings-ui.json";
-
-const bool verbose = false;
 }
 
 JsonAPI::JsonAPI(QString peerAddress, QSharedPointer<Logger> log, bool localConnection, bool noListener)
@@ -176,7 +182,7 @@ void JsonAPI::handleMessage(const QString &messageString, const QString &httpAut
 		return;
 	}
 
-	DebugIf(verbose, _log, "message: [%s]", QJsonDocument(message).toJson(QJsonDocument::Compact).constData() );
+	qCDebug(api_msg_request).noquote() << "Received message:" << JsonUtils::toCompact(message);
 
 	// check specific message
 	const QString command = message.value("command").toString();
@@ -269,12 +275,10 @@ void JsonAPI::handleMessage(const QString &messageString, const QString &httpAut
 		return;
 	}
 
-	DebugIf(verbose, _log, "Request [%s, %s] - Type: %s - %s",
-			QSTRING_CSTR(Command::toString(cmd.command)),
-			QSTRING_CSTR(SubCommand::toString(cmd.subCommand)),
-			QSTRING_CSTR(InstanceCmd::toString(cmd.getInstanceCmdType())),
-			QSTRING_CSTR(InstanceCmd::toString(cmd.getInstanceMustRun()))
-	);
+	qCDebug(api_msg_request) << "Request [" << Command::toString(cmd.command) << ", "
+							 << SubCommand::toString(cmd.subCommand) << "] - Type: "
+							 << InstanceCmd::toString(cmd.getInstanceCmdType()) << " - "
+							 << InstanceCmd::toString(cmd.getInstanceMustRun());
 
 	if (cmd.getInstanceCmdType() == InstanceCmd::No)
 	{
@@ -1685,30 +1689,37 @@ void JsonAPI::handleLedDeviceCommand(const QJsonObject &message, const JsonApiCo
 void JsonAPI::handleLedDeviceDiscover(LedDevice& ledDevice, const QJsonObject& message, const JsonApiCommand& cmd)
 {
 	const QJsonObject &params = message["params"].toObject();
+	qCDebug(api_leddevice).noquote() << "Discover devices: " << JsonUtils::toCompact(params);
+
 	const QJsonObject devicesDiscovered = ledDevice.discover(params);
-	Debug(_log, "response: [%s]", QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact).constData() );
+	qCDebug(api_leddevice).noquote() << "Discovered devices: " << JsonUtils::toCompact(devicesDiscovered);
 	sendSuccessDataReply(devicesDiscovered, cmd);
 }
 
 void JsonAPI::handleLedDeviceGetProperties(LedDevice& ledDevice, const QJsonObject& message, const JsonApiCommand& cmd)
 {
 	const QJsonObject &params = message["params"].toObject();
+	qCDebug(api_leddevice).noquote() << "Get device properties:" << JsonUtils::toCompact(params);
 	const QJsonObject deviceProperties = ledDevice.getProperties(params);
-	Debug(_log, "response: [%s]", QJsonDocument(deviceProperties).toJson(QJsonDocument::Compact).constData() );
+	qCDebug(api_leddevice).noquote() << "Device properties:" << JsonUtils::toCompact(deviceProperties);
 	sendSuccessDataReply(deviceProperties, cmd);
 }
 
 void JsonAPI::handleLedDeviceIdentify(LedDevice& ledDevice, const QJsonObject& message, const JsonApiCommand& cmd)
 {
 	const QJsonObject &params = message["params"].toObject();
+	qCDebug(api_leddevice).noquote() << "Identify device:" << JsonUtils::toCompact(params);
 	ledDevice.identify(params);
+	qCDebug(api_leddevice).noquote() << "Identified device:" << JsonUtils::toCompact(params);
 	sendSuccessReply(cmd);
 }
 
 void JsonAPI::handleLedDeviceAddAuthorization(LedDevice& ledDevice, const QJsonObject& message, const JsonApiCommand& cmd)
 {
 	const QJsonObject& params = message["params"].toObject();
+	qCDebug(api_leddevice) << "Add authorization to device:" << JsonUtils::toCompact(params);
 	const QJsonObject response = ledDevice.addAuthorization(params);
+	qCDebug(api_leddevice) << "Add authorization response:" << JsonUtils::toCompact(response);
 	sendSuccessDataReply(response, cmd);
 }
 
@@ -1724,10 +1735,9 @@ void JsonAPI::handleInputSourceCommand(const QJsonObject& message, const JsonApi
 	if (cmd.subCommand == SubCommand::Discover) {
 
 		const QJsonObject& params = message["params"].toObject();
+		qCDebug(api_inputsource).noquote() << "Discover input sources:" << JsonUtils::toCompact(params);
 		QJsonObject const inputSourcesDiscovered = JsonInfo().discoverSources(sourceType, params);
-
-		DebugIf(verbose, _log, "response: [%s]", QJsonDocument(inputSourcesDiscovered).toJson(QJsonDocument::Compact).constData());
-
+		qCDebug(api_inputsource).noquote() << "Discovered input sources:" << JsonUtils::toCompact(inputSourcesDiscovered);
 		sendSuccessDataReply(inputSourcesDiscovered, cmd);
 	}
 }
@@ -1816,8 +1826,7 @@ void JsonAPI::sendSuccessReply(const QString &command, int tan, InstanceCmd::Typ
 {
 	QJsonObject const reply {getBasicCommandReply(true, command, tan , instanceCmdType)};
 
-	DebugIf(verbose, _log, "%s", QSTRING_CSTR(JsonUtils::jsonValueToQString(reply)));
-
+	qCDebug(api_msg_reply_success).noquote() << "Sending reply:" << JsonUtils::toCompact(reply);
 	emit callbackReady(reply);
 }
 
@@ -1852,9 +1861,8 @@ void JsonAPI::sendSuccessDataReplyWithError(const QJsonValue &infoData, const QS
 		}
 		reply["errorData"] = errorsArray;
 	}
-
-	DebugIf(verbose, _log, "%s", QSTRING_CSTR(JsonUtils::jsonValueToQString(reply)));
-
+	
+	qCDebug(api_msg_reply_success).noquote() << "Sending reply:" << JsonUtils::toCompact(reply);
 	emit callbackReady(reply);
 }
 
@@ -1883,9 +1891,8 @@ void JsonAPI::sendErrorReply(const QString &error, const QStringList& errorDetai
 		}
 		reply["errorData"] = errorsArray;
 	}
-
-	DebugIf(verbose, _log, "%s", QSTRING_CSTR(JsonUtils::jsonValueToQString(reply)));
-
+	
+	qCDebug(api_msg_reply_error).noquote() << "Sending reply:" << JsonUtils::toCompact(reply);
 	emit callbackReady(reply);
 }
 
@@ -1910,6 +1917,7 @@ void JsonAPI::sendNewRequest(const QJsonValue &infoData, const QString &command,
 
 	request["info"] = infoData;
 
+	qCDebug(api_msg_new).noquote() << "Sending new request:" << JsonUtils::toCompact(request);
 	emit callbackReady(request);
 }
 

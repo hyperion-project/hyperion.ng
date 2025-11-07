@@ -208,7 +208,7 @@ bool resolveRefs(const QJsonObject& schema, QJsonObject& obj, QSharedPointer<Log
 	return true;
 }
 
-QString jsonValueToQString(const QJsonValue &value, QJsonDocument::JsonFormat format)
+QByteArray jsonValueToQByteArray(const QJsonValue &value, QJsonDocument::JsonFormat format)
 {
 	switch (value.type()) {
 	case QJsonValue::Object:
@@ -221,11 +221,11 @@ QString jsonValueToQString(const QJsonValue &value, QJsonDocument::JsonFormat fo
 	}
 	case QJsonValue::String:
 	{
-		return value.toString();
+		return value.toString().toUtf8();
 	}
 	case QJsonValue::Double:
 	{
-		return QString::number(value.toDouble());
+		return QString::number(value.toDouble()).toUtf8();
 	}
 	case QJsonValue::Bool:
 	{
@@ -238,7 +238,17 @@ QString jsonValueToQString(const QJsonValue &value, QJsonDocument::JsonFormat fo
 	default:
 	break;
 	}
-	return QString();
+	return QByteArray();
+}
+
+QByteArray toCompact(const QJsonValue &value)
+{ 
+	return jsonValueToQByteArray(value, QJsonDocument::Compact);
+}
+
+QString jsonValueToQString(const QJsonValue &value, QJsonDocument::JsonFormat format)
+{
+	return jsonValueToQByteArray(value, format);
 }
 
 QJsonObject mergeJsonObjects(const QJsonObject &obj1, const QJsonObject &obj2, bool overrideObj1)

@@ -446,7 +446,7 @@ QJsonArray MdnsBrowser::getServicesDiscoveredJson(const QByteArray& serviceType,
 
 		if (!result.isEmpty())
 		{
-			qCDebug(mdns_browser) << "result: [" << QSTRING_CSTR(JsonUtils::jsonValueToQString(result)) << "]";
+			qCDebug(mdns_browser).noquote() << "result:" << JsonUtils::toCompact(result);
 		}
 		else
 		{
@@ -498,6 +498,6 @@ void MdnsBrowser::printCache(const QByteArray& name, quint16 type) const
 	}
 	else
 	{
-		qCDebug(mdns_browser) << "Cache is empty for type:" << QSTRING_CSTR(QMdnsEngine::typeName(type));
+		qCDebug(mdns_browser) << "Cache is empty for type:" << QMdnsEngine::typeName(type);
 	}
 }

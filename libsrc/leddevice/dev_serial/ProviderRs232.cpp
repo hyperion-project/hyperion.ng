@@ -13,8 +13,6 @@
 
 // Constants
 namespace {
-	const bool verbose = false;
-
 	constexpr std::chrono::milliseconds WRITE_TIMEOUT{ 1000 };	// device write timeout in ms
 	constexpr std::chrono::milliseconds OPEN_TIMEOUT{ 5000 };		// device open timeout in ms
 	const int MAX_WRITE_TIMEOUTS = 5;	// Maximum number of allowed timeouts
@@ -291,8 +289,6 @@ QString ProviderRs232::discoverFirst()
 
 QJsonObject ProviderRs232::discover(const QJsonObject& params)
 {
-	DebugIf(verbose,_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	QJsonObject devicesDiscovered;
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );
 
@@ -349,15 +345,12 @@ QJsonObject ProviderRs232::discover(const QJsonObject& params)
 #endif
 
 	devicesDiscovered.insert("devices", deviceList);
-	DebugIf(verbose,_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return devicesDiscovered;
 }
 
 void ProviderRs232::identify(const QJsonObject& params)
 {
-	DebugIf(verbose,_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	QString deviceName = params["output"].toString("");
 	if (deviceName.isEmpty())
 	{

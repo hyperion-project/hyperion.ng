@@ -12,9 +12,6 @@
 
 // Constants
 namespace {
-	const bool verbose = false;
-	const bool verbose3 = false;
-
 	// Configuration settings
 	const char CONFIG_HOST[] = "host";
 	const char CONFIG_HW_LED_COUNT[] = "hardwareLedCount";
@@ -201,7 +198,7 @@ bool LedDeviceCololight::getInfo()
 		return false;
 	}
 
-	DebugIf(verbose,_log, "#[0x%x], Data returned: [%s]", _sequenceNumber, QSTRING_CSTR(toHex(response)));
+	qCDebug(leddevice_properties) << QString("#[0x%1], Data returned: [%2]").arg(QString::number(_sequenceNumber, 16), response.toHex());
 
 	quint16 ledNum = qFromBigEndian<quint16>(response.data() + 1);
 
@@ -279,7 +276,7 @@ bool LedDeviceCololight::setColor(const uint32_t color)
 		QByteArray response;
 		if (readResponse(response))
 		{
-			DebugIf(verbose,_log, "#[0x%x], Data returned: [%s]", _sequenceNumber, QSTRING_CSTR(toHex(response)));
+			qCDebug(leddevice_control) << QString("#[0x%1], Data returned: [%2]").arg(QString::number(_sequenceNumber, 16), response.toHex());
 			isCmdOK = true;
 		}
 	}
@@ -315,7 +312,7 @@ bool LedDeviceCololight::setState(bool isOn)
 		QByteArray response;
 		if (readResponse(response))
 		{
-			DebugIf(verbose,_log, "#[0x%x], Data returned: [%s]", _sequenceNumber, QSTRING_CSTR(toHex(response)));
+			qCDebug(leddevice_control) << QString("#[0x%1], Data returned: [%2]").arg(QString::number(_sequenceNumber, 16), response.toHex());
 			isCmdOK = true;
 		}
 	}
@@ -339,7 +336,7 @@ bool LedDeviceCololight::setStateDirect(bool isOn)
 		QByteArray response;
 		if (readResponse(response))
 		{
-			DebugIf(verbose,_log, "#[0x%x], Data returned: [%s]", _sequenceNumber, QSTRING_CSTR(toHex(response)));
+			qCDebug(leddevice_control) << QString("#[0x%1], Data returned: [%2]").arg(QString::number(_sequenceNumber, 16), response.toHex());
 			isCmdOK = true;
 		}
 	}
@@ -393,7 +390,7 @@ bool LedDeviceCololight::setTL1CommandMode(bool isOn)
 		QByteArray response;
 		if (readResponse(response))
 		{
-			DebugIf(verbose,_log, "#[0x%x], Data returned: [%s]", _sequenceNumber, QSTRING_CSTR(toHex(response)));
+			qCDebug(leddevice_control) << QString("#[0x%1], Data returned: [%2]").arg(QString::number(_sequenceNumber, 16), response.toHex());
 			isCmdOK = true;
 		}
 	}
@@ -411,12 +408,11 @@ bool LedDeviceCololight::sendRequest(const appID appID, const QByteArray& comman
 	auto size = static_cast<quint32>(static_cast<int>(sizeof(PACKET_SECU)) + 1 + command.size());
 
 	qToBigEndian<quint16>(appID, packet.data() + 4);
-
 	qToBigEndian<quint32>(size, packet.data() + 6);
 
 	++_sequenceNumber;
 
-	DebugIf(verbose3, _log, "packet: ([0x%x], [%u])[%s]", size, size, QSTRING_CSTR(toHex(packet, 64)));
+	qCDebug(leddevice_write) << QString("packet: ([0x%1], [%2])[%3]").arg(QString::number(size, 16), QString::number(size), packet.toHex());
 
 	if (writeBytes(packet) < 0)
 	{
@@ -454,26 +450,24 @@ bool LedDeviceCololight::readResponse(QByteArray& response)
 					continue;
 				}
 
-				DebugIf(verbose3, _log, "response: [%s]", QSTRING_CSTR(toHex(datagram, 64)));
+				qCDebug(leddevice_write) << "response: " << toHex(datagram, 64);
 
 				quint16 appID = qFromBigEndian<quint16>(datagram.mid(4, sizeof(appID)));
 
-				if (verbose && appID == 0x8000)
+				if (leddevice_write().isDebugEnabled() && appID == 0x8000)
 				{
 					QString tagVersion = datagram.left(2);
 					quint32 packetSize = qFromBigEndian<quint32>(datagram.mid(sizeof(PACKET_HEADER) - sizeof(packetSize)));
-
-					Debug(_log, "Response HEADER: tagVersion [%s], appID: [0x%.2x][%u], packet size: [0x%.4x][%u]", QSTRING_CSTR(tagVersion), appID, appID, packetSize, packetSize);
+					qCDebug(leddevice_write) << "Response HEADER: tagVersion [" << tagVersion << "], appID: [0x" << QString::number(appID, 16) << "][" << appID << "], packet size: [0x" << QString::number(packetSize, 16) << "][" << packetSize << "]";
 
 					quint32 dictionary = qFromBigEndian<quint32>(datagram.mid(sizeof(PACKET_HEADER)));
 					quint32 checkSum = qFromBigEndian<quint32>(datagram.mid(sizeof(PACKET_HEADER) + sizeof(dictionary)));
 					quint32 salt = qFromBigEndian<quint32>(datagram.mid(sizeof(PACKET_HEADER) + sizeof(dictionary) + sizeof(checkSum), sizeof(salt)));
 					quint32 sequenceNumber = qFromBigEndian<quint32>(datagram.mid(sizeof(PACKET_HEADER) + sizeof(dictionary) + sizeof(checkSum) + sizeof(salt)));
-
-					Debug(_log, "Response SECU  : Dict: [0x%.4x][%u], Sum: [0x%.4x][%u], Salt: [0x%.4x][%u], SN: [0x%.4x][%u]", dictionary, dictionary, checkSum, checkSum, salt, salt, sequenceNumber, sequenceNumber);
+					qCDebug(leddevice_write) << "Response SECU  : Dict: [0x" << QString::number(dictionary, 16) << "][" << dictionary << "], Sum: [0x" << QString::number(checkSum, 16) << "][" << checkSum << "], Salt: [0x" << QString::number(salt, 16) << "][" << salt << "], SN: [0x" << QString::number(sequenceNumber, 16) << "][" << sequenceNumber << "]";
 
 					auto packetSN = static_cast<quint8>(datagram.at(sizeof(PACKET_HEADER) + sizeof(PACKET_SECU)));
-					Debug(_log, "Response packSN: [0x%.4x][%u]", packetSN, packetSN);
+					qCDebug(leddevice_write) << "Response packSN: [0x" << QString::number(packetSN, 16) << "][" << packetSN << "]";
 				}
 
 				auto errorCode = static_cast<quint8>(datagram.at(sizeof(PACKET_HEADER) + sizeof(PACKET_SECU) + 1));
@@ -505,15 +499,15 @@ bool LedDeviceCololight::readResponse(QByteArray& response)
 							auto dataLength = static_cast<quint8>(datagram.at(dataPartStart));
 
 							response = datagram.mid(dataPartStart + 1, dataLength);
-							if (verbose)
+							if (leddevice_write().isDebugEnabled())
 							{
 								auto originalVerb = static_cast<quint8>(datagram.at(dataPartStart - 2) - 0x80);
-								Debug(_log, "Cmd [0x%x], Data returned: [%s]", originalVerb, QSTRING_CSTR(toHex(response)));
+								qCDebug(leddevice_write) << "Cmd [0x" << QString::number(originalVerb, 16) << "], Data returned: [" << toHex(response) << "]";	
 							}
 						}
 						else
 						{
-							DebugIf(verbose,_log, "No additional data returned");
+							qCDebug(leddevice_write) << "No additional data returned";
 						}
 					}
 					isRequestOK = true;
@@ -605,7 +599,6 @@ QJsonArray LedDeviceCololight::discover()
 					_services.insert(ipAddress, headers);
 
 					Debug(_log, "Cololight discovered at [%s]", QSTRING_CSTR(ipAddress));
-					DebugIf(verbose3, _log, "_data: [%s]", QSTRING_CSTR(data));
 				}
 			}
 		}
@@ -681,15 +674,11 @@ QJsonObject LedDeviceCololight::discover(const QJsonObject& /*params*/)
 	devicesDiscovered.insert("discoveryMethod", discoveryMethod);
 	devicesDiscovered.insert("devices", deviceList);
 
-	DebugIf(verbose,_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	return devicesDiscovered;
 }
 
 QJsonObject LedDeviceCololight::getProperties(const QJsonObject& params)
 {
-	DebugIf(verbose,_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	_hostName = params[CONFIG_HOST].toString("");
 	_port = STREAM_DEFAULT_PORT;
 
@@ -732,8 +721,6 @@ QJsonObject LedDeviceCololight::getProperties(const QJsonObject& params)
 
 void LedDeviceCololight::identify(const QJsonObject& params)
 {
-	DebugIf(verbose,_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	_hostName = params[CONFIG_HOST].toString("");
 	_port = STREAM_DEFAULT_PORT;
 

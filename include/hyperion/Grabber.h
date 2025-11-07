@@ -13,6 +13,7 @@
 #include <utils/ImageResampler.h>
 #include <utils/Logger.h>
 #include <utils/Components.h>
+#include <utils/JsonUtils.h>
 
 #include <events/EventEnum.h>
 

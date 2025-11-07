@@ -17,6 +17,10 @@
 #include <QImage>
 #include <QBuffer>
 
+Q_LOGGING_CATEGORY(api_callback_msg, "api.callback.msg");
+Q_LOGGING_CATEGORY(api_callback_image, "api.callback.image");
+Q_LOGGING_CATEGORY(api_callback_leds, "api.callback.leds");
+
 // Constants
 namespace {
 	bool const IS_IMAGE_SIZE_LIMITED{ true };
@@ -417,6 +421,8 @@ void JsonCallbacks::doCallback(Subscription::Type cmd, const QJsonArray& data)
 	}
 	obj.insert("data", data);
 
+	qCDebug(api_callback_msg).noquote() << "Emitting callback msg" << JsonUtils::toCompact(obj);
+
 	emit callbackReady(obj);
 }
 
@@ -430,6 +436,8 @@ void JsonCallbacks::doCallback(Subscription::Type cmd, const QJsonObject& data)
 		obj.insert("instance", _instanceID);
 	}
 	obj.insert("data", data);
+
+	qCDebug(api_callback_msg).noquote() << "Emitting callback msg" << JsonUtils::toCompact(obj);
 
 	emit callbackReady(obj);
 }
@@ -524,6 +532,7 @@ void JsonCallbacks::handleTokenChange(const QVector<AuthManager::AuthDefinition>
 
 void JsonCallbacks::handleLedColorUpdate(const QVector<ColorRgb> &ledColors)
 {
+	qCDebug(api_callback_leds) << "Handle LED color update for" << ledColors.size() << "LEDs";
 	// Take the LED update into a shared buffer and return quickly
 	{
 		QMutexLocker locker(&_ledColorsBufferMutex);
@@ -541,6 +550,7 @@ void JsonCallbacks::handleLedColorUpdate(const QVector<ColorRgb> &ledColors)
 
 void JsonCallbacks::processLedUpdate()
 {
+	qCDebug(api_callback_leds) << "Publish LED color update";
 	QVector<ColorRgb> ledColorsToProcess;
 	{
 		QMutexLocker locker(&_ledColorsBufferMutex);
@@ -565,19 +575,19 @@ void JsonCallbacks::processLedUpdate()
 
 		doCallback(Subscription::LedColorsUpdate, result);
 		_lastLedUpdateTime = elapsedLedUpdateTime;
+		qCDebug(api_callback_leds) << "Published LED color update";		
 	}
 	else
 	{
 		// It's useful to know when we are skipping, but this can be very noisy.
-		qDebug("Skipping LED color update as last update was only %lld ms ago", elapsedTimeMs);
+		qCDebug(api_callback_leds) << "Skipping LED color update as last update was only" << elapsedTimeMs << "ms ago";
 	}
-
 	_ledColorsUpdatePending.store(false);
 }
 
 void JsonCallbacks::handleImageUpdate(const Image<ColorRgb>& image)
 {
-	qDebug() << "JsonCallbacks::handleImageUpdate - image [" << image.id() << "]";
+	qCDebug(api_callback_image) << "Handle image update for image [" << image.id() << "]";
 
 	// Take the image update into a shared buffer and return quickly
 	{
@@ -602,7 +612,7 @@ void JsonCallbacks::processImageUpdate()
 		imageToProcess = _imageUpdateBuffer;
 	}
 
-	qDebug() << "JsonCallbacks::processImageUpdate - image [" << imageToProcess.id() << "]";
+	qCDebug(api_callback_image) << "Publish image update for image [" << imageToProcess.id() << "]";
 
 	qint64 const elapsedImageUpdateTime = _imageUpdateTimer.elapsed();
 	qint64 const elapsedTimeMs = elapsedImageUpdateTime - _lastImageUpdateTime;
@@ -620,7 +630,7 @@ void JsonCallbacks::processImageUpdate()
 
 		if (!jpgImage.save(&buffer, "JPG"))
 		{
-			qWarning() << "[handleImageUpdate] Failed to convert image to JPG format.";
+			qWarning() << "[processImageUpdate] Failed to convert image to JPG format.";
 			return;
 		}
 		buffer.close();
@@ -630,14 +640,12 @@ void JsonCallbacks::processImageUpdate()
 
 		doCallback(Subscription::ImageUpdate, result);
 		_lastImageUpdateTime = elapsedImageUpdateTime;
+		qCDebug(api_callback_image) << "Published image update for image [" << imageToProcess.id() << "]";
 	}
 	else
 	{
-		qDebug("Skipping image update as last update was only %lld ms ago", elapsedTimeMs);
+		qCDebug(api_callback_image) << "Skipping image [" << imageToProcess.id() << "] update as last update was only" << elapsedTimeMs << "ms ago";
 	}
-
-	qDebug() << "JsonCallbacks::processImageUpdate DONE - image [" << imageToProcess.id() << "]";
-
 	_imageUpdatePending.store(false);
 }
 

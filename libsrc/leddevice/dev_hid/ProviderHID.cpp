@@ -70,23 +70,29 @@ int ProviderHID::open()
 	if (_deviceHandle == nullptr)
 	{
 		// Failed to open the device
-		this->setInError( "Failed to open HID device. Maybe your PID/VID setting is wrong? Make sure to add a udev rule/use sudo." );
-#if 0
-		// http://www.signal11.us/oss/hidapi/
-				std::cout << "Showing a list of all available HID devices:" << std::endl;
-				auto devs = hid_enumerate(0x00, 0x00);
-				auto cur_dev = devs;
-				while (cur_dev) {
-					printf("Device Found\n  type: %04hx %04hx\n  path: %s\n  serial_number: %ls",
-						cur_dev->vendor_id, cur_dev->product_id, cur_dev->path, cur_dev->serial_number);
-					printf("\n");
-					printf("  Manufacturer: %ls\n", cur_dev->manufacturer_string);
-					printf("  Product:      %ls\n", cur_dev->product_string);
-					printf("\n");
-					cur_dev = cur_dev->next;
-				}
-				hid_free_enumeration(devs);
-#endif
+		this->setInError("Failed to open HID device. Maybe your PID/VID setting is wrong? Make sure to add a udev rule/use sudo.");
+
+		if (leddevice_properties().isDebugEnabled())
+		{
+			// http://www.signal11.us/oss/hidapi/
+			qCDebug(leddevice_properties()) << "HIDAPI Device List:";
+			auto devs = hid_enumerate(0x00, 0x00);
+			auto cur_dev = devs;
+			while (cur_dev)
+			{
+				qCDebug(leddevice_properties()) << "Device Found";
+				qCDebug(leddevice_properties()) << "  type:"
+												<< QString("%1").arg(cur_dev->vendor_id, 4, 16, QLatin1Char('0'))
+												<< QString("%1").arg(cur_dev->product_id, 4, 16, QLatin1Char('0'));
+				qCDebug(leddevice_properties()) << "  path:" << cur_dev->path;
+				qCDebug(leddevice_properties()) << "  serial_number:" << QString::fromWCharArray(cur_dev->serial_number);
+				qCDebug(leddevice_properties()) << "  Manufacturer:" << QString::fromWCharArray(cur_dev->manufacturer_string);
+				qCDebug(leddevice_properties()) << "  Product:" << QString::fromWCharArray(cur_dev->product_string);
+
+				cur_dev = cur_dev->next;
+			}
+			hid_free_enumeration(devs);
+		}
 		return -1;
 	}
 

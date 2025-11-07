@@ -16,9 +16,6 @@
 
 // Constants
 namespace {
-	const bool verbose = false;
-	const bool verbose3 = false;
-
 	// Configuration settings
 	const char CONFIG_HOST[] = "host";
 	const char CONFIG_AUTH_TOKEN[] = "token";
@@ -117,8 +114,7 @@ bool LedDeviceNanoleaf::init(const QJsonObject& deviceConfig)
 	{
 		Info(_log, "Device Nanoleaf does not require rewrites. Refresh time is ignored.");
 	}
-
-	DebugIf(verbose, _log, "deviceConfig: [%s]", QString(QJsonDocument(_devConfig).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	qCDebug(leddevice_config).noquote() << "deviceConfig:" << JsonUtils::toCompact(_devConfig);
 
 	if (!ProviderUdp::init(deviceConfig))
 	{
@@ -158,15 +154,14 @@ int LedDeviceNanoleaf::getHwLedCount(const QJsonObject& jsonLayout) const
 		int panelId = panelObj[PANEL_ID].toInt();
 		int panelshapeType = panelObj[PANEL_SHAPE_TYPE].toInt();
 
-		DebugIf(verbose, _log, "Panel [%d] - Type: [%d]", panelId, panelshapeType);
-
+		qCDebug(leddevice_properties) << "Panel [" << panelId << "] - Type: [" << panelshapeType << "]";
 		if (hasLEDs(static_cast<SHAPETYPES>(panelshapeType)))
 		{
 			++hwLedCount;
 		}
 		else
 		{
-			DebugIf(verbose, _log, "Rhythm/Shape/Lines Controller panel skipped.");
+			qCDebug(leddevice_properties) << "Rhythm/Shape/Lines Controller panel skipped.";
 		}
 	}
 	return hwLedCount;
@@ -183,7 +178,7 @@ bool LedDeviceNanoleaf::hasLEDs(const SHAPETYPES& panelshapeType) const
 	case SHAPETYPES::CONTROLLER_CAP:
 	case SHAPETYPES::POWER_CONNECTOR:
 	case SHAPETYPES::RHYTM:
-		DebugIf(verbose, _log, "Rhythm/Shape/Lines Controller panel skipped.");
+		qCDebug(leddevice_properties) << "Rhythm/Shape/Lines Controller panel skipped.";
 		hasLED = false;
 		break;
 	default:
@@ -238,7 +233,7 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 	degreesToRotate *= -1;
 
 	double radians = (degreesToRotate * std::acos(-1)) / 180;
-	DebugIf(verbose, _log, "globalOrientation: %d, degreesToRotate: %d, radians: %0.2f", orientation, degreesToRotate, radians);
+	qCDebug(leddevice_config) << "globalOrientation:" << orientation << ", degreesToRotate:" << degreesToRotate << ", radians:" << radians;
 
 	QJsonObject jsonLayout = jsonPanelLayout[PANEL_LAYOUT].toObject();
 
@@ -278,15 +273,14 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 			panelMap[panelY][panelX];
 			panelMap[panelY][panelX].push_back(panelId);
 			if (panelMap[panelY][panelX].size() > 1) {
-				DebugIf(verbose, _log, "Use  Panel [%d] (%d,%d) - Type: [%d] (Ovarlapping %d other Panels)", panelId, panelX, panelY, panelshapeType, panelMap[panelY][panelX].size() - 1);
+				qCDebug(leddevice_config) << QString("Use  Panel [%1] (%2,%3) - Type: [%4] (Overlapping %5 other Panels)").arg(panelId).arg(panelX).arg(panelY).arg(panelshapeType).arg(panelMap[panelY][panelX].size() - 1);	
 			} else {
-				DebugIf(verbose, _log, "Use  Panel [%d] (%d,%d) - Type: [%d]", panelId, panelX, panelY, panelshapeType);
+				qCDebug(leddevice_config) << QString("Use  Panel [%1] (%2,%3) - Type: [%4]").arg(panelId).arg(panelX).arg(panelY).arg(panelshapeType);
 			}
-
 		}
 		else
 		{
-			DebugIf(verbose, _log, "Skip Panel [%d] (%d,%d) - Type: [%d]", panelId, panelX, panelY, panelshapeType);
+			qCDebug(leddevice_config) << QString("Skip Panel [%1] (%2,%3) - Type: [%4]").arg(panelId).arg(panelX).arg(panelY).arg(panelshapeType);
 		}
 	}
 
@@ -301,8 +295,7 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 			{
 				for (auto ledId = posX->second.cbegin(); ledId != posX->second.cend(); ++ledId)
 				{
-					DebugIf(verbose, _log, "panelMap[%d][%d]=%d", posY->first, posX->first, ledId);
-
+					qCDebug(leddevice_config) << QString("panelMap[%1][%2]=%3").arg(posY->first).arg(posX->first).arg(*ledId);
 					if (_topDown)
 					{
 						_panelIds.push_back(*ledId);
@@ -321,8 +314,7 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 			{
 				for (auto ledId = posX->second.cbegin(); ledId != posX->second.cend(); ++ledId)
 				{
-					DebugIf(verbose, _log, "panelMap[%d][%d]=%d", posY->first, posX->first, ledId);
-
+					qCDebug(leddevice_config) << QString("panelMap[%1][%2]=%3").arg(posY->first).arg(posX->first).arg(*ledId);
 					if (_topDown)
 					{
 						_panelIds.push_back(*ledId);
@@ -341,8 +333,8 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 	Debug(_log, "Sort Top>Down  : %d", _topDown);
 	Debug(_log, "Sort Left>Right: %d", _leftRight);
 
-	DebugIf(verbose, _log, "PanelMap size  : %d", panelMap.size());
-	DebugIf(verbose, _log, "PanelIds count : %d", _panelIds.size());
+	qCDebug(leddevice_config) << "PanelMap size  :" << panelMap.size();
+	qCDebug(leddevice_config) << "PanelIds count :" << _panelIds.size();
 
 	// Check. if enough panels were found.
 	int configuredLedCount = this->getLedCount();
@@ -405,13 +397,10 @@ int LedDeviceNanoleaf::open()
 	}
 
 	// Read LedDevice configuration and validate against device configuration
-	if (initLedsConfiguration())
+	if (initLedsConfiguration() && ProviderUdp::open() == 0)
 	{
-		if (ProviderUdp::open() == 0)
-		{
-			// Everything is OK, device is ready
-			_isDeviceReady = true;
-		}
+		// Everything is OK, device is ready
+		_isDeviceReady = true;
 	}
 
 	return _isDeviceReady ? 0 : -1;
@@ -459,15 +448,11 @@ QJsonObject LedDeviceNanoleaf::discover(const QJsonObject& /*params*/)
 	devicesDiscovered.insert("discoveryMethod", discoveryMethod);
 	devicesDiscovered.insert("devices", deviceList);
 
-	DebugIf(verbose, _log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	return devicesDiscovered;
 }
 
 QJsonObject LedDeviceNanoleaf::getProperties(const QJsonObject& params)
 {
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	_hostName = params[CONFIG_HOST].toString("");
 	_apiPort = API_DEFAULT_PORT;
 	_authToken = params[CONFIG_AUTH_TOKEN].toString("");
@@ -499,16 +484,12 @@ QJsonObject LedDeviceNanoleaf::getProperties(const QJsonObject& params)
 		propertiesDetails.insert("ledCount", getHwLedCount(jsonLayout));
 	}
 	properties.insert("properties", propertiesDetails);
-
-	DebugIf(verbose, _log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData());
 	
 	return properties;
 }
 
 void LedDeviceNanoleaf::identify(const QJsonObject& params)
 {
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	_hostName = params[CONFIG_HOST].toString("");
 	_apiPort = API_DEFAULT_PORT;
 	_authToken = params[CONFIG_AUTH_TOKEN].toString("");
@@ -531,8 +512,6 @@ void LedDeviceNanoleaf::identify(const QJsonObject& params)
 
 QJsonObject LedDeviceNanoleaf::addAuthorization(const QJsonObject& params)
 {
-	Debug(_log, "params: [%s]", QJsonDocument(params).toJson(QJsonDocument::Compact).constData());
-
 	_hostName = params[CONFIG_HOST].toString("");
 	_apiPort = API_DEFAULT_PORT;
 
@@ -640,7 +619,7 @@ bool LedDeviceNanoleaf::storeState()
 	}
 
 	_originalStateProperties = response.getBody().object();
-	DebugIf(verbose, _log, "state: [%s]", QString(QJsonDocument(_originalStateProperties).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	qCDebug(leddevice_properties).noquote() << "Original State Properties:" << JsonUtils::toCompact(_originalStateProperties);
 
 	QJsonObject isOn = _originalStateProperties.value(STATE_ON).toObject();
 	if (!isOn.isEmpty())
@@ -697,7 +676,7 @@ bool LedDeviceNanoleaf::storeState()
 		else
 		{
 			QJsonObject effects = responseEffects.getBody().object();
-			DebugIf(verbose, _log, "effects: [%s]", QString(QJsonDocument(_originalStateProperties).toJson(QJsonDocument::Compact)).toUtf8().constData());
+			qCDebug(leddevice_properties).noquote() << "effects:" << JsonUtils::toCompact(effects);
 			_originalEffect = effects[API_EFFECT_SELECT].toString();
 			_originalIsDynEffect = _originalEffect != "*Dynamic*" || _originalEffect == "*Solid*" || _originalEffect == "*ExtControl*";
 		}
@@ -849,29 +828,30 @@ int LedDeviceNanoleaf::write(const QVector<ColorRgb>& ledValues)
 		{
 			// Set panels not configured to black
 			color = ColorRgb::BLACK;
-			DebugIf(verbose3, _log, "[%u] >= panelLedCount [%u] => Set to BLACK", panelCounter, _panelLedCount);
+			qCDebug(leddevice_write) << QString("[%1] >= panelLedCount [%2] => Set to BLACK").arg(panelCounter).arg(_panelLedCount);
 		}
 
-		udpbuffer[i++] = static_cast<char>(color.red);
-		udpbuffer[i++] = static_cast<char>(color.green);
-		udpbuffer[i++] = static_cast<char>(color.blue);
+		udpbuffer[i] = static_cast<char>(color.red);
+		++i;
+		udpbuffer[i] = static_cast<char>(color.green);
+		++i;
+		udpbuffer[i] = static_cast<char>(color.blue);
+		++i;
 
 		// Set white LED
-		udpbuffer[i++] = 0; // W not set manually
+		udpbuffer[i] = 0; // W not set manually
+		++i;
 
 		// Set transition time
 		unsigned char tranitionTime = 1; // currently fixed at value 1 which corresponds to 100ms
 		qToBigEndian<quint16>(static_cast<quint16>(tranitionTime), udpbuffer.data() + i);
 		i += 2;
 
-		DebugIf(verbose3, _log, "[%u] Color: {%u,%u,%u}", panelCounter, color.red, color.green, color.blue);
+		qCDebug(leddevice_write) << QString("[%1] Color: {%2,%3,%4}").arg(panelCounter).arg(color.red).arg(color.green).arg(color.blue);
 	}
 
-	if (verbose3)
-	{
-		Debug(_log, "UDP-Address [%s], UDP-Port [%u], udpBufferSize[%d], Bytes to send [%d]", QSTRING_CSTR(_hostName), _port, udpBufferSize, i);
-		Debug(_log, "packet: [%s]", QSTRING_CSTR(toHex(udpbuffer, 64)));
-	}
+	qCDebug(leddevice_write) << QString("UDP-Address [%1], UDP-Port [%2], udpBufferSize[%3], Bytes to send [%4]").arg(_hostName).arg(_port).arg(udpBufferSize).arg(i);
+	qCDebug(leddevice_write) << QString("packet: [%1]").arg(toHex(udpbuffer, 64));
 
 	retVal = writeBytes(udpbuffer);
 	return retVal;

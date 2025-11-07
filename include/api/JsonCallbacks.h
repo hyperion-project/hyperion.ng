@@ -9,12 +9,17 @@
 #include <QJsonObject>
 #include <QSet>
 #include <QSharedPointer>
+#include <QLoggingCategory>
 
 #include <utils/Components.h>
 #include <utils/VideoMode.h>
 #include <utils/settings.h>
 #include <hyperion/AuthManager.h>
 #include <hyperion/PriorityMuxer.h>
+
+Q_DECLARE_LOGGING_CATEGORY(api_callback_msg);
+Q_DECLARE_LOGGING_CATEGORY(api_callback_image);
+Q_DECLARE_LOGGING_CATEGORY(api_callback_leds);
 
 class Hyperion;
 class ComponentRegister;

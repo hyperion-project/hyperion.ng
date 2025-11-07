@@ -16,6 +16,12 @@
 #include <utils/JsonUtils.h>
 #include <utils/WaitTime.h>
 
+Q_LOGGING_CATEGORY(leddevice_config, "leddevice.config");
+Q_LOGGING_CATEGORY(leddevice_control, "leddevice.control");
+Q_LOGGING_CATEGORY(leddevice_flow, "leddevice.flow");
+Q_LOGGING_CATEGORY(leddevice_properties, "leddevice.properties");
+Q_LOGGING_CATEGORY(leddevice_write, "leddevice.write");
+
 // Constants
 namespace {
 
@@ -84,13 +90,10 @@ void LedDevice::start()
 		// Everything is OK -> enable device
 		_isDeviceInitialised = true;
 
-		if (_isAutoStart)
+		if (_isAutoStart && !_isDeviceInError)
 		{
-			if (!_isEnabled)
-			{
 				Debug(_log, "Not enabled -> enable device");
 				enable();
-			}
 		}
 	}
 }

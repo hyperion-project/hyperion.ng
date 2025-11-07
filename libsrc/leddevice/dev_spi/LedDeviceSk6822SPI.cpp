@@ -92,26 +92,27 @@ int LedDeviceSk6822SPI::write(const QVector<ColorRgb> &ledValues)
 		spi_ptr += SPI_BYTES_WAIT_TIME;	// the wait between led time is all zeros
 	}
 
-#if 0
-	// debug the whole SPI packet
-	char debug_line[2048];
-	int ptr=0;
-	for (unsigned int i=0; i < _ledBuffer.size(); i++)
+	if (leddevice_write().isDebugEnabled())
 	{
-		if (i%16 == 0)
+		// debug the whole SPI packet
+		char debug_line[2048];
+		int ptr = 0;
+		for (unsigned int i = 0; i < _ledBuffer.size(); i++)
 		{
-			ptr += snprintf (ptr+debug_line, sizeof(debug_line)-ptr, "%03x: ", i);
-		}
+			if (i % 16 == 0)
+			{
+				ptr += snprintf(ptr + debug_line, sizeof(debug_line) - ptr, "%03x: ", i);
+			}
 
-		ptr += snprintf (ptr+debug_line, sizeof(debug_line)-ptr, "%02x ", _ledBuffer.data()[i]);
+			ptr += snprintf(ptr + debug_line, sizeof(debug_line) - ptr, "%02x ", _ledBuffer.data()[i]);
 
-		if ( (i%16 == 15) || ( i == _ledBuffer.size()-1 ) )
-		{
-			Debug(_log, debug_line);
-			ptr = 0;
+			if ((i % 16 == 15) || (i == _ledBuffer.size() - 1))
+			{
+				qCDebug(leddevice_write()) << debug_line;
+				ptr = 0;
+			}
 		}
 	}
-#endif
 
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }

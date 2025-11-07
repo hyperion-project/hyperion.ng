@@ -592,9 +592,9 @@ int DRMFrameGrabber::grabFrame(Image<ColorRgb> &image)
                 .arg(id)
                 .arg(framebuffer->width)
                 .arg(framebuffer->height)
-                .arg(QSTRING_CSTR(getDrmFormat(framebuffer->pixel_format)))
-                .arg(QSTRING_CSTR(pixelFormatToString(_pixelFormat)))
-                .arg(QSTRING_CSTR(getDrmModifierName(modifier)));
+                .arg(getDrmFormat(framebuffer->pixel_format))
+                .arg(pixelFormatToString(_pixelFormat))
+                .arg(getDrmModifierName(modifier));
 
         int w = framebuffer->width;
         int h = framebuffer->height;
@@ -964,7 +964,7 @@ bool DRMFrameGrabber::getScreenInfo()
 
 	drmModeFreeResources(resources);
 
-	qCDebug(grabber_drm) << QString("Framebuffer count: %1").arg(_framebuffers.size());
+	qCDebug(grabber_drm) << "Framebuffer count:" << _framebuffers.size();
 
 	return !_framebuffers.empty();
 }
@@ -984,7 +984,7 @@ QJsonArray DRMFrameGrabber::getInputDeviceDetails() const
 		QString const fileName = deviceFile.fileName();
 		int deviceIdx = fileName.right(1).toInt();
 		QString device = deviceFile.absoluteFilePath();
-		qCDebug(grabber_drm) << QString("DRM device [%1] found").arg(QSTRING_CSTR(device));
+		qCDebug(grabber_drm) << "DRM device [" << device << "] found";
 
 		QSize screenSize = getScreenSize(device);
 		//Only add devices with a valid screen size, i.e. where a monitor is connected
@@ -1026,8 +1026,6 @@ QJsonArray DRMFrameGrabber::getInputDeviceDetails() const
 
 QJsonObject DRMFrameGrabber::discover(const QJsonObject &params)
 {
-	qCDebug(grabber_drm) << "params: " << QJsonDocument(params).toJson(QJsonDocument::Compact);
-
 	if (!isAvailable(false))
 	{
 		return {};
@@ -1057,7 +1055,7 @@ QJsonObject DRMFrameGrabber::discover(const QJsonObject &params)
 	defaults["video_input"] = video_inputs_default;
 	inputsDiscovered["default"] = defaults;
 
-	qCDebug(grabber_drm) << "Discovered input devices:" << QJsonDocument(inputsDiscovered).toJson(QJsonDocument::Compact).constData();
+	qCDebug(grabber_drm).noquote() << "Discovered input devices:" << JsonUtils::toCompact(inputsDiscovered);
 
 	return inputsDiscovered;
 }

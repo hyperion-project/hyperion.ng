@@ -9,8 +9,6 @@
 
 // Constants
 namespace {
-	const bool verbose = false;
-
 	// Configuration settings
 	const char CONFIG_HOST[] = "host";
 	const char CONFIG_PORT[] = "port";
@@ -82,7 +80,6 @@ bool LedDeviceHomeAssistant::init(const QJsonObject& deviceConfig)
 		Info(_log, "Home Assistant lights do not require rewrites. Refresh time is ignored.");
 		setRewriteTime(0);
 	}
-	DebugIf(verbose, _log, "deviceConfig: [%s]", QString(QJsonDocument(_devConfig).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	//Set hostname as per configuration and default port
 	_hostName = deviceConfig[CONFIG_HOST].toString();
@@ -238,15 +235,11 @@ QJsonObject LedDeviceHomeAssistant::discover(const QJsonObject& /*params*/)
 	devicesDiscovered.insert("discoveryMethod", discoveryMethod);
 	devicesDiscovered.insert("devices", deviceList);
 
-	DebugIf(verbose, _log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	return devicesDiscovered;
 }
 
 QJsonObject LedDeviceHomeAssistant::getProperties(const QJsonObject& params)
 {
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	_hostName = params[CONFIG_HOST].toString("");
 	_apiPort = params[CONFIG_PORT].toInt(API_DEFAULT_PORT);
 	_useSsl = params[CONFIG_USE_SSL].toBool(false);
@@ -316,8 +309,6 @@ QJsonObject LedDeviceHomeAssistant::getProperties(const QJsonObject& params)
 
 void LedDeviceHomeAssistant::identify(const QJsonObject& params)
 {
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	_hostName = params[CONFIG_HOST].toString("");
 	_apiPort = params[CONFIG_PORT].toInt(API_DEFAULT_PORT);
 	_useSsl = params[CONFIG_USE_SSL].toBool(false);

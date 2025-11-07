@@ -62,9 +62,10 @@ bool LedDeviceHyperionUsbasp::init(const QJsonObject &deviceConfig)
 	}
 
 	Debug(_log, "USB context initialized");
-#if 0
-	libusb_set_debug(_libusbContext, 3);
-#endif
+	if (leddevice_write().isDebugEnabled())
+	{
+		libusb_set_debug(_libusbContext, 3);
+	}
 
 	// retrieve the list of USB devices
 	libusb_device ** deviceList;

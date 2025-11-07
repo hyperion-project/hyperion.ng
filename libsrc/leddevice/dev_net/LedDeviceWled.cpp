@@ -11,9 +11,6 @@
 
 // Constants
 namespace {
-
-const bool verbose = false;
-
 // Configuration settings
 const char CONFIG_HOST[] = "host";
 const char CONFIG_STREAM_PROTOCOL[] = "streamProtocol";
@@ -471,7 +468,7 @@ bool LedDeviceWled::storeState()
 		else
 		{
 			_originalStateProperties = response.getBody().object().value(API_PATH_STATE).toObject();
-			DebugIf(verbose, _log, "state: [%s]", QString(QJsonDocument(_originalStateProperties).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+			qCDebug(leddevice_properties).noquote() << "Original State Properties:" << JsonUtils::toCompact(_originalStateProperties);
 
 			QJsonObject udpn = _originalStateProperties.value(STATE_UDPN).toObject();
 			if (!udpn.isEmpty())
@@ -481,7 +478,7 @@ bool LedDeviceWled::storeState()
 			}
 
 			_wledInfo = response.getBody().object().value(API_PATH_INFO).toObject();
-			DebugIf(verbose, _log, "info: [%s]", QString(QJsonDocument(_wledInfo).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+			qCDebug(leddevice_properties).noquote() << "WLED Info:" << JsonUtils::toCompact(_wledInfo);
 
 			_currentVersion.setVersion(_wledInfo.value(INFO_VER).toString().toStdString());
 		}
@@ -550,15 +547,12 @@ QJsonObject LedDeviceWled::discover(const QJsonObject& /*params*/)
 	devicesDiscovered.insert("discoveryMethod", discoveryMethod);
 #endif
 	devicesDiscovered.insert("devices", deviceList);
-	DebugIf(verbose, _log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 
 	return devicesDiscovered;
 }
 
 QJsonObject LedDeviceWled::getProperties(const QJsonObject& params)
 {
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData() );
-
 	_hostName = params[CONFIG_HOST].toString("");
 	_apiPort = API_DEFAULT_PORT;
 
@@ -598,8 +592,6 @@ QJsonObject LedDeviceWled::getProperties(const QJsonObject& params)
 
 void LedDeviceWled::identify(const QJsonObject& params)
 {
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	_hostName = params[CONFIG_HOST].toString("");
 	_apiPort = API_DEFAULT_PORT;
 

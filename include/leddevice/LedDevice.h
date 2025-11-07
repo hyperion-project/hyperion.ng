@@ -17,6 +17,7 @@
 #include <QMap>
 #include <QScopedPointer>
 #include <QMutex>
+#include <QLoggingCategory>
 
 // Utility includes
 #include <utils/ColorRgb.h>
@@ -25,6 +26,13 @@
 #include <utils/Logger.h>
 #include <functional>
 #include <utils/Components.h>
+#include <utils/JsonUtils.h>
+
+Q_DECLARE_LOGGING_CATEGORY(leddevice_config);
+Q_DECLARE_LOGGING_CATEGORY(leddevice_control);
+Q_DECLARE_LOGGING_CATEGORY(leddevice_flow);
+Q_DECLARE_LOGGING_CATEGORY(leddevice_properties);
+Q_DECLARE_LOGGING_CATEGORY(leddevice_write);
 
 class LedDevice;
 

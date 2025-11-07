@@ -1,11 +1,6 @@
 #include "LedDeviceWS281x.h"
 #include <utils/SysInfo.h>
 
-// Constants
-namespace {
-const bool verbose = false;
-} //End of constants
-
 LedDeviceWS281x::LedDeviceWS281x(const QJsonObject &deviceConfig)
 	: LedDevice(deviceConfig)
 {
@@ -145,8 +140,6 @@ QJsonObject LedDeviceWS281x::discover(const QJsonObject& /*params*/)
 	devicesDiscovered.insert("isUserAdmin", SysInfo::isUserAdmin());
 
 	devicesDiscovered.insert("devices", deviceList);
-
-	DebugIf(verbose,_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return devicesDiscovered;
 }

@@ -4,14 +4,10 @@
 
 // Constants
 namespace {
-
-const bool verbose = false;
-
 const char CONFIG_HOST[] = "host";
 const char CONFIG_PORT[] = "port";
 const ushort RAW_DEFAULT_PORT=5568;
 const int UDP_MAX_LED_NUM = 490;
-
 } //End of constants
 
 LedDeviceUdpRaw::LedDeviceUdpRaw(const QJsonObject &deviceConfig)
@@ -81,8 +77,6 @@ int LedDeviceUdpRaw::write(const QVector<ColorRgb> &ledValues)
 
 QJsonObject LedDeviceUdpRaw::getProperties(const QJsonObject& params)
 {
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData() );
-
 	QJsonObject properties;
 
 	Info(_log, "Get properties for %s", QSTRING_CSTR(_activeDeviceType));
@@ -91,8 +85,6 @@ QJsonObject LedDeviceUdpRaw::getProperties(const QJsonObject& params)
 	propertiesDetails.insert("maxLedCount", UDP_MAX_LED_NUM);
 
 	properties.insert("properties", propertiesDetails);
-
-	DebugIf(verbose, _log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 
 	return properties;
 }

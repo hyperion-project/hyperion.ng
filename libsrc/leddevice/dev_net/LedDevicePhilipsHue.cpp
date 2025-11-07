@@ -14,10 +14,6 @@
 // Constants
 namespace
 {
-
-	bool verbose = false;
-	const bool verbose3 = false;
-
 	// Configuration settings
 	const char CONFIG_HOST[] = "host";
 	const char CONFIG_PORT[] = "port";
@@ -32,8 +28,6 @@ namespace
 	const char CONFIG_USE_HUE_API_V2[] = "useAPIv2";
 	const char CONFIG_USE_HUE_ENTERTAINMENT_API[] = "useEntertainmentAPI";
 	const char CONFIG_groupId[] = "groupId";
-
-	const char CONFIG_VERBOSE[] = "verbose";
 
 	// Philips Hue OpenAPI URLs
 	const int API_DEFAULT_PORT = -1; // Use default port per communication scheme
@@ -357,7 +351,7 @@ LedDevicePhilipsHueBridge::~LedDevicePhilipsHueBridge()
 
 bool LedDevicePhilipsHueBridge::init(const QJsonObject &deviceConfig)
 {
-	DebugIf(verbose, _log, "deviceConfig: [%s]", QJsonDocument(_devConfig).toJson(QJsonDocument::Compact).constData());
+	qCDebug(leddevice_config).noquote() << "deviceConfig:" << JsonUtils::toCompact(_devConfig);
 
 	bool isInitOK = false;
 
@@ -487,7 +481,7 @@ bool LedDevicePhilipsHueBridge::checkApiError(const QJsonDocument &response, boo
 	bool apiError = false;
 	QString errorReason;
 
-	DebugIf(verbose, _log, "Reply: [%s]", response.toJson(QJsonDocument::Compact).constData());
+	qCDebug(leddevice_control).noquote() << "Reply:" << response.toJson(QJsonDocument::Compact);
 
 	if (_useApiV2)
 	{
@@ -849,7 +843,7 @@ void LedDevicePhilipsHueBridge::setBaseApiEnvironment(bool apiV2, const QString 
 		}
 		_restApi->setBasePath(basePath);
 
-		DebugIf(verbose, _log, "New BasePath: %s", QSTRING_CSTR(_restApi->getBasePath()));
+		qCDebug(leddevice_control) << "New BasePath:" << _restApi->getBasePath();
 	}
 }
 
@@ -920,10 +914,7 @@ bool LedDevicePhilipsHueBridge::initEntertainmentSrvsMap()
 void LedDevicePhilipsHueBridge::setBridgeDetails(const QJsonDocument &doc, bool isLogging)
 {
 	QJsonObject jsonConfigInfo = doc.object();
-	if (verbose)
-	{
-		std::cout << "jsonConfigInfo: [" << QJsonDocument(jsonConfigInfo).toJson(QJsonDocument::Compact).constData() << "]" << std::endl;
-	}
+	qCDebug(leddevice_control).noquote() << "jsonConfigInfo:" << JsonUtils::toCompact(jsonConfigInfo);
 
 	_deviceName = jsonConfigInfo[DEV_DATA_NAME].toString();
 	_deviceModel = jsonConfigInfo[DEV_DATA_MODEL_V1].toString();
@@ -997,7 +988,7 @@ void LedDevicePhilipsHueBridge::setLightsMap(const QJsonDocument &doc)
 	else
 	{
 		QJsonObject jsonLightsInfo = doc.object();
-		DebugIf(verbose, _log, "jsonLightsInfo: [%s]", QJsonDocument(jsonLightsInfo).toJson(QJsonDocument::Compact).constData());
+		qCDebug(leddevice_control).noquote() << "jsonLightsInfo:" << JsonUtils::toCompact(jsonLightsInfo);
 
 		// Get all available light ids and their values
 		QStringList keys = jsonLightsInfo.keys();
@@ -1037,7 +1028,7 @@ void LedDevicePhilipsHueBridge::setGroupMap(const QJsonDocument &doc)
 	else
 	{
 		QJsonObject jsonGroupsInfo = doc.object();
-		DebugIf(verbose, _log, "jsonGroupsInfo: [%s]", QJsonDocument(jsonGroupsInfo).toJson(QJsonDocument::Compact).constData());
+		qCDebug(leddevice_control).noquote() << "jsonGroupsInfo:" << JsonUtils::toCompact(jsonGroupsInfo);
 
 		// Get all available group ids and their values
 		QStringList keys = jsonGroupsInfo.keys();
@@ -1088,19 +1079,19 @@ QMap<QString, QJsonObject> LedDevicePhilipsHueBridge::getEntertainmentMap() cons
 
 QJsonObject LedDevicePhilipsHueBridge::getDeviceDetails(const QString &deviceId)
 {
-	DebugIf(verbose, _log, "[%s]", QSTRING_CSTR(deviceId));
+	qCDebug(leddevice_properties) << "DeviceId:" << deviceId;
 	return _devicesMap.value(deviceId);
 }
 
 QJsonObject LedDevicePhilipsHueBridge::getLightDetails(const QString &lightId)
 {
-	DebugIf(verbose, _log, "[%s]", QSTRING_CSTR(lightId));
+	qCDebug(leddevice_properties) << "LightId:" << lightId;
 	return _lightsMap.value(lightId);
 }
 
 QJsonDocument LedDevicePhilipsHueBridge::setLightState(const QString &lightId, const QJsonObject &state)
 {
-	DebugIf(verbose, _log, "[%s] ", QSTRING_CSTR(lightId));
+	qCDebug(leddevice_control).noquote() << "LightId:" << lightId << "State:" << JsonUtils::toCompact(state);
 	QStringList resourcePath;
 	QJsonObject cmd;
 
@@ -1119,7 +1110,7 @@ QJsonDocument LedDevicePhilipsHueBridge::setLightState(const QString &lightId, c
 
 QJsonDocument LedDevicePhilipsHueBridge::getGroupDetails(const QString &groupId)
 {
-	DebugIf(verbose, _log, "[%s]", QSTRING_CSTR(groupId));
+	qCDebug(leddevice_properties) << "GroupId:" << groupId;
 	return retrieveGroupDetails(groupId);
 }
 
@@ -1130,7 +1121,7 @@ QString LedDevicePhilipsHueBridge::getGroupName(const QString &groupId) const
 	{
 		QJsonObject group = _groupsMap.value(groupId);
 		groupName = group.value(API_GROUP_NAME).toString().trimmed().replace("\"", "");
-		DebugIf(verbose, _log, "GroupId [%s]: GroupName: %s", QSTRING_CSTR(groupId), QSTRING_CSTR(groupName));
+		qCDebug(leddevice_properties) << "GroupId:" << groupId << "GroupName:" << groupName;
 	}
 	else
 	{
@@ -1195,7 +1186,7 @@ QJsonDocument LedDevicePhilipsHueBridge::setGroupState(const QString &groupId, b
 
 QJsonObject LedDevicePhilipsHueBridge::getEntertainmentSrvDetails(const QString &deviceId)
 {
-	DebugIf(verbose, _log, "getEntertainmentSrvDetails [%s]", QSTRING_CSTR(deviceId));
+	qCDebug(leddevice_properties) << "getEntertainmentSrvDetails:" << deviceId;
 
 	QJsonObject details;
 	for (const QJsonObject &entertainmentSrv : std::as_const(_entertainmentMap))
@@ -1371,15 +1362,11 @@ QJsonObject LedDevicePhilipsHueBridge::discover(const QJsonObject & /*params*/)
 	devicesDiscovered.insert("discoveryMethod", discoveryMethod);
 	devicesDiscovered.insert("devices", deviceList);
 
-	Debug(_log, "devicesDiscovered: [%s]", QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact).constData());
-
 	return devicesDiscovered;
 }
 
 QJsonObject LedDevicePhilipsHueBridge::getProperties(const QJsonObject &params)
 {
-	DebugIf(verbose, _log, "params: [%s]", QJsonDocument(params).toJson(QJsonDocument::Compact).constData());
-
 	_hostName = params[CONFIG_HOST].toString("");
 	_apiPort = params[CONFIG_PORT].toInt();
 	_authToken = params[CONFIG_USERNAME].toString("");
@@ -1411,7 +1398,6 @@ QJsonObject LedDevicePhilipsHueBridge::getProperties(const QJsonObject &params)
 		properties.insert("isEntertainmentReady", _isHueEntertainmentReady);
 		properties.insert("isAPIv2Ready", _isAPIv2Ready);
 		
-		DebugIf(verbose, _log, "properties: [%s]", QJsonDocument(properties).toJson(QJsonDocument::Compact).constData());
 		return properties;
 	}
 
@@ -1440,14 +1426,11 @@ QJsonObject LedDevicePhilipsHueBridge::getProperties(const QJsonObject &params)
 	properties.insert("isEntertainmentReady", _isHueEntertainmentReady);
 	properties.insert("isAPIv2Ready", _isAPIv2Ready);
 	
-	DebugIf(verbose, _log, "properties: [%s]", QJsonDocument(properties).toJson(QJsonDocument::Compact).constData());
 	return properties;
 }
 
 QJsonObject LedDevicePhilipsHueBridge::addAuthorization(const QJsonObject &params)
 {
-	Debug(_log, "params: [%s]", QJsonDocument(params).toJson(QJsonDocument::Compact).constData());
-
 	// Generate a new Phillips-Bridge device client/application key
 	_hostName = params[CONFIG_HOST].toString("");
 	_apiPort = params[CONFIG_PORT].toInt();
@@ -1828,11 +1811,6 @@ bool LedDevicePhilipsHue::init(const QJsonObject &deviceConfig)
 {
 	bool isInitOK{false};
 
-	if (!verbose)
-	{
-		verbose = deviceConfig[CONFIG_VERBOSE].toBool(false);
-	}
-
 	// Initialise LedDevice configuration and execution environment
 	useEntertainmentAPI(deviceConfig[CONFIG_USE_HUE_ENTERTAINMENT_API].toBool(false));
 
@@ -2127,7 +2105,7 @@ bool LedDevicePhilipsHue::stopStream()
 bool LedDevicePhilipsHue::getStreamGroupState()
 {
 	QJsonDocument doc = getGroupDetails(_groupId);
-	DebugIf(verbose, _log, "GroupDetails: [%s]", QJsonDocument(doc).toJson(QJsonDocument::Compact).constData());
+	qCDebug(leddevice_properties) << "GroupDetails:" << doc.toJson(QJsonDocument::Compact);
 
 	if (this->isInError())
 	{
@@ -2176,7 +2154,7 @@ bool LedDevicePhilipsHue::getStreamGroupState()
 bool LedDevicePhilipsHue::setStreamGroupState(bool state)
 {
 	QJsonDocument doc = setGroupState(_groupId, state);
-	DebugIf(verbose, _log, "StreamGroupState: [%s]", QJsonDocument(doc).toJson(QJsonDocument::Compact).constData());
+	qCDebug(leddevice_properties) << "StreamGroupState:" << doc.toJson(QJsonDocument::Compact);;
 
 	if (isUsingApiV2())
 	{
@@ -2436,11 +2414,7 @@ int LedDevicePhilipsHue::writeStreamData(const QVector<ColorRgb> &ledValues, boo
 			++i;
 		}
 	}
-
-	if (verbose3)
-	{
-		qDebug() << "Msg Hex:" << msg.toHex(':');
-	}
+	qCDebug(leddevice_write) << "Msg:" << msg.toHex(':');
 
 	writeBytes(msg, flush);
 	return 0;
@@ -2816,8 +2790,6 @@ bool LedDevicePhilipsHue::restoreState()
 
 void LedDevicePhilipsHue::identify(const QJsonObject &params)
 {
-	DebugIf(verbose, _log, "params: [%s]", QJsonDocument(params).toJson(QJsonDocument::Compact).constData());
-
 	_hostName = params[CONFIG_HOST].toString("");
 	_apiPort = params[CONFIG_PORT].toInt();
 	_authToken = params[CONFIG_USERNAME].toString("");
