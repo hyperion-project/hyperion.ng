@@ -7,15 +7,13 @@
 #include <algorithm>
 #include <vector>
 
+#include <QSharedData>
+#include <QAtomicInt>
 #include <QLoggingCategory>
 
 #include "HyperionConfig.h"
 #include <utils/ColorRgb.h>
 #include <utils/Logger.h>
-
-// QT includes
-#include <QSharedData>
-#include <QAtomicInt>
 
 // https://docs.microsoft.com/en-us/windows/win32/winprog/windows-data-types#ssize-t
 #if defined(_MSC_VER)
@@ -23,11 +21,11 @@
 typedef SSIZE_T ssize_t;
 #endif
 
-Q_DECLARE_LOGGING_CATEGORY(memory_objects_image_create)
-Q_DECLARE_LOGGING_CATEGORY(memory_objects_image_copy)
-Q_DECLARE_LOGGING_CATEGORY(memory_objects_image_move)
-Q_DECLARE_LOGGING_CATEGORY(memory_objects_image_assign)
-Q_DECLARE_LOGGING_CATEGORY(memory_objects_image_destroy)
+Q_DECLARE_LOGGING_CATEGORY(memory_image_create)
+Q_DECLARE_LOGGING_CATEGORY(memory_image_copy)
+Q_DECLARE_LOGGING_CATEGORY(memory_image_move)
+Q_DECLARE_LOGGING_CATEGORY(memory_image_assign)
+Q_DECLARE_LOGGING_CATEGORY(memory_image_destroy)
 
 // Define to enable memory tracing for Image objects.
 // Define as TraceEvent::All; for all events, or a combination of TraceEvent flags.
