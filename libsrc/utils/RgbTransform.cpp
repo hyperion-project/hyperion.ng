@@ -87,7 +87,7 @@ int RgbTransform::getBacklightThreshold() const
 void RgbTransform::setBacklightThreshold(int backlightThreshold)
 {
 	_backlightThreshold = backlightThreshold;
-	_sumBrightnessLow = static_cast<uint8_t>(qBound(0, _backlightThreshold, UINT8_MAX));
+	_sumBrightnessLow = static_cast<uint8_t>(qBound(0, _backlightThreshold, static_cast<int>(UINT8_MAX)));
 }
 
 bool RgbTransform::getBacklightColored() const
