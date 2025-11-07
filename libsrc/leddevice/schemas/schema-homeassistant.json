@@ -53,7 +53,7 @@
       "type": "boolean",
       "format": "checkbox",
       "title": "edt_dev_spec_brightnessOverwrite_title",
-      "default": true,
+      "default": false,
       "required": true,
       "access": "advanced",
       "propertyOrder": 6
