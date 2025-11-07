@@ -1,7 +1,7 @@
 #include <utils/RgbTransform.h>
 
 #include <QtMath>
-#include <QtMinMax>
+#include <QtGlobal>
 
 #include <utils/KelvinToRgb.h>
 
