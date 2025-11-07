@@ -167,7 +167,7 @@ void RgbTransform::applyGamma(uint8_t & red, uint8_t & green, uint8_t & blue) co
 	blue  = _mappingB[blue];
 }
 
-void RgbTransform::applyBacklight(uint8_t &red, uint8_t &green, uint8_t &blue) const
+void RgbTransform::applyBacklight(uint8_t & red, uint8_t & green, uint8_t & blue) const
 {
 	if (_backLightEnabled && _sumBrightnessLow > 0)
 	{
