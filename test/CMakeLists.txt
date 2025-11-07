@@ -36,7 +36,7 @@ target_link_libraries(test_qtscreenshot Qt${QT_VERSION_MAJOR}::Widgets hyperion-
 if(ENABLE_X11)
 	find_package(X11 REQUIRED)
 	add_executable(test_x11performance TestX11Performance.cpp)
-	target_link_libraries(test_x11performance ${X11_LIBRARIES} Qt${QT_VERSION_MAJOR}::Widgets)
+	target_link_libraries(test_x11performance ${X11_LIBRARIES} Qt${QT_VERSION_MAJOR}::Widgets hyperion-utils)
 endif(ENABLE_X11)
 
 add_executable(test_versions TestVersions.cpp)
