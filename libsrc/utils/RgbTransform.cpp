@@ -1,5 +1,8 @@
-#include <QtCore/qmath.h>
 #include <utils/RgbTransform.h>
+
+#include <QtMath>
+#include <QtMinMax>
+
 #include <utils/KelvinToRgb.h>
 
 RgbTransform::RgbTransform()
