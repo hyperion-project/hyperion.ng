@@ -194,7 +194,7 @@ HRESULT MFGrabber::init_device(QString deviceName, DeviceProperties props)
 	IAMVideoProcAmp* pProcAmp = nullptr;
 
 	Debug(_log, "Init %s, %d x %d @ %d fps (%s)", QSTRING_CSTR(deviceName), props.width, props.height, props.fps, QSTRING_CSTR(pixelFormatToString(pixelformat)));
-	qCDebug(grabber_video_flow) << ""Symbolic link: " << props.symlink;
+	qCDebug(grabber_video_flow) << "Symbolic link: " << props.symlink;
 
 	hr = MFCreateAttributes(&deviceAttributes, 2);
 	if (FAILED(hr))
