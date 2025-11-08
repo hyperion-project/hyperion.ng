@@ -56,7 +56,7 @@ bool DispmanxFrameGrabber::open()
 	_lib = dlopen(library.c_str(), RTLD_LAZY | RTLD_GLOBAL);
 	if (!_lib)
 	{
-		qcdebug(grabber_screen_flow) << "DispmanX grabber disabled, cannot load bcm library. dlopen for"
+		qCDebug(grabber_screen_flow) << "DispmanX grabber disabled, cannot load bcm library. dlopen for"
 									 << library.c_str() << "failed, error =" << dlerror();
 		return false;
 	}
@@ -78,7 +78,7 @@ bool DispmanxFrameGrabber::open()
 	return true;
 
 dlError:
-	qcdebug(grabber_screen_flow) << "DispmanX grabber disabled, cannot load required symbols from bcm library."
+	qCDebug(grabber_screen_flow) << "DispmanX grabber disabled, cannot load required symbols from bcm library."
 								 << "dlsym for" << library.c_str() << "failed, error =" << dlerror();
 	dlclose(_lib);
     return false;
@@ -296,7 +296,7 @@ QSize DispmanxFrameGrabber::getScreenSize(int device) const
 			width = vc_info.width;
 			height = vc_info.height;
 
-			qcdebug(grabber_screen_properties) << "Display found with resolution:" << width << "x" << height;
+			qCDebug(grabber_screen_properties) << "Display found with resolution:" << width << "x" << height;
 		}
 		// Close the display
 		wr_vc_dispmanx_display_close(vc_display);
@@ -363,7 +363,7 @@ QJsonObject DispmanxFrameGrabber::discover(const QJsonObject& params)
 
 		if (inputsDiscovered.isEmpty())
 		{
-			qCdebug(grabber_screen_properties) << "No displays found to capture from!";
+			qCDebug(grabber_screen_properties) << "No displays found to capture from!";
 		}
 	}
 	return inputsDiscovered;
