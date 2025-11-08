@@ -15,6 +15,7 @@
 #include <QJsonDocument>
 #include <QSharedPointer>
 #include <QWeakPointer>
+#include <QLoggingCategory>
 
 // Utils includes
 #include <utils/ColorRgb.h>
@@ -29,6 +30,8 @@
 #endif
 #include <db/SettingsTable.h>
 #include <hyperion/PriorityMuxer.h>
+
+Q_DECLARE_LOGGING_CATEGORY(forwarder_write);
 
 // Forward declaration
 class Hyperion;

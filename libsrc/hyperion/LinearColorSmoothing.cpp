@@ -17,6 +17,8 @@
 
 #include <hyperion/Hyperion.h>
 
+Q_LOGGING_CATEGORY(smoothing, "smoothing")
+
 /// Clamps the rounded values to the byte-interval of [0, 255].
 ALWAYS_INLINE long clampRounded(const floatT x) {
 	return std::min(255L, std::max(0L, std::lroundf(x)));
@@ -24,8 +26,6 @@ ALWAYS_INLINE long clampRounded(const floatT x) {
 
 // Constants
 namespace {
-
-const bool verbose = false;
 
 /// The number of microseconds per millisecond = 1000.
 const int64_t MS_PER_MICRO = 1000;
@@ -637,10 +637,11 @@ unsigned LinearColorSmoothing::addConfig(int settlingTime_ms, double ledUpdateFr
 		updateDelay
 	};
 	_cfgList.append(std::move(cfg));
+	auto cfgID = static_cast<unsigned>(_cfgList.count() - 1);
 
-	DebugIf(verbose && _enabled, _log,"%s", QSTRING_CSTR(getConfig(_cfgList.count()-1)));
+	qCDebug(smoothing) << "Added new smoothing config id" << cfgID << ":" << getConfig(cfgID);
 
-	return _cfgList.count() - 1;
+	return cfgID;
 }
 
 unsigned LinearColorSmoothing::updateConfig(int cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, unsigned updateDelay)

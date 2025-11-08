@@ -9,6 +9,7 @@
 #include <QVector>
 #include <QScopedPointer>
 #include <QSharedPointer>
+#include <QLoggingCategory>
 
 // hyperion includes
 #include <leddevice/LedDevice.h>
@@ -17,6 +18,8 @@
 
 // settings
 #include <utils/settings.h>
+
+Q_DECLARE_LOGGING_CATEGORY(smoothing);
 
 // The type of float
 #define floatT float // Select double, float or __fp16

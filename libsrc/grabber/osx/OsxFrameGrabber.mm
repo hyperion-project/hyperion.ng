@@ -16,11 +16,6 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 
-// Constants
-namespace {
-const bool verbose = false;
-} //End of constants
-
 #if defined(SDK_15_AVAILABLE)
 	static CGImageRef capture15(CGDirectDisplayID id, CGRect diIntersectDisplayLocal)
 	{
@@ -230,8 +225,6 @@ bool OsxFrameGrabber::setDisplayIndex(int index)
 
 QJsonObject OsxFrameGrabber::discover(const QJsonObject& params)
 {
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	QJsonObject inputsDiscovered;
 
 	// get list of displays
@@ -301,10 +294,8 @@ QJsonObject OsxFrameGrabber::discover(const QJsonObject& params)
 
 	if (inputsDiscovered.isEmpty())
 	{
-		DebugIf(verbose, _log, "No displays found to capture from!");
+		qCDebug(grabber_screen_properties) << "No displays found to capture from!";
 	}
-	DebugIf(verbose, _log, "device: [%s]", QString(QJsonDocument(inputsDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return inputsDiscovered;
-
 }

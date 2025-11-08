@@ -1,11 +1,5 @@
 #pragma once
 
-#define NOFRAME_BENCH
-
-#ifdef FRAME_BENCH
-	#include <QElapsedTimer>
-#endif
-
 // stl includes
 #include <vector>
 #include <map>
@@ -16,7 +10,7 @@
 #include <QRectF>
 #include <QMap>
 #include <QMultiMap>
-#include <QLoggingCategory>
+#include <QElapsedTimer>
 
 // util includes
 #include <utils/PixelFormat.h>
@@ -32,8 +26,6 @@
 #include <HyperionConfig.h>
 
 #include <events/EventEnum.h>
-
-Q_DECLARE_LOGGING_CATEGORY(comp_v4l2)
 
 ///
 /// Capture class for V4L2 devices
@@ -180,13 +172,12 @@ private:
 	double _x_frac_max;
 	double _y_frac_max;
 
-#ifdef FRAME_BENCH
-	QElapsedTimer _frameTimer;
-#endif
 	QSocketNotifier *_streamNotifier;
 
 	bool _initialized;
 	bool _reload;
+
+	QElapsedTimer _frameTimer;
 
 protected:
 	void enumVideoCaptureDevices();

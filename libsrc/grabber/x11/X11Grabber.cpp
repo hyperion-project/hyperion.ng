@@ -4,11 +4,6 @@
 #include <xcb/randr.h>
 #include <xcb/xcb_event.h>
 
-// Constants
-namespace {
-	const bool verbose = false;
-} //End of constants
-
 X11Grabber::X11Grabber(int cropLeft, int cropRight, int cropTop, int cropBottom)
 	: Grabber("GRABBER-X11", cropLeft, cropRight, cropTop, cropBottom)
 	, _x11Display(nullptr)
@@ -411,8 +406,6 @@ bool X11Grabber::nativeEventFilter(const QByteArray & eventType, void * message,
 
 QJsonObject X11Grabber::discover(const QJsonObject& params)
 {
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	QJsonObject inputsDiscovered;
 	if ( isAvailable(false) && open() )
 	{
@@ -488,7 +481,6 @@ QJsonObject X11Grabber::discover(const QJsonObject& params)
 			}
 		}
 	}
-	DebugIf(verbose, _log, "device: [%s]", QString(QJsonDocument(inputsDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return inputsDiscovered;
 }

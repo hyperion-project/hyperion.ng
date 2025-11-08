@@ -1,6 +1,22 @@
 #include <hyperion/Grabber.h>
 #include <hyperion/GrabberWrapper.h>
 
+Q_LOGGING_CATEGORY(grabber_screen_capture, "grabber.screen.capture");
+Q_LOGGING_CATEGORY(grabber_screen_flow, "grabber.screen.flow");
+Q_LOGGING_CATEGORY(grabber_screen_properties, "grabber.screen.properties");
+Q_LOGGING_CATEGORY(grabber_screen_benchmark, "grabber.screen.benchmark");
+
+Q_LOGGING_CATEGORY(grabber_video_capture, "grabber.video.capture");
+Q_LOGGING_CATEGORY(grabber_video_flow, "grabber.video.flow");
+Q_LOGGING_CATEGORY(grabber_video_properties, "grabber.video.properties");
+Q_LOGGING_CATEGORY(grabber_video_benchmark, "grabber.video.benchmark");
+
+Q_LOGGING_CATEGORY(grabber_audio_capture, "grabber.audio.capture");
+Q_LOGGING_CATEGORY(grabber_audio_flow, "grabber.audio.flow");
+Q_LOGGING_CATEGORY(grabber_audio_properties, "grabber.audio.properties");
+Q_LOGGING_CATEGORY(grabber_audio_benchmark, "grabber.audio.benchmark");
+
+
 Grabber::Grabber(const QString& grabberName, int cropLeft, int cropRight, int cropTop, int cropBottom)
 	: _grabberName(grabberName)
 	, _log(Logger::getInstance(_grabberName.toUpper()))

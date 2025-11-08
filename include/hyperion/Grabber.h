@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QSize>
 #include <QJsonArray>
+#include <QLoggingCategory>
 
 #include <utils/ColorRgb.h>
 #include <utils/Image.h>
@@ -16,6 +17,21 @@
 #include <utils/JsonUtils.h>
 
 #include <events/EventEnum.h>
+
+Q_DECLARE_LOGGING_CATEGORY(grabber_screen_capture);
+Q_DECLARE_LOGGING_CATEGORY(grabber_screen_flow);
+Q_DECLARE_LOGGING_CATEGORY(grabber_screen_properties);
+Q_DECLARE_LOGGING_CATEGORY(grabber_screen_benchmark);
+
+Q_DECLARE_LOGGING_CATEGORY(grabber_video_capture);
+Q_DECLARE_LOGGING_CATEGORY(grabber_video_flow);
+Q_DECLARE_LOGGING_CATEGORY(grabber_video_properties);
+Q_DECLARE_LOGGING_CATEGORY(grabber_video_benchmark);
+
+Q_DECLARE_LOGGING_CATEGORY(grabber_audio_capture);
+Q_DECLARE_LOGGING_CATEGORY(grabber_audio_flow);
+Q_DECLARE_LOGGING_CATEGORY(grabber_audio_properties);
+Q_DECLARE_LOGGING_CATEGORY(grabber_audio_benchmark);
 
 ///
 /// @brief The Grabber class is responsible to apply image resizes (with or without ImageResampler)

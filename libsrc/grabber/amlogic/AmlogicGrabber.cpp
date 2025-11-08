@@ -28,8 +28,6 @@
 // Constants
 namespace
 {
-	const bool verbose = false;
-
 	const int DEFAULT_DEVICE_IDX = 0;
 	const char DEFAULT_VIDEO_DEVICE[] = "/dev/amvideo";
 	const char DEFAULT_CAPTURE_DEVICE[] = "/dev/amvideocap0";
@@ -49,14 +47,14 @@ AmlogicGrabber::AmlogicGrabber(int deviceIdx)
 	_image_ptr = _image_bgr.memptr();
 	_useImageResampler = true;
 
-	if (isGbmSupported(verbose))
+	if (isGbmSupported())
 	{
-		Debug(_log, "System supports DRM/GBM, using DRMFrameGrabber for screen capture.");
+		qCDebug(grabber_screen_properties) << "System supports DRM/GBM, using DRMFrameGrabber for screen capture.";
 		_screenGrabber.reset(new DRMFrameGrabber(deviceIdx));
 	}
 	else
 	{
-		Debug(_log, "DRM/GBM not supported, falling back to Framebuffer for screen capture.");
+		qCDebug(grabber_screen_properties) << "DRM/GBM not supported, using FramebufferFrameGrabber for screen capture.";
 		_screenGrabber.reset(new FramebufferFrameGrabber(deviceIdx));
 	}
 }
@@ -67,7 +65,7 @@ AmlogicGrabber::~AmlogicGrabber()
 	closeDevice(_videoDev);
 }
 
-bool AmlogicGrabber::isGbmSupported(bool logMsg) const
+bool AmlogicGrabber::isGbmSupported() const
 {
 	// Check for the existence of gbm_create_device, a core GBM function, within libdrm.so
 	
@@ -80,8 +78,8 @@ bool AmlogicGrabber::isGbmSupported(bool logMsg) const
 
 	if (!handle)
 	{
-		WarningIf(logMsg, _log, "Could not check if DRM/GBM is supported. Error: %s", dlerror());
-		DebugIf(logMsg, _log, "This could mean the GBM driver is not installed or not in the library path.");
+		qCDebug(grabber_screen_properties) << "Could not check if DRM/GBM is supported. Error: " << dlerror()
+										   << ". The GBM driver is not installed or not in the library path.";
 		return false;
 	}
 
@@ -95,14 +93,11 @@ bool AmlogicGrabber::isGbmSupported(bool logMsg) const
 
 	if (symbol != nullptr)
 	{
-		DebugIf(logMsg, _log, "Found 'gbm_create_device' in %s.so.", QSTRING_CSTR(libName));
-		InfoIf(logMsg, _log, "System likely supports DRM/GBM. Found 'gbm_create_device' in %s.so.", QSTRING_CSTR(libName));
+		qDebug(grabber_screen_properties) << "System likely supports DRM/GBM. Found 'gbm_create_device' in" << libName + ".so.";
 		return true;
 	}
 
-	DebugIf(logMsg, _log, "'gbm_create_device' not found in %s.so.", QSTRING_CSTR(libName));
-	InfoIf(logMsg, _log, "System likely does not support DRM/GBM.");
-
+	qDebug(grabber_screen_properties) << "System likely does not support DRM/GBM. Could not find 'gbm_create_device' in" << libName + ".so.";
 	return false;
 }
 
@@ -311,14 +306,12 @@ bool AmlogicGrabber::setFramerate(int fps)
 
 QJsonObject AmlogicGrabber::discover(const QJsonObject &params)
 {
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	QJsonObject inputsDiscovered;
 
 	QJsonArray const video_inputs = _screenGrabber->getInputDeviceDetails();
 	if (video_inputs.isEmpty())
 	{
-		DebugIf(verbose, _log, "No displays found to capture from!");
+		qCDebug(grabber_screen_properties) << "No displays found to capture from!";
 		return {};
 	}
 
@@ -336,8 +329,6 @@ QJsonObject AmlogicGrabber::discover(const QJsonObject &params)
 	video_inputs_default["inputIdx"] = 0;
 	defaults["video_input"] = video_inputs_default;
 	inputsDiscovered["default"] = defaults;
-
-	DebugIf(verbose, _log, "device: [%s]", QString(QJsonDocument(inputsDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return inputsDiscovered;
 }

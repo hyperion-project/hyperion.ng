@@ -11,7 +11,6 @@
 
 // Constants
 namespace {
-	const bool verbose = false;
 	const int DEFAULT_DEVICE = 0;
 } //End of constants
 
@@ -57,7 +56,8 @@ bool DispmanxFrameGrabber::open()
 	_lib = dlopen(library.c_str(), RTLD_LAZY | RTLD_GLOBAL);
 	if (!_lib)
 	{
-		DebugIf(verbose, _log, "dlopen for %s failed, error = %s", library.c_str(), dlerror());
+		qcdebug(grabber_screen_flow) << "DispmanX grabber disabled, cannot load bcm library. dlopen for"
+									 << library.c_str() << "failed, error =" << dlerror();
 		return false;
 	}
 
@@ -78,7 +78,8 @@ bool DispmanxFrameGrabber::open()
 	return true;
 
 dlError:
-	DebugIf(verbose, _log, "dlsym for %s::%s failed, error = %s", library.c_str(), dlerror());
+	qcdebug(grabber_screen_flow) << "DispmanX grabber disabled, cannot load required symbols from bcm library."
+								 << "dlsym for" << library.c_str() << "failed, error =" << dlerror();
 	dlclose(_lib);
     return false;
 #else
@@ -295,7 +296,7 @@ QSize DispmanxFrameGrabber::getScreenSize(int device) const
 			width = vc_info.width;
 			height = vc_info.height;
 
-			DebugIf(verbose, _log, "Display found with resolution: %dx%d", width, height);
+			qcdebug(grabber_screen_properties) << "Display found with resolution:" << width << "x" << height;
 		}
 		// Close the display
 		wr_vc_dispmanx_display_close(vc_display);
@@ -306,8 +307,6 @@ QSize DispmanxFrameGrabber::getScreenSize(int device) const
 
 QJsonObject DispmanxFrameGrabber::discover(const QJsonObject& params)
 {
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	QJsonObject inputsDiscovered;
 	if (open())
 	{
@@ -364,11 +363,8 @@ QJsonObject DispmanxFrameGrabber::discover(const QJsonObject& params)
 
 		if (inputsDiscovered.isEmpty())
 		{
-			DebugIf(verbose, _log, "No displays found to capture from!");
+			qCdebug(grabber_screen_properties) << "No displays found to capture from!";
 		}
 	}
-
-	DebugIf(verbose, _log, "device: [%s]", QString(QJsonDocument(inputsDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	return inputsDiscovered;
 }

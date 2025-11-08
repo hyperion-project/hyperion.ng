@@ -30,16 +30,11 @@
 
 using namespace V4L2GrabberDebug;
 
-Q_LOGGING_CATEGORY(comp_v4l2, "grabber.video.v4l2")
-
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
 #ifndef V4L2_CAP_META_CAPTURE
 	#define V4L2_CAP_META_CAPTURE 0x00800000 // Specified in kernel header v4.16. Required for backward compatibility.
 #endif
-
-// Constants
-namespace { const bool verbose = false; }
 
 // Helper function to convert a V4L2 pixel format code to a string
 static QString fourccToString(uint32_t fourcc) {
@@ -155,8 +150,8 @@ bool V4L2Grabber::init()
 		// enumerate the video capture devices on the user's system
 		enumVideoCaptureDevices();
 
-		qCDebug(comp_v4l2) << "V4L2Grabber::init() - _deviceProperties: " << _deviceProperties;
-		qCDebug(comp_v4l2) << "V4L2Grabber::init() - _deviceControls: " << _deviceControls;
+		qCDebug(grabber_video_properties) << "_deviceProperties: " << _deviceProperties;
+		qCDebug(grabber_video_properties) << "_deviceControls: " << _deviceControls;
 
 		if(!_deviceProperties.contains(_currentDevicePath))
 		{
@@ -207,7 +202,7 @@ bool V4L2Grabber::init()
 		{
 			if (enc.key() == _pixelFormat && enc.value().width == _width && enc.value().height == _height)
 			{
-				qCDebug(comp_v4l2) << "V4L2Grabber::init() - selected encoding format: " << enc.key();
+				qCDebug(grabber_video_flow) << "Selected encoding format: " << enc.key();
 				validDimensions = true;
 				break;
 			}
@@ -216,7 +211,7 @@ bool V4L2Grabber::init()
 		if (!validDimensions)
 		{
 			const auto &firstEnc = encodingFormats.first();
-			qCDebug(comp_v4l2) << "V4L2Grabber::init() - correct encoding format to: " << encodingFormats.first();
+			qCDebug(grabber_video_flow) << "Corrected encoding format to: " << encodingFormats.first();
 			setWidthHeight(firstEnc.width, firstEnc.height);
 		}
 
@@ -224,10 +219,10 @@ bool V4L2Grabber::init()
 		if (auto encodingIt = encodingFormats.find(_pixelFormat); encodingIt != encodingFormats.end())
 		{
 			const auto &framerates = encodingIt.value().framerates;
-			qCDebug(comp_v4l2) << "V4L2Grabber::init() - framerates: " << framerates;
+			qCDebug(grabber_video_flow) << "Framerates: " << framerates;
 			if (!framerates.isEmpty() && !framerates.contains(_fps))
 			{
-				qCDebug(comp_v4l2) << "V4L2Grabber::init() - correct setFramerate: " << framerates.first();
+				qCDebug(grabber_video_flow) << "Corrected framerate to: " << framerates.first();
 				setFramerate(framerates.first());
 			}
 		}
@@ -267,7 +262,7 @@ bool V4L2Grabber::start()
 		{
 			connect(_threadManager, &EncoderThreadManager::newFrame, this, &V4L2Grabber::newThreadFrame);
 			_threadManager->start();
-			DebugIf(verbose, _log, "Decoding threads: %u", _threadManager->_threadCount);
+			qCDebug(grabber_video_flow) << "Decoding threads: " << _threadManager->_threadCount;
 
 			_streamNotifier->setEnabled(true);
 			_isEnabled = true;
@@ -465,7 +460,7 @@ void V4L2Grabber::init_userp(unsigned int buffer_size)
 
 void V4L2Grabber::init_device(VideoStandard videoStandard)
 {
-	qCDebug(comp_v4l2) << "V4L2Grabber::init_device()";
+	qCDebug(grabber_video_flow) << "V4L2Grabber::init_device()";
 	struct v4l2_capability cap;
 	CLEAR(cap);
 
@@ -611,12 +606,12 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 		return;
 	}
 
-	qCDebug(comp_v4l2) << "DRIVER CHECK: Driver has accepted the following format settings:";
-	qCDebug(comp_v4l2) << "  -> Resolution:" << fmt.fmt.pix.width << "x" << fmt.fmt.pix.height;
-	qCDebug(comp_v4l2) << "  -> Pixel Format:" << fourccToString(fmt.fmt.pix.pixelformat)
-					   << "(0x" << Qt::hex << fmt.fmt.pix.pixelformat << Qt::dec << ")";
-	qCDebug(comp_v4l2) << "  -> Bytes per Line (Stride):" << fmt.fmt.pix.bytesperline;
-	qCDebug(comp_v4l2) << "  -> Image Size:" << fmt.fmt.pix.sizeimage;
+	qCDebug(grabber_video_flow) << "DRIVER CHECK: Driver has accepted the following format settings:"
+								 << "Resolution:" << fmt.fmt.pix.width << "x" << fmt.fmt.pix.height
+								 << ", Pixel Format:" << fourccToString(fmt.fmt.pix.pixelformat)
+								 << "(0x" << Qt::hex << fmt.fmt.pix.pixelformat << Qt::dec << ")"
+								 << ", Bytes per Line (Stride):" << fmt.fmt.pix.bytesperline
+								 << ", Image Size:" << fmt.fmt.pix.sizeimage;
 
 	// set the requested pixel format
 	switch (_pixelFormat)
@@ -700,7 +695,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 		// Check if the device is able to accept a capture framerate set.
 		if (streamparms.parm.capture.capability == V4L2_CAP_TIMEPERFRAME)
 		{
-			qCDebug(comp_v4l2) << "V4L2Grabber::init_device - _fps: " << _fps;
+			qCDebug(grabber_video_flow) << "V4L2Grabber::init_device - _fps: " << _fps;
 			streamparms.parm.capture.timeperframe.numerator = 1;
 			streamparms.parm.capture.timeperframe.denominator = _fps;
 			(-1 == xioctl(VIDIOC_S_PARM, &streamparms))
@@ -890,7 +885,7 @@ void V4L2Grabber::uninit_device()
 
 void V4L2Grabber::start_capturing()
 {
-	qCDebug(comp_v4l2) << "V4L2Grabber::start_capturing()";
+	qCDebug(grabber_video_capture) << "Start capturing...";
 	switch (_ioMethod)
 	{
 		case IO_METHOD_READ:
@@ -899,7 +894,7 @@ void V4L2Grabber::start_capturing()
 
 		case IO_METHOD_MMAP:
 		{
-			qCDebug(comp_v4l2) << "MMAP: Queuing" << _buffers.size() << "buffers...";
+			qCDebug(grabber_video_capture) << "MMAP: Queuing" << _buffers.size() << "buffers...";
 			for (size_t i = 0; i < _buffers.size(); ++i)
 			{
 				struct v4l2_buffer buf;
@@ -912,25 +907,25 @@ void V4L2Grabber::start_capturing()
 				if (-1 == xioctl(VIDIOC_QBUF, &buf))
 				{
 					// This will now print an error directly
-					qCCritical(comp_v4l2,"VIDIOC_QBUF failed for buffer %zu: %s", i, strerror(errno));
+					qCCritical(grabber_video_flow,"VIDIOC_QBUF failed for buffer %zu: %s", i, strerror(errno));
 					throw_errno_exception("VIDIOC_QBUF");
 					return;
 				}
 			}
-			qCDebug(comp_v4l2) << "MMAP: All buffers queued successfully.";
+			qCDebug(grabber_video_capture) << "MMAP: All buffers queued successfully.";
 
 			v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-			qCDebug(comp_v4l2) << "MMAP: Calling VIDIOC_STREAMON to start capture...";
+			qCDebug(grabber_video_capture) << "MMAP: Calling VIDIOC_STREAMON to start capture...";
 
 			if (-1 == xioctl(VIDIOC_STREAMON, &type))
 			{
 				// This is the most critical check
-				qCCritical(comp_v4l2) << "VIDIOC_STREAMON failed: " << strerror(errno);
+				qCCritical(grabber_video_capture) << "VIDIOC_STREAMON failed: " << strerror(errno);
 				throw_errno_exception("VIDIOC_STREAMON");
 				return;
 			}
 
-			qCDebug(comp_v4l2) << "MMAP: VIDIOC_STREAMON successful. Stream should be running.";
+			qCDebug(grabber_video_capture) << "MMAP: VIDIOC_STREAMON successful. Stream should be running.";
 			break;
 		}
 		case IO_METHOD_USERPTR:
@@ -965,7 +960,7 @@ void V4L2Grabber::start_capturing()
 
 void V4L2Grabber::stop_capturing()
 {
-	qCDebug(comp_v4l2) << "V4L2Grabber::stop_capturing()";
+	qCDebug(grabber_video_capture) << "Stop capturing...";
 	enum v4l2_buf_type type;
 
 	switch (_ioMethod)
@@ -1187,23 +1182,26 @@ void V4L2Grabber::newThreadFrame(const Image<ColorRgb>& image)
 		}
 	}
 	else
-		emit newFrame(image);
-
-#ifdef FRAME_BENCH
-	// calculate average frametime
-	if (_currentFrame > 1)
 	{
-		if (_currentFrame % 100 == 0)
+		emit newFrame(image);
+	}
+
+	if (grabber_video_benchmark().isDebugEnabled())
+	{
+		// calculate average frametime
+		if (_currentFrame > 1)
 		{
-			Debug(_log, "%d: avg. frametime=%.02fms / %.02fms", int(_currentFrame), _frameTimer.restart()/100.0, 1000.0/_fps);
+			if (_currentFrame % 100 == 0)
+			{
+				qCDebug(grabber_video_benchmark) << _currentFrame << ": avg. frametime=" << _frameTimer.restart() / 100.0 << "ms / " << 1000.0 / _fps << "ms";
+			}
+		}
+		else
+		{
+			qCDebug(grabber_video_benchmark) << _currentFrame << ": frametimer started";
+			_frameTimer.start();
 		}
 	}
-	else
-	{
-		Debug(_log, "%d: frametimer started", int(_currentFrame));
-		_frameTimer.start();
-	}
-#endif
 }
 
 int V4L2Grabber::xioctl(int request, void *arg)
@@ -1245,7 +1243,7 @@ void V4L2Grabber::setDevice(const QString& devicePath, const QString& deviceName
 bool V4L2Grabber::setInput(int input)
 {
 
-	qCDebug(comp_v4l2) << "V4L2Grabber::setInput - input:" << input;
+	qCDebug(grabber_video_flow) << "V4L2Grabber::setInput - input:" << input;
 	if(Grabber::setInput(input))
 	{
 		_reload = true;
@@ -1349,8 +1347,6 @@ bool V4L2Grabber::reload(bool force)
 
 QJsonArray V4L2Grabber::discover(const QJsonObject& params)
 {
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	enumVideoCaptureDevices();
 
 	QJsonArray inputsDiscovered;
@@ -1455,7 +1451,6 @@ QJsonArray V4L2Grabber::discover(const QJsonObject& params)
 
 	_deviceProperties.clear();
 	_deviceControls.clear();
-	DebugIf(verbose, _log, "device: [%s]", QString(QJsonDocument(inputsDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return inputsDiscovered;
 }
@@ -1627,7 +1622,10 @@ void V4L2Grabber::enumVideoCaptureDevices()
 				if (xioctl(fd, VIDIOC_G_EXT_CTRLS, &ctrls) == 0)
 				{
 					control.currentValue = ctrl.value;
-					DebugIf(verbose, _log, "%s: min=%i, max=%i, step=%i, default=%i, current=%i", QSTRING_CSTR(itDeviceControls.value()), control.minValue, control.maxValue, control.step, control.defaultValue, control.currentValue);
+					qCDebug(grabber_video_properties) << "Control:" << itDeviceControls.value()
+													   << ", min=" << control.minValue << ", max=" << control.maxValue
+													   << ", step=" << control.step << ", default=" << control.defaultValue
+													   << ", current=" << control.currentValue;
 				}
 				else
 					break;

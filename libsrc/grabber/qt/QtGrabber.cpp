@@ -17,11 +17,6 @@
 #include <Windows.h>
 #endif
 
-// Constants
-namespace {
-	const bool verbose = false;
-} //End of constants
-
 QtGrabber::QtGrabber(int display, int cropLeft, int cropRight, int cropTop, int cropBottom)
 	: Grabber("GRABBER-QT", cropLeft, cropRight, cropTop, cropBottom)
 	, _display(display)
@@ -445,8 +440,6 @@ bool QtGrabber::setDisplayIndex(int index)
 
 QJsonObject QtGrabber::discover(const QJsonObject& params)
 {
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	QJsonObject inputsDiscovered;
 	if (isAvailable(false) && open())
 	{
@@ -536,10 +529,9 @@ QJsonObject QtGrabber::discover(const QJsonObject& params)
 
 		if (inputsDiscovered.isEmpty())
 		{
-			DebugIf(verbose, _log, "No displays found to capture from!");
+			qCDebug(grabber_screen_properties) << "No displays found to capture from!";
 		}
 	}
-	DebugIf(verbose, _log, "device: [%s]", QString(QJsonDocument(inputsDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return inputsDiscovered;
 }

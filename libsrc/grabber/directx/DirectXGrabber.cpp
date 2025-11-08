@@ -4,11 +4,6 @@
 #pragma comment(lib, "d3d9.lib")
 #pragma comment(lib,"d3dx9.lib")
 
-// Constants
-namespace {
-	const bool verbose = false;
-} //End of constants
-
 DirectXGrabber::DirectXGrabber(int display, int cropLeft, int cropRight, int cropTop, int cropBottom)
 	: Grabber("GRABBER-DIRECTX", cropLeft, cropRight, cropTop, cropBottom)
 	, _display(unsigned(display))
@@ -219,8 +214,6 @@ bool DirectXGrabber::setDisplayIndex(int index)
 
 QJsonObject DirectXGrabber::discover(const QJsonObject& params)
 {
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	QJsonObject inputsDiscovered;
 	if ((_d3d9 = Direct3DCreate9(D3D_SDK_VERSION)) != nullptr)
 	{
@@ -281,11 +274,9 @@ QJsonObject DirectXGrabber::discover(const QJsonObject& params)
 		}
 		else
 		{
-			DebugIf(verbose, _log, "No displays found to capture from!");
+			qcdebug(grabber_screen_properties) << "No displays found to capture from!";
 		}
 	}
-	DebugIf(verbose, _log, "device: [%s]", QString(QJsonDocument(inputsDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return inputsDiscovered;
-
 }

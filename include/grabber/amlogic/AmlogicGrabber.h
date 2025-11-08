@@ -77,7 +77,7 @@ public:
 
 private:
 
-	bool isGbmSupported(bool logMsg = true) const;
+	bool isGbmSupported() const;
 
 	/**
 	 * Returns true if video is playing over the amlogic chip

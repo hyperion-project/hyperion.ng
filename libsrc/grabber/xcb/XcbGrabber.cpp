@@ -10,11 +10,6 @@
 
 #include <memory>
 
-// Constants
-namespace {
-	const bool verbose = false;
-} //End of constants
-
 #define DOUBLE_TO_FIXED(d) ((xcb_render_fixed_t) ((d) * 65536))
 
 XcbGrabber::XcbGrabber(int cropLeft, int cropRight, int cropTop, int cropBottom)
@@ -522,8 +517,6 @@ xcb_render_pictformat_t XcbGrabber::findFormatForVisual(xcb_visualid_t visual) c
 
 QJsonObject XcbGrabber::discover(const QJsonObject& params)
 {
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	QJsonObject inputsDiscovered;
 	if ( isAvailable(false) && open() )
 	{
@@ -610,7 +603,6 @@ QJsonObject XcbGrabber::discover(const QJsonObject& params)
 			}
 		}
 	}
-	DebugIf(verbose, _log, "device: [%s]", QString(QJsonDocument(inputsDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return inputsDiscovered;
 }

@@ -28,10 +28,10 @@
 #include <mdns/MdnsServiceRegister.h>
 #endif
 
+Q_LOGGING_CATEGORY(forwarder_write, "forwarder.write");
+
 // Constants
 namespace {
-
-	const bool verbose = false;
 	const int DEFAULT_FORWARDER_FLATBUFFFER_PRIORITY = 140;
 	constexpr std::chrono::milliseconds JSON_SOCKET_CONNECT_TIMEOUT{ 500 };
 
@@ -646,7 +646,7 @@ void MessageForwarder::sendJsonMessage(const QJsonObject& message, QTcpSocket* s
 
 	// serialize message
 	QJsonDocument const writer(jsonMessage);
-	DebugIf(verbose, _log, "Source instance [%u], JSON-Request: [%s]", _toBeForwardedInstanceID, writer.toJson(QJsonDocument::Compact).constData());
+	qCDebug(forwarder_write) << "Source instance [" << _toBeForwardedInstanceID << "], JSON-Request: [" << writer.toJson(QJsonDocument::Compact).constData()<< "]";
 
 	QByteArray const serializedMessage = writer.toJson(QJsonDocument::Compact) + "\n";
 
@@ -684,7 +684,7 @@ void MessageForwarder::sendJsonMessage(const QJsonObject& message, QTcpSocket* s
 		auto const [isParsed, errorMessages] = JsonUtils::parse(ident, reply, response, _log);
 		if (!isParsed)
 		{
-			DebugIf(verbose, _log, "Response: [%s]", QJsonDocument(response).toJson(QJsonDocument::Compact).constData());
+			qCDebug(forwarder_write) << "Response: [" << JsonUtils::toCompact(response) << "]";
 			isParsingError = true;
 			errorList.append(errorMessages);
 		}
