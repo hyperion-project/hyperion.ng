@@ -18,14 +18,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - HTTPS support for homeassistant LED devices (#1886)
 - Hue Bridge - Use https and certificates for all API calls, support Bridge Pro (V3)
 - Hue Bridge - Alternate certificate support
+- Linux: New DRM/KMS screen grabber with plane-based capture - not feature complete yet
+- Logging/Tracing: Introduced qlogging categories to enable dynamic tracing
 
 ### 🔧 Changed
 
 - Hue Bridge - Wizard updates to support bridge-ids, overall code refactoring
 - USB Grabber - Default hardware control properties are now applied when a new USB grabber is selected (avoids black images)
+- Amlogic grabber - Support to switch between DRM & FB-DEV for CoreElec New Order version
+- Web UI: Update panel title uses "Hyperion - <version>"; skip showing the "nightly" tag in releases list
+- Screen grabbers: Commonized base with getDeviceName/getInputDeviceDetails; explicit constructors; improved error handling
+- Framebuffer grabber: Internal cleanup, consistent device naming, safer mmap usage
+- Logger internals: use smart pointers and clean-ups
 
 - **Fixes:**
   - UI - Language is not selectable (#1877)
+  - UI - Release were not shown on Update page
+  - UI - Fixes for input/format selection
   - CEC-Handler is not stopped properly
   - Qt-Grabber (Windows) does not apply pixel ratio (#1882) - _Thanks to @SolberLight_
   - LED-devices are not retrying to establish connectivity, if supported by the device

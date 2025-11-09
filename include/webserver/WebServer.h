@@ -87,7 +87,7 @@ public slots:
 private:
 	QJsonDocument        _config;
 	bool				 _useSsl;
-	Logger*              _log;
+	QSharedPointer<Logger>  _log;
 	QString              _baseUrl;
 	quint16              _port;
 	StaticFileServing*   _staticFileServing;

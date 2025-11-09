@@ -10,8 +10,8 @@
 
 int main()
 {
-	Logger* log = Logger::getInstance("TestImageLedsMap");
-	Logger::setLogLevel(Logger::DEBUG);
+	QSharedPointer<Logger> log = Logger::getInstance("TestImageLedsMap");
+	Logger::setLogLevel(Logger::LogLevel::Debug);
 
 	const QString schemaFile = ":/hyperion-schema";
 	const QString configFile = ":/hyperion_default.config";

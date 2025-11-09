@@ -49,7 +49,7 @@ private:
 	QList<timeEvent> _scheduledEvents;
 	QList<QTimer*> _timers;
 
-	Logger * _log {};
+	QSharedPointer<Logger> _log;
 };
 
 #endif // EVENTSCHEDULER_H

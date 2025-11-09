@@ -96,7 +96,7 @@ public:
 	/// @param[in] hostname or IP-address
 	/// @param[in] port, default port 55443 is used when not provided
 	///
-	YeelightLight( Logger *log, const QString &hostname, quint16 port);
+	YeelightLight(QSharedPointer<Logger> log, const QString &hostname, quint16 port);
 
 	///
 	/// @brief Destructor of the Yeelight light
@@ -353,7 +353,7 @@ private:
 	/// 	///
 	void log(int logLevel,const char* msg, const char* type, ...);
 
-	Logger* _log;
+	QSharedPointer<Logger> _log;
 	int _debugLevel;
 
 	/// Error status of Yeelight light

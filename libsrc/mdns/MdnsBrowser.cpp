@@ -30,12 +30,14 @@ MdnsBrowser::MdnsBrowser(QObject* parent)
 	, _server(nullptr)
 	, _cache(nullptr)
 {
+	TRACK_SCOPE;
 	qRegisterMetaType<QMdnsEngine::Message>("QMdnsEngine::Message");
 	qRegisterMetaType<QHostAddress>("QHostAddress");
 }
 
 MdnsBrowser::~MdnsBrowser()
 {
+	TRACK_SCOPE;
 }
 
 void MdnsBrowser::initMdns()
@@ -129,7 +131,7 @@ void MdnsBrowser::onHostNameResolved(const QHostAddress& address)
 	}
 }
 
-void MdnsBrowser::resolveFirstAddress(Logger* log, const QString& hostname, std::chrono::milliseconds timeout)
+void MdnsBrowser::resolveFirstAddress(QSharedPointer<Logger> log, const QString& hostname, std::chrono::milliseconds timeout)
 {
 	qRegisterMetaType<QMdnsEngine::Message>("Message");
 

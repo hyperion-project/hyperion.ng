@@ -43,6 +43,9 @@
 // Define to enable CEC
 #cmakedefine ENABLE_CEC
 
+// Define to enable the DRM grabber
+#cmakedefine ENABLE_DRM
+
 // Define to enable flatbuffer server
 #cmakedefine ENABLE_FLATBUF_SERVER
 

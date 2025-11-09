@@ -1,12 +1,14 @@
 #ifndef SSDPDISCOVER_H
 #define SSDPDISCOVER_H
 
+#include <chrono>
+
 #include <QHostAddress>
 #include <QMultiMap>
 #include <QUrl>
 #include <QRegularExpression>
 
-#include <chrono>
+#include <utils/Logger.h>
 
 class Logger;
 class QUdpSocket;
@@ -44,6 +46,9 @@ class SSDPDiscover : public QObject
 public:
 
 	SSDPDiscover(QObject* parent = nullptr);
+	~SSDPDiscover() override;
+
+	///
 
 	///
 	/// @brief Search for specified service, results will be returned by signal newService(). Calling this method again will reset all found urns and search again
@@ -188,7 +193,8 @@ private:
 
 private:
 
-	Logger* _log;
+	QSharedPointer<Logger> _log;
+
 	QUdpSocket* _udpSocket;
 	QHostAddress _ssdpAddr;
 	quint16 _ssdpPort;

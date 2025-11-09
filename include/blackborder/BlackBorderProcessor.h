@@ -116,8 +116,9 @@ namespace hyperion
 	private:
 		/// Hyperion instance
 		QWeakPointer<Hyperion> _hyperionWeak;
+		
 		/// Logger instance
-		Logger* _log;
+		QSharedPointer<Logger> _log;
 
 		///
 		/// Updates the current border based on the newly detected border. Returns true if the
