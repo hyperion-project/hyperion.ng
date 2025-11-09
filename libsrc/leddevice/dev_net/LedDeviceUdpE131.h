@@ -7,6 +7,7 @@
 #include "utils/RgbToRgbw.h"
 
 #include <QUuid>
+#include <vector>
 
 /**
  *
@@ -149,6 +150,8 @@ private:
 	// RGBW specific members
 	RGBW::WhiteAlgorithm _whiteAlgorithm;
 	ColorRgbw _temp_rgbw;
+	int _dmxChannelCount;
+	std::vector<uint8_t> _ledBuffer;
 };
 
 #endif // LEDEVICEUDPE131_H
