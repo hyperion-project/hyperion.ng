@@ -57,6 +57,7 @@
         "sub_min_warm_adjust",
         "cold_white",
         "neutral_white",
+        "sub_ktemp_white",
         "auto",
         "auto_max",
         "auto_accurate",
@@ -70,6 +71,7 @@
           "edt_dev_enum_sub_min_warm_adjust",
           "edt_dev_enum_cold_white",
           "edt_dev_enum_neutral_white",
+          "edt_dev_enum_sub_ktemp_white",
           "edt_dev_enum_auto",
           "edt_dev_enum_auto_max",
           "edt_dev_enum_auto_accurate",
@@ -77,6 +79,19 @@
         ]
       },
       "propertyOrder": 7
+    },
+    "whiteTemperature": {
+      "type": "integer",
+      "title": "edt_dev_spec_whiteLedKTemp_title",
+      "default": 5000,
+      "minimum": 1000,
+      "maximum": 40000,
+      "options": {
+        "dependencies": {
+          "whiteAlgorithm": "sub_ktemp_white"
+        }
+      },
+      "propertyOrder": 8
     }
   },
   "additionalProperties": true

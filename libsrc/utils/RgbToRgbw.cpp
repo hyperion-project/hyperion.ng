@@ -21,6 +21,10 @@ WhiteAlgorithm stringToWhiteAlgorithm(const QString& str)
 	{
 		return WhiteAlgorithm::SUB_MIN_COOL_ADJUST;
 	}
+	if (str == "sub_ktemp_white")
+	{
+		return WhiteAlgorithm::SUB_KTEMP_WHITE;
+	}
     if (str == "cold_white")
     {
         return WhiteAlgorithm::COLD_WHITE;
@@ -48,7 +52,7 @@ WhiteAlgorithm stringToWhiteAlgorithm(const QString& str)
 	return WhiteAlgorithm::INVALID;
 }
 
-void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm)
+void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm, u_int16_t whiteTemp)
 {
 	switch (algorithm)
 	{
@@ -127,6 +131,40 @@ void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm)
             output->white = input.red < input.green ? (input.red < input.blue ? input.red : input.blue) : (input.green < input.blue ? input.green : input.blue);
             break;
         }
+		case WhiteAlgorithm::SUB_KTEMP_WHITE:
+		{
+			ColorRgb white = ColorRgb::white(whiteTemp);
+
+			// calculating per channel ratio between color we convert and our custom temperature white. Always in range [0,1]
+			float fRatioRed = static_cast<float>(input.red) / static_cast<float>(white.red);
+			float fRatioGreen = static_cast<float>(input.green) / static_cast<float>(white.green);
+			float fRatioBlue = static_cast<float>(input.blue)  / static_cast<float>(white.blue);
+
+			// smallest ratio
+			float fRatio = qMin(fRatioRed, qMin(fRatioGreen, fRatioBlue));
+		
+			// typically brigtness of x value on white channel is lower than (x,x,x) RGB. Depends on LED. But 1/3 is a reasonable guess
+			float fWhiteToRGBOutputRatio = 1.0f/3.0f;
+			// Make the color with the smallest white ratio to be the output white value
+			uint8_t uScale;
+			if (fRatio == fRatioRed) {
+				uScale = input.red;
+			} else if (fRatio == fRatioGreen) {
+				uScale = input.green;
+			}else {
+				uScale =  input.blue;
+			}
+
+			float fUpscale = qBound(1.0f, 255.0f / static_cast<float>(uScale), 3.0f);
+
+			// Calculate the output red, green and blue values, taking into account the white color temperature.
+			output->red = qBound(uint8_t(0), static_cast<u_int8_t>(round(input.red - uScale * (white.red / 255.0f)*fWhiteToRGBOutputRatio)), uint8_t(255));
+			output->green = qBound(uint8_t(0), static_cast<u_int8_t>(round(input.green - uScale * (white.green / 255.0f)*fWhiteToRGBOutputRatio)), uint8_t(255));
+			output->blue = qBound(uint8_t(0), static_cast<u_int8_t>(round(input.blue - uScale * (white.blue / 255.0f)*fWhiteToRGBOutputRatio)), uint8_t(255));
+			output->white = qBound(uint8_t(0), static_cast<u_int8_t>(round(uScale)), uint8_t(255));
+
+			break;
+		}
         case WhiteAlgorithm::NEUTRAL_WHITE:
         case WhiteAlgorithm::COLD_WHITE:
         {
