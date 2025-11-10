@@ -315,12 +315,14 @@ bool HyperionIManager::saveName(quint8 instanceId, const QString& name)
 void HyperionIManager::handleFinished(const QString& name)
 {
 	Hyperion* rawHyperion = qobject_cast<Hyperion*>(sender());
-
 	if (rawHyperion)
 	{
+		// Acquire shared pointer and thread *before* altering maps
 		QSharedPointer<Hyperion> hyperion = rawHyperion->sharedFromThis();
-
+		QThread* thread = hyperion->thread();
 		quint8 const instanceId = hyperion->getInstanceIndex();
+
+		// Remove from tracking maps first (drops one reference)
 		if (_startingInstances.contains(instanceId))
 		{
 			_startingInstances.remove(instanceId);
@@ -330,21 +332,27 @@ void HyperionIManager::handleFinished(const QString& name)
 			_runningInstances.remove(instanceId);
 		}
 
+		// Emit state change while object still valid
 		emit instanceStateChanged(InstanceState::H_STOPPED, instanceId);
 		emit change();
 
 		qDebug() << "Hyperion instance [" << instanceId << "] - '" << name << "' finished.";
 
-		// Manually stop the thread and cleanup
-		QThread* thread = hyperion->thread();
+		// Release last shared reference BEFORE stopping thread so custom deleter can schedule deleteLater
+		// (objectDeleter checks if owning thread is running; we want it to be running at that time)
+		// Note: hyperion may already be at refcount 1 here.
+		hyperion.clear();
+
+		// Now gracefully stop the thread; pending deleteLater will be processed during quit
 		if (thread != nullptr)
 		{
+			// Ensure thread object itself is cleaned up afterwards
+			QObject::connect(thread, &QThread::finished, thread, &QObject::deleteLater);
 			thread->quit();
 			thread->wait();
 		}
 
 		Info(_log, "Hyperion instance [%u] - '%s' stopped.", instanceId, QSTRING_CSTR(name));
-
 	}
 	else
 	{
