@@ -22,6 +22,8 @@ Q_LOGGING_CATEGORY(leddevice_flow, "leddevice.flow");
 Q_LOGGING_CATEGORY(leddevice_properties, "leddevice.properties");
 Q_LOGGING_CATEGORY(leddevice_write, "leddevice.write");
 
+#define TRACK_DEVICE(category,action, ...) qCDebug(category).noquote() << QString("|%1| %2 device '%3'").arg(_log->getSubName(), action, _activeDeviceType) <<  << ##__VA_ARGS__;
+
 // Constants
 namespace {
 
@@ -100,7 +102,7 @@ void LedDevice::start()
 
 void LedDevice::stop()
 {
-	Debug(_log, "Stop device");
+	trackDevice(leddevice_flow, "Stop");
 	this->stopEnableAttemptsTimer();
 	this->disable();
 	this->stopRefreshTimer();
@@ -142,8 +144,7 @@ void LedDevice::setInError(const QString& errorMsg, bool isRecoverable)
 
 void LedDevice::enable()
 {
-	Debug(_log, "Enable device %s'", QSTRING_CSTR(_activeDeviceType));
-
+	trackDevice(leddevice_flow, "Enable")  << ", current state is :" << (_isEnabled ? "enabled" : "disabled");
 	if (!_isEnabled)
 	{
 		if (_enableAttemptsTimer != nullptr && _enableAttemptsTimer->isActive())
@@ -203,7 +204,7 @@ void LedDevice::retryEnable()
 
 void LedDevice::disable()
 {
-	Debug(_log, "Disable device %s'", QSTRING_CSTR(_activeDeviceType));
+	trackDevice(leddevice_flow, "Disable") << ", current state is :" << (_isEnabled ? "enabled" : "disabled");
 	if (_isEnabled)
 	{
 		_isEnabled = false;
@@ -224,7 +225,7 @@ void LedDevice::setActiveDeviceType(const QString& deviceType)
 
 bool LedDevice::init(const QJsonObject& deviceConfig)
 {
-	Debug(_log, "deviceConfig: [%s]", QString(QJsonDocument(_devConfig).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	trackDevice(leddevice_config, "Init") << ", deviceConfig:" << JsonUtils::toCompact(_devConfig);
 
 	setLedCount(deviceConfig[CONFIG_HARDWARE_LED_COUNT].toInt(DEFAULT_LED_COUNT)); // property injected to reflect real led count
 	setColorOrder(deviceConfig[CONFIG_COLOR_ORDER].toString(DEFAULT_COLOR_ORDER));
@@ -242,6 +243,7 @@ void LedDevice::startRefreshTimer()
 {
 	if (_refreshTimerInterval_ms > 0)
 	{
+		trackDevice(leddevice_flow, "Starting refresh timer") << ", interval:" << _refreshTimerInterval_ms << "ms";
 		if (_isDeviceReady && _isOn)
 		{
 			// setup refreshTimer
@@ -265,18 +267,20 @@ void LedDevice::stopRefreshTimer()
 {
 	if (_refreshTimer != nullptr)
 	{
+		trackDevice(leddevice_flow, "Stopping refresh timer");
 		_refreshTimer->stop();
 	}
 }
 
 void LedDevice::startEnableAttemptsTimer()
 {
-	++_enableAttempts;
-
 	if (!_isDeviceRecoverable)
 	{
 		return;
 	}
+
+	++_enableAttempts;
+	trackDevice(leddevice_flow, "Starting enable retry timer") << ", current attempt:" << (_enableAttempts) << "of" << _maxEnableAttempts;
 
 	if (_enableAttempts <= _maxEnableAttempts && _enableAttemptTimerInterval.count() > 0)
 	{
@@ -303,7 +307,7 @@ void LedDevice::stopEnableAttemptsTimer()
 {
 	if (_enableAttemptsTimer != nullptr)
 	{
-		Debug(_log, "Stopping enable retry timer");
+		trackDevice(leddevice_flow, "Stopping enable retry timer");
 		_enableAttemptsTimer->stop();
 		_enableAttempts = 0;
 	}
@@ -344,8 +348,15 @@ int LedDevice::writeLedUpdate(const QVector<ColorRgb>& ledValues)
 	if (!_isEnabled || !_isOn || !_isDeviceReady || _isDeviceInError)
 	{
 		// LedDevice NOT ready!
+		trackDevice(leddevice_flow, "Writing LED values") << "' is not ready."
+								 << " isEnabled=" << _isEnabled
+								 << " isOn=" << _isOn
+								 << " isDeviceReady=" << _isDeviceReady
+								 << " isDeviceInError=" << _isDeviceInError;
 		return -1;
 	}
+
+	trackDevice(leddevice_write, "Writing LED values to") << ", number of LEDs:" << ledValues.size();
 
 	qint64 const elapsedTimeMs = _lastWriteTime.msecsTo(QDateTime::currentDateTime());
 	if (_latchTime_ms > 0 && elapsedTimeMs < _latchTime_ms)
@@ -392,6 +403,7 @@ int LedDevice::rewriteLEDs()
 	bool success {true};
 	if (!_lastLedValues.empty())
 	{
+		trackDevice(leddevice_write, "Rewriting LED values");
 		success = write(_lastLedValues);
 		_lastWriteTime = QDateTime::currentDateTime();
 	}
@@ -401,13 +413,13 @@ int LedDevice::rewriteLEDs()
 
 int LedDevice::writeBlack(int numberOfWrites)
 {
-	Debug(_log, "Set LED strip to black to switch LEDs off");
+	trackDevice(leddevice_flow, "Set LED strip to black for") << "to switch LEDs off";
 	return writeColor(ColorRgb::BLACK, numberOfWrites);
 }
 
 int LedDevice::writeColor(const ColorRgb& color, int numberOfWrites)
 {
-	Debug(_log,"Writes: [%d]", numberOfWrites);
+	trackDevice(leddevice_flow, "Set LED strip's color for") << ", color:" << color.toQString() << ",  number of writes:" << numberOfWrites;
 	int rc = -1;
 
 	for (int i = 0; i < numberOfWrites; i++)
@@ -424,6 +436,7 @@ int LedDevice::writeColor(const ColorRgb& color, int numberOfWrites)
 
 bool LedDevice::switchOn()
 {
+	trackDevice(leddevice_flow, "Switch ON") << ", current state is :" << (_isOn ? "ON" : "OFF");
 	if (_isOn)
 	{
 		Debug(_log, "Device %s is already on. Skipping.", QSTRING_CSTR(_activeDeviceType));
@@ -453,6 +466,7 @@ bool LedDevice::switchOn()
 
 bool LedDevice::switchOff()
 {
+	trackDevice(leddevice_flow, "Switch OFF") << ", current state is :" << (_isOn ? "ON" : "OFF");
 	if (!_isOn)
 	{
 		return true;
@@ -565,8 +579,6 @@ QJsonObject LedDevice::discover(const QJsonObject& /*params*/)
 	//to be implemented by the subclass if needed
 
 	devicesDiscovered.insert("devices", deviceList);
-
-	Debug(_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 	return devicesDiscovered;
 }
 
@@ -575,15 +587,11 @@ QString LedDevice::discoverFirst()
 	QString deviceDiscovered;
 
 	//to be implemented by the subclass if needed
-
-	Debug(_log, "deviceDiscovered: [%s]", QSTRING_CSTR(deviceDiscovered));
 	return deviceDiscovered;
 }
 
 QJsonObject LedDevice::getProperties(const QJsonObject& params)
 {
-	Debug(_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	QJsonObject properties;
 
 	QJsonObject const deviceProperties;
@@ -591,8 +599,6 @@ QJsonObject LedDevice::getProperties(const QJsonObject& params)
 	//to be implemented by the subclass if needed
 
 	properties.insert("properties", deviceProperties);
-
-	Debug(_log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return properties;
 }

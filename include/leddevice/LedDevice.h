@@ -34,6 +34,12 @@ Q_DECLARE_LOGGING_CATEGORY(leddevice_flow);
 Q_DECLARE_LOGGING_CATEGORY(leddevice_properties);
 Q_DECLARE_LOGGING_CATEGORY(leddevice_write);
 
+#define trackDevice(category, ...) \
+    qCDebug(category).noquote() << QString("|%1| %2 device '%3'") \
+        .arg(_log->getSubName(), \
+             (QStringList{__VA_ARGS__}.isEmpty() ? QString("Unknown") : QStringList{__VA_ARGS__}.first()), \
+             _activeDeviceType)
+
 class LedDevice;
 
 ///
