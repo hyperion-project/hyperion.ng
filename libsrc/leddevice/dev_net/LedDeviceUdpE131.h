@@ -3,8 +3,11 @@
 
 // hyperion includes
 #include "ProviderUdp.h"
+#include "utils/ColorRgbw.h"
+#include "utils/RgbToRgbw.h"
 
 #include <QUuid>
+#include <vector>
 
 /**
  *
@@ -139,9 +142,16 @@ private:
 	e131_packet_t e131_packet;
 	uint8_t _e131_seq = 0;
 	uint8_t _e131_universe = 1;
+	int _e131_dmx_max = 512;
 	uint8_t _acn_id[12] = {0x41, 0x53, 0x43, 0x2d, 0x45, 0x31, 0x2e, 0x31, 0x37, 0x00, 0x00, 0x00 };
 	QString _e131_source_name;
 	QUuid _e131_cid;
+
+	// RGBW specific members
+	RGBW::WhiteAlgorithm _whiteAlgorithm;
+	ColorRgbw _temp_rgbw;
+	int _dmxChannelCount;
+	std::vector<uint8_t> _ledBuffer;
 };
 
 #endif // LEDEVICEUDPE131_H

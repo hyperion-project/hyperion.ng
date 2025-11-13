@@ -39,6 +39,8 @@ const int DMX_MAX = 512; // 512 usable slots
 
 LedDeviceUdpE131::LedDeviceUdpE131(const QJsonObject &deviceConfig)
 	: ProviderUdp(deviceConfig)
+	, _whiteAlgorithm(RGBW::WhiteAlgorithm::INVALID)
+	, _dmxChannelCount(0)
 {
 }
 
@@ -58,8 +60,23 @@ bool LedDeviceUdpE131::init(const QJsonObject &deviceConfig)
 		_port = deviceConfig[CONFIG_PORT].toInt(E131_DEFAULT_PORT);
 
 		_e131_universe = deviceConfig["universe"].toInt(1);
+		_e131_dmx_max = deviceConfig["dmx-max"].toInt(DMX_MAX);
 		_e131_source_name = deviceConfig["source-name"].toString("hyperion on "+QHostInfo::localHostName());
 		QString _json_cid = deviceConfig["cid"].toString("");
+
+		// Initialize white algorithm
+		QString whiteAlgorithmStr = deviceConfig["whiteAlgorithm"].toString("white_off");
+		_whiteAlgorithm = RGBW::stringToWhiteAlgorithm(whiteAlgorithmStr);
+		if (_whiteAlgorithm == RGBW::WhiteAlgorithm::INVALID)
+		{
+			QString errortext = QString("unknown whiteAlgorithm: %1").arg(whiteAlgorithmStr);
+			this->setInError(errortext);
+			return false;
+		}
+		Debug(_log, "whiteAlgorithm : %s", QSTRING_CSTR(whiteAlgorithmStr));
+
+		_dmxChannelCount = (_whiteAlgorithm == RGBW::WhiteAlgorithm::WHITE_OFF) ? _ledRGBCount : _ledRGBWCount;
+		_ledBuffer.resize(_dmxChannelCount);
 
 		if (_json_cid.isEmpty())
 		{
@@ -138,35 +155,54 @@ void LedDeviceUdpE131::prepare(unsigned this_universe, unsigned this_dmxChannelC
 
 int LedDeviceUdpE131::write(const std::vector<ColorRgb> &ledValues)
 {
-	int retVal            = 0;
+	int retVal = 0;
 	int thisChannelCount = 0;
-	int dmxChannelCount  = _ledRGBCount;
-	const uint8_t * rawdata = reinterpret_cast<const uint8_t *>(ledValues.data());
+
+	uint8_t* rawDataPtr = _ledBuffer.data();
+
+	int currentChannel = 0;
+	for (const ColorRgb& color : ledValues)
+	{
+		if (_whiteAlgorithm == RGBW::WhiteAlgorithm::WHITE_OFF)
+		{
+			rawDataPtr[currentChannel++] = color.red;
+			rawDataPtr[currentChannel++] = color.green;
+			rawDataPtr[currentChannel++] = color.blue;
+		}
+		else
+		{
+			RGBW::Rgb_to_Rgbw(color, &_temp_rgbw, _whiteAlgorithm);
+			rawDataPtr[currentChannel++] = _temp_rgbw.red;
+			rawDataPtr[currentChannel++] = _temp_rgbw.green;
+			rawDataPtr[currentChannel++] = _temp_rgbw.blue;
+			rawDataPtr[currentChannel++] = _temp_rgbw.white;
+		}
+	}
 
 	_e131_seq++;
 
-	for (int rawIdx = 0; rawIdx < dmxChannelCount; rawIdx++)
+	for (int rawIdx = 0; rawIdx < _dmxChannelCount; rawIdx++)
 	{
-		if (rawIdx % DMX_MAX == 0) // start of new packet
+		if (rawIdx % _e131_dmx_max == 0) // start of new packet
 		{
-			thisChannelCount = (dmxChannelCount - rawIdx < DMX_MAX) ? dmxChannelCount % DMX_MAX : DMX_MAX;
-//			                       is this the last packet?         ?       ^^ last packet      : ^^ earlier packets
+			thisChannelCount = (_dmxChannelCount - rawIdx < _e131_dmx_max) ? _dmxChannelCount % _e131_dmx_max : _e131_dmx_max;
+			// is this the last packet? ? ^^ last packet : ^^ earlier packets
 
-			prepare(_e131_universe + rawIdx / DMX_MAX, thisChannelCount);
+			prepare(_e131_universe + rawIdx / _e131_dmx_max, thisChannelCount);
 			e131_packet.sequence_number = _e131_seq;
 		}
 
-		e131_packet.property_values[1 + rawIdx%DMX_MAX] = rawdata[rawIdx];
+		e131_packet.property_values[1 + rawIdx % _e131_dmx_max] = rawDataPtr[rawIdx];
 
-//     is this the      last byte of last packet    ||   last byte of other packets
-		if ( (rawIdx == dmxChannelCount-1) || (rawIdx %DMX_MAX == DMX_MAX-1) )
+		// is this the last byte of last packet || last byte of other packets
+		if ((rawIdx == _dmxChannelCount - 1) || (rawIdx % _e131_dmx_max == _e131_dmx_max - 1))
 		{
 #undef e131debug
 #if e131debug
 			Debug (_log, "send packet: rawidx %d dmxchannelcount %d universe: %d, packetsz %d"
 				, rawIdx
-				, dmxChannelCount
-				, _e131_universe + rawIdx / DMX_MAX
+				, _dmxChannelCount
+				, _e131_universe + rawIdx / _e131_dmx_max
 				, E131_DMP_DATA + 1 + thisChannelCount
 				);
 #endif
