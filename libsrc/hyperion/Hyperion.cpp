@@ -555,7 +555,7 @@ Hyperion::InputInfo Hyperion::getPriorityInfo(int priority) const
 }
 
 #if defined(ENABLE_EFFECTENGINE)
-std::list<ActiveEffectDefinition> Hyperion::getActiveEffects() const
+QList<ActiveEffectDefinition> Hyperion::getActiveEffects() const
 {
 	return _effectEngine->getActiveEffects();
 }

@@ -10,6 +10,7 @@
 #include <utils/jsonschema/QJsonSchemaChecker.h>
 #include <utils/JsonUtils.h>
 #include <utils/Components.h>
+#include <utils/MemoryTracker.h>
 
 // effect engine includes
 #include <effectengine/EffectEngine.h>
@@ -46,7 +47,7 @@ EffectEngine::EffectEngine(const QSharedPointer<Hyperion>& hyperionInstance)
 		connect(_effectFileHandler, &EffectFileHandler::effectListChanged, this, &EffectEngine::handleUpdatedEffectList);
 
 		// Stop all effects when instance is disabled, restart the same when enabled
-		connect(hyperion.get(), &Hyperion::compStateChangeRequest, this, [=](hyperion::Components component, bool enable) {
+		connect(hyperion.get(), &Hyperion::compStateChangeRequest, this, [this](hyperion::Components component, bool enable) {
 			if (component == hyperion::COMP_ALL)
 			{
 				if (enable)
@@ -71,11 +72,11 @@ EffectEngine::~EffectEngine()
 	TRACK_SCOPE_SUBCOMPONENT();
 }
 
-std::list<ActiveEffectDefinition> EffectEngine::getActiveEffects() const
+QList<ActiveEffectDefinition> EffectEngine::getActiveEffects() const
 {
-	std::list<ActiveEffectDefinition> availableActiveEffects;
+	QList<ActiveEffectDefinition> availableActiveEffects;
 
-	for (Effect * effect : _activeEffects)
+	for (const QSharedPointer<Effect>& effect : _activeEffects)
 	{
 		ActiveEffectDefinition activeEffectDefinition;
 		activeEffectDefinition.script   = effect->getScript();
@@ -93,7 +94,7 @@ void EffectEngine::cacheRunningEffects()
 {
 	_cachedActiveEffects.clear();
 
-	for (Effect * effect : _activeEffects)
+	for (const QSharedPointer<Effect>& effect : _activeEffects)
 	{
 		ActiveEffectDefinition activeEffectDefinition;
 		activeEffectDefinition.script    = effect->getScript();
@@ -136,8 +137,9 @@ void EffectEngine::handleUpdatedEffectList()
 
 			Debug(_log, "Effect \"%s\": Add custom smoothing settings [%d]. Type: Linear, Settling time: %dms, Interval: %.fHz ", QSTRING_CSTR(def.name), specificId, settlingTime_ms, ledUpdateFrequency_hz);
 
+			++specificId;
 			def.smoothCfg = hyperion->updateSmoothingConfig(
-								++specificId,
+								specificId,
 								settlingTime_ms,
 								ledUpdateFrequency_hz,
 								updateDelay );
@@ -216,10 +218,10 @@ int EffectEngine::runEffectScript(const QString &script, const QString &name, co
 
 	// create the effect
 	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-	Effect *effect = new Effect(hyperion, priority, timeout, script, name, args, imageData);
-	connect(effect, &Effect::setInput, hyperion.get(), &Hyperion::setInput, Qt::QueuedConnection);
-	connect(effect, &Effect::setInputImage, hyperion.get(), &Hyperion::setInputImage, Qt::QueuedConnection);
-	connect(effect, &QThread::finished, this, &EffectEngine::effectFinished);
+	QSharedPointer<Effect> const effect = MAKE_TRACKED_SHARED(Effect, hyperion, priority, timeout, script, name, args, imageData);
+	connect(effect.get(), &Effect::setInput, hyperion.get(), &Hyperion::setInput, Qt::QueuedConnection);
+	connect(effect.get(), &Effect::setInputImage, hyperion.get(), &Hyperion::setInputImage, Qt::QueuedConnection);
+	connect(effect.get(), &QThread::finished, this, &EffectEngine::effectFinished);
 	_activeEffects.push_back(effect);
 
 	// start the effect
@@ -230,9 +232,9 @@ int EffectEngine::runEffectScript(const QString &script, const QString &name, co
 	return 0;
 }
 
-void EffectEngine::channelCleared(int priority)
+void EffectEngine::channelCleared(int priority) const
 {
-	for (Effect * effect : _activeEffects)
+	for (const QSharedPointer<Effect>& effect : _activeEffects)
 	{
 		if (effect->getPriority() == priority && !effect->isInterruptionRequested())
 		{
@@ -241,9 +243,9 @@ void EffectEngine::channelCleared(int priority)
 	}
 }
 
-void EffectEngine::allChannelsCleared()
+void EffectEngine::allChannelsCleared() const
 {
-	for (Effect * effect : _activeEffects)
+	for (const QSharedPointer<Effect>& effect : _activeEffects)
 	{
 		if (effect->getPriority() != PriorityMuxer::BG_PRIORITY && !effect->isInterruptionRequested())
 		{
@@ -254,45 +256,27 @@ void EffectEngine::allChannelsCleared()
 
 void EffectEngine::stopAllEffects()
 {
-	_remainingEffects = _activeEffects.size();
+	_remainingEffects = static_cast<int>(_activeEffects.size());
 
-	for (auto it = _activeEffects.begin(); it != _activeEffects.end();)
+	if (_remainingEffects == 0)
 	{
-		Effect* effect = *it;
-
-		Debug(_log, "Currently active effects: %d", _remainingEffects);
-
-		if (effect)
-		{
-			connect(effect, &Effect::finished, this, &EffectEngine::onEffectFinished, Qt::QueuedConnection);
-			QMetaObject::invokeMethod(effect, "stop", Qt::QueuedConnection);
-
-			effect->requestInterruption();
-
-			// Wait for the thread to finish
-			if (effect->isRunning())
-			{
-				effect->wait();
-			}
-
-			// Check if the effect has already been cleaned up in effectFinished
-			if (std::find(_activeEffects.begin(), _activeEffects.end(), effect) != _activeEffects.end())
-			{
-				// Remove from list, cleanup handled in effectFinished
-				it = _activeEffects.erase(it);
-			}
-			else
-			{
-				++it; // Effect was already handled, move to the next
-			}
-		}
-		else
-		{
-			++it;
-		}
+		Debug(_log, "No active effects to stop");
+		emit isStopCompleted();
+		return;
 	}
 
-	// Wait until all instances have finished
+	Debug(_log, "Stopping %d active effect(s)...", _remainingEffects);
+
+	for (const QSharedPointer<Effect>& effect : _activeEffects)
+	{
+		if (!effect)
+			continue;
+		if (!effect->isInterruptionRequested())
+			effect->requestInterruption();
+		QMetaObject::invokeMethod(effect.get(), "stop", Qt::QueuedConnection);
+	}
+
+	// Wait until all instances have finished via finished signals
 	waitForEffectsToStop();
 
 	Debug(_log, "All effects are stopped");
@@ -300,31 +284,29 @@ void EffectEngine::stopAllEffects()
 
 void EffectEngine::effectFinished()
 {
-	Effect* effect = qobject_cast<Effect*>(sender());
+	const Effect* effect = qobject_cast<const Effect*>(sender());
 	if (!effect)
+	{
 		return;
+	}
 
 	Info(_log, "Effect \"%s\" finished", QSTRING_CSTR(effect->getName()));
-
-	auto it = std::find(_activeEffects.begin(), _activeEffects.end(), effect);
+	auto it = std::find_if(_activeEffects.begin(), _activeEffects.end(), [effect](const QSharedPointer<Effect>& e){ return e.constCast<Effect>() == effect; });
 	if (it != _activeEffects.end())
 	{
 		_activeEffects.erase(it);
-		effect->deleteLater();
+		// QSharedPointer custom deleter will handle deletion when last ref is gone
 	}
-}
 
-void EffectEngine::onEffectFinished()
-{
-	// Decrement the count of remaining effects
-	if (--_remainingEffects == 0)
+	if (_remainingEffects > 0)
 	{
-		// All effects have finished, exit the loop
-		_eventLoop.quit();
-
+		--_remainingEffects;
+		if (_remainingEffects == 0)
+		{
+			_eventLoop.quit();
+			emit isStopCompleted();
+		}
 	}
-
-	emit isStopCompleted();
 }
 
 void EffectEngine::waitForEffectsToStop()

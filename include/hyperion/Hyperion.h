@@ -233,7 +233,7 @@ public slots:
 
 	/// Get the list of active effects
 	/// @return The list of active effects
-	std::list<ActiveEffectDefinition> getActiveEffects() const;
+	QList<ActiveEffectDefinition> getActiveEffects() const;
 #endif
 
 	/// #############
