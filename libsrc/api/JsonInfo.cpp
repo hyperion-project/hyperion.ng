@@ -698,7 +698,7 @@ QJsonArray JsonInfo::discoverAudioInputs(const QJsonObject& params) const
 	discoverGrabber<AudioGrabberWindows>(audioInputs, params);
 #endif
 
-#ifdef __linux__audioInputs
+#ifdef __linux__
 	discoverGrabber<AudioGrabberLinux>(audioInputs, params);
 #endif
 
