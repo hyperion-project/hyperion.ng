@@ -296,7 +296,6 @@ private:
 #endif
 
 	/// Event services
-	QScopedPointer<EventHandler> _eventHandler;
 	QScopedPointer<OsEventHandler> _osEventHandler;
 	QScopedPointer<EventScheduler> _eventScheduler;
 #ifdef ENABLE_CEC

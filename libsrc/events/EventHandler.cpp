@@ -37,6 +37,14 @@ QScopedPointer<EventHandler>& EventHandler::getInstance()
 	return instance;
 }
 
+void EventHandler::destroyInstance()
+{
+	if (instance)
+	{
+		instance.reset();
+	}
+}
+
 void EventHandler::suspend()
 {
 	suspend(true);

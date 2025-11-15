@@ -329,13 +329,12 @@ void HyperionDaemon::stopNetworkServices()
 {
 #if defined(ENABLE_MDNS)
 	QMetaObject::invokeMethod(MdnsBrowser::getInstance().get(), "stop", Qt::QueuedConnection);
-	MdnsBrowser::getInstance().clear();
-	
 	QMetaObject::invokeMethod(_mDNSProvider.get(), &MdnsProvider::stop, Qt::QueuedConnection);
 	if (_mDnsThread->isRunning()) {
 		_mDnsThread->quit();
 		_mDnsThread->wait();
 	}
+	MdnsBrowser::destroyInstance();
 #endif
 
 	if (_webServerThread->isRunning()) {
@@ -470,6 +469,7 @@ void HyperionDaemon::stopNetworkOutputServices()
 
 void HyperionDaemon::startEventServices()
 {
+	// Ensure EventHandler singleton is created early
 	EventHandler::getInstance();
 
 	_eventScheduler.reset(new EventScheduler());
@@ -508,7 +508,8 @@ void HyperionDaemon::stopEventServices()
 	_osEventHandler.reset(nullptr);
 	_eventScheduler.reset(nullptr);
 
-	EventHandler::getInstance().reset(nullptr);
+	// Destroy EventHandler singleton explicitly during shutdown
+	EventHandler::destroyInstance();
 }
 
 void HyperionDaemon::startGrabberServices()

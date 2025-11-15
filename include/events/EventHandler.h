@@ -19,6 +19,7 @@ public:
 	~EventHandler() override;
 
 	static QScopedPointer<EventHandler>& getInstance();
+	static void destroyInstance();
 
 public slots:
 

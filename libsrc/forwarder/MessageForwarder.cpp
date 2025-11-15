@@ -61,8 +61,14 @@ MessageForwarder::~MessageForwarder()
 void MessageForwarder::init()
 {
 #ifdef ENABLE_MDNS
-	QMetaObject::invokeMethod(_mdnsBrowser.get(), "browseForServiceType",
-		Qt::QueuedConnection, Q_ARG(QByteArray, MdnsServiceRegister::getServiceType("jsonapi")));
+	{
+		auto mdns = _mdnsBrowser.toStrongRef();
+		if (!mdns.isNull())
+		{
+			QMetaObject::invokeMethod(mdns.get(), "browseForServiceType",
+				Qt::QueuedConnection, Q_ARG(QByteArray, MdnsServiceRegister::getServiceType("jsonapi")));
+		}
+	}
 #endif
 
 	handleSettingsUpdate(settings::NETFORWARD, _config);

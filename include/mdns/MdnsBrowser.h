@@ -51,6 +51,7 @@ private:
 
 public:
 	 static QSharedPointer<MdnsBrowser>& getInstance(QThread* externalThread = nullptr);
+	 static void destroyInstance();
 	~MdnsBrowser() override;
 
 	QMdnsEngine::Service getFirstService(const QByteArray& serviceType, const QString& filter = ".*", std::chrono::milliseconds waitTime = DEFAULT_DISCOVER_TIMEOUT) const;

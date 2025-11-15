@@ -152,7 +152,7 @@ private:
 	QSharedPointer<MessageForwarderFlatbufferClientsHelper> _messageForwarderFlatBufHelper;
 
 #ifdef ENABLE_MDNS
-	QSharedPointer<MdnsBrowser> _mdnsBrowser = MdnsBrowser::getInstance();
+	QWeakPointer<MdnsBrowser> _mdnsBrowser = MdnsBrowser::getInstance();
 #endif
 };
 

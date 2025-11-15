@@ -15,6 +15,7 @@
 #include <utils/WaitTime.h>
 #include <utils/NetUtils.h>
 #include <utils/JsonUtils.h>
+#include <utils/MemoryTracker.h>
 
 Q_LOGGING_CATEGORY(mdns_browser, "mdns.browser")
 Q_LOGGING_CATEGORY(mdns_browser_cache, "mdns.browser.cache")
@@ -62,7 +63,20 @@ QSharedPointer<MdnsBrowser>& MdnsBrowser::getInstance(QThread* externalThread)
 {
 	if (instance.isNull())
 	{
-		instance.reset(new MdnsBrowser());
+		// Create with tracked deleter since constructor is private
+		auto* rawPtr = new MdnsBrowser(nullptr);
+		QString subComponent = "__";
+		QString typeName = rawPtr->metaObject()->className();
+		qCDebug(memory_non_objects_create).noquote()
+			<< QString("|%1| Creating object of type '%2' at %3 by '%4'")
+				   .arg(subComponent, typeName,
+						QString("0x%1").arg(reinterpret_cast<quintptr>(rawPtr), QT_POINTER_SIZE * 2, 16, QChar('0')),
+						QStringLiteral("non-QObject"));
+
+		auto deleter = [subComponent, typeName](MdnsBrowser* ptr) {
+			objectDeleter<MdnsBrowser>(ptr, subComponent, typeName);
+		};
+		instance = QSharedPointer<MdnsBrowser>(rawPtr, deleter);
 
 		if (externalThread != nullptr) // Move to existing thread if provided
 		{
@@ -78,6 +92,14 @@ QSharedPointer<MdnsBrowser>& MdnsBrowser::getInstance(QThread* externalThread)
 	}
 
 	return instance;
+}
+
+void MdnsBrowser::destroyInstance()
+{
+	if (!instance.isNull())
+	{
+		instance.clear();
+	}
 }
 
 void MdnsBrowser::browseForServiceType(const QByteArray& serviceType)
