@@ -25,12 +25,12 @@ FlatBufferServer::FlatBufferServer(const QJsonDocument& config, QObject* parent)
 	, _timeout(5000)
 	, _config(config)
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 }
 
 FlatBufferServer::~FlatBufferServer()
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 }
 
 void FlatBufferServer::initServer()

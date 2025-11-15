@@ -34,7 +34,7 @@ BlackBorderProcessor::BlackBorderProcessor(const QSharedPointer<Hyperion>& hyper
 		subComponent = hyperion->property("instance").toString();
 		_log = Logger::getInstance("BLACKBORDER", subComponent);
 	}
-	TRACK_SCOPE_SUBCOMPONENT;
+	TRACK_SCOPE_SUBCOMPONENT();
 
 	if (hyperion)
 	{

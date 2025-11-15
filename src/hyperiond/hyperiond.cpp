@@ -16,6 +16,7 @@
 #include <QMap>
 #include <QMetaType>
 
+#include "utils/Logger.h"
 #include "db/SettingsTable.h"
 #include "events/EventScheduler.h"
 #include "events/OsEventHandler.h"
@@ -24,7 +25,6 @@
 #include <utils/Image.h>
 #include <utils/settings.h>
 #include "utils/ColorRgb.h"
-#include "utils/Logger.h"
 #include "utils/VideoMode.h"
 #include "utils/global_defines.h"
 #include <utils/GlobalSignals.h>
@@ -329,6 +329,8 @@ void HyperionDaemon::stopNetworkServices()
 {
 #if defined(ENABLE_MDNS)
 	QMetaObject::invokeMethod(MdnsBrowser::getInstance().get(), "stop", Qt::QueuedConnection);
+	MdnsBrowser::getInstance().clear();
+	
 	QMetaObject::invokeMethod(_mDNSProvider.get(), &MdnsProvider::stop, Qt::QueuedConnection);
 	if (_mDnsThread->isRunning()) {
 		_mDnsThread->quit();
@@ -505,6 +507,8 @@ void HyperionDaemon::stopEventServices()
 
 	_osEventHandler.reset(nullptr);
 	_eventScheduler.reset(nullptr);
+
+	EventHandler::getInstance().reset(nullptr);
 }
 
 void HyperionDaemon::startGrabberServices()

@@ -12,7 +12,7 @@
 EventScheduler::EventScheduler()
 	: _isEnabled(false)
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 	qRegisterMetaType<Event>("Event");
 	_log = Logger::getInstance("EVENTS-SCHED");
 
@@ -23,7 +23,7 @@ EventScheduler::EventScheduler()
 
 EventScheduler::~EventScheduler()
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 	QObject::disconnect(this, &EventScheduler::signalEvent, EventHandler::getInstance().data(), &EventHandler::handleEvent);
 	clearTimers();
 	Info(_log, "Hyperion event scheduler stopped");

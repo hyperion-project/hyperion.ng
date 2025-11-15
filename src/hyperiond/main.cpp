@@ -126,12 +126,12 @@ int main(int argc, char** argv)
 #endif
 	);
 
-	ErrorManager errorManager;
-	DefaultSignalHandler::install();
-
 	// initialize main logger and set global log level
 	QSharedPointer<Logger> log = Logger::getInstance("MAIN");
 	Logger::setLogLevel(Logger::LogLevel::Warning);
+
+	ErrorManager errorManager;
+	DefaultSignalHandler::install();
 
 	// Initialising QCoreApplication
 	QScopedPointer<QCoreApplication> app(createApplication(argc, argv));
@@ -190,7 +190,7 @@ int main(int argc, char** argv)
 	openConsole(false);
 #endif
 
-	if (parser.isSet(waitOption))
+	if (!parser.isSet(waitOption))
 	{
 		if (getProcessIdsByProcessName(processName).size() > 1)
 		{

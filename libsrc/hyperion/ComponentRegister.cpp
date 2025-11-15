@@ -19,7 +19,7 @@ ComponentRegister::ComponentRegister(const QSharedPointer<Hyperion>& hyperionIns
 		subComponent = hyperion->property("instance").toString();
 	}
 	_log = Logger::getInstance("COMPONENTREG", subComponent);
-	TRACK_SCOPE_SUBCOMPONENT;
+	TRACK_SCOPE_SUBCOMPONENT();
 
 	// init all comps to false
 	QVector<hyperion::Components> vect;
@@ -82,7 +82,7 @@ ComponentRegister::ComponentRegister(const QSharedPointer<Hyperion>& hyperionIns
 
 ComponentRegister::~ComponentRegister()
 {
-	TRACK_SCOPE_SUBCOMPONENT;
+	TRACK_SCOPE_SUBCOMPONENT();
 }
 
 int ComponentRegister::isComponentEnabled(hyperion::Components comp) const

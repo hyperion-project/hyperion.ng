@@ -31,7 +31,7 @@ OsEventHandlerBase::OsEventHandlerBase()
 	, _isLockRegistered(false)
 	, _isService(false)
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 	qRegisterMetaType<Event>("Event");
 	_log = Logger::getInstance("EVENTS-OS");
 
@@ -47,7 +47,7 @@ OsEventHandlerBase::OsEventHandlerBase()
 
 OsEventHandlerBase::~OsEventHandlerBase()
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 	quit();
 	QObject::disconnect(this, &OsEventHandlerBase::signalEvent, EventHandler::getInstance().data(), &EventHandler::handleEvent);
 

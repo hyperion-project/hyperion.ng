@@ -16,7 +16,7 @@ HyperionIManager::HyperionIManager(QObject* parent)
 	, _log(Logger::getInstance("HYPERION-INSTMGR"))
 	, _instanceTable(new InstanceTable(this))
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 	HIMinstance = this;
 	qRegisterMetaType<InstanceState>("InstanceState");
 
@@ -25,7 +25,7 @@ HyperionIManager::HyperionIManager(QObject* parent)
 
 HyperionIManager::~HyperionIManager()
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 }
 
 QSharedPointer<Hyperion> HyperionIManager::getHyperionInstance(quint8 instanceId)

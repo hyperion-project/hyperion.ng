@@ -34,12 +34,12 @@ WebServer::WebServer(const QJsonDocument& config, bool useSsl, QObject* parent)
 	, _staticFileServing (nullptr)
 	, _server(nullptr)
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 }
 
 WebServer::~WebServer()
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 }
 
 void WebServer::initServer()

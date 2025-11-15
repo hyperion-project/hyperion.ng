@@ -35,7 +35,7 @@ BoblightServer::BoblightServer(const QSharedPointer<Hyperion>& hyperionInstance,
 		connect(hyperion.get(), &Hyperion::compStateChangeRequest, this, &BoblightServer::compStateChangeRequest);
 	}
 	_log = Logger::getInstance("BOBLIGHT", subComponent);
-	TRACK_SCOPE_SUBCOMPONENT;
+	TRACK_SCOPE_SUBCOMPONENT();
 
 	Debug(_log, "Instance created");
 
@@ -48,7 +48,7 @@ BoblightServer::BoblightServer(const QSharedPointer<Hyperion>& hyperionInstance,
 
 BoblightServer::~BoblightServer()
 {
-	TRACK_SCOPE_SUBCOMPONENT;
+	TRACK_SCOPE_SUBCOMPONENT();
 }
 
 void BoblightServer::start()

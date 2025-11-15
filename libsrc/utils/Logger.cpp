@@ -1,6 +1,5 @@
 #include <utils/Logger.h>
 
-
 #include <iostream>
 
 #ifndef _WIN32
@@ -17,7 +16,10 @@
 #include <QJsonObject>
 
 #include <utils/FileUtils.h>
+#include <utils/MemoryTracker.h>
 
+Q_LOGGING_CATEGORY(memory_logger_create, "memory.logger.create");
+Q_LOGGING_CATEGORY(memory_logger_destroy, "memory.logger.destroy");
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
 QRecursiveMutex        Logger::MapLock;
@@ -86,6 +88,7 @@ void Logger::deleteInstance(const QString& name, const QString& subName)
         for (const auto& weakLogger : std::as_const(LoggerMap)) {
             if (auto strongLogger = weakLogger.lock())
             {
+				TRACK_SCOPE_CATEGORY(memory_logger_destroy) << QString("|%1| Delete logger %2").arg(strongLogger->getSubName(), strongLogger->getName());
                 strongLogger->deleteLater();
             }
         }
@@ -98,6 +101,7 @@ void Logger::deleteInstance(const QString& name, const QString& subName)
         // The logger will be deleted when the last shared_ptr is destroyed.
         LoggerMap.remove(name + subName);
     }
+
 }
 
 void Logger::setLogLevel(LogLevel level, const QString& name, const QString& subName)
@@ -131,6 +135,7 @@ Logger::Logger(const QString& name, const QString& subName, LogLevel minLevel)
 	, _loggerId(LoggerId++)
 	, _minLevel(static_cast<int>(minLevel))
 {
+	TRACK_SCOPE_CATEGORY(memory_logger_create) << QString("|%1| Create %2 logger").arg(_subName,_name);
 	qRegisterMetaType<Logger::T_LOG_MESSAGE>();
 
 #ifndef _WIN32
@@ -146,6 +151,7 @@ Logger::Logger(const QString& name, const QString& subName, LogLevel minLevel)
 
 Logger::~Logger()
 {
+	TRACK_SCOPE_CATEGORY(memory_logger_destroy) << QString("|%1| Destroy %2 logger").arg(_subName,_name);
 #ifndef _WIN32
 	if (LoggerCount.fetchAndSubOrdered(1) == 0 && _syslogEnabled)
 	{
@@ -275,11 +281,13 @@ QScopedPointer<LoggerManager> LoggerManager::instance;
 LoggerManager::LoggerManager()
 	: _loggerMaxMsgBufferSize(MAX_LOG_MSG_BUFFERED)
 {
+	TRACK_SCOPE_CATEGORY(memory_logger_create) << "Create LoggerManager";
 	_logMessageBuffer.reserve(_loggerMaxMsgBufferSize);
 }
 
 LoggerManager::~LoggerManager()
 {
+	TRACK_SCOPE_CATEGORY(memory_logger_destroy) << "Destroy LoggerManager";
 	// delete components
 	Logger::deleteInstance();
 

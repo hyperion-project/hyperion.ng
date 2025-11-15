@@ -12,6 +12,7 @@
 #include <QWeakPointer>
 #include <QMap>
 #include <QAtomicInteger>
+#include <QLoggingCategory>
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
     #include <QRecursiveMutex>
@@ -21,6 +22,9 @@
 
 #include <utils/global_defines.h>
 #include <utils/MemoryTracker.h>
+
+Q_DECLARE_LOGGING_CATEGORY(memory_logger_create)
+Q_DECLARE_LOGGING_CATEGORY(memory_logger_destroy)
 
 // Forward declaration
 class LoggerManager;
@@ -50,6 +54,9 @@ class Logger : public QObject
     // Grant friendship to the memory tracking function
     template<typename T, typename Creator, typename... Args>
     friend QSharedPointer<T> makeTrackedShared(Creator creator, Args&&... args);
+    // Grant friendship to custom deleter so it can access protected destructor
+    template<typename T>
+    friend void objectDeleter(T* ptr, const QString& subComponent, const QString& typeName);
 public:
     enum class LogLevel
     {
@@ -104,8 +111,8 @@ signals:
 	void newLogMessage(Logger::T_LOG_MESSAGE);
 
 protected:
-	explicit Logger(const QString & name="", const QString & subName = "__", LogLevel minLevel = LogLevel::Info);
-	~Logger() override;
+    explicit Logger(const QString & name="", const QString & subName = "__", LogLevel minLevel = LogLevel::Info);
+    ~Logger() override;
 
 private:
 	void write(const Logger::T_LOG_MESSAGE & message);

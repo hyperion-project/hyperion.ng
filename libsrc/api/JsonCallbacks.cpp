@@ -41,7 +41,7 @@ JsonCallbacks::JsonCallbacks(QSharedPointer<Logger> log, const QString& peerAddr
 	, _lastImageUpdateTime(0)
 	, _isImageSizeLimited(IS_IMAGE_SIZE_LIMITED)
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 	qRegisterMetaType<PriorityMuxer::InputsMap>("InputsMap");
 
 	connect(HyperionIManager::getInstance(), &HyperionIManager::instanceStateChanged, this, &JsonCallbacks::handleInstanceStateChange);
@@ -49,7 +49,7 @@ JsonCallbacks::JsonCallbacks(QSharedPointer<Logger> log, const QString& peerAddr
 
 JsonCallbacks::~JsonCallbacks()
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 }
 
 void JsonCallbacks::handleInstanceStateChange(InstanceState state, quint8 instanceID, const QString& /*name */)

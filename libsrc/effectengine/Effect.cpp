@@ -40,13 +40,13 @@ Effect::Effect(const QSharedPointer<Hyperion>& hyperionInstance, int priority, i
 	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
 	if (hyperion)
 	{
-		subComponent = hyperion->property("instane").toString();
+		subComponent = hyperion->property("instance").toString();
 		_colors.resize(hyperion->getLedCount());
 		_imageSize = hyperion->getLedGridSize();
 	}
 
-	_log = Logger::getInstance("EFFECTENGINE", subComponent);
-	TRACK_SCOPE_SUBCOMPONENT;
+	_log = Logger::getInstance("EFFECT", subComponent);
+	TRACK_SCOPE_SUBCOMPONENT();
 
 	_colors.fill(ColorRgb::BLACK);
 
@@ -60,7 +60,7 @@ Effect::Effect(const QSharedPointer<Hyperion>& hyperionInstance, int priority, i
 
 Effect::~Effect()
 {
-	TRACK_SCOPE_SUBCOMPONENT;
+	TRACK_SCOPE_SUBCOMPONENT();
 	delete _painter;
 	_imageStack.clear();
 }

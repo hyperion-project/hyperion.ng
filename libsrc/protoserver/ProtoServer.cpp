@@ -24,12 +24,12 @@ ProtoServer::ProtoServer(const QJsonDocument& config, QObject* parent)
 	, _timeout(5000)
 	, _config(config)
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 }
 
 ProtoServer::~ProtoServer()
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 }
 
 void ProtoServer::initServer()

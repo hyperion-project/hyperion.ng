@@ -33,7 +33,7 @@ PriorityMuxer::PriorityMuxer(int ledCount, QObject * parent)
 {
 	QString subComponent = parent->property("instance").toString();
 	_log= Logger::getInstance("MUXER", subComponent);
-	TRACK_SCOPE_SUBCOMPONENT;
+	TRACK_SCOPE_SUBCOMPONENT();
 
 	// init lowest priority info
 	_lowestPriorityInfo.priority       = PriorityMuxer::LOWEST_PRIORITY;
@@ -51,7 +51,7 @@ PriorityMuxer::PriorityMuxer(int ledCount, QObject * parent)
 
 PriorityMuxer::~PriorityMuxer()
 {
-	TRACK_SCOPE_SUBCOMPONENT;
+	TRACK_SCOPE_SUBCOMPONENT();
 }
 
 void PriorityMuxer::start()

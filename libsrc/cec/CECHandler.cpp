@@ -26,7 +26,7 @@ CECHandler::CECHandler(const QJsonDocument& config, QObject * parent)
 	, _doubleTapTimeoutMs(CEC_DOUBLE_TAP_TIMEOUT_MS)
 	, _cecEventActionMap()
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 	qRegisterMetaType<Event>("Event");
 
 	_logger = Logger::getInstance("EVENTS-CEC");
@@ -39,7 +39,7 @@ CECHandler::CECHandler(const QJsonDocument& config, QObject * parent)
 
 CECHandler::~CECHandler()
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 }
 
 void CECHandler::handleSettingsUpdate(settings::type type, const QJsonDocument& config)

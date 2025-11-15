@@ -31,7 +31,7 @@ GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber * ggrabber, i
 	, _timer(nullptr)
 	, _updateInterval_ms(1000/updateRate_Hz)
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 	GrabberWrapper::instance = this;
 
 	_timer.reset(new QTimer());
@@ -64,7 +64,7 @@ GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber * ggrabber, i
 
 GrabberWrapper::~GrabberWrapper()
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 	_timer->stop();
 	GrabberWrapper::instance = nullptr;
 }

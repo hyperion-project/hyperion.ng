@@ -66,7 +66,7 @@ namespace DefaultSignalHandler {
 #endif
 
 	void print_trace() {
-		QSharedPointer<Logger> log = Logger::getInstance("CORE");
+		QSharedPointer<Logger> log = Logger::getInstance("SIGNAL-HANDLER");
 
 #ifdef _WIN32
 		void* stack[50];
@@ -181,7 +181,7 @@ namespace DefaultSignalHandler {
 #endif
 
 	void install() {
-		QSharedPointer<Logger> log = Logger::getInstance("CORE");
+		QSharedPointer<Logger> log = Logger::getInstance("SIGNAL-HANDLER");
 
 #ifdef _WIN32
 		signal(SIGABRT, signal_handler);

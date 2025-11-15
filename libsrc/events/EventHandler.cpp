@@ -13,7 +13,7 @@ EventHandler::EventHandler()
 	: _isSuspended(false)
 	, _isIdle(false)
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 	qRegisterMetaType<Event>("Event");
 	_log = Logger::getInstance("EVENTS");
 
@@ -23,7 +23,7 @@ EventHandler::EventHandler()
 
 EventHandler::~EventHandler()
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 	QObject::disconnect(this, &EventHandler::signalEvent, HyperionIManager::getInstance(), &HyperionIManager::handleEvent);
 }
 

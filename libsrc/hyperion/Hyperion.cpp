@@ -76,13 +76,13 @@ Hyperion::Hyperion(quint8 instance, QObject* parent)
 	this->setProperty("instance", QVariant::fromValue(subComponent));
 
 	_log = Logger::getInstance("HYPERION", subComponent);
-	TRACK_SCOPE_SUBCOMPONENT;
+	TRACK_SCOPE_SUBCOMPONENT();
 }
 
 Hyperion::~Hyperion()
 {
 	Debug(_log, "Hyperion instance [%u] is stopping...", _instIndex);
-	TRACK_SCOPE_SUBCOMPONENT;
+	TRACK_SCOPE_SUBCOMPONENT();
 }
 
 void Hyperion::start()
@@ -198,6 +198,9 @@ void Hyperion::stop(const QString name)
 
 	_muxer->stop();
 	_deviceSmooth->stop();
+
+	_raw2ledAdjustment.reset();
+
 	_ledDeviceWrapper->stopDevice();
 
 	//Clear all objects maintained/shared by <Hyperion> being the master
@@ -208,6 +211,7 @@ void Hyperion::stop(const QString name)
 	_muxer.clear();
 	_imageProcessor.clear();
 	_componentRegister.clear();
+	_settingsManager.reset();
 
 	emit finished(name);
 }

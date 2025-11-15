@@ -18,12 +18,12 @@ MdnsProvider::MdnsProvider(QObject* parent)
 	, _server(nullptr)
 	, _hostname(nullptr)
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 }
 
 MdnsProvider::~MdnsProvider()
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 }
 
 void MdnsProvider::init()

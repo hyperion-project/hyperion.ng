@@ -31,7 +31,7 @@ EffectEngine::EffectEngine(const QSharedPointer<Hyperion>& hyperionInstance)
 		subComponent = hyperion->property("instance").toString();
 	}
 	_log = Logger::getInstance("EFFECTENGINE", subComponent);
-	TRACK_SCOPE_SUBCOMPONENT;
+	TRACK_SCOPE_SUBCOMPONENT();
 
 	Q_INIT_RESOURCE(EffectEngine);
 	qRegisterMetaType<hyperion::Components>("hyperion::Components");
@@ -68,7 +68,7 @@ EffectEngine::EffectEngine(const QSharedPointer<Hyperion>& hyperionInstance)
 
 EffectEngine::~EffectEngine()
 {
-	TRACK_SCOPE_SUBCOMPONENT;
+	TRACK_SCOPE_SUBCOMPONENT();
 }
 
 std::list<ActiveEffectDefinition> EffectEngine::getActiveEffects() const

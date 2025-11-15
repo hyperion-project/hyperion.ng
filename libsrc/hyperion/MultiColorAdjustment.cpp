@@ -9,12 +9,12 @@ MultiColorAdjustment::MultiColorAdjustment(int ledCnt)
 	: _ledAdjustments(static_cast<size_t>(ledCnt), nullptr)
 	, _log(Logger::getInstance("ADJUSTMENT"))
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 }
 
 MultiColorAdjustment::~MultiColorAdjustment()
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 	for (ColorAdjustment* adjustment : _adjustment)
 	{
 		delete adjustment;

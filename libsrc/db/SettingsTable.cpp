@@ -25,13 +25,16 @@ bool SettingsTable::areInstanceSettingTypesInitialised = false;
 QJsonObject SettingsTable::defaultSettings;
 bool SettingsTable::areDefaultSettingsInitialised = false;
 
-
 SettingsTable::SettingsTable(quint8 instance, QObject* parent)
-	: DBManager(parent)
+	: DBManager("settings", parent)
 	, _instance(instance)
 	, _configVersion(DEFAULT_CONFIG_VERSION)
 {
-	setTable("settings");
+	QString const subComponent = _instance != NO_INSTANCE_ID ? "I" + QString::number(_instance) : "__";
+	this->setProperty("instance", QVariant::fromValue(subComponent));
+	TRACK_SCOPE_SUBCOMPONENT();
+	_log = Logger::getInstance("DB-SETTINGS", subComponent);
+
 	// create table columns
 	createTable(QStringList()<<"type TEXT"<<"config TEXT"<<"hyperion_inst INTEGER"<<"updated_at TEXT");
 }

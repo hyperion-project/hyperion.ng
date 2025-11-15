@@ -83,7 +83,7 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonObject &config, const QSha
 		_prioMuxerWeak = hyperion->getMuxerInstance();
 	}
 	_log= Logger::getInstance("SMOOTHING", subComponent);
-	TRACK_SCOPE_SUBCOMPONENT;
+	TRACK_SCOPE_SUBCOMPONENT();
 
 	// init cfg (default)
 	updateConfig(SmoothingConfigID::SYSTEM, DEFAULT_SETTLINGTIME, DEFAULT_UPDATEFREQUENCY, DEFAULT_OUTPUTDEPLAY);
@@ -93,7 +93,7 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonObject &config, const QSha
 }
 LinearColorSmoothing::~LinearColorSmoothing()
 {
-	TRACK_SCOPE_SUBCOMPONENT;
+	TRACK_SCOPE_SUBCOMPONENT();
 }
 
 void LinearColorSmoothing::start()

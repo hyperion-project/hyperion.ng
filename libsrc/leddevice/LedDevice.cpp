@@ -22,7 +22,7 @@ Q_LOGGING_CATEGORY(leddevice_flow, "leddevice.flow");
 Q_LOGGING_CATEGORY(leddevice_properties, "leddevice.properties");
 Q_LOGGING_CATEGORY(leddevice_write, "leddevice.write");
 
-#define TRACK_DEVICE(category,action, ...) qCDebug(category).noquote() << QString("|%1| %2 device '%3'").arg(_log->getSubName(), action, _activeDeviceType) <<  << ##__VA_ARGS__;
+#define TRACK_DEVICE(category,action, ...) qCDebug(category).noquote() << QString("|%1| %2 device '%3'").arg(_log->getSubName(), action, _activeDeviceType) << ##__VA_ARGS__;
 
 // Constants
 namespace {
@@ -71,13 +71,13 @@ LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 	, _isRefreshEnabled(false)
 	, _isAutoStart(true)
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDevice::~LedDevice()
 {
-	TRACK_SCOPE_SUBCOMPONENT;
+	TRACK_SCOPE_SUBCOMPONENT();
 }
 
 void LedDevice::start()
@@ -144,7 +144,7 @@ void LedDevice::setInError(const QString& errorMsg, bool isRecoverable)
 
 void LedDevice::enable()
 {
-	trackDevice(leddevice_flow, "Enable")  << ", current state is :" << (_isEnabled ? "enabled" : "disabled");
+	trackDevice(leddevice_flow, "Enable") << ", current state is :" << (_isEnabled ? "enabled" : "disabled");
 	if (!_isEnabled)
 	{
 		if (_enableAttemptsTimer != nullptr && _enableAttemptsTimer->isActive())

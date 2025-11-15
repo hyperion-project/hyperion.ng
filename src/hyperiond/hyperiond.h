@@ -268,29 +268,30 @@ private:
 #endif
 
 	/// Network services
-	QScopedPointer<AuthManager, QScopedPointerDeleteLater> _authManager;
-	QScopedPointer<JsonServer, QScopedPointerDeleteLater> _jsonServer;
+	QScopedPointer<AuthManager> _authManager;
+	QScopedPointer<JsonServer> _jsonServer;
 	QScopedPointer<QThread> _jsonServerThread;
-	QScopedPointer<WebServer, QScopedPointerDeleteLater> _webServer;
+	QScopedPointer<WebServer> _webServer;
 	QScopedPointer<QThread> _webServerThread;
-	QScopedPointer<WebServer, QScopedPointerDeleteLater> _sslWebServer;
+	QScopedPointer<WebServer> _sslWebServer;
 	QScopedPointer<QThread> _sslWebServerThread;
-	QScopedPointer<SSDPHandler, QScopedPointerDeleteLater> _ssdpHandler;
+	QScopedPointer<SSDPHandler> _ssdpHandler;
 	QScopedPointer<QThread> _ssdpHandlerThread;
+	
 #ifdef ENABLE_MDNS
-	QScopedPointer<MdnsProvider, QScopedPointerDeleteLater> _mDNSProvider;
+	QScopedPointer<MdnsProvider> _mDNSProvider;
 	QScopedPointer<QThread> _mDnsThread;
 #endif
 #if defined(ENABLE_FLATBUF_SERVER)
-	QScopedPointer<FlatBufferServer, QScopedPointerDeleteLater> _flatBufferServer;
+	QScopedPointer<FlatBufferServer> _flatBufferServer;
 	QScopedPointer<QThread> _flatBufferServerThread;
 #endif
 #if defined(ENABLE_PROTOBUF_SERVER)
-	QScopedPointer<ProtoServer, QScopedPointerDeleteLater> _protoServer;
+	QScopedPointer<ProtoServer> _protoServer;
 	QScopedPointer<QThread> _protoServerThread;
 #endif
 #if defined(ENABLE_FORWARDER)
-	QScopedPointer<MessageForwarder, QScopedPointerDeleteLater> _messageForwarder;
+	QScopedPointer<MessageForwarder> _messageForwarder;
 	QScopedPointer<QThread> _messageForwarderThread;
 #endif
 
@@ -299,7 +300,7 @@ private:
 	QScopedPointer<OsEventHandler> _osEventHandler;
 	QScopedPointer<EventScheduler> _eventScheduler;
 #ifdef ENABLE_CEC
-	QScopedPointer<CECHandler, QScopedPointerDeleteLater> _cecHandler;
+	QScopedPointer<CECHandler> _cecHandler;
 	QScopedPointer<QThread> _cecHandlerThread;
 #endif
 
