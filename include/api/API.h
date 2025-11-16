@@ -377,8 +377,8 @@ protected:
 	void logout();
 
 
-	AuthManager *_authManager;
-	HyperionIManager *_instanceManager;
+	QWeakPointer<AuthManager> _authManagerWeak;
+	QWeakPointer<HyperionIManager> _instanceManagerWeak;
 
 	QSharedPointer<Logger> _log;
 

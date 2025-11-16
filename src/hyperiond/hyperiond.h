@@ -7,6 +7,7 @@
 #include <QObject>
 #include <QJsonObject>
 #include <QScopedPointer>
+#include <QWeakPointer>
 
 #include <hyperion/HyperionIManager.h>
 
@@ -259,16 +260,13 @@ private:
 	QSharedPointer<Logger> _log;
 
 	/// Core services
-	QScopedPointer<HyperionIManager, QScopedPointerDeleteLater> _instanceManager;
 	QScopedPointer<SettingsManager> _settingsManager;
 
 #if defined(ENABLE_EFFECTENGINE)
 	PythonInit* _pyInit;
-	QScopedPointer<EffectFileHandler> _effectFileHandler;
 #endif
 
 	/// Network services
-	QScopedPointer<AuthManager> _authManager;
 	QScopedPointer<JsonServer> _jsonServer;
 	QScopedPointer<QThread> _jsonServerThread;
 	QScopedPointer<WebServer> _webServer;
@@ -310,6 +308,7 @@ private:
 
 	QString                    _prevType;
 	VideoMode                  _currVideoMode;
+	QWeakPointer<HyperionIManager> _instanceManagerWeak;
 };
 
 #endif // HYPERIOND_H

@@ -88,7 +88,7 @@ add_library(hyperion-utils
 	# Tracking Shared objects' memory
 	${CMAKE_SOURCE_DIR}/include/utils/MemoryTracker.h
 	${CMAKE_SOURCE_DIR}/libsrc/utils/MemoryTracker.cpp
-	# Weak connection
+	# Weak Ptrs utilities
 	${CMAKE_SOURCE_DIR}/include/utils/WeakConnect.h
 	# Semver namespace
 	${CMAKE_SOURCE_DIR}/include/utils/version.hpp

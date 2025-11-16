@@ -84,7 +84,7 @@ private:
 	QSslKey                                    m_sslKey;
 	QList<QSslCertificate>                     m_sslCerts;
 	QString                                    m_serverName;
-	NetOrigin*                                 m_netOrigin;
+	QWeakPointer<NetOrigin>                    m_netOriginWeak;
 	QtHttpServerWrapper *                      m_sockServer;
 	QHash<QTcpSocket *, QtHttpClientWrapper *> m_socksClientsHash;
 };

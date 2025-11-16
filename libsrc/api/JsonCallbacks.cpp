@@ -16,7 +16,7 @@
 #include <QVariant>
 #include <QImage>
 #include <QBuffer>
-
+ 
 Q_LOGGING_CATEGORY(api_callback_msg, "api.callback.msg");
 Q_LOGGING_CATEGORY(api_callback_image, "api.callback.image");
 Q_LOGGING_CATEGORY(api_callback_leds, "api.callback.leds");
@@ -33,6 +33,7 @@ JsonCallbacks::JsonCallbacks(QSharedPointer<Logger> log, const QString& peerAddr
 	: QObject(parent)
 	, _log (log)
 	, _hyperionWeak(nullptr)
+	, _instanceManagerWeak(HyperionIManager::getInstanceWeak())
 	, _peerAddress (peerAddress)
 	, _componentRegisterWeak(nullptr)
 	, _prioMuxerWeak(nullptr)
@@ -44,7 +45,10 @@ JsonCallbacks::JsonCallbacks(QSharedPointer<Logger> log, const QString& peerAddr
 	TRACK_SCOPE();
 	qRegisterMetaType<PriorityMuxer::InputsMap>("InputsMap");
 
-	connect(HyperionIManager::getInstance(), &HyperionIManager::instanceStateChanged, this, &JsonCallbacks::handleInstanceStateChange);
+	if (auto mgr = _instanceManagerWeak.toStrongRef())
+	{
+		connect(mgr.get(), &HyperionIManager::instanceStateChanged, this, &JsonCallbacks::handleInstanceStateChange);
+	}
 }
 
 JsonCallbacks::~JsonCallbacks()
@@ -87,7 +91,10 @@ bool JsonCallbacks::subscribe(const Subscription::Type cmd)
 	// Global subscriptions
 	case Subscription::EffectsUpdate:
 #if defined(ENABLE_EFFECTENGINE)
-		connect(EffectFileHandler::getInstance(), &EffectFileHandler::effectListChanged, this, &JsonCallbacks::handleEffectListChange);
+		if (auto fh = EffectFileHandler::getInstance())
+		{
+			connect(fh.data(), &EffectFileHandler::effectListChanged, this, &JsonCallbacks::handleEffectListChange);
+		}
 #endif
 	break;
 
@@ -95,7 +102,10 @@ bool JsonCallbacks::subscribe(const Subscription::Type cmd)
 		connect(EventHandler::getInstance().data(), &EventHandler::signalEvent, this, &JsonCallbacks::handleEventUpdate);
 	break;
 	case Subscription::InstanceUpdate:
-		connect(HyperionIManager::getInstance(), &HyperionIManager::change, this, &JsonCallbacks::handleInstanceChange);
+		if (auto mgr = _instanceManagerWeak.toStrongRef())
+		{
+			connect(mgr.get(), &HyperionIManager::change, this, &JsonCallbacks::handleInstanceChange);
+		}
 	break;
 	case Subscription::LogMsgUpdate:
 		if (!_islogMsgStreamingActive)
@@ -107,10 +117,16 @@ bool JsonCallbacks::subscribe(const Subscription::Type cmd)
 		connect(LoggerManager::getInstance().data(), &LoggerManager::newLogMessage, this, &JsonCallbacks::handleLogMessageUpdate);
 	break;
 	case Subscription::SettingsUpdate:
-		connect(HyperionIManager::getInstance(), &HyperionIManager::settingsChanged, this, &JsonCallbacks::handleSettingsChange);
+		if (auto mgr = _instanceManagerWeak.toStrongRef())
+		{
+			connect(mgr.get(), &HyperionIManager::settingsChanged, this, &JsonCallbacks::handleSettingsChange);
+		}
 	break;
 	case Subscription::TokenUpdate:
-		connect(AuthManager::getInstance(), &AuthManager::tokenChange, this, &JsonCallbacks::handleTokenChange, Qt::AutoConnection);
+		if (auto auth = AuthManager::getInstance())
+		{
+			connect(auth.data(), &AuthManager::tokenChange, this, &JsonCallbacks::handleTokenChange, Qt::AutoConnection);
+		}
 	break;
 
 		// Instance specific subscriptions
@@ -224,7 +240,10 @@ bool JsonCallbacks::unsubscribe(const Subscription::Type cmd)
 	// Global subscriptions
 	case Subscription::EffectsUpdate:
 #if defined(ENABLE_EFFECTENGINE)
-		disconnect(EffectFileHandler::getInstance(), &EffectFileHandler::effectListChanged, this, &JsonCallbacks::handleEffectListChange);
+		if (auto fh = EffectFileHandler::getInstance())
+		{
+			disconnect(fh.data(), &EffectFileHandler::effectListChanged, this, &JsonCallbacks::handleEffectListChange);
+		}
 #endif
 	break;
 
@@ -232,7 +251,10 @@ bool JsonCallbacks::unsubscribe(const Subscription::Type cmd)
 		disconnect(EventHandler::getInstance().data(), &EventHandler::signalEvent, this, &JsonCallbacks::handleEventUpdate);
 	break;
 	case Subscription::InstanceUpdate:
-		disconnect(HyperionIManager::getInstance(), &HyperionIManager::change, this, &JsonCallbacks::handleInstanceChange);
+		if (auto mgr = _instanceManagerWeak.toStrongRef())
+		{
+			disconnect(mgr.get(), &HyperionIManager::change, this, &JsonCallbacks::handleInstanceChange);
+		}
 	break;
 	case Subscription::LogMsgUpdate:
 		disconnect(LoggerManager::getInstance().data(), &LoggerManager::newLogMessage, this, &JsonCallbacks::handleLogMessageUpdate);
@@ -243,10 +265,16 @@ bool JsonCallbacks::unsubscribe(const Subscription::Type cmd)
 		}
 	break;
 	case Subscription::SettingsUpdate:
-		disconnect(HyperionIManager::getInstance(), &HyperionIManager::settingsChanged, this, &JsonCallbacks::handleSettingsChange);
+		if (auto mgr = _instanceManagerWeak.toStrongRef())
+		{
+			disconnect(mgr.get(), &HyperionIManager::settingsChanged, this, &JsonCallbacks::handleSettingsChange);
+		}
 	break;
 	case Subscription::TokenUpdate:
-		disconnect(AuthManager::getInstance(), &AuthManager::tokenChange, this, &JsonCallbacks::handleTokenChange);
+		if (auto auth = AuthManager::getInstance())
+		{
+			disconnect(auth.data(), &AuthManager::tokenChange, this, &JsonCallbacks::handleTokenChange);
+		}
 	break;
 
 		// Instance specific subscriptions
@@ -360,7 +388,11 @@ void JsonCallbacks::setSubscriptionsTo(quint8 instanceID)
 	_instanceID = instanceID;
 
 	// update pointer
-	QSharedPointer<Hyperion> const hyperion =  HyperionIManager::getInstance()->getHyperionInstance(instanceID);
+	QSharedPointer<Hyperion> hyperion;
+	if (auto mgr = _instanceManagerWeak.toStrongRef())
+	{
+		hyperion = mgr->getHyperionInstance(instanceID);
+	}
 	if (!hyperion.isNull() && hyperion != _hyperionWeak)
 	{
 		_hyperionWeak = hyperion;

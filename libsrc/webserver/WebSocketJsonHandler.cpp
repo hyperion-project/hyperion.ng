@@ -21,7 +21,11 @@ WebSocketJsonHandler::WebSocketJsonHandler(QWebSocket* websocket, QObject* paren
 	_origin = websocket->origin();
 	Debug(_log, "New WebSocket connection from %s initiated via: %s", QSTRING_CSTR(_peerAddress), QSTRING_CSTR(_origin));
 
-	bool localConnection = NetOrigin::getInstance()->isLocalAddress(_websocket->peerAddress(), _websocket->localAddress());
+	bool localConnection = false;
+	if (auto origin = NetOrigin::getInstanceWeak().toStrongRef())
+	{
+		localConnection = origin->isLocalAddress(_websocket->peerAddress(), _websocket->localAddress());
+	}
 
 	// Json processor
 	_jsonAPI.reset(new JsonAPI(_peerAddress, _log, localConnection));

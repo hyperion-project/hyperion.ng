@@ -22,7 +22,7 @@
 EffectEngine::EffectEngine(const QSharedPointer<Hyperion>& hyperionInstance)
 	: _hyperionWeak(hyperionInstance)
 	, _log(nullptr)
-	, _effectFileHandler(EffectFileHandler::getInstance())
+	, _effectFileHandlerWeak(EffectFileHandler::getInstance())
 {
 	QString subComponent{ "__" };
 
@@ -44,7 +44,10 @@ EffectEngine::EffectEngine(const QSharedPointer<Hyperion>& hyperionInstance)
 		connect(hyperion.get(), &Hyperion::allChannelsCleared, this, &EffectEngine::allChannelsCleared);
 
 		// get notifications about refreshed effect list
-		connect(_effectFileHandler, &EffectFileHandler::effectListChanged, this, &EffectEngine::handleUpdatedEffectList);
+		if (auto fh = _effectFileHandlerWeak.toStrongRef())
+		{
+			connect(fh.get(), &EffectFileHandler::effectListChanged, this, &EffectEngine::handleUpdatedEffectList);
+		}
 
 		// Stop all effects when instance is disabled, restart the same when enabled
 		connect(hyperion.get(), &Hyperion::compStateChangeRequest, this, [this](hyperion::Components component, bool enable) {
@@ -122,33 +125,36 @@ void EffectEngine::handleUpdatedEffectList()
 	_availableEffects.clear();
 
 	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-	//Add smoothing config entry to support dynamic effects done in configurator
+	// Add smoothing config entry to support dynamic effects done in configurator
 	hyperion->updateSmoothingConfig(SmoothingConfigID::EFFECT_DYNAMIC);
 
 	unsigned specificId = SmoothingConfigID::EFFECT_SPECIFIC;
-	for (auto def : _effectFileHandler->getEffects())
+	if (auto fh = _effectFileHandlerWeak.toStrongRef())
 	{
-		// add smoothing configurations to Hyperion
-		if (def.args["smoothing-custom-settings"].toBool())
+		for (auto def : fh->getEffects())
 		{
-			int settlingTime_ms = def.args["smoothing-time_ms"].toInt();
-			double ledUpdateFrequency_hz = def.args["smoothing-updateFrequency"].toDouble();
-			unsigned updateDelay {0};
+			// add smoothing configurations to Hyperion
+			if (def.args["smoothing-custom-settings"].toBool())
+			{
+				int settlingTime_ms = def.args["smoothing-time_ms"].toInt();
+				double ledUpdateFrequency_hz = def.args["smoothing-updateFrequency"].toDouble();
+				unsigned updateDelay{0};
 
-			Debug(_log, "Effect \"%s\": Add custom smoothing settings [%d]. Type: Linear, Settling time: %dms, Interval: %.fHz ", QSTRING_CSTR(def.name), specificId, settlingTime_ms, ledUpdateFrequency_hz);
+				Debug(_log, "Effect \"%s\": Add custom smoothing settings [%d]. Type: Linear, Settling time: %dms, Interval: %.fHz ", QSTRING_CSTR(def.name), specificId, settlingTime_ms, ledUpdateFrequency_hz);
 
-			++specificId;
-			def.smoothCfg = hyperion->updateSmoothingConfig(
-								specificId,
-								settlingTime_ms,
-								ledUpdateFrequency_hz,
-								updateDelay );
+				++specificId;
+				def.smoothCfg = hyperion->updateSmoothingConfig(
+					specificId,
+					settlingTime_ms,
+					ledUpdateFrequency_hz,
+					updateDelay);
+			}
+			else
+			{
+				def.smoothCfg = SmoothingConfigID::SYSTEM;
+			}
+			_availableEffects.push_back(def);
 		}
-		else
-		{
-			def.smoothCfg = SmoothingConfigID::SYSTEM;
-		}
-		_availableEffects.push_back(def);
 	}
 	emit effectListUpdated();
 }

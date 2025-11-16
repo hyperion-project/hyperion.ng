@@ -64,10 +64,16 @@
 
 // AuthManager
 #include <hyperion/AuthManager.h>
+// EffectFileHandler singleton
+#if defined(ENABLE_EFFECTENGINE)
+#include <effectengine/EffectFileHandler.h>
+#endif
+// NetOrigin singleton
+#include <utils/NetOrigin.h>
 
 // InstanceManager Hyperion
 #include <hyperion/HyperionIManager.h>
-
+ 
 #if defined(ENABLE_EFFECTENGINE)
 // Init Python
 #include <python/PythonInit.h>
@@ -85,12 +91,10 @@ HyperionDaemon* HyperionDaemon::daemon = nullptr;
 
 HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool logLvlOverwrite)
 	: QObject(parent), _log(Logger::getInstance("DAEMON"))
-	, _instanceManager(new HyperionIManager(this))
 	, _settingsManager(new SettingsManager(NO_INSTANCE_ID, this)) // init settings, this settingsManager accesses global settings which are independent from instances
 	#if defined(ENABLE_EFFECTENGINE)
 	, _pyInit(new PythonInit())
 	#endif
-	, _authManager(new AuthManager(this))
 	, _currVideoMode(VideoMode::VIDEO_2D)
 {
 	HyperionDaemon::daemon = this;
@@ -109,38 +113,50 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 		handleSettingsUpdate(settings::LOGGER, getSetting(settings::LOGGER));
 	}
 
-#if defined(ENABLE_EFFECTENGINE)
-	// init EffectFileHandler
-	_effectFileHandler.reset(new EffectFileHandler(rootPath, getSetting(settings::EFFECTS)));
-	connect(this, &HyperionDaemon::settingsChanged, _effectFileHandler.data(), &EffectFileHandler::handleSettingsUpdate);
-#endif
+	AuthManager::createInstance(this);
+	if (auto auth = AuthManager::getInstanceWeak().toStrongRef())
+	{
+		connect(this, &HyperionDaemon::settingsChanged, auth.get(), &AuthManager::handleSettingsUpdate);
+		auth->handleSettingsUpdate(settings::NETWORK, _settingsManager->getSetting(settings::NETWORK));
+	}	
 
-	// spawn all Hyperion instances (non blocking)
-	_instanceManager->startAll();
+#if defined(ENABLE_EFFECTENGINE)
+	EffectFileHandler::createInstance(rootPath, getSetting(settings::EFFECTS), this);
+	if (auto eff = EffectFileHandler::getInstanceWeak().toStrongRef())
+	{
+		connect(this, &HyperionDaemon::settingsChanged, eff.get(), &EffectFileHandler::handleSettingsUpdate);
+	}
+#endif
 
 	//Cleaning up Hyperion before quit
 	connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit, this, &HyperionDaemon::stopServices);
 
-	//Handle services dependent on the on first instance's availability
-	connect(_instanceManager.get(), &HyperionIManager::instanceStateChanged, this, &HyperionDaemon::handleInstanceStateChange);
+	// Create instance manager singleton & spawn all Hyperion instances (non blocking)
+	HyperionIManager::createInstance(this);
+	_instanceManagerWeak = HyperionIManager::getInstanceWeak();
+	if (auto mgr = _instanceManagerWeak.toStrongRef())
+	{
+		mgr->startAll();
 
-	// pipe settings changes from HyperionIManager to Daemon
-	connect(_instanceManager.get(), &HyperionIManager::settingsChanged, this, &HyperionDaemon::settingsChanged);
+		//Handle services dependent on the first instance's availability
+		connect(mgr.get(), &HyperionIManager::instanceStateChanged, this, &HyperionDaemon::handleInstanceStateChange);
+		connect(mgr.get(), &HyperionIManager::settingsChanged, this, &HyperionDaemon::settingsChanged);
+
+		// forward videoModes from HyperionIManager to Daemon evaluation
+		connect(mgr.get(), &HyperionIManager::requestVideoMode, this, &HyperionDaemon::setVideoMode);
+		connect(this, &HyperionDaemon::videoMode, mgr.get(), &HyperionIManager::newVideoMode);
+	}
 
 	// listen for setting changes of framegrabber and v4l2
 	connect(this, &HyperionDaemon::settingsChanged, this, &HyperionDaemon::handleSettingsUpdate);
 
-	// forward videoModes from HyperionIManager to Daemon evaluation
-	connect(_instanceManager.get(), &HyperionIManager::requestVideoMode, this, &HyperionDaemon::setVideoMode);
-	// return videoMode changes from Daemon to HyperionIManager
-	connect(this, &HyperionDaemon::videoMode, _instanceManager.get(), &HyperionIManager::newVideoMode);
-
+	startEventServices();
+	
 	createNetworkServices();
 	createNetworkInputCaptureServices();
 	createNetworkOutputServices();
 
 	startNetworkServices();
-	startEventServices();
 	startGrabberServices();
 
 	startNetworkOutputServices();
@@ -179,14 +195,17 @@ void HyperionDaemon::handleInstanceStateChange(InstanceState state, quint8 insta
 			Qt::QueuedConnection);
 #endif
 
-		if(_instanceManager->getRunningInstanceIdx().empty())
+		if (auto mgr = _instanceManagerWeak.toStrongRef())
 		{
+			if(mgr->getRunningInstanceIdx().empty())
+			{
 #if defined(ENABLE_FORWARDER)
-			QMetaObject::invokeMethod(_messageForwarder.get(), &MessageForwarder::stop, Qt::QueuedConnection);
+				QMetaObject::invokeMethod(_messageForwarder.get(), &MessageForwarder::stop, Qt::QueuedConnection);
 #endif
-			stopNetworkInputCaptureServices();
+				stopNetworkInputCaptureServices();
+			}
 		}
-	break;
+		break;
 	case InstanceState::H_CREATED:
 	break;
 	case InstanceState::H_ON_STOP:
@@ -219,29 +238,40 @@ void HyperionDaemon::stopServices()
 {
 	Info(_log, "Stopping Hyperion services...");
 
-	stopEventServices();
 	stopGrabberServices();
 
 	// Ensure that all Instances and their threads are stopped
 	QEventLoop loopInstances;
-	QObject::connect(_instanceManager.get(), &HyperionIManager::areAllInstancesStopped, &loopInstances, &QEventLoop::quit);
-	_instanceManager->stopAll();
+	if (auto mgr = _instanceManagerWeak.toStrongRef())
+	{
+		QObject::connect(mgr.get(), &HyperionIManager::areAllInstancesStopped, &loopInstances, &QEventLoop::quit);
+		mgr->stopAll();
+	}
 	loopInstances.exec();
 
 	stopNetworkOutputServices();
 	stopNetworkServices();
 
+	stopEventServices();
+
+	HyperionIManager::destroyInstance();
+
+	// Destroy service singletons
+
 #if defined(ENABLE_EFFECTENGINE)
-	// Finalize Python environment when all sub-interpreters were stopped, i.e. all must have been stopped before
+	EffectFileHandler::destroyInstance();
 	delete _pyInit;
 #endif
+	AuthManager::destroyInstance();
+	NetOrigin::destroyInstance();
 }
 
 void HyperionDaemon::createNetworkServices()
 {
-	// connect and apply settings for AuthManager
-	connect(this, &HyperionDaemon::settingsChanged, _authManager.get(), &AuthManager::handleSettingsUpdate);
-	_authManager->handleSettingsUpdate(settings::NETWORK, _settingsManager->getSetting(settings::NETWORK));
+	// Ensure NetOrigin singleton exists before servers use it
+	NetOrigin::createInstance(this);
+
+	// AuthManager already created in constructor; nothing further needed here
 
 #ifdef ENABLE_MDNS
 	// Create mDNS-Provider and mDNS-Browser in own thread

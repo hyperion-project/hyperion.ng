@@ -7,6 +7,9 @@
 #include <QObject>
 #include <QWebSocket>
 #include <QScopedPointer>
+#include <QWeakPointer>
+
+#include <utils/NetOrigin.h>
 
 class WebSocketJsonHandler : public QObject
 {
@@ -26,6 +29,7 @@ private:
 
 	QSharedPointer<Logger> _log;
 	QScopedPointer<JsonAPI> _jsonAPI;
+	QWeakPointer<NetOrigin> _netOriginWeak;
 	QString _peerAddress;
 	QString _origin;
 };

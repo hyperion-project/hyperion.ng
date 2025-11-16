@@ -27,7 +27,7 @@
 #include <mdns/MdnsBrowser.h>
 #include <mdns/MdnsServiceRegister.h>
 #endif
-
+ 
 Q_LOGGING_CATEGORY(forwarder_write, "forwarder.write");
 
 // Constants
@@ -95,35 +95,35 @@ void MessageForwarder::stop()
 
 bool MessageForwarder::connectToInstance(quint8 instanceID)
 {
-	bool isConnected{ false };
-
+	bool isConnected{false};
 	if (instanceID == _toBeForwardedInstanceID)
 	{
-		if (HyperionIManager::getInstance()->isInstanceRunning(_toBeForwardedInstanceID))
+		if (auto mgr = HyperionIManager::getInstanceWeak().toStrongRef())
 		{
-			Info(_log, "Connect forwarder to instance [%u]", _toBeForwardedInstanceID);
-
-			QSharedPointer<Hyperion> const hyperion = HyperionIManager::getInstance()->getHyperionInstance(_toBeForwardedInstanceID);
-			if (hyperion)
+			if (mgr->isInstanceRunning(_toBeForwardedInstanceID))
 			{
-				_hyperionWeak = hyperion;
-				_muxerWeak = hyperion->getMuxerInstance();
+				Info(_log, "Connect forwarder to instance [%u]", _toBeForwardedInstanceID);
+				QSharedPointer<Hyperion> const hyperion = mgr->getHyperionInstance(_toBeForwardedInstanceID);
+				if (hyperion)
+				{
+					_hyperionWeak = hyperion;
+					_muxerWeak = hyperion->getMuxerInstance();
 
-				// component changes
-				QObject::connect(hyperion.get(), &Hyperion::compStateChangeRequest, this, &MessageForwarder::handleCompStateChangeRequest);
+					// component changes
+					QObject::connect(hyperion.get(), &Hyperion::compStateChangeRequest, this, &MessageForwarder::handleCompStateChangeRequest);
 
-				// connect with Muxer visible priority changes
-				QObject::connect(_muxerWeak.toStrongRef().get(), &PriorityMuxer::visiblePriorityChanged, this, &MessageForwarder::handlePriorityChanges);
-
+					// connect with Muxer visible priority changes
+					QObject::connect(_muxerWeak.toStrongRef().get(), &PriorityMuxer::visiblePriorityChanged, this, &MessageForwarder::handlePriorityChanges);
 #if defined(ENABLE_FLATBUF_SERVER) || defined(ENABLE_PROTOBUF_SERVER)
-				QObject::connect(GlobalSignals::getInstance(), &GlobalSignals::setBufferImage, hyperion.get(), &Hyperion::forwardBufferMessage);
+					QObject::connect(GlobalSignals::getInstance(), &GlobalSignals::setBufferImage, hyperion.get(), &Hyperion::forwardBufferMessage);
 #endif
-				isConnected = true;
+					isConnected = true;
+				}
 			}
-		}
-		else
-		{
-			Debug(_log, "Forwarder not connected as instance [%u] is not running", _toBeForwardedInstanceID);
+			else
+			{
+				Debug(_log, "Forwarder not connected as instance [%u] is not running", _toBeForwardedInstanceID);
+			}
 		}
 	}
 	return isConnected;

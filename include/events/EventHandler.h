@@ -8,7 +8,6 @@
 #include <QSharedPointer>
 #include <QScopedPointer>
 
-
 class Logger;
 
 class EventHandler : public QObject

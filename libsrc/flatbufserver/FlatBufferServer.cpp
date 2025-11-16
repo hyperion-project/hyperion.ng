@@ -36,7 +36,7 @@ FlatBufferServer::~FlatBufferServer()
 void FlatBufferServer::initServer()
 {
 	_server.reset(new QTcpServer());
-	_netOrigin = NetOrigin::getInstance();
+	_netOriginWeak = NetOrigin::getInstance();
 	connect(_server.get(), &QTcpServer::newConnection, this, &FlatBufferServer::newConnection);
 
 	// apply config

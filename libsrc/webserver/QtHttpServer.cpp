@@ -37,7 +37,7 @@ QtHttpServer::QtHttpServer (QObject * parent)
 	: QObject      (parent)
 	, m_useSsl     (false)
 	, m_serverName (QStringLiteral ("The Hyperion HTTP Server"))
-	, m_netOrigin  (NetOrigin::getInstance())
+	, m_netOriginWeak  (NetOrigin::getInstance())
 	, m_sockServer (nullptr)
 {
 	m_sockServer = new QtHttpServerWrapper (this);
@@ -101,7 +101,12 @@ void QtHttpServer::onClientConnected (void)
 				}
 			}
 
-			auto* wrapper = new QtHttpClientWrapper(sock, m_netOrigin->isLocalAddress(sock->peerAddress(), sock->localAddress()), this);
+			bool isLocal = false;
+			if (auto origin = m_netOriginWeak.toStrongRef())
+			{
+				isLocal = origin->isLocalAddress(sock->peerAddress(), sock->localAddress());
+			}
+			auto* wrapper = new QtHttpClientWrapper(sock, isLocal, this);
 			m_socksClientsHash.insert(sock, wrapper);
 			emit clientConnected (wrapper->getGuid ());
 		}

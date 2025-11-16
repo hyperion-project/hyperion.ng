@@ -26,7 +26,7 @@ JsonServer::JsonServer(const QJsonDocument& config)
 	, _server(new QTcpServer(this))
 	, _openConnections()
 	, _log(Logger::getInstance("JSONSERVER"))
-	, _netOrigin(NetOrigin::getInstance())
+	, _netOriginWeak(NetOrigin::getInstance())
 	, _config(config)
 {
 	TRACK_SCOPE();
@@ -103,7 +103,12 @@ void JsonServer::newConnection()
 		if (QTcpSocket * socket = _server->nextPendingConnection())
 		{
 			Debug(_log, "New connection from: %s",QSTRING_CSTR(socket->peerAddress().toString()));
-			JsonClientConnection * connection = new JsonClientConnection(socket, _netOrigin->isLocalAddress(socket->peerAddress(), socket->localAddress()));
+			bool isLocal = false;
+			if (auto origin = _netOriginWeak.toStrongRef())
+			{
+				isLocal = origin->isLocalAddress(socket->peerAddress(), socket->localAddress());
+			}
+			auto * connection = new JsonClientConnection(socket, isLocal);
 			_openConnections.insert(connection);
 
 			// register slot for cleaning up after the connection closed

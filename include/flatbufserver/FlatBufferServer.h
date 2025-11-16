@@ -7,6 +7,7 @@
 // qt
 #include <QVector>
 #include <QScopedPointer>
+#include <QWeakPointer>
 
 class QTcpServer;
 class FlatBufferClient;
@@ -65,7 +66,7 @@ private:
 
 private:
 	QScopedPointer<QTcpServer> _server;
-	NetOrigin* _netOrigin;
+	QWeakPointer<NetOrigin> _netOriginWeak;
 	QSharedPointer<Logger> _log;
 	int _timeout;
 	quint16 _port;

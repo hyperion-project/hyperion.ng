@@ -16,15 +16,20 @@ EventHandler::EventHandler()
 	TRACK_SCOPE();
 	qRegisterMetaType<Event>("Event");
 	_log = Logger::getInstance("EVENTS");
-
-	QObject::connect(this, &EventHandler::signalEvent, HyperionIManager::getInstance(), &HyperionIManager::handleEvent);
+	if (auto mgrStrong = HyperionIManager::getInstanceWeak().toStrongRef())
+	{
+		QObject::connect(this, &EventHandler::signalEvent, mgrStrong.get(), &HyperionIManager::handleEvent);
+	}
 	Debug(_log, "Hyperion event handler created");
 }
 
 EventHandler::~EventHandler()
 {
 	TRACK_SCOPE();
-	QObject::disconnect(this, &EventHandler::signalEvent, HyperionIManager::getInstance(), &HyperionIManager::handleEvent);
+	if (auto mgrStrong = HyperionIManager::getInstanceWeak().toStrongRef())
+	{
+		QObject::disconnect(this, &EventHandler::signalEvent, mgrStrong.get(), &HyperionIManager::handleEvent);
+	}
 }
 
 QScopedPointer<EventHandler>& EventHandler::getInstance()

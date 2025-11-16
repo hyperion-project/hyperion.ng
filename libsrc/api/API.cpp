@@ -52,25 +52,31 @@ API::API(QSharedPointer<Logger> log, bool localConnection, QObject *parent)
 
 	// Init
 	_log = log;
-	_authManager = AuthManager::getInstance();
-	_instanceManager = HyperionIManager::getInstance();
+	_authManagerWeak = AuthManager::getInstance();
+	_instanceManagerWeak = HyperionIManager::getInstanceWeak();
 
 	// connect to possible token responses that has been requested
-	connect(_authManager, &AuthManager::tokenResponse, this, [this] (bool success, const QObject *caller, const QString &token, const QString &comment, const QString &tokenId, const int &tan)
+	if (auto auth = _authManagerWeak.toStrongRef())
 	{
-		if (this == caller)
+		connect(auth.get(), &AuthManager::tokenResponse, this, [this] (bool success, const QObject *caller, const QString &token, const QString &comment, const QString &tokenId, const int &tan)
 		{
-			emit onTokenResponse(success, token, comment, tokenId, tan);
-		}
-	});
+			if (this == caller)
+			{
+				emit onTokenResponse(success, token, comment, tokenId, tan);
+			}
+		});
+	}
 
-	connect(_instanceManager, &HyperionIManager::startInstanceResponse, this, [this] (const QObject *caller, const int &tan)
+	if (auto im = _instanceManagerWeak.toStrongRef())
 	{
-		if (this == caller)
+		connect(im.get(), &HyperionIManager::startInstanceResponse, this, [this] (const QObject *caller, const int &tan)
 		{
-			emit onStartInstanceResponse(tan);
-		}
-	});
+			if (this == caller)
+			{
+				emit onStartInstanceResponse(tan);
+			}
+		});
+	}
 }
 
 void API::init()
@@ -85,9 +91,12 @@ void API::init()
 	}
 
 	// if this is localConnection and network allows unauth locals
-	if ( _localConnection && !_authManager->isLocalAuthRequired())
+	if (_localConnection)
 	{
-		_authorized = true;
+		if (auto auth = _authManagerWeak.toStrongRef(); auth && !auth->isLocalAuthRequired())
+		{
+			_authorized = true;
+		}
 	}
 
 	// // admin access is only allowed after login via user & password or via authorization via token.
@@ -337,9 +346,16 @@ bool API::setHyperionInstance(quint8 inst)
 		disconnect(hyperion.get(), nullptr, this, nullptr);
 	}
 
-	QMetaObject::invokeMethod(_instanceManager, "getHyperionInstance", Qt::DirectConnection, Q_RETURN_ARG(QSharedPointer<Hyperion>, hyperion), Q_ARG(quint8, inst));
-	_hyperionWeak = hyperion;
-	_currInstanceIndex = inst;
+	if (auto im = _instanceManagerWeak.toStrongRef())
+	{
+		QMetaObject::invokeMethod(im.get(), "getHyperionInstance", Qt::DirectConnection, Q_RETURN_ARG(QSharedPointer<Hyperion>, hyperion), Q_ARG(quint8, inst));
+		_hyperionWeak = hyperion;
+		_currInstanceIndex = inst;
+	}
+	else
+	{
+		return false;
+	}
 
 	return true;
 }
@@ -358,31 +374,44 @@ bool API::isHyperionEnabled() const
 QVector<QVariantMap> API::getAllInstanceData() const
 {
 	QVector<QVariantMap> vec;
-	QMetaObject::invokeMethod(_instanceManager, "getInstanceData", Qt::DirectConnection, Q_RETURN_ARG(QVector<QVariantMap>, vec));
+	if (auto im = _instanceManagerWeak.toStrongRef())
+	{
+		QMetaObject::invokeMethod(im.get(), "getInstanceData", Qt::DirectConnection, Q_RETURN_ARG(QVector<QVariantMap>, vec));
+	}
 	return vec;
 }
 
 bool API::startInstance(quint8 index, int tan)
 {
 	bool isStarted {false};
-	(_instanceManager->thread() != this->thread())
-			? QMetaObject::invokeMethod(_instanceManager, "startInstance", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isStarted), Q_ARG(quint8, index), Q_ARG(bool, false), Q_ARG(QObject*, this), Q_ARG(int, tan))
-			: isStarted = _instanceManager->startInstance(index, false, this, tan);
-
+	if (auto im = _instanceManagerWeak.toStrongRef())
+	{
+		(im->thread() != this->thread())
+			? QMetaObject::invokeMethod(im.get(), "startInstance", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isStarted), Q_ARG(quint8, index), Q_ARG(bool, false), Q_ARG(QObject*, this), Q_ARG(int, tan))
+			: isStarted = im->startInstance(index, false, this, tan);
+	}
 	return isStarted;
 }
 
 void API::stopInstance(quint8 index)
 {
-	QMetaObject::invokeMethod(_instanceManager, "stopInstance", Qt::QueuedConnection, Q_ARG(quint8, index));
+	if (auto im = _instanceManagerWeak.toStrongRef())
+	{
+		QMetaObject::invokeMethod(im.get(), "stopInstance", Qt::QueuedConnection, Q_ARG(quint8, index));
+	}
 }
 
 bool API::deleteInstance(quint8 index, QString &replyMsg)
 {
 	if (_adminAuthorized)
 	{
-		QMetaObject::invokeMethod(_instanceManager, "deleteInstance", Qt::QueuedConnection, Q_ARG(quint8, index));
-		return true;
+		if (auto im = _instanceManagerWeak.toStrongRef())
+		{
+			QMetaObject::invokeMethod(im.get(), "deleteInstance", Qt::QueuedConnection, Q_ARG(quint8, index));
+			return true;
+		}
+		replyMsg = "Instance manager unavailable";
+		return false;
 	}
 	replyMsg = NO_AUTHORIZATION;
 	return false;
@@ -393,12 +422,16 @@ QString API::createInstance(const QString &name)
 	if (_adminAuthorized)
 	{
 		bool success {false};
-		QMetaObject::invokeMethod(_instanceManager, "createInstance", Qt::DirectConnection, Q_RETURN_ARG(bool, success), Q_ARG(QString, name));
-		if (!success)
+		if (auto im = _instanceManagerWeak.toStrongRef())
 		{
-			return QString("Instance name '%1' is already in use").arg(name);
+			QMetaObject::invokeMethod(im.get(), "createInstance", Qt::DirectConnection, Q_RETURN_ARG(bool, success), Q_ARG(QString, name));
+			if (!success)
+			{
+				return QString("Instance name '%1' is already in use").arg(name);
+			}
+			return "";
 		}
-		return "";
+		return "Instance manager unavailable";
 	}
 	return NO_AUTHORIZATION;
 }
@@ -407,8 +440,12 @@ QString API::setInstanceName(quint8 index, const QString &name)
 {
 	if (_adminAuthorized)
 	{
-		QMetaObject::invokeMethod(_instanceManager, "saveName", Qt::QueuedConnection, Q_ARG(quint8, index), Q_ARG(QString, name));
-		return "";
+		if (auto im = _instanceManagerWeak.toStrongRef())
+		{
+			QMetaObject::invokeMethod(im.get(), "saveName", Qt::QueuedConnection, Q_ARG(quint8, index), Q_ARG(QString, name));
+			return "";
+		}
+		return "Instance manager unavailable";
 	}
 	return NO_AUTHORIZATION;
 }
@@ -454,7 +491,10 @@ bool API::updateHyperionPassword(const QString &password, const QString &newPass
 	}
 	else
 	{
-		QMetaObject::invokeMethod(_authManager, "updateUserPassword", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isPwUpdated), Q_ARG(QString, DEFAULT_USER), Q_ARG(QString, password), Q_ARG(QString, newPassword));
+		if (auto auth = _authManagerWeak.toStrongRef())
+		{
+			QMetaObject::invokeMethod(auth.get(), "updateUserPassword", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isPwUpdated), Q_ARG(QString, DEFAULT_USER), Q_ARG(QString, password), Q_ARG(QString, newPassword));
+		}
 	}
 	return isPwUpdated;
 }
@@ -470,7 +510,10 @@ QString API::createToken(const QString &comment, AuthManager::AuthDefinition &de
 	{
 		return "Missing token comment";
 	}
-	QMetaObject::invokeMethod(_authManager, "createToken", Qt::BlockingQueuedConnection, Q_RETURN_ARG(AuthManager::AuthDefinition, def), Q_ARG(QString, comment));
+	if (auto auth = _authManagerWeak.toStrongRef())
+	{
+		QMetaObject::invokeMethod(auth.get(), "createToken", Qt::BlockingQueuedConnection, Q_RETURN_ARG(AuthManager::AuthDefinition, def), Q_ARG(QString, comment));
+	}
 	return "";
 }
 
@@ -491,7 +534,10 @@ QString API::renameToken(const QString &tokenId, const QString &comment)
 	}
 
 	bool isTokenRenamed {false};
-	QMetaObject::invokeMethod(_authManager, "renameToken", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isTokenRenamed), Q_ARG(QString, tokenId),  Q_ARG(QString, comment));
+	if (auto auth = _authManagerWeak.toStrongRef())
+	{
+		QMetaObject::invokeMethod(auth.get(), "renameToken", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isTokenRenamed), Q_ARG(QString, tokenId),  Q_ARG(QString, comment));
+	}
 
 	return (!isTokenRenamed) ? "Token does not exist" : "";
 }
@@ -509,19 +555,28 @@ QString API::deleteToken(const QString &tokenId)
 	}
 
 	bool isTokenDeleted {false};
-	QMetaObject::invokeMethod(_authManager, "deleteToken", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isTokenDeleted), Q_ARG(QString, tokenId));
+	if (auto auth = _authManagerWeak.toStrongRef())
+	{
+		QMetaObject::invokeMethod(auth.get(), "deleteToken", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isTokenDeleted), Q_ARG(QString, tokenId));
+	}
 
 	return (!isTokenDeleted) ? "Token does not exist" : "";
 }
 
 void API::setNewTokenRequest(const QString &comment, const QString &tokenId, const int &tan)
 {
-	QMetaObject::invokeMethod(_authManager, "setNewTokenRequest", Qt::QueuedConnection, Q_ARG(QObject *, this), Q_ARG(QString, comment), Q_ARG(QString, tokenId), Q_ARG(int, tan));
+	if (auto auth = _authManagerWeak.toStrongRef())
+	{
+		QMetaObject::invokeMethod(auth.get(), "setNewTokenRequest", Qt::QueuedConnection, Q_ARG(QObject *, this), Q_ARG(QString, comment), Q_ARG(QString, tokenId), Q_ARG(int, tan));
+	}
 }
 
 void API::cancelNewTokenRequest(const QString &comment, const QString &tokenId)
 {
-	QMetaObject::invokeMethod(_authManager, "cancelNewTokenRequest", Qt::QueuedConnection, Q_ARG(QObject *, this), Q_ARG(QString, comment), Q_ARG(QString, tokenId));
+	if (auto auth = _authManagerWeak.toStrongRef())
+	{
+		QMetaObject::invokeMethod(auth.get(), "cancelNewTokenRequest", Qt::QueuedConnection, Q_ARG(QObject *, this), Q_ARG(QString, comment), Q_ARG(QString, tokenId));
+	}
 }
 
 bool API::handlePendingTokenRequest(const QString &tokenId, bool accept)
@@ -530,7 +585,10 @@ bool API::handlePendingTokenRequest(const QString &tokenId, bool accept)
 	{
 		return false;
 	}
-	QMetaObject::invokeMethod(_authManager, "handlePendingTokenRequest", Qt::QueuedConnection, Q_ARG(QString, tokenId), Q_ARG(bool, accept));
+	if (auto auth = _authManagerWeak.toStrongRef())
+	{
+		QMetaObject::invokeMethod(auth.get(), "handlePendingTokenRequest", Qt::QueuedConnection, Q_ARG(QString, tokenId), Q_ARG(bool, accept));
+	}
 	return true;
 }
 
@@ -540,7 +598,10 @@ bool API::getTokenList(QVector<AuthManager::AuthDefinition> &def)
 	{
 		return false;
 	}
-	QMetaObject::invokeMethod(_authManager, "getTokenList", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QVector<AuthManager::AuthDefinition>, def));
+	if (auto auth = _authManagerWeak.toStrongRef())
+	{
+		QMetaObject::invokeMethod(auth.get(), "getTokenList", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QVector<AuthManager::AuthDefinition>, def));
+	}
 	return true;
 }
 
@@ -550,23 +611,35 @@ bool API::getPendingTokenRequests(QVector<AuthManager::AuthDefinition> &map)
 	{
 		return false;
 	}
-	QMetaObject::invokeMethod(_authManager, "getPendingRequests", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QVector<AuthManager::AuthDefinition>, map));
+	if (auto auth = _authManagerWeak.toStrongRef())
+	{
+		QMetaObject::invokeMethod(auth.get(), "getPendingRequests", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QVector<AuthManager::AuthDefinition>, map));
+	}
 	return true;
 }
 
 bool API::isUserTokenAuthorized(const QString &userToken)
 {
-	QMetaObject::invokeMethod(_authManager, "isUserTokenAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, _authorized), Q_ARG(QString, DEFAULT_USER), Q_ARG(QString, userToken));
+	if (auto auth = _authManagerWeak.toStrongRef())
+	{
+		QMetaObject::invokeMethod(auth.get(), "isUserTokenAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, _authorized), Q_ARG(QString, DEFAULT_USER), Q_ARG(QString, userToken));
+	}
 	_adminAuthorized = _authorized;
 
 	if (_authorized)
 	{
 		// Listen for ADMIN ACCESS protected signals
-		connect(_authManager, &AuthManager::newPendingTokenRequest, this, &API::onPendingTokenRequest);
+		if (auto auth = _authManagerWeak.toStrongRef())
+		{
+			connect(auth.get(), &AuthManager::newPendingTokenRequest, this, &API::onPendingTokenRequest);
+		}
 	}
 	else
 	{
-		disconnect(_authManager, &AuthManager::newPendingTokenRequest, this, &API::onPendingTokenRequest);
+		if (auto auth = _authManagerWeak.toStrongRef())
+		{
+			disconnect(auth.get(), &AuthManager::newPendingTokenRequest, this, &API::onPendingTokenRequest);
+		}
 	}
 	return _authorized;
 }
@@ -577,15 +650,21 @@ bool API::getUserToken(QString &userToken)
 	{
 		return false;
 	}
-	QMetaObject::invokeMethod(_authManager, "getUserToken", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QString, userToken));
+	if (auto auth = _authManagerWeak.toStrongRef())
+	{
+		QMetaObject::invokeMethod(auth.get(), "getUserToken", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QString, userToken));
+	}
 	return true;
 }
 
 bool API::isTokenAuthorized(const QString &token)
 {
-	(_authManager->thread() != this->thread())
-			? QMetaObject::invokeMethod(_authManager, "isTokenAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, _authorized), Q_ARG(QString, token))
-			: _authorized = _authManager->isTokenAuthorized(token);
+	if (auto auth = _authManagerWeak.toStrongRef())
+	{
+		(auth->thread() != this->thread())
+			? QMetaObject::invokeMethod(auth.get(), "isTokenAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, _authorized), Q_ARG(QString, token))
+			: _authorized = auth->isTokenAuthorized(token);
+	}
 	_adminAuthorized = _authorized;
 
 	return _authorized;
@@ -594,18 +673,27 @@ bool API::isTokenAuthorized(const QString &token)
 bool API::isUserAuthorized(const QString &password)
 {
 	bool isUserAuthorized {false};
-	QMetaObject::invokeMethod(_authManager, "isUserAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isUserAuthorized), Q_ARG(QString, DEFAULT_USER), Q_ARG(QString, password));
+	if (auto auth = _authManagerWeak.toStrongRef())
+	{
+		QMetaObject::invokeMethod(auth.get(), "isUserAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isUserAuthorized), Q_ARG(QString, DEFAULT_USER), Q_ARG(QString, password));
+	}
 	if (isUserAuthorized)
 	{
 		_authorized = true;
 		_adminAuthorized = true;
 
 		// Listen for ADMIN ACCESS protected signals
-		connect(_authManager, &AuthManager::newPendingTokenRequest, this, &API::onPendingTokenRequest);
+		if (auto auth = _authManagerWeak.toStrongRef())
+		{
+			connect(auth.get(), &AuthManager::newPendingTokenRequest, this, &API::onPendingTokenRequest);
+		}
 	}
 	else
 	{
-		disconnect(_authManager, &AuthManager::newPendingTokenRequest, this, &API::onPendingTokenRequest);
+		if (auto auth = _authManagerWeak.toStrongRef())
+		{
+			disconnect(auth.get(), &AuthManager::newPendingTokenRequest, this, &API::onPendingTokenRequest);
+		}
 	}
 	return isUserAuthorized;
 }
@@ -613,7 +701,10 @@ bool API::isUserAuthorized(const QString &password)
 bool API::hasHyperionDefaultPw()
 {
 	bool isDefaultPassword {false};
-	QMetaObject::invokeMethod(_authManager, "isUserAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isDefaultPassword), Q_ARG(QString, DEFAULT_USER), Q_ARG(QString, DEFAULT_PASSWORD));
+	if (auto auth = _authManagerWeak.toStrongRef())
+	{
+		QMetaObject::invokeMethod(auth.get(), "isUserAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isDefaultPassword), Q_ARG(QString, DEFAULT_USER), Q_ARG(QString, DEFAULT_PASSWORD));
+	}
 	return isDefaultPassword;
 }
 
@@ -622,6 +713,9 @@ void API::logout()
 	_authorized = false;
 	_adminAuthorized = false;
 	// Stop listenig for ADMIN ACCESS protected signals
-	disconnect(_authManager, &AuthManager::newPendingTokenRequest, this, &API::onPendingTokenRequest);
+	if (auto auth = _authManagerWeak.toStrongRef())
+	{
+		disconnect(auth.get(), &AuthManager::newPendingTokenRequest, this, &API::onPendingTokenRequest);
+	}
 	stopDataConnections();
 }

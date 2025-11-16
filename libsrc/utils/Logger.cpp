@@ -18,8 +18,7 @@
 #include <utils/FileUtils.h>
 #include <utils/MemoryTracker.h>
 
-Q_LOGGING_CATEGORY(memory_logger_create, "memory.logger.create");
-Q_LOGGING_CATEGORY(memory_logger_destroy, "memory.logger.destroy");
+Q_LOGGING_CATEGORY(memory_logger_track, "memory.logger.track");
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
 QRecursiveMutex        Logger::MapLock;
@@ -71,7 +70,7 @@ QSharedPointer<Logger> Logger::getInstance(const QString& name, const QString& s
     }
 
     // Not found or expired, create a new one.
-    QSharedPointer<Logger> newLog = MAKE_TRACKED_SHARED_STATIC(Logger, name, subName, minLevel);
+	QSharedPointer<Logger> newLog = makeTrackedShared<Logger>(nullptr, memory_logger_track(), name, subName, minLevel);
 
     LoggerMap.insert(key, newLog);
     connect(newLog.get(), &Logger::newLogMessage, LoggerManager::getInstance().data(), &LoggerManager::handleNewLogMessage);
@@ -88,7 +87,7 @@ void Logger::deleteInstance(const QString& name, const QString& subName)
         for (const auto& weakLogger : std::as_const(LoggerMap)) {
             if (auto strongLogger = weakLogger.lock())
             {
-				TRACK_SCOPE_CATEGORY(memory_logger_destroy) << QString("|%1| Delete logger %2").arg(strongLogger->getSubName(), strongLogger->getName());
+				TRACK_SCOPE_CATEGORY(memory_logger_track) << QString("|%1| Delete logger %2").arg(strongLogger->getSubName(), strongLogger->getName());
                 strongLogger->deleteLater();
             }
         }
@@ -135,7 +134,7 @@ Logger::Logger(const QString& name, const QString& subName, LogLevel minLevel)
 	, _loggerId(LoggerId++)
 	, _minLevel(static_cast<int>(minLevel))
 {
-	TRACK_SCOPE_CATEGORY(memory_logger_create) << QString("|%1| Create %2 logger").arg(_subName,_name);
+	TRACK_SCOPE_CATEGORY(memory_logger_track) << QString("|%1| Create %2 logger").arg(_subName,_name);
 	qRegisterMetaType<Logger::T_LOG_MESSAGE>();
 
 #ifndef _WIN32
@@ -151,7 +150,7 @@ Logger::Logger(const QString& name, const QString& subName, LogLevel minLevel)
 
 Logger::~Logger()
 {
-	TRACK_SCOPE_CATEGORY(memory_logger_destroy) << QString("|%1| Destroy %2 logger").arg(_subName,_name);
+	TRACK_SCOPE_CATEGORY(memory_logger_track) << QString("|%1| Destroy %2 logger").arg(_subName,_name);
 #ifndef _WIN32
 	if (LoggerCount.fetchAndSubOrdered(1) == 0 && _syslogEnabled)
 	{
@@ -281,13 +280,13 @@ QScopedPointer<LoggerManager> LoggerManager::instance;
 LoggerManager::LoggerManager()
 	: _loggerMaxMsgBufferSize(MAX_LOG_MSG_BUFFERED)
 {
-	TRACK_SCOPE_CATEGORY(memory_logger_create) << "Create LoggerManager";
+	TRACK_SCOPE_CATEGORY(memory_logger_track) << "Create LoggerManager";
 	_logMessageBuffer.reserve(_loggerMaxMsgBufferSize);
 }
 
 LoggerManager::~LoggerManager()
 {
-	TRACK_SCOPE_CATEGORY(memory_logger_destroy) << "Destroy LoggerManager";
+	TRACK_SCOPE_CATEGORY(memory_logger_track) << "Destroy LoggerManager";
 	// delete components
 	Logger::deleteInstance();
 

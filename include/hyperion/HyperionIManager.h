@@ -40,8 +40,12 @@ public:
 	};
 
 	// global instance pointer
-	static HyperionIManager* getInstance() { return HIMinstance; }
-	static HyperionIManager* HIMinstance;
+	static HyperionIManager* getInstance();
+	static QSharedPointer<HyperionIManager>& instanceRef();
+	static QWeakPointer<HyperionIManager> getInstanceWeak() { return _instance.toWeakRef(); }
+	static void createInstance(QObject* parent = nullptr);
+	static void destroyInstance();
+	static bool isValid();
 
 	~HyperionIManager() override;
 
@@ -233,6 +237,8 @@ private:
 	/// @brief Construct the Manager
 	///
 	HyperionIManager(QObject* parent = nullptr);
+	// Singleton storage
+	static QSharedPointer<HyperionIManager> _instance;
 
 	///
 	/// @brief Start all instances that are marked as enabled in db. Non blocking

@@ -2,6 +2,7 @@
 
 // Qt includes
 #include <QSet>
+#include <QWeakPointer>
 
 // Hyperion includes
 #include <utils/Components.h>
@@ -72,7 +73,7 @@ private:
 	/// the logger instance
 	QSharedPointer<Logger> _log;
 
-	NetOrigin* _netOrigin;
+	QWeakPointer<NetOrigin> _netOriginWeak;
 
 	/// port
 	uint16_t _port = 0;

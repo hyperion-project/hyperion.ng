@@ -9,7 +9,7 @@
 // qt
 #include <QThread>
 
-HyperionIManager* HyperionIManager::HIMinstance;
+QSharedPointer<HyperionIManager> HyperionIManager::_instance;
 
 HyperionIManager::HyperionIManager(QObject* parent)
 	: QObject(parent)
@@ -17,7 +17,7 @@ HyperionIManager::HyperionIManager(QObject* parent)
 	, _instanceTable(new InstanceTable(this))
 {
 	TRACK_SCOPE();
-	HIMinstance = this;
+	// (No raw global assignment; managed through s_instance)
 	qRegisterMetaType<InstanceState>("InstanceState");
 
 	_instanceTable->createInitialInstance();
@@ -26,6 +26,36 @@ HyperionIManager::HyperionIManager(QObject* parent)
 HyperionIManager::~HyperionIManager()
 {
 	TRACK_SCOPE();
+}
+
+void HyperionIManager::createInstance(QObject* parent)
+{
+	CREATE_INSTANCE_WITH_TRACKING(_instance, HyperionIManager, parent, nullptr);
+}
+
+HyperionIManager* HyperionIManager::getInstance()
+{
+	return _instance.data();
+}
+
+QSharedPointer<HyperionIManager>& HyperionIManager::instanceRef()
+{
+	return _instance;
+}
+
+void HyperionIManager::destroyInstance()
+{
+	if (_instance)
+	{
+		// Ensure all instances stopped before destruction
+		_instance->stopAll();
+		_instance.clear();
+	}
+}
+
+bool HyperionIManager::isValid()
+{
+	return !_instance.isNull();
 }
 
 QSharedPointer<Hyperion> HyperionIManager::getHyperionInstance(quint8 instanceId)

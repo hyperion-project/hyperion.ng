@@ -79,7 +79,11 @@ void MdnsProvider::publishService(const QString& serviceType, quint16 servicePor
 	}
 	service.setName(name);
 
-	QByteArray uuid = AuthManager::getInstance()->getID().toUtf8();
+	QByteArray uuid;
+	if (auto auth = AuthManager::getInstanceWeak().toStrongRef())
+	{
+		uuid = auth->getID().toUtf8();
+	}
 	const QMap<QByteArray, QByteArray> attributes = {{"id", uuid}, {"version", HYPERION_VERSION}};
 	service.setAttributes(attributes);
 

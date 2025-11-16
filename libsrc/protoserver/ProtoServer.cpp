@@ -35,7 +35,7 @@ ProtoServer::~ProtoServer()
 void ProtoServer::initServer()
 {
 	_server.reset(new QTcpServer());
-	_netOrigin = NetOrigin::getInstance();
+	_netOriginWeak = NetOrigin::getInstance();
 	connect(_server.get(), &QTcpServer::newConnection, this, &ProtoServer::newConnection);
 
 	// apply config

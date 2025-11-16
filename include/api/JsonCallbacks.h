@@ -9,6 +9,7 @@
 #include <QJsonObject>
 #include <QSet>
 #include <QSharedPointer>
+#include <QWeakPointer>
 #include <QLoggingCategory>
 
 #include <utils/Components.h>
@@ -213,6 +214,7 @@ private:
 	QSharedPointer<Logger> _log;
 	quint8 _instanceID;
 	QWeakPointer<Hyperion> _hyperionWeak;
+	QWeakPointer<HyperionIManager> _instanceManagerWeak;
 
 	/// The peer address of the client
 	QString _peerAddress;

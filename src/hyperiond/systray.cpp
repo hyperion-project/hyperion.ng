@@ -17,13 +17,13 @@
 
 #include <QDesktopServices>
 #include <QSettings>
-
+ 
 SysTray::SysTray(HyperionDaemon* hyperiond)
 	: QSystemTrayIcon(QIcon(":/hyperion-32px.png"), hyperiond)
 	, _hyperiond(hyperiond)
-	, _instanceManager(HyperionIManager::getInstance())
+	, _instanceManagerWeak(HyperionIManager::getInstanceWeak())
 	, _webPort(8090)
-	, _colorDlg(0)
+	, _colorDlg(nullptr)
 {
 	Q_INIT_RESOURCE(resources);
 
@@ -41,7 +41,7 @@ SysTray::SysTray(HyperionDaemon* hyperiond)
 	connect(this, &QSystemTrayIcon::activated, this, &SysTray::onIconActivated);
 }
 
-void SysTray::onIconActivated(QSystemTrayIcon::ActivationReason reason)
+void SysTray::onIconActivated(QSystemTrayIcon::ActivationReason reason) const
 {
 	switch (reason)
 	{
@@ -82,7 +82,7 @@ void SysTray::createBaseTrayMenu()
 	});
 
 	_quitAction = createAction(tr("&Quit"), ":/quit.svg", []() {
-		qApp->quit();
+		QApplication::quit();
 	});
 
 #ifdef _WIN32
@@ -111,21 +111,28 @@ void SysTray::setupConnections()
 {
 	WebServer const * webserver = _hyperiond->getWebServerInstance();
 	connect(webserver, &WebServer::portChanged, this, &SysTray::onWebserverPortChanged);
-	connect(_instanceManager, &HyperionIManager::instanceStateChanged, this, &SysTray::handleInstanceStateChange);
-	connect(this, &SysTray::signalEvent, EventHandler::getInstance().data(), &EventHandler::handleEvent);
+	if (auto mgr = _instanceManagerWeak.toStrongRef())
+	{
+		connect(mgr.get(), &HyperionIManager::instanceStateChanged, this, &SysTray::handleInstanceStateChange);
+	}
+	connect(this, &SysTray::signalEvent, EventHandler::getInstance().get(), &EventHandler::handleEvent);
 }
 
 QAction *SysTray::createAction(const QString &text, const QString &iconPath, const std::function<void()> &method)
 {
-	QAction *action = new QAction(text, this);
+	auto* action = new QAction(text, this);
 	action->setIcon(QIcon(iconPath));
 	connect(action, &QAction::triggered, this, method);
 	return action;
 }
 
-void SysTray::setColor(int instance, const QColor &color)
+void SysTray::setColor(quint8 instance, const QColor &color) const
 {
-	QSharedPointer<Hyperion> const hyperion = HyperionIManager::getInstance()->getHyperionInstance(instance);
+	QSharedPointer<Hyperion> hyperion;
+	if (auto mgr = _instanceManagerWeak.toStrongRef())
+	{
+		hyperion = mgr->getHyperionInstance(instance);
+	}
 	if (!hyperion.isNull())
 	{
 		QVector<ColorRgb> rgbColor {color.rgb()};
@@ -134,9 +141,13 @@ void SysTray::setColor(int instance, const QColor &color)
 }
 
 #if defined(ENABLE_EFFECTENGINE)
-void SysTray::setEffect(int instance, const QString& effectName)
+void SysTray::setEffect(quint8 instance, const QString& effectName) const
 {
-	QSharedPointer<Hyperion> const hyperion = HyperionIManager::getInstance()->getHyperionInstance(instance);
+	QSharedPointer<Hyperion> hyperion;
+	if (auto mgr = _instanceManagerWeak.toStrongRef())
+	{
+		hyperion = mgr->getHyperionInstance(instance);
+	}
 	if (!hyperion.isNull())
 	{
 		emit hyperion->setEffect(effectName, PriorityMuxer::FG_PRIORITY, PriorityMuxer::ENDLESS);
@@ -144,7 +155,7 @@ void SysTray::setEffect(int instance, const QString& effectName)
 }
 #endif
 
-void SysTray::showColorDialog(int instance)
+void SysTray::showColorDialog(quint8 instance)
 {
 	if (_colorDlg.isVisible())
 	{
@@ -152,7 +163,7 @@ void SysTray::showColorDialog(int instance)
 	}
 	else
 	{
-		QColor selectedColor = _colorDlg.getColor(Qt::white, nullptr, tr("Select Color"));
+		QColor selectedColor = QColorDialog::getColor (Qt::white, nullptr, tr("Select Color"));
 		if (selectedColor.isValid())
 		{
 			setColor(instance, selectedColor);
@@ -160,9 +171,13 @@ void SysTray::showColorDialog(int instance)
 	}
 }
 
-void SysTray::clearSource(int instance)
+void SysTray::clearSource(quint8 instance) const
 {
-	QSharedPointer<Hyperion> const hyperion = HyperionIManager::getInstance()->getHyperionInstance(instance);
+	QSharedPointer<Hyperion> hyperion;
+	if (auto mgr = _instanceManagerWeak.toStrongRef())
+	{
+		hyperion = mgr->getHyperionInstance(instance);
+	}
 	if (!hyperion.isNull())
 	{
 		emit hyperion->clear(PriorityMuxer::FG_PRIORITY);
@@ -178,8 +193,12 @@ void SysTray::handleInstanceStarted(quint8 instance)
 	}
 
 	// Create a new menu for this instance
-	QString instanceName = HyperionIManager::getInstance()->getInstanceName(instance);
-	QMenu *instanceMenu = new QMenu(instanceName);
+	QString instanceName;
+	if (auto mgr = _instanceManagerWeak.toStrongRef())
+	{
+		instanceName = mgr->getInstanceName(instance);
+	}
+	auto* instanceMenu = new QMenu(instanceName);
 
 	// Create actions for the instance menu
 	QAction *colorAction = createAction(tr("&Color"), ":/color.svg", [this, instance]() {
@@ -189,12 +208,12 @@ void SysTray::handleInstanceStarted(quint8 instance)
 
 #if defined(ENABLE_EFFECTENGINE)
 	// Get the list of effects
-	const std::list<EffectDefinition> effectsDefinitions = EffectFileHandler::getInstance()->getEffects();
+	const QList<EffectDefinition> effectsDefinitions = EffectFileHandler::getInstance()->getEffects();
 
 	if(!effectsDefinitions.empty())
 	{
 		// Effects submenu
-		QMenu* effectsMenu = new QMenu(tr("Effects"), instanceMenu);
+		auto* effectsMenu = new QMenu(tr("Effects"), instanceMenu);
 		effectsMenu->setObjectName("effectsMenu");
 		instanceMenu->addMenu(effectsMenu);
 
@@ -206,7 +225,10 @@ void SysTray::handleInstanceStarted(quint8 instance)
 				setEffect(instance, effectName);
 			});
 		}
-		connect(EffectFileHandler::getInstance(), &EffectFileHandler::effectListChanged, this, &SysTray::onEffectListChanged);
+		if (auto eff = EffectFileHandler::getInstance())
+		{
+			connect(eff.get(), &EffectFileHandler::effectListChanged, this, &SysTray::onEffectListChanged);
+		}
 	}
 #endif
 
@@ -254,11 +276,11 @@ void SysTray::handleInstanceStateChange(InstanceState state, quint8 instance, co
 void SysTray::onEffectListChanged()
 {
 	// Get the updated list of effects
-	const std::list<EffectDefinition> effectsDefinitions = EffectFileHandler::getInstance()->getEffects();
+	const QList<EffectDefinition> effectsDefinitions = EffectFileHandler::getInstance()->getEffects();
 
 	for (auto it = _instanceMenus.begin(); it != _instanceMenus.end(); ++it)
 	{
-		QMenu* instanceMenu = it.value(); // Access the value (QMenu*) from the map
+		QMenu const * instanceMenu = it.value(); // Access the value (QMenu*) from the map
 		quint8 instanceNumber = it.key();
 
 		QMenu* effectsMenu = instanceMenu->findChild<QMenu*>("effectsMenu");

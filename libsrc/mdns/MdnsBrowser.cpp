@@ -63,21 +63,7 @@ QSharedPointer<MdnsBrowser>& MdnsBrowser::getInstance(QThread* externalThread)
 {
 	if (instance.isNull())
 	{
-		// Create with tracked deleter since constructor is private
-		auto* rawPtr = new MdnsBrowser(nullptr);
-		QString subComponent = "__";
-		QString typeName = rawPtr->metaObject()->className();
-		qCDebug(memory_non_objects_create).noquote()
-			<< QString("|%1| Creating object of type '%2' at %3 by '%4'")
-				   .arg(subComponent, typeName,
-						QString("0x%1").arg(reinterpret_cast<quintptr>(rawPtr), QT_POINTER_SIZE * 2, 16, QChar('0')),
-						QStringLiteral("non-QObject"));
-
-		auto deleter = [subComponent, typeName](MdnsBrowser* ptr) {
-			objectDeleter<MdnsBrowser>(ptr, subComponent, typeName);
-		};
-		instance = QSharedPointer<MdnsBrowser>(rawPtr, deleter);
-
+		CREATE_INSTANCE_WITH_TRACKING(instance, MdnsBrowser, nullptr, nullptr);
 		if (externalThread != nullptr) // Move to existing thread if provided
 		{
 			instance->moveToThread(externalThread);

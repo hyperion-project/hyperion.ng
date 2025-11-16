@@ -114,7 +114,7 @@ private:
 	QSharedPointer<Logger> _log;
 
 	// The global effect file handler
-	EffectFileHandler * _effectFileHandler;
+	QWeakPointer<EffectFileHandler> _effectFileHandlerWeak;
 
 	QEventLoop _eventLoop;
 	int _remainingEffects;

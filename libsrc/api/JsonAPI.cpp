@@ -132,8 +132,11 @@ void JsonAPI::initialize()
 	connect(this, &API::onPendingTokenRequest, this, &JsonAPI::issueNewPendingTokenRequest);
 	connect(this, &API::onTokenResponse, this, &JsonAPI::handleTokenResponse);
 
-	// listen for killed instances
-	connect(_instanceManager, &HyperionIManager::instanceStateChanged, this, &JsonAPI::handleInstanceStateChange);
+	// listen for instance state changes via weak lock
+	if (auto im = _instanceManagerWeak.toStrongRef())
+	{
+		connect(im.get(), &HyperionIManager::instanceStateChanged, this, &JsonAPI::handleInstanceStateChange);
+	}
 
 	//notify eventhadler on suspend/resume/idle requests
 	connect(this, &JsonAPI::signalEvent, EventHandler::getInstance().data(), &EventHandler::handleEvent);
@@ -250,11 +253,19 @@ void JsonAPI::handleMessage(const QString &messageString, const QString &httpAut
 			API::isTokenAuthorized(cToken); // _authorized && _adminAuthorized are set
 		}
 
-		if (islocalConnection() && !_authManager->isLocalAuthRequired())
+		if (islocalConnection())
 		{
-			// if the request comes via a local network connection, plus authorization is disabled for local request,
-			// no token authorization is required for non-admin requests
-			setAuthorization(true);
+			bool localAuthRequired = true;
+			if (auto auth = _authManagerWeak.toStrongRef())
+			{
+				localAuthRequired = auth->isLocalAuthRequired();
+			}
+			if (!localAuthRequired)
+			{
+				// if the request comes via a local network connection, plus authorization is disabled for local request,
+				// no token authorization is required for non-admin requests
+				setAuthorization(true);
+			}
 		}
 	}
 
@@ -316,7 +327,11 @@ void JsonAPI::handleInstanceCommand(const JsonApiCommand& cmd, const QJsonObject
 		else
 		{
 			//If no instance was given nor one was switched to before, use first running instance (backward compatability)
-			quint8 const firstRunningInstanceID = _instanceManager->getFirstRunningInstanceIdx();
+			quint8 firstRunningInstanceID = 0;
+			if (auto im = _instanceManagerWeak.toStrongRef())
+			{
+				firstRunningInstanceID = im->getFirstRunningInstanceIdx();
+			}
 			if (firstRunningInstanceID == NO_INSTANCE_ID)
 			{
 				QString errorText {"No instance(s) IDs provided and no running instance available applying the API request to"};
@@ -339,8 +354,13 @@ void JsonAPI::handleInstanceCommand(const JsonApiCommand& cmd, const QJsonObject
 	}
 
 	InstanceCmd::MustRun const mustRun = cmd.getInstanceMustRun();
-	QSet<quint8> const configuredInstanceIds = _instanceManager->getInstanceIds();
-	QSet<quint8> const runningInstanceIds = _instanceManager->getRunningInstanceIdx();
+	QSet<quint8> configuredInstanceIds;
+	QSet<quint8> runningInstanceIds;
+	if (auto im = _instanceManagerWeak.toStrongRef())
+	{
+		configuredInstanceIds = im->getInstanceIds();
+		runningInstanceIds = im->getRunningInstanceIdx();
+	}
 	QSet<quint8> instanceIds;
 	QStringList errorDetails;
 	QStringList errorDetailsInvalidInstances;
@@ -348,7 +368,7 @@ void JsonAPI::handleInstanceCommand(const JsonApiCommand& cmd, const QJsonObject
 	// Determine instance IDs, if empty array provided apply command to all instances
 	if (instances.isEmpty())
 	{
-		instanceIds = (mustRun == InstanceCmd::MustRun_Yes) ? runningInstanceIds : _instanceManager->getInstanceIds();
+		instanceIds = (mustRun == InstanceCmd::MustRun_Yes && !runningInstanceIds.isEmpty()) ? runningInstanceIds : configuredInstanceIds;
 	}
 	else
 	{
@@ -512,37 +532,71 @@ void JsonAPI::handleCommand(const JsonApiCommand& cmd, const QJsonObject &messag
 	}
 }
 
-void JsonAPI::handleGetImageSnapshotCommand(const QJsonObject &message, const JsonApiCommand &cmd)
+void JsonAPI::handleGetImageSnapshotCommand(const QJsonObject& message, const JsonApiCommand &cmd)
 {
 	if (_hyperionWeak.isNull())
 	{
-		sendErrorReply("Failed to create snapshot. No instance provided.", cmd);
+		sendErrorReply("Failed to create image snapshot. No instance.", cmd);
 		return;
 	}
 
 	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-	QString replyMsg;
-	QString const imageFormat = message["format"].toString("PNG");
-	const PriorityMuxer::InputInfo priorityInfo = hyperion->getPriorityInfo(hyperion->getCurrentPriority());
-	Image<ColorRgb> image = priorityInfo.image;
-	QImage snapshot(reinterpret_cast<const uchar *>(image.memptr()), image.width(), image.height(), qsizetype(3) * image.width(), QImage::Format_RGB888);
-	QByteArray byteArray;
 
-	QBuffer buffer{&byteArray};
-	buffer.open(QIODevice::WriteOnly);
-	if (!snapshot.save(&buffer, imageFormat.toUtf8().constData()))
+	QString imageFormat = message.value("format").toString("jpg").toLower();
+	if (imageFormat != "jpg" && imageFormat != "png")
 	{
-		replyMsg = QString("Failed to create snapshot of the current image in %1 format").arg(imageFormat);
-		sendErrorReply(replyMsg, cmd);
+		imageFormat = "jpg";
+	}
+
+	Image<ColorRgb> capturedImage;
+	QEventLoop loop;
+	QTimer timer;
+	timer.setSingleShot(true);
+
+	const int IMAGE_TIMEOUT_MS = 500; // half a second timeout
+	connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+
+	QObject tempContext; // context object for single-shot connection
+	auto connection = QObject::connect(hyperion.get(), &Hyperion::currentImage, &tempContext,
+		[&](const Image<ColorRgb>& img){
+			capturedImage = img;
+			loop.quit();
+		});
+
+	timer.start(IMAGE_TIMEOUT_MS);
+	loop.exec();
+	QObject::disconnect(connection);
+
+	if (capturedImage.isNull())
+	{
+		sendErrorReply(QString("No image available within %1 ms").arg(IMAGE_TIMEOUT_MS), cmd);
 		return;
 	}
-	QByteArray const base64Image = byteArray.toBase64();
+
+	QImage qimg = capturedImage.toQImage();
+	// Optional: limit size similar to callbacks logic
+	const int MAX_WIDTH = 1280;
+	if (qimg.width() > MAX_WIDTH)
+	{
+		qimg = qimg.scaledToWidth(MAX_WIDTH, Qt::FastTransformation);
+	}
+
+	QByteArray byteArray;
+	QBuffer buffer(&byteArray);
+	buffer.open(QIODevice::WriteOnly);
+	const char* fmt = (imageFormat == "png") ? "PNG" : "JPG";
+	if (!qimg.save(&buffer, fmt))
+	{
+		sendErrorReply("Failed to encode image", cmd);
+		return;
+	}
+	buffer.close();
 
 	QJsonObject info;
 	info["format"] = imageFormat;
-	info["width"] = image.width();
-	info["height"] = image.height();
-	info["data"] = base64Image.constData();
+	info["width"] = qimg.width();
+	info["height"] = qimg.height();
+	info["data"] = QStringLiteral("data:image/") + imageFormat + QStringLiteral(";base64,") + QString::fromLatin1(byteArray.toBase64());
 	sendSuccessDataReply(info, cmd);
 }
 
@@ -974,7 +1028,11 @@ void JsonAPI::handleConfigSetCommand(const QJsonObject &message, const JsonApiCo
 	const QJsonArray instances = config["instances"].toArray();
 	if (!instances.isEmpty())
 	{
-		QSet<quint8> const configuredInstanceIds = _instanceManager->getInstanceIds();
+		QSet<quint8> configuredInstanceIds;
+		if (auto im = _instanceManagerWeak.toStrongRef())
+		{
+			configuredInstanceIds = im->getInstanceIds();
+		}
 		for (const auto &instance : instances)
 		{
 			QJsonObject instanceObject = instance.toObject();
@@ -1009,16 +1067,25 @@ void JsonAPI::handleConfigSetCommand(const QJsonObject &message, const JsonApiCo
 		quint8 const idx = iter.key();
 
 		QPair<bool, QStringList> isSaved;
-		if ( HyperionIManager::getInstance()->isInstanceRunning(idx) )
+		if (auto mgrStrong = HyperionIManager::getInstanceWeak().toStrongRef())
 		{
-			QSharedPointer<Hyperion> const instance = HyperionIManager::getInstance()->getHyperionInstance(idx);
-			isSaved = instance->saveSettings(iter.value());
+			if (mgrStrong->isInstanceRunning(idx))
+			{
+				QSharedPointer<Hyperion> const instance = mgrStrong->getHyperionInstance(idx);
+				isSaved = instance->saveSettings(iter.value());
+			}
+			else
+			{
+				SettingsManager settingMgr (idx);
+				connect(&settingMgr, &SettingsManager::settingsChanged, mgrStrong.get(), &HyperionIManager::settingsChanged);
+				isSaved = settingMgr.saveSettings(iter.value());
+			}
 		}
 		else
 		{
-			SettingsManager settingMgr (idx);
-			connect(&settingMgr, &SettingsManager::settingsChanged, HyperionIManager::getInstance(),&HyperionIManager::settingsChanged);
-			isSaved = settingMgr.saveSettings(iter.value());
+			// Manager not available; cannot save settings
+			isSaved.first = false;
+			isSaved.second.append(QString("Instance manager unavailable for instance %1").arg(idx));
 		}
 
 		errorDetails.append(isSaved.second);
@@ -1088,7 +1155,11 @@ void JsonAPI::handleConfigGetCommand(const QJsonObject &message, const JsonApiCo
 		const QJsonObject instancesObject = instances.toObject();
 		if (!instancesObject.isEmpty())
 		{
-			QSet<quint8> const configuredInstanceIds = _instanceManager->getInstanceIds();
+			QSet<quint8> configuredInstanceIds;
+			if (auto im = _instanceManagerWeak.toStrongRef())
+			{
+				configuredInstanceIds = im->getInstanceIds();
+			}
 			QJsonValue const instanceIds = instances["ids"];
 			if (instanceIds.isNull())
 			{
@@ -1335,7 +1406,20 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const JsonApiCo
 
 void JsonAPI::handleTokenRequired(const JsonApiCommand& cmd)
 {
-	bool isTokenRequired = !islocalConnection() || _authManager->isLocalAuthRequired();
+	bool isTokenRequired = true;
+	if (islocalConnection())
+	{
+		// For local connections, token required only if local auth enforced
+		if (auto auth = _authManagerWeak.toStrongRef())
+		{
+			isTokenRequired = auth->isLocalAuthRequired();
+		}
+	}
+	else
+	{
+		// Non-local connections always require token
+		isTokenRequired = true;
+	}
 	QJsonObject const response { { "required", isTokenRequired} };
 	sendSuccessDataReply(response, cmd);
 }
@@ -1561,7 +1645,18 @@ void JsonAPI::handleInstanceCommand(const QJsonObject &message, const JsonApiCom
 		{
 			errorText = "No instance provided, but required";
 
-		} else if (!_instanceManager->doesInstanceExist(instanceID))
+		} else {
+			bool exists = false;
+			if (auto im = _instanceManagerWeak.toStrongRef())
+			{
+				exists = im->doesInstanceExist(instanceID);
+			}
+			if (!exists)
+			{
+				Error(_log, "Hyperion instance [%u] does not exist.", instanceID);
+				return;
+			}
+		}
 		{
 			errorText = QString("Hyperion instance [%1] does not exist.").arg(instanceID);
 		}
@@ -1573,7 +1668,11 @@ void JsonAPI::handleInstanceCommand(const QJsonObject &message, const JsonApiCom
 		}
 	}
 
-	const QString instanceName = _instanceManager->getInstanceName(instanceID);
+	QString instanceName;
+	if (auto im = _instanceManagerWeak.toStrongRef())
+	{
+		instanceName = im->getInstanceName(instanceID);
+	}
 	const QString &name = message["name"].toString();
 
 	switch (cmd.subCommand) {
@@ -1590,7 +1689,13 @@ void JsonAPI::handleInstanceCommand(const QJsonObject &message, const JsonApiCom
 	break;
 
 	case SubCommand::StartInstance:
-		if (_instanceManager->isInstanceRunning(instanceID))
+	{
+		bool isRunning = false;
+		if (auto im = _instanceManagerWeak.toStrongRef())
+		{
+			isRunning = im->isInstanceRunning(instanceID);
+		}
+		if (isRunning)
 		{
 			errorDetails.append(QString("Hyperion instance [%1] - '%2' is already running.").arg(instanceID).arg(instanceName));
 			sendSuccessDataReplyWithError({}, cmd, errorDetails);
@@ -1606,9 +1711,16 @@ void JsonAPI::handleInstanceCommand(const QJsonObject &message, const JsonApiCom
 		{
 			sendErrorReply(QString("Starting Hyperion instance [%1] - '%2' failed.").arg(instanceID).arg(instanceName), cmd);
 		}
+	}
 	break;
 	case SubCommand::StopInstance:
-		if (!_instanceManager->isInstanceRunning(instanceID))
+	{
+		bool isRunning = false;
+		if (auto im = _instanceManagerWeak.toStrongRef())
+		{
+			isRunning = im->isInstanceRunning(instanceID);
+		}
+		if (!isRunning)
 		{
 			errorDetails.append(QString("Hyperion instance [%1] - '%2' is not running.").arg(instanceID).arg(instanceName));
 			sendSuccessDataReplyWithError({},cmd, errorDetails);
@@ -1617,6 +1729,7 @@ void JsonAPI::handleInstanceCommand(const QJsonObject &message, const JsonApiCom
 		// silent fail
 		API::stopInstance(instanceID);
 		sendSuccessReply(cmd);
+	}
 	break;
 
 	case SubCommand::DeleteInstance:
@@ -1935,7 +2048,10 @@ void JsonAPI::handleInstanceStateChange(InstanceState state, quint8 instanceID, 
 		quint8 const currentInstance = _currInstanceIndex;
 		if (instanceID == currentInstance)
 		{
-			_hyperionWeak = _instanceManager->getHyperionInstance(instanceID);
+			if (auto im = _instanceManagerWeak.toStrongRef())
+			{
+				_hyperionWeak = im->getHyperionInstance(instanceID);
+			}
 			_jsonCB->setSubscriptionsTo(instanceID);
 		}
 	}

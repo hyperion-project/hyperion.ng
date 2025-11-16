@@ -225,16 +225,18 @@ QJsonArray JsonInfo::getEffects()
 {
 	QJsonArray effects;
 #if defined(ENABLE_EFFECTENGINE)
-
-	const std::list<EffectDefinition> effectsDefinitions = EffectFileHandler::getInstance()->getEffects();
-	for (const EffectDefinition &effectDefinition : effectsDefinitions)
+	if (auto fh = EffectFileHandler::getInstanceWeak().toStrongRef())
 	{
-		QJsonObject effect;
-		effect["name"] = effectDefinition.name;
-		effect["file"] = effectDefinition.file;
-		effect["script"] = effectDefinition.script;
-		effect["args"] = effectDefinition.args;
-		effects.append(effect);
+		const QList<EffectDefinition> effectsDefinitions = fh->getEffects();
+		for (const EffectDefinition &effectDefinition : effectsDefinitions)
+		{
+			QJsonObject effect;
+			effect["name"] = effectDefinition.name;
+			effect["file"] = effectDefinition.file;
+			effect["script"] = effectDefinition.script;
+			effect["args"] = effectDefinition.args;
+			effects.append(effect);
+		}
 	}
 #endif
 	return effects;
@@ -244,22 +246,25 @@ QJsonArray JsonInfo::getEffectSchemas()
 {
 	QJsonArray schemaList;
 #if defined(ENABLE_EFFECTENGINE)
-	const std::list<EffectSchema>& effectsSchemas = EffectFileHandler::getInstance()->getEffectSchemas();
-	for (const EffectSchema& effectSchema : effectsSchemas)
+	if (auto fh = EffectFileHandler::getInstanceWeak().toStrongRef())
 	{
-		QJsonObject schema;
-		schema.insert("script", effectSchema.pyFile);
-		schema.insert("schemaLocation", effectSchema.schemaFile);
-		schema.insert("schemaContent", effectSchema.pySchema);
-		if (effectSchema.pyFile.startsWith(':'))
+		const QList<EffectSchema>& effectsSchemas = fh->getEffectSchemas();
+		for (const EffectSchema& effectSchema : effectsSchemas)
 		{
-			schema.insert("type", "system");
+			QJsonObject schema;
+			schema.insert("script", effectSchema.pyFile);
+			schema.insert("schemaLocation", effectSchema.schemaFile);
+			schema.insert("schemaContent", effectSchema.pySchema);
+			if (effectSchema.pyFile.startsWith(':'))
+			{
+				schema.insert("type", "system");
+			}
+			else
+			{
+				schema.insert("type", "custom");
+			}
+			schemaList.append(schema);
 		}
-		else
-		{
-			schema.insert("type", "custom");
-		}
-		schemaList.append(schema);
 	}
 #endif
 	return schemaList;
@@ -450,13 +455,16 @@ QJsonArray JsonInfo::getComponents(const QSharedPointer<Hyperion>& hyperionInsta
 QJsonArray JsonInfo::getInstanceInfo()
 {
 	QJsonArray instanceInfo;
-	for (const auto &entry : HyperionIManager::getInstance()->getInstanceData())
+	if (auto mgr = HyperionIManager::getInstanceWeak().toStrongRef())
 	{
-		QJsonObject obj;
-		obj.insert("friendly_name", entry["friendly_name"].toString());
-		obj.insert("instance", entry["instance"].toInt());
-		obj.insert("running", entry["running"].toBool());
-		instanceInfo.append(obj);
+		for (const auto &entry : mgr->getInstanceData())
+		{
+			QJsonObject obj;
+			obj.insert("friendly_name", entry["friendly_name"].toString());
+			obj.insert("instance", entry["instance"].toInt());
+			obj.insert("running", entry["running"].toBool());
+			instanceInfo.append(obj);
+		}
 	}
 	return instanceInfo;
 }
@@ -619,7 +627,12 @@ QJsonObject JsonInfo::getSystemInfo()
 #endif
 	hyperionInfo["gitremote"] = QString(HYPERION_GIT_REMOTE);
 	hyperionInfo["time"] = QString(BUILD_TIMESTAMP);
-	hyperionInfo["id"] = AuthManager::getInstance()->getID();
+	QString hyperionId;
+	if (auto auth = AuthManager::getInstanceWeak().toStrongRef())
+	{
+		hyperionId = auth->getID();
+	}
+	hyperionInfo["id"] = hyperionId;
 	hyperionInfo["configDatabaseFile"] = DBManager::getFileInfo().absoluteFilePath();
 	hyperionInfo["readOnlyMode"] = DBManager::isReadOnly();
 
