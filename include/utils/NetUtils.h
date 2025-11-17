@@ -122,7 +122,7 @@ inline QJsonArray getMdnsServicesDiscovered(const QString& serviceType)
 }
 
 ///
-/// @brief Resolve a mDNS service name into a nmDNS serice record including mDNS hostname & port for the given service instance
+/// @brief Resolve a mDNS service name into an mDNS service record including mDNS hostname & port for the given service instance
 /// @param[in/out] log             The logger of the caller to print
 /// @param[in]     serviceInstance The service instance to be resolved
 /// @return        A service record
