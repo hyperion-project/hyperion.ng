@@ -61,7 +61,7 @@ public:
 	/// @param[out] image  The snapped screenshot (should be initialized with correct width and
 	/// height)
 	///
-	int grabFrame(Image<ColorRgb> & image);
+	int grabFrame(Image<ColorRgb> & image) override;
 
 	///
 	///@brief Set new width and height for dispmanx, overwrite Grabber.h impl
