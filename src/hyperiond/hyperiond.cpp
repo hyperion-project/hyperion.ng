@@ -97,6 +97,7 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	#endif
 	, _currVideoMode(VideoMode::VIDEO_2D)
 {
+	TRACK_SCOPE();
 	HyperionDaemon::daemon = this;
 
 	// Register metas for thread queued connection
@@ -164,6 +165,7 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 
 HyperionDaemon::~HyperionDaemon()
 {
+	TRACK_SCOPE();
 	Info(_log, "Hyperion daemon stopped");
 }
 
