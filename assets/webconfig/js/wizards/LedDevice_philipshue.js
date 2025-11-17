@@ -620,7 +620,6 @@ const philipshueWizard = (() => {
       d.brightnessThreshold = parseFloat(utils.eV("brightnessThreshold", 0.0001));
       d.handshakeTimeoutMin = parseInt(utils.eV("handshakeTimeoutMin", 300));
       d.handshakeTimeoutMax = parseInt(utils.eV("handshakeTimeoutMax", 1000));
-      d.verbose = utils.eV("verbose");
 
       d.autoStart = conf_editor.getEditor("root.generalOptions.autoStart").getValue();
       d.enableAttempts = parseInt(conf_editor.getEditor("root.generalOptions.enableAttempts").getValue());
@@ -637,7 +636,6 @@ const philipshueWizard = (() => {
         }
       } else {
         d.hardwareLedCount = finalLightIds.length;
-        d.verbose = false;
         if (window.serverConfig.device.type !== d.type) {
           //smoothing off, if new device
           sc.smoothing = { enable: false };
