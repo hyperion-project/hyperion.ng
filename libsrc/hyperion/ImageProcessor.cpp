@@ -19,6 +19,16 @@ void ImageProcessor::registerProcessingUnit(
 		int horizontalBorder,
 		int verticalBorder)
 {
+
+	if (_imageToLedColors && _imageToLedColors->width() == width && _imageToLedColors->height() == height &&
+		_imageToLedColors->horizontalBorder() == horizontalBorder && _imageToLedColors->verticalBorder() == verticalBorder)
+	{
+		// no change
+		return;
+	}
+	
+	TRACK_SCOPE() << "Size" << width << "x" << height << " hBorder:" << horizontalBorder << " vBorder:" << verticalBorder;
+
 	if (width > 0 && height > 0)
 	{
 		_imageToLedColors = MAKE_TRACKED_SHARED(ImageToLedsMap,
@@ -29,7 +39,7 @@ void ImageProcessor::registerProcessingUnit(
 								verticalBorder,
 								_ledString.leds(),
 								_reducedPixelSetFactorFactor,
-								_accuraryLevel
+								_accuracyLevel
 		);
 	}
 	else
@@ -115,7 +125,7 @@ ImageProcessor::ImageProcessor(const LedString& ledString, const QSharedPointer<
 	, _mappingType(0)
 	, _userMappingType(0)
 	, _hardMappingType(-1)
-	, _accuraryLevel(0)
+	, _accuracyLevel(0)
 	, _reducedPixelSetFactorFactor(1)
 	, _hyperionWeak(hyperionInstance)
 {
@@ -216,12 +226,12 @@ void ImageProcessor::setReducedPixelSetFactorFactor(int count)
 
 void ImageProcessor::setAccuracyLevel(int level)
 {
-	_accuraryLevel = level;
-	Debug(_log, "Set processing accuracy level to %d", _accuraryLevel);
+	_accuracyLevel = level;
+	Debug(_log, "Set processing accuracy level to %d", _accuracyLevel);
 
 	if (!_imageToLedColors.isNull())
 	{
-		_imageToLedColors->setAccuracyLevel(_accuraryLevel);
+		_imageToLedColors->setAccuracyLevel(_accuracyLevel);
 	}
 }
 

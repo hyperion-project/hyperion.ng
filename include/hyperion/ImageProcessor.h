@@ -289,7 +289,7 @@ private:
 	/// Type of last requested hard type
 	int _hardMappingType;
 
-	int _accuraryLevel;
+	int _accuracyLevel;
 	int _reducedPixelSetFactorFactor;
 
 	/// Hyperion instance pointer
