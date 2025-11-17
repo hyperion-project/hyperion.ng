@@ -188,7 +188,6 @@ int main(int argc, char ** argv)
 		// Start the application
 		QCoreApplication::exec();
 	}
-	Logger::deleteInstance();
 
 	return 0;
 }

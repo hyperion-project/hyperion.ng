@@ -193,7 +193,5 @@ int main(int argc, char ** argv)
 		// Start the application
 	}
 
-	Logger::deleteInstance();
-
 	return 0;
 }
