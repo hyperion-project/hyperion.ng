@@ -27,7 +27,7 @@ public:
 
 private slots:
 
-	void onIconActivated(QSystemTrayIcon::ActivationReason reason) const;
+	void onIconActivated(QSystemTrayIcon::ActivationReason reason);
 
 	void handleInstanceStateChange(InstanceState state, quint8 instance, const QString& name);
 

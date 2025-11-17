@@ -41,7 +41,7 @@ SysTray::SysTray(HyperionDaemon* hyperiond)
 	connect(this, &QSystemTrayIcon::activated, this, &SysTray::onIconActivated);
 }
 
-void SysTray::onIconActivated(QSystemTrayIcon::ActivationReason reason) const
+void SysTray::onIconActivated(QSystemTrayIcon::ActivationReason reason)
 {
 	switch (reason)
 	{
@@ -340,7 +340,7 @@ void SysTray::settings() const
 bool SysTray::getCurrentAutorunState()
 {
 	const QSettings reg("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::NativeFormat);
-	if (reg.value("Hyperion", 0).toString() == qApp->applicationFilePath().replace('/', '\\'))
+	if (reg.value("Hyperion", 0).toString() == QApplication::applicationFilePath().replace('/', '\\'))
 	{
 		_autorunAction->setText(tr("&Disable autostart"));
 		return true;
@@ -356,6 +356,6 @@ void SysTray::setAutorunState()
 	QSettings reg("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::NativeFormat);
 	(currentState)
 			? reg.remove("Hyperion")
-			: reg.setValue("Hyperion", qApp->applicationFilePath().replace('/', '\\'));
+			: reg.setValue("Hyperion", QApplication::applicationFilePath().replace('/', '\\'));
 }
 #endif
