@@ -327,7 +327,7 @@ void JsonAPI::handleInstanceCommand(const JsonApiCommand& cmd, const QJsonObject
 		else
 		{
 			//If no instance was given nor one was switched to before, use first running instance (backward compatability)
-			quint8 firstRunningInstanceID = 0;
+			quint8 firstRunningInstanceID = NO_INSTANCE_ID;
 			if (auto im = _instanceManagerWeak.toStrongRef())
 			{
 				firstRunningInstanceID = im->getFirstRunningInstanceIdx();
@@ -1645,7 +1645,9 @@ void JsonAPI::handleInstanceCommand(const QJsonObject &message, const JsonApiCom
 		{
 			errorText = "No instance provided, but required";
 
-		} else {
+		} 
+		else 
+		{
 			bool exists = false;
 			if (auto im = _instanceManagerWeak.toStrongRef())
 			{
@@ -1653,12 +1655,8 @@ void JsonAPI::handleInstanceCommand(const QJsonObject &message, const JsonApiCom
 			}
 			if (!exists)
 			{
-				Error(_log, "Hyperion instance [%u] does not exist.", instanceID);
-				return;
+				errorText = QString("Hyperion instance [%1] does not exist.").arg(instanceID);
 			}
-		}
-		{
-			errorText = QString("Hyperion instance [%1] does not exist.").arg(instanceID);
 		}
 
 		if (!errorText.isEmpty())
@@ -1720,6 +1718,7 @@ void JsonAPI::handleInstanceCommand(const QJsonObject &message, const JsonApiCom
 		{
 			isRunning = im->isInstanceRunning(instanceID);
 		}
+
 		if (!isRunning)
 		{
 			errorDetails.append(QString("Hyperion instance [%1] - '%2' is not running.").arg(instanceID).arg(instanceName));
