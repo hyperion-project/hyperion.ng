@@ -137,6 +137,7 @@ ImageProcessor::ImageProcessor(const LedString& ledString, const QSharedPointer<
 		subComponent = hyperion->property("instance").toString();
 	}
 	_log = Logger::getInstance("IMAGETOLED", subComponent);
+	TRACK_SCOPE_SUBCOMPONENT();
 
 	_borderProcessor.reset(new BlackBorderProcessor(hyperion));
 
@@ -148,7 +149,7 @@ ImageProcessor::ImageProcessor(const LedString& ledString, const QSharedPointer<
 
 ImageProcessor::~ImageProcessor()
 {
-	qDebug() << "ImageProcessor::~ImageProcessor()...";
+	TRACK_SCOPE_SUBCOMPONENT();
 }
 
 void ImageProcessor::handleSettingsUpdate(settings::type type, const QJsonDocument& config)

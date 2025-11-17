@@ -54,7 +54,7 @@ BlackBorderProcessor::BlackBorderProcessor(const QSharedPointer<Hyperion>& hyper
 
 BlackBorderProcessor::~BlackBorderProcessor()
 {
-	qDebug() << "BlackBorderProcessor::~BlackBorderProcessor()...";
+ 	TRACK_SCOPE_SUBCOMPONENT();
 }
 
 void BlackBorderProcessor::handleSettingsUpdate(settings::type type, const QJsonDocument& config)

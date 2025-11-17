@@ -366,8 +366,6 @@ void HyperionIManager::handleFinished(const QString& name)
 		emit instanceStateChanged(InstanceState::H_STOPPED, instanceId);
 		emit change();
 
-		qDebug() << "Hyperion instance [" << instanceId << "] - '" << name << "' finished.";
-
 		// Release last shared reference BEFORE stopping thread so custom deleter can schedule deleteLater
 		// (objectDeleter checks if owning thread is running; we want it to be running at that time)
 		// Note: hyperion may already be at refcount 1 here.
