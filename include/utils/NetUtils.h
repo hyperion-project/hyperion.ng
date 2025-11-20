@@ -196,7 +196,14 @@ inline QMdnsEngine::Record resolveMDnsServiceRecord(const QByteArray& serviceIns
 		QEventLoop loop;
 
 		// Connect the signal to capture the resolved service record
-		QObject::connect(browser, &MdnsBrowser::isServiceRecordResolved, &loop, [&](QMdnsEngine::Record resolvedServiceRecord) {
+		QByteArray const requestedService = serviceInstance;
+		QObject::connect(browser, &MdnsBrowser::isServiceRecordResolved, &loop,
+						 [&, requestedService](const QByteArray& emittedService, const QMdnsEngine::Record& resolvedServiceRecord) {
+			if (emittedService != requestedService)
+			{
+				return;
+			}
+
 			serviceRecord = resolvedServiceRecord;
 			loop.quit();
 		});
@@ -231,26 +238,28 @@ inline bool resolveHostToAddress(QSharedPointer<Logger> log, const QString& host
 	if (hostname.endsWith("._tcp.local"))
 	{
 		//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
-		QMdnsEngine::Record const service = resolveMDnsServiceRecord(hostname.toUtf8());
-		if (!service.target().isEmpty())
+		QByteArray requestedService = hostname.toUtf8();
+		if (!requestedService.endsWith('.'))
 		{
-			if (!service.target().isEmpty())
-			{
-				Info(log, "Resolved service [%s] to mDNS hostname [%s], service port [%d]", QSTRING_CSTR(hostname), service.target().constData(), service.port());
-				target = service.target();
-				port = service.port();
-			}
-			else
-			{
-				Error(log, "Failed to resolved service [%s] to an mDNS hostname", QSTRING_CSTR(hostname));
-				return false;
-			}
+			requestedService.append('.');
 		}
-		else
+
+		QMdnsEngine::Record const serviceRecord = resolveMDnsServiceRecord(hostname.toUtf8());
+		if (serviceRecord.name().isEmpty() || serviceRecord.target().isEmpty())
 		{
 			Error(log, "Cannot resolve mDNS hostname for given service [%s]!", QSTRING_CSTR(hostname));
 			return false;
 		}
+
+		if (serviceRecord.name() != requestedService)
+		{
+			Error(log, "Resolved record [%s] does not match requested service [%s]", serviceRecord.name().constData(), requestedService.constData());
+			return false;
+		}
+
+		Info(log, "Resolved service [%s] to mDNS hostname [%s], service port [%d]", QSTRING_CSTR(hostname), serviceRecord.target().constData(), serviceRecord.port());
+		target = serviceRecord.target();
+		port = serviceRecord.port();
 
 		QHostAddress resolvedAddress;
 		if (NetUtils::resolveMDnsHostToAddress(log, target, resolvedAddress))
@@ -293,26 +302,28 @@ inline bool resolveMdnsHost(QSharedPointer<Logger> log, QString& hostname, int& 
 	if (hostname.endsWith("._tcp.local"))
 	{
 		//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
-		QMdnsEngine::Record const service = resolveMDnsServiceRecord(hostname.toUtf8());
-		if (!service.target().isEmpty())
+		QByteArray requestedService = hostname.toUtf8();
+		if (!requestedService.endsWith('.'))
 		{
-			if (!service.target().isEmpty())
-			{
-				Info(log, "Resolved service [%s] to mDNS hostname [%s], service port [%d]", QSTRING_CSTR(hostname), service.target().constData(), service.port());
-				target = service.target();
-				port = service.port();
-			}
-			else
-			{
-				Error(log, "Failed to resolved service [%s] to an mDNS hostname", QSTRING_CSTR(hostname));
-				return false;
-			}
+			requestedService.append('.');
 		}
-		else
+
+		QMdnsEngine::Record const serviceRecord = resolveMDnsServiceRecord(hostname.toUtf8());
+		if (serviceRecord.name().isEmpty() || serviceRecord.target().isEmpty())
 		{
 			Error(log, "Cannot resolve mDNS hostname for given service [%s]!", QSTRING_CSTR(hostname));
 			return false;
 		}
+
+		if (serviceRecord.name() != requestedService)
+		{
+			Error(log, "Resolved record [%s] does not match requested service [%s]", serviceRecord.name().constData(), requestedService.constData());
+			return false;
+		}
+
+		Info(log, "Resolved service [%s] to mDNS hostname [%s], service port [%d]", QSTRING_CSTR(hostname), serviceRecord.target().constData(), serviceRecord.port());
+		target = serviceRecord.target();
+		port = serviceRecord.port();
 
 		QHostAddress resolvedAddress;
 		if (NetUtils::resolveMDnsHostToAddress(log, target, resolvedAddress))

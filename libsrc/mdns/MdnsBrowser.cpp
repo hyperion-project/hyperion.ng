@@ -214,7 +214,7 @@ void MdnsBrowser::resolveServiceInstance(const QByteArray& serviceInstance, cons
 			Debug(_log, "No service record found for service instance [%s]", service.constData());
 		}
 	}
-	emit isServiceRecordResolved(srvRecord);
+	emit isServiceRecordResolved(serviceInstance, srvRecord);
 }
 
 QMdnsEngine::Service MdnsBrowser::getFirstService(const QByteArray& serviceType, const QString& filter, const std::chrono::milliseconds waitTime) const

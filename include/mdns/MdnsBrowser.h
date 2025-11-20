@@ -91,7 +91,7 @@ Q_SIGNALS:
 
 	void isFirstAddressResolved(QString hostname, QHostAddress address);
 
-	void isServiceRecordResolved(QMdnsEngine::Record serviceRecord) const;
+	void isServiceRecordResolved(QByteArray serviceInstance, QMdnsEngine::Record serviceRecord) const;
 
 private slots:
 
