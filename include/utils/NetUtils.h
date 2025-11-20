@@ -118,8 +118,15 @@ inline bool resolveMDnsHostToAddress(QSharedPointer<Logger> log, const QString& 
 			QEventLoop loop;
 
 			// Connect the signal to capture the resolved address
-			QObject::connect(browser, &MdnsBrowser::isFirstAddressResolved, &loop, [&](QHostAddress addr) {
-				hostAddress = std::move(addr);
+			QString const requestedHostname = hostname;
+			QObject::connect(browser, &MdnsBrowser::isFirstAddressResolved, &loop,
+							 [&, requestedHostname](const QString& resolvedHostname, const QHostAddress& addr) {
+				if (resolvedHostname.compare(requestedHostname, Qt::CaseInsensitive) != 0)
+				{
+					return;
+				}
+
+				hostAddress = addr;
 				loop.quit();
 			});
 

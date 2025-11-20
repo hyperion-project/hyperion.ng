@@ -116,21 +116,6 @@ void MdnsBrowser::onServiceRemoved(const QMdnsEngine::Service& service)
 	emit serviceRemoved(service);
 }
 
-void MdnsBrowser::onHostNameResolved(const QHostAddress& address)
-{
-	DebugIf(verboseBrowser, _log, "for address [%s], Thread: %s", QSTRING_CSTR(address.toString()), QSTRING_CSTR(QThread::currentThread()->objectName()));
-
-	// Do not publish link local addresses
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
-	if (!address.isLinkLocal())
-#else
-	if (!address.toString().startsWith("fe80"))
-#endif
-	{
-		emit isAddressResolved(address);
-	}
-}
-
 void MdnsBrowser::resolveFirstAddress(QSharedPointer<Logger> log, const QString& hostname, std::chrono::milliseconds timeout)
 {
 	qRegisterMetaType<QMdnsEngine::Message>("Message");
@@ -140,7 +125,6 @@ void MdnsBrowser::resolveFirstAddress(QSharedPointer<Logger> log, const QString&
 	if (hostname.endsWith(".local") || hostname.endsWith(".local."))
 	{
 		QMdnsEngine::Resolver const resolver (_server.get(), hostname.toUtf8(), _cache.get());
-		connect(&resolver, &QMdnsEngine::Resolver::resolved, this, &MdnsBrowser::onHostNameResolved);
 
 		DebugIf(verboseBrowser, log, "Wait for resolver on hostname [%s]", QSTRING_CSTR(hostname));
 
@@ -148,16 +132,21 @@ void MdnsBrowser::resolveFirstAddress(QSharedPointer<Logger> log, const QString&
 		QTimer timer;
 
 		timer.setSingleShot(true);
-		connect(&timer, &QTimer::timeout, this, [&loop]() {
-			loop.quit();  // Stop waiting if timeout occurs
-		});
+		connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
 
-		std::unique_ptr<QObject> context{new QObject};
-		QObject* pcontext = context.get();
-		connect(this, &MdnsBrowser::isAddressResolved, pcontext, [ &loop, &resolvedAddress, context = std::move(context)](const QHostAddress &address) mutable {
+		connect(&resolver, &QMdnsEngine::Resolver::resolved, &loop, [ &loop, &resolvedAddress ](const QHostAddress& address) {
+			// Ignore link-local addresses
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
+			if (address.isLinkLocal())
+#else
+			if (address.toString().startsWith("fe80"))
+#endif
+			{
+				return;
+			}
+
 			resolvedAddress = address;
 			loop.quit();
-			context.reset();
 		});
 
 		timer.start(timeout);
@@ -177,7 +166,7 @@ void MdnsBrowser::resolveFirstAddress(QSharedPointer<Logger> log, const QString&
 		Error(log, "Hostname [%s] is not an mDNS hostname.", QSTRING_CSTR(hostname));
 	}
 
-	emit isFirstAddressResolved(resolvedAddress);
+	emit isFirstAddressResolved(hostname, resolvedAddress);
 }
 
 void MdnsBrowser::resolveServiceInstance(const QByteArray& serviceInstance, const std::chrono::milliseconds waitTime) const

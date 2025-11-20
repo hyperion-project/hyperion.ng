@@ -17,6 +17,7 @@
 #include <QByteArray>
 #include <QMap>
 #include <QJsonArray>
+#include <QString>
 #include <QSharedPointer>
 #include <QScopedPointer>
 
@@ -88,8 +89,7 @@ Q_SIGNALS:
 	 */
 	void serviceRemoved(const QMdnsEngine::Service& service);
 
-	void isAddressResolved(QHostAddress address);
-	void isFirstAddressResolved(QHostAddress address);
+	void isFirstAddressResolved(QString hostname, QHostAddress address);
 
 	void isServiceRecordResolved(QMdnsEngine::Record serviceRecord) const;
 
@@ -100,8 +100,6 @@ private slots:
 	void onServiceAdded(const QMdnsEngine::Service& service);
 	void onServiceUpdated(const QMdnsEngine::Service& service);
 	void onServiceRemoved(const QMdnsEngine::Service& service);
-
-	void onHostNameResolved(const QHostAddress& address);
 
 private:
 	/// The logger instance for mDNS-Service

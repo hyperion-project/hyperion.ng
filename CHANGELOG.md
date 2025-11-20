@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - LED-device updates queue up and let Hyperion crash (#1887)
   - The color of the backlight threshold is green, not white/gray (#1899)
   - Install - Ubuntu 25.10 unable to install due to libcec package (#1934)
+  - Fix concurrent mDNS resolution (#1906)
 
 ---
 
@@ -61,7 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Fixes:**
   - WebUI unreachable via IPv6 (#1871)
   - Align install_pr script working with default Qt6 builds & show authentication failures (#1871)
-  
+
 - **Build:**
     - Added Debian Trixie to PR-builds for early testing
 
