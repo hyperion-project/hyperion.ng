@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Hue Bridge - Alternate certificate support
 - Linux: New DRM/KMS screen grabber with plane-based capture - not feature complete yet
 - Logging/Tracing: Introduced qlogging categories to enable dynamic tracing
+- Home Assistant: Dynamically set brightness for higher dynamic range (#1922)
 
 ---
 
@@ -43,6 +44,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - LED-device updates queue up and let Hyperion crash (#1887)
   - LED-device switch-off were not always executed during instance stopping
   - Fix concurrent mDNS resolution (#1906) - _Thanks to @discordianfish_
+  - The color of the backlight threshold is green, not white/gray (#1899)
+  - Install - Ubuntu 25.10 unable to install due to libcec package (#1934)
 
 ---
 

@@ -78,7 +78,7 @@ endif()
 # https://cmake.org/cmake/help/latest/cpack_gen/deb.html
 if(CPACK_GENERATOR MATCHES ".*DEB.*")
 	set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_SOURCE_DIR}/cmake/linux/package-scripts/preinst;${CMAKE_SOURCE_DIR}/cmake/linux/package-scripts/postinst;${CMAKE_SOURCE_DIR}/cmake/linux/package-scripts/prerm")
-	set(CPACK_DEBIAN_PACKAGE_DEPENDS "libcec6 | libcec4 | libcec (>= 4.0)")
+	set(CPACK_DEBIAN_PACKAGE_DEPENDS "libcec7 | libcec6 | libcec4 | libcec (>= 4.0)")
 	set(CPACK_DEBIAN_PACKAGE_SECTION "Miscellaneous")
 endif()
 

@@ -159,6 +159,6 @@ void MultiColorAdjustment::applyAdjustment(QVector<ColorRgb>& ledColors)
 		color.blue  = OB + RB + GB + BB + CB + MB + YB + WB;
 
 		adjustment->_rgbTransform.applyTemperature(color);
-		adjustment->_rgbTransform.applyBacklight(color.red, color.green, color.green);
+		adjustment->_rgbTransform.applyBacklight(color.red, color.green, color.blue);
 	}
 }

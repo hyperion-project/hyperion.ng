@@ -464,8 +464,10 @@ if(ENABLE_PROTOBUF_SERVER)
 
 		# Apply patches to Protobuf
 		execute_process(
-			COMMAND git apply -q "${CMAKE_CURRENT_SOURCE_DIR}/patch/protobuf/atomic.diff"
+			COMMAND git apply "${CMAKE_CURRENT_SOURCE_DIR}/patch/protobuf/atomic.diff"
 			WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/external/protobuf"
+			OUTPUT_QUIET
+			ERROR_QUIET
 		)
 
 		# Add Protobuf directory to the build
