@@ -113,7 +113,7 @@ void MdnsBrowser::onServiceAdded(const QMdnsEngine::Service& service)
 	emit serviceFound(service);
 }
 
-void MdnsBrowser::onServiceUpdated(const QMdnsEngine::Service& service)
+void MdnsBrowser::onServiceUpdated(const QMdnsEngine::Service& service) const
 {
 	qCDebug(mdns_browser) << "Service:" << service.type() << "was updated, name:" << service.name() << ", port:" << service.port();
 }
@@ -124,19 +124,9 @@ void MdnsBrowser::onServiceRemoved(const QMdnsEngine::Service& service)
 	emit serviceRemoved(service);
 }
 
-void MdnsBrowser::onHostNameResolved(const QString& hostname, const QHostAddress& address)
+void MdnsBrowser::onHostNameResolved(QString hostname, QHostAddress address) const
 {
 	qCDebug(mdns_browser) << "Resolved mDNS hostname:" << hostname << "to IP-address:" << address;
-
-	// Do not publish link local addresses
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
-	if (!address.isLinkLocal())
-#else
-	if (!address.toString().startsWith("fe80"))
-#endif
-	{
-		emit isAddressResolved(hostname, address);
-	}
 }
 
 void MdnsBrowser::resolveFirstAddress(QSharedPointer<Logger> log, const QString& hostname, const std::chrono::milliseconds timeout)
@@ -173,47 +163,41 @@ void MdnsBrowser::resolveFirstAddress(QSharedPointer<Logger> log, const QString&
 		hostLookupName.append('.');
 	}
 
-	QSharedPointer<QMdnsEngine::Resolver> resolver(new QMdnsEngine::Resolver(_server.get(), hostLookupName, _cache.get()), &QObject::deleteLater);
-	connect(resolver.get(), &QMdnsEngine::Resolver::resolved, this, [this, hostname](const QHostAddress& address) {
-		onHostNameResolved(hostname, address);
-		});
-
+	QMdnsEngine::Resolver const resolver(_server.get(), hostLookupName, _cache.get());
 	qCDebug(mdns_browser) << "Wait for resolver on mDNS hostname:" << hostname;
 
 	QEventLoop loop;
 	QTimer timer;
 
 	timer.setSingleShot(true);
-	connect(&timer, &QTimer::timeout, this, [&loop]() {
-		loop.quit();  // Stop waiting if timeout occurs
-		});
+	connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
 
-	auto thisContext = std::make_unique<QObject>();
-	auto pcontext = thisContext.get();
-	QMetaObject::Connection connection = connect(this, &MdnsBrowser::isAddressResolved, pcontext, [&connection, &hostname, &protocol, &loop, &resolvedAddress](const QString& resHostname, const QHostAddress& address) mutable {
-		if (hostname == resHostname)
+	connect(&resolver, &QMdnsEngine::Resolver::resolved, &loop, [hostname, protocol, &loop, &resolvedAddress](const QHostAddress &address)
+	{
+		// Ignore link-local addresses
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
+		if (address.isLinkLocal())
+#else
+		if (address.toString().startsWith("fe80"))
+#endif
 		{
-			if (protocol == QAbstractSocket::AnyIPProtocol || address.protocol() == protocol)
-			{
-				qCDebug(mdns_browser) << "Resolved mDNS hostname:" << hostname << "matches the protocol:" << protocol << ", resolved IP-address:" << address;
-				resolvedAddress = address;
-				QObject::disconnect(connection);
-				loop.quit();
-			}
-			else
-			{
-				qCDebug(mdns_browser) << "Ignoring address" << address << "for" << hostname << "- protocol mismatch. Requested:" << protocol << "Got:" << address.protocol();
-			}
+			return;
+		}
+
+		if (protocol == QAbstractSocket::AnyIPProtocol || address.protocol() == protocol)
+		{
+			qCDebug(mdns_browser) << "Resolved mDNS hostname:" << hostname << "matches the protocol:" << protocol << ", resolved IP-address:" << address;
+			resolvedAddress = address;
+			loop.quit();
 		}
 		else
 		{
-			qCWarning(mdns_browser) << "Resolved mDNS hostname:" << resHostname << "does not match requested mDNS hostname:" << hostname;
-		}
-		});
+			qCDebug(mdns_browser) << "Ignoring address" << address << "for" << hostname << "- protocol mismatch. Requested:" << protocol << "Got:" << address.protocol();
+		} 
+	});
 
 	timer.start(timeout);
 	loop.exec();
-	QObject::disconnect(connection);
 
 	if (resolvedAddress.isNull())
 	{

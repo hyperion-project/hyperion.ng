@@ -15,6 +15,7 @@
 // Qt includes
 #include <QObject>
 #include <QByteArray>
+#include <QString>
 #include <QMap>
 #include <QJsonArray>
 #include <QSharedPointer>
@@ -113,20 +114,20 @@ Q_SIGNALS:
 	 */
 	void serviceRemoved(const QMdnsEngine::Service& service);
 
-	void isAddressResolved(const QString& hostname, const QHostAddress& address);
-	void isFirstAddressResolved(const QString& hostname, const QHostAddress& address);
+	void isAddressResolved(QString hostname, QHostAddress address);
+	void isFirstAddressResolved(QString hostname, QHostAddress address);
 
-	void isServiceRecordResolved(const QByteArray& serviceInstance, const QMdnsEngine::Record& serviceRecord) const;
+	void isServiceRecordResolved(QByteArray serviceInstance, QMdnsEngine::Record serviceRecord) const;
 
 private slots:
 
 	void initMdns();
 
 	void onServiceAdded(const QMdnsEngine::Service& service);
-	void onServiceUpdated(const QMdnsEngine::Service& service);
+	void onServiceUpdated(const QMdnsEngine::Service& service) const;
 	void onServiceRemoved(const QMdnsEngine::Service& service);
 
-	void onHostNameResolved(const QString& hostname, const QHostAddress& address);
+	void onHostNameResolved(QString hostname, QHostAddress address) const;
 
 private:
 	/// The logger instance for mDNS-Service

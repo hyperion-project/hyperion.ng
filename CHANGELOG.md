@@ -41,6 +41,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - LED-devices are not retrying to establish connectivity, if supported by the device
   - LED-devices are resolving IP-addresses for API and UDP two times in sequence
   - LED-device updates queue up and let Hyperion crash (#1887)
+  - LED-device switch-off were not always executed during instance stopping
+  - Fix concurrent mDNS resolution (#1906) - _Thanks to @discordianfish_
 
 ---
 
