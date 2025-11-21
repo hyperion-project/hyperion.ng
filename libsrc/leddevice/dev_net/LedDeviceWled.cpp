@@ -230,6 +230,11 @@ int LedDeviceWled::close()
 	{
 		retval = LedDeviceUdpRaw::close();
 	}
+
+	_restApi.reset();
+	_wledInfo = QJsonObject{};
+	_originalStateProperties = QJsonObject{};
+
 	return retval;
 }
 
@@ -420,6 +425,7 @@ bool LedDeviceWled::powerOn()
 
 bool LedDeviceWled::powerOff()
 {
+	trackDevice(leddevice_flow, "Power OFF") << ", is device ready :" << (_isDeviceReady ? "YES" : "NO");
 	if (!_isDeviceReady)
 	{
 		return false;

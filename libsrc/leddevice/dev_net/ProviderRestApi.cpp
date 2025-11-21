@@ -30,6 +30,8 @@ ProviderRestApi::ProviderRestApi(const QString& scheme, const QString& host, int
 	, _requestTimeout(DEFAULT_REST_TIMEOUT)
 	, _isSelfSignedCertificateAccpeted(false)
 {
+	TRACK_SCOPE();
+
 	_apiUrl.setScheme(scheme);
 	_apiUrl.setHost(host);
 	_apiUrl.setPort(port);
@@ -57,7 +59,7 @@ ProviderRestApi::ProviderRestApi()
 
 ProviderRestApi::~ProviderRestApi()
 {
-
+	TRACK_SCOPE();
 }
 
 void ProviderRestApi::setScheme(const QString& scheme)

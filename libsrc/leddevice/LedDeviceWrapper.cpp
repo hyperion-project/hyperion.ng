@@ -125,14 +125,11 @@ void LedDeviceWrapper::stopDevice()
 	disconnect(this, &LedDeviceWrapper::enable, _ledDevice.get(), &LedDevice::enable);
 	disconnect(this, &LedDeviceWrapper::switchOn, _ledDevice.get(), &LedDevice::switchOn);
 
-	// Create a local event loop to wait for the LedDevice isStopped signal
+	// Stop the LedDevice and wait for it to be done
 	QEventLoop loop;
 	connect(_ledDevice.get(), &LedDevice::isStopped, &loop, &QEventLoop::quit);
-	// Turn the LEDs off & stops refresh timers
-	emit stop();
+	QMetaObject::invokeMethod(_ledDevice.get(), "stop", Qt::QueuedConnection);	
 	loop.exec();
-
-	_ledDevice.reset();
 
 	if (!_ledDeviceThread.isNull())
 	{

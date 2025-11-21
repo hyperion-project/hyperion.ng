@@ -4,6 +4,7 @@
 // STL includes
 #include <chrono>
 #include <algorithm>
+#include <atomic>
 
 // qt includes
 #include <QObject>
@@ -316,6 +317,9 @@ signals:
 	///
 	void isOnChanged(bool isOn);
 
+	/// @brief Emits once a switchOff() operation completed (used for synchronisation).
+	void switchOffCompleted();
+
 	///
 	/// @brief Emits whenever the LED-Device is stopped.
 	///
@@ -530,6 +534,30 @@ private slots:
 	void retryEnable();
 
 private:
+	class SwitchOffCompletionGuard final
+	{
+	public:
+		explicit SwitchOffCompletionGuard(LedDevice* device)
+			: _device(device)
+		{
+		}
+
+		~SwitchOffCompletionGuard()
+		{
+			if (_device != nullptr)
+			{
+				_device->endSwitchOff();
+			}
+		}
+
+	private:
+		LedDevice* _device;
+		SwitchOffCompletionGuard(const SwitchOffCompletionGuard&) = delete;
+		SwitchOffCompletionGuard& operator=(const SwitchOffCompletionGuard&) = delete;
+		SwitchOffCompletionGuard(SwitchOffCompletionGuard&&) = delete;
+		SwitchOffCompletionGuard& operator=(SwitchOffCompletionGuard&&) = delete;
+	};
+
 
 	///
 	/// @brief Update the color values of the device's LEDs.
@@ -546,6 +574,21 @@ private:
 
 	/// @brief Stop refresh cycle
 	void stopRefreshTimer();
+
+	/// @brief Wait until a pending switchOff() operation finishes.
+	void waitForPendingSwitchOff() const;
+
+	/// @brief Try to start a switchOff() sequence.
+	bool beginSwitchOff();
+
+	/// @brief Mark the end of a switchOff() sequence and notify waiters.
+	void endSwitchOff();
+
+	/// @brief Schedule stop() to re-run once the current switchOff completes.
+	void scheduleStopAfterSwitchOff();
+
+	/// @brief Reset any deferred stop state and disconnect helper callbacks.
+	void resetStopDeferral();
 
 	/// Timer that enables a device (used to retry enablement, if enabled failed before)
 	QScopedPointer<QTimer>	_enableAttemptsTimer;
@@ -570,6 +613,9 @@ private:
 	QVector<ColorRgb> _lastLedValues;
 
 	std::atomic<bool> _isLedUpdatePending{ false };
+	std::atomic<bool> _isSwitchOffInProgress{ false };
+	std::atomic<bool> _isStopDeferred{ false };
+	QMetaObject::Connection _stopDeferredConnection;
 
 	// The mutex now ONLY protects the data buffer.
 	QMutex _ledBufferMutex;

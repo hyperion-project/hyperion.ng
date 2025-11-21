@@ -11,6 +11,7 @@
 #include <QEventLoop>
 #include <QTimer>
 #include <QDateTime>
+#include <QThread>
 
 #include "hyperion/Hyperion.h"
 #include <utils/JsonUtils.h>
@@ -43,6 +44,7 @@ namespace {
 
 	const int DEFAULT_MAX_ENABLE_ATTEMPTS{ 5 };
 	constexpr std::chrono::seconds DEFAULT_ENABLE_ATTEMPTS_INTERVAL{ 5 };
+	constexpr std::chrono::milliseconds SWITCH_OFF_WAIT_TIMEOUT{ 5000 };
 
 } //End of constants
 
@@ -103,8 +105,22 @@ void LedDevice::start()
 void LedDevice::stop()
 {
 	trackDevice(leddevice_flow, "Stop");
+	if (_isSwitchOffInProgress.load(std::memory_order_acquire))
+	{
+		if (QThread::currentThread() == thread())
+		{
+			trackDevice(leddevice_flow, "Stop deferred until current switchOff completes");
+			scheduleStopAfterSwitchOff();
+			return;
+		}
+
+		waitForPendingSwitchOff();
+	}
+
+	resetStopDeferral();
 	this->stopEnableAttemptsTimer();
 	this->disable();
+	waitForPendingSwitchOff();
 	this->stopRefreshTimer();
 	Info(_log, "Stopped LedDevice '%s'", QSTRING_CSTR(_activeDeviceType));
 	emit isStopped();
@@ -434,6 +450,85 @@ int LedDevice::writeColor(const ColorRgb& color, int numberOfWrites)
 	return rc;
 }
 
+void LedDevice::waitForPendingSwitchOff() const
+{
+	trackDevice(leddevice_flow, "Waiting for pending Switch OFF") << "_isSwitchOffInProgress:" << _isSwitchOffInProgress.load();
+	if (!_isSwitchOffInProgress.load(std::memory_order_acquire))
+	{
+		return;
+	}
+
+	if (QThread::currentThread() == thread())
+	{
+		trackDevice(leddevice_flow, "Skip waiting for pending switchOff on device thread");
+		return;
+	}
+
+	trackDevice(leddevice_flow, "Waiting for pending Switch OFF - start loop") << "_isSwitchOffInProgress:" << _isSwitchOffInProgress.load();
+	QEventLoop loop;
+	QMetaObject::Connection const connection = connect(this, &LedDevice::switchOffCompleted, &loop, &QEventLoop::quit, Qt::QueuedConnection);
+	QTimer timeoutTimer;
+	timeoutTimer.setSingleShot(true);
+	QObject::connect(&timeoutTimer, &QTimer::timeout, &loop, &QEventLoop::quit);
+	timeoutTimer.start(static_cast<int>(SWITCH_OFF_WAIT_TIMEOUT.count()));
+	if (_isSwitchOffInProgress.load(std::memory_order_acquire))
+	{
+		loop.exec();
+	}
+	disconnect(connection);
+	if (_isSwitchOffInProgress.load(std::memory_order_acquire))
+	{
+		Warning(_log, "Timeout waiting for switch-off completion on device '%s'", QSTRING_CSTR(_activeDeviceType));
+	}
+}
+
+bool LedDevice::beginSwitchOff()
+{
+	bool expected = false;
+	trackDevice(leddevice_flow, "Begin Switch OFF") << "_isSwitchOffInProgress:" << _isSwitchOffInProgress.load();
+	return _isSwitchOffInProgress.compare_exchange_strong(expected, true, std::memory_order_acq_rel);
+}
+
+void LedDevice::endSwitchOff()
+{
+	_isSwitchOffInProgress.store(false, std::memory_order_release);
+	trackDevice(leddevice_flow, "Switch OFF completed") << "_isSwitchOffInProgress:" << _isSwitchOffInProgress.load();
+	emit switchOffCompleted();
+}
+
+void LedDevice::scheduleStopAfterSwitchOff()
+{
+	if (_isStopDeferred.exchange(true))
+	{
+		return;
+	}
+
+	_stopDeferredConnection = connect(this, &LedDevice::switchOffCompleted, this, [this]()
+	{
+		const QMetaObject::Connection connection = _stopDeferredConnection;
+		if (connection)
+		{
+			disconnect(connection);
+		}
+		_stopDeferredConnection = QMetaObject::Connection{};
+		_isStopDeferred.store(false, std::memory_order_release);
+		QMetaObject::invokeMethod(this, "stop", Qt::QueuedConnection);
+	}, Qt::QueuedConnection);
+}
+
+void LedDevice::resetStopDeferral()
+{
+	if (_isStopDeferred.exchange(false))
+	{
+		const QMetaObject::Connection connection = _stopDeferredConnection;
+		if (connection)
+		{
+			disconnect(connection);
+		}
+		_stopDeferredConnection = QMetaObject::Connection{};
+	}
+}
+
 bool LedDevice::switchOn()
 {
 	trackDevice(leddevice_flow, "Switch ON") << ", current state is :" << (_isOn ? "ON" : "OFF");
@@ -469,12 +564,22 @@ bool LedDevice::switchOff()
 	trackDevice(leddevice_flow, "Switch OFF") << ", current state is :" << (_isOn ? "ON" : "OFF");
 	if (!_isOn)
 	{
+		waitForPendingSwitchOff();
 		return true;
 	}
 
+	if (!beginSwitchOff())
+	{
+		waitForPendingSwitchOff();
+		return true;
+	}
+
+	SwitchOffCompletionGuard completion(this);
+
 	if (!_isDeviceInitialised)
 	{
-		emit isOnChanged(false);
+		_isOn = false;
+		emit isOnChanged(_isOn);
 		return false;
 	}
 
@@ -502,9 +607,9 @@ bool LedDevice::switchOff()
 			}
 		}
 	}
-	
+
 	emit isOnChanged(_isOn);
-	
+
 	return true;
 }
 
