@@ -444,7 +444,7 @@ $(document).ready(function () {
       };
 
       for (const prop in propMappings) {
-        if (hasDefaults) {
+        if (hasDefaults && currentProps[prop] && Object.hasOwn(defaultProperties, prop)) {
           currentProps[prop].default = defaultProperties[prop];
         }
         // Ensure min,max and step values are set inline with the selected grabber to ensure valid input
@@ -453,8 +453,8 @@ $(document).ready(function () {
         let currentValue = 0;
         if (isConfiguredDevice) {
           currentValue = window.serverConfig.grabberV4L2[propMappings[prop]];
-        } else if (hasDefaults) {
-          currentValue = currentProps.default;
+        } else if (hasDefaults && currentProps[prop]?.hasOwnProperty('default')) {
+          currentValue = currentProps[prop].default;
         }
 
         if (currentValue !== undefined) {
