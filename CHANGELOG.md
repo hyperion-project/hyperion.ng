@@ -53,6 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - RAM Leak with hyperiond. Gbytes in a matter of days. (#1792)
   - Memory Leak with new Hyperion 2.1.1 on Windows 11 (#1892)
   - JSON-API: Instance Command without proper instances is using wrong instance ID
+  - Import 2.1.1 config via 2.1.2 UI fails validation (#1907)
   
 - **Refactors:**
   - Fixed Image & ImageData and add debug logging (#1792, #1892)

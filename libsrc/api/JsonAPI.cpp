@@ -279,11 +279,20 @@ void JsonAPI::handleMessage(const QString &messageString, const QString &httpAut
 	}
 
 	schemaJson = QJsonFactory::readSchema(QString(":schema-%1").arg(command));
-	validationResult = JsonUtils::validate(ident, message, schemaJson, _log);
-	if (!validationResult.first)
+
+	if (cmd.command == Command::Config && cmd.subCommand == SubCommand::RestoreConfig)
 	{
-		sendErrorReply("Invalid params", validationResult.second, cmd);
-		return;
+		qCDebug(api_msg_request) << "Skipping schema validation when restoring a configuration to allow repairs";
+	}
+	else
+	{
+		validationResult = JsonUtils::validate(ident, message, schemaJson, _log);
+
+		if (!validationResult.first)
+		{
+			sendErrorReply("Invalid params", validationResult.second, cmd);
+			return;
+		}
 	}
 
 	qCDebug(api_msg_request) << "Request [" << Command::toString(cmd.command) << ", "
@@ -1222,7 +1231,7 @@ void JsonAPI::handleConfigRestoreCommand(const QJsonObject &message, const JsonA
 	QJsonObject config = message["config"].toObject();
 
 	DBConfigManager configManager;
-	auto const [success, messages] = configManager.updateConfiguration(config, false);
+	auto const [success, messages] = configManager.updateConfiguration(config, true);
 	if (success)
 	{
 		QString const infoMsg {"Restarting after importing configuration successfully."};
