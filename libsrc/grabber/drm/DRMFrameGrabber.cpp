@@ -116,6 +116,9 @@ static PixelFormat GetPixelFormatForDrmFormat(uint32_t format)
 {
     switch (format)
     {
+#ifdef DRM_FORMAT_RGB565
+    case DRM_FORMAT_RGB565: return PixelFormat::BGR16;
+#endif
     case DRM_FORMAT_XRGB8888: return PixelFormat::BGR32;
     case DRM_FORMAT_ARGB8888: return PixelFormat::BGR32;
     case DRM_FORMAT_XBGR8888: return PixelFormat::RGB32;
@@ -255,6 +258,11 @@ static bool processLinearFramebuffer(const LinearFramebufferParams& params)
         lineLength = params.w * 2; // 16bpp luma
     }
 #endif
+    else if (params.pixelFormat == PixelFormat::BGR16)
+    {
+        size = params.w * params.h * 2;
+        lineLength = params.w * 2;
+    }
     else if (params.pixelFormat == PixelFormat::RGB32 || params.pixelFormat == PixelFormat::BGR32)
     {
         size = params.w * params.h * 4;
