@@ -113,8 +113,7 @@ void API::setColor(int priority, const QVector<uint8_t> &ledColors, int timeout_
 			fledColors.append(ColorRgb{ledColors[i], ledColors[i + 1], ledColors[i + 2]});
 		}
 
-		QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-		if (hyperion)
+		if (auto hyperion = _hyperionWeak.toStrongRef())
 		{
 			QMetaObject::invokeMethod(hyperion.get(), "setColor", Qt::QueuedConnection, Q_ARG(int, priority), Q_ARG(QVector<ColorRgb>, fledColors), Q_ARG(int, timeout_ms), Q_ARG(QString, origin));
 		}
@@ -207,8 +206,7 @@ bool API::setImage(ImageCmdData &data, hyperion::Components comp, QString &reply
 	Image<ColorRgb> image(data.width, data.height);
 	memcpy(image.memptr(), data.data.data(), static_cast<size_t>(data.data.size()));
 
-	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-	if (hyperion)
+	if (auto hyperion = _hyperionWeak.toStrongRef())
 	{
 		QMetaObject::invokeMethod(hyperion.get(), "registerInput", Qt::QueuedConnection, Q_ARG(int, data.priority), Q_ARG(hyperion::Components, comp), Q_ARG(QString, data.origin), Q_ARG(QString, data.imgName));
 		QMetaObject::invokeMethod(hyperion.get(), "setInputImage", Qt::QueuedConnection, Q_ARG(int, data.priority), Q_ARG(Image<ColorRgb>, image), Q_ARG(int64_t, data.duration));
@@ -221,8 +219,7 @@ bool API::clearPriority(int priority, QString &replyMsg, hyperion::Components /*
 {
 	if (priority < 0 || (priority > 0 && priority < PriorityMuxer::BG_PRIORITY))
 	{
-		QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-		if (hyperion)
+		if (auto hyperion = _hyperionWeak.toStrongRef())
 		{
 			QMetaObject::invokeMethod(hyperion.get(), "clear", Qt::QueuedConnection, Q_ARG(int, priority));
 		}
@@ -241,8 +238,7 @@ bool API::setComponentState(const QString &comp, const bool &compState, QString 
 
 	if (component != COMP_INVALID)
 	{
-		QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-		if (hyperion)
+		if (auto hyperion = _hyperionWeak.toStrongRef())
 		{
 			QMetaObject::invokeMethod(hyperion.get(), "compStateChangeRequest", Qt::QueuedConnection, Q_ARG(hyperion::Components, component), Q_ARG(bool, compState));
 		}
@@ -254,8 +250,7 @@ bool API::setComponentState(const QString &comp, const bool &compState, QString 
 
 void API::setLedMappingType(int type, hyperion::Components /*callerComp*/) const
 {
-	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-	if (hyperion)
+	if (auto hyperion = _hyperionWeak.toStrongRef())
 	{
 		QMetaObject::invokeMethod(hyperion.get(), "setLedMappingType", Qt::QueuedConnection, Q_ARG(int, type));
 	}
@@ -263,8 +258,7 @@ void API::setLedMappingType(int type, hyperion::Components /*callerComp*/) const
 
 void API::setVideoMode(VideoMode mode, hyperion::Components /*callerComp*/) const
 {
-	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-	if (hyperion)
+	if (auto hyperion = _hyperionWeak.toStrongRef())
 	{
 		QMetaObject::invokeMethod(hyperion.get(), "setVideoMode", Qt::QueuedConnection, Q_ARG(VideoMode, mode));
 	}
@@ -274,8 +268,7 @@ void API::setVideoMode(VideoMode mode, hyperion::Components /*callerComp*/) cons
 bool API::setEffect(const EffectCmdData &dat, hyperion::Components /*callerComp*/) const
 {
 	int isStarted {-1};
-	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-	if (hyperion)
+	if (auto hyperion = _hyperionWeak.toStrongRef())
 	{
 		if (!dat.args.isEmpty())
 		{
@@ -293,8 +286,7 @@ bool API::setEffect(const EffectCmdData &dat, hyperion::Components /*callerComp*
 
 void API::setSourceAutoSelect(bool state, hyperion::Components /*callerComp*/) const
 {
-	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-	if (hyperion)
+	if (auto hyperion = _hyperionWeak.toStrongRef())
 	{
 		QMetaObject::invokeMethod(hyperion.get(), "setSourceAutoSelect", Qt::QueuedConnection, Q_ARG(bool, state));
 	}
@@ -302,8 +294,7 @@ void API::setSourceAutoSelect(bool state, hyperion::Components /*callerComp*/) c
 
 void API::setVisiblePriority(int priority, hyperion::Components /*callerComp*/) const
 {
-	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-	if (hyperion)
+	if (auto hyperion = _hyperionWeak.toStrongRef())
 	{
 		QMetaObject::invokeMethod(hyperion.get(), "setVisiblePriority", Qt::QueuedConnection, Q_ARG(int, priority));
 	}
@@ -318,8 +309,7 @@ void API::registerInput(int priority, hyperion::Components component, const QStr
 
 	_activeRegisters.insert(priority, registerData{component, origin, owner, callerComp});
 
-	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-	if (hyperion)
+	if (auto hyperion = _hyperionWeak.toStrongRef())
 	{
 		QMetaObject::invokeMethod(hyperion.get(), "registerInput", Qt::QueuedConnection, Q_ARG(int, priority), Q_ARG(hyperion::Components, component), Q_ARG(QString, origin), Q_ARG(QString, owner));
 	}
@@ -350,6 +340,11 @@ bool API::setHyperionInstance(quint8 inst)
 	{
 		QMetaObject::invokeMethod(im.get(), "getHyperionInstance", Qt::DirectConnection, Q_RETURN_ARG(QSharedPointer<Hyperion>, hyperion), Q_ARG(quint8, inst));
 		_hyperionWeak = hyperion;
+		if (hyperion.isNull())
+		{
+			_currInstanceIndex = NO_INSTANCE_ID;
+			return false;
+		}
 		_currInstanceIndex = inst;
 	}
 	else
@@ -363,8 +358,7 @@ bool API::setHyperionInstance(quint8 inst)
 bool API::isHyperionEnabled() const
 {
 	int isEnabled {-1};
-	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-	if (hyperion)
+	if (auto hyperion = _hyperionWeak.toStrongRef())
 	{
 		QMetaObject::invokeMethod(hyperion.get(), "isComponentEnabled", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, isEnabled), Q_ARG(hyperion::Components, hyperion::COMP_ALL));
 	}
@@ -456,8 +450,7 @@ QString API::deleteEffect(const QString &name) const
 	if (_adminAuthorized)
 	{
 		QString res;
-		QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-		if (hyperion)
+		if (auto hyperion = _hyperionWeak.toStrongRef())
 		{
 			QMetaObject::invokeMethod(hyperion.get(), "deleteEffect", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QString, res), Q_ARG(QString, name));
 		}
@@ -471,8 +464,7 @@ QString API::saveEffect(const QJsonObject &data) const
 	if (_adminAuthorized)
 	{
 		QString res;
-		QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-		if (hyperion)
+		if (auto hyperion = _hyperionWeak.toStrongRef())
 		{
 			QMetaObject::invokeMethod(hyperion.get(), "saveEffect", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QString, res), Q_ARG(QJsonObject, data));
 		}

@@ -543,13 +543,12 @@ void JsonAPI::handleCommand(const JsonApiCommand& cmd, const QJsonObject &messag
 
 void JsonAPI::handleGetImageSnapshotCommand(const QJsonObject& message, const JsonApiCommand &cmd)
 {
-	if (_hyperionWeak.isNull())
+	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
+	if (hyperion.isNull())
 	{
-		sendErrorReply("Failed to create image snapshot. No instance.", cmd);
+		sendErrorReply("Failed to create image snapshot. No instance running.", cmd);
 		return;
 	}
-
-	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
 
 	QString imageFormat = message.value("format").toString("jpg").toLower();
 	if (imageFormat != "jpg" && imageFormat != "png")
@@ -611,13 +610,12 @@ void JsonAPI::handleGetImageSnapshotCommand(const QJsonObject& message, const Js
 
 void JsonAPI::handleGetLedSnapshotCommand(const QJsonObject& /*message*/, const JsonApiCommand &cmd)
 {
-	if (_hyperionWeak.isNull())
+	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
+	if (hyperion.isNull())
 	{
-		sendErrorReply("Failed to create snapshot. No instance not.", cmd);
+		sendErrorReply("Failed to create snapshot. No instance running.", cmd);
 		return;
 	}
-
-	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
 
 	QVector<ColorRgb> ledColors;
 	QEventLoop loop;
@@ -783,7 +781,8 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const JsonApiC
 	case SubCommand::GetInfo:
 	{
 		// Global information
-		info = JsonInfo::getInfo(_hyperionWeak.toStrongRef(), _log);
+		QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
+		info = JsonInfo::getInfo(hyperion, _log);
 	
 		if (!_noListener && message.contains("subscribe"))
 		{
@@ -865,27 +864,31 @@ void JsonAPI::handleClearallCommand(const QJsonObject &message, const JsonApiCom
 void JsonAPI::handleAdjustmentCommand(const QJsonObject &message, const JsonApiCommand& cmd)
 {
 	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-	if (hyperion)
+	if (hyperion.isNull())
 	{
-		const QJsonObject& adjustment = message["adjustment"].toObject();
-
-		const QList<QString> adjustmentIds = hyperion->getAdjustmentIds();
-		if (adjustmentIds.isEmpty()) {
-			sendErrorReply("No adjustment data available", cmd);
-			return;
-		}
-
-		const QString adjustmentId = adjustment["id"].toString(adjustmentIds.first());
-		ColorAdjustment* colorAdjustment = hyperion->getAdjustment(adjustmentId);
-		if (colorAdjustment == nullptr) {
-			Warning(_log, "Incorrect adjustment identifier: %s", adjustmentId.toStdString().c_str());
-			return;
-		}
-
-		applyColorAdjustments(adjustment, colorAdjustment);
-		applyTransforms(adjustment, colorAdjustment);
-		hyperion->adjustmentsUpdated();
+		sendErrorReply("Failed to handle adjustment command. No instance running.", cmd);
+		return;
 	}
+
+	const QJsonObject& adjustment = message["adjustment"].toObject();
+
+	const QList<QString> adjustmentIds = hyperion->getAdjustmentIds();
+	if (adjustmentIds.isEmpty()) {
+		sendErrorReply("No adjustment data available", cmd);
+		return;
+	}
+
+	const QString adjustmentId = adjustment["id"].toString(adjustmentIds.first());
+	ColorAdjustment* colorAdjustment = hyperion->getAdjustment(adjustmentId);
+	if (colorAdjustment == nullptr) {
+		Warning(_log, "Incorrect adjustment identifier: %s", adjustmentId.toStdString().c_str());
+		return;
+	}
+
+	applyColorAdjustments(adjustment, colorAdjustment);
+	applyTransforms(adjustment, colorAdjustment);
+	hyperion->adjustmentsUpdated();
+
 	sendSuccessReply(cmd);
 }
 
@@ -1307,8 +1310,7 @@ void JsonAPI::handleLedColorsCommand(const QJsonObject& /*message*/, const JsonA
 	case SubCommand::LedStreamStart:
 	{
 		_jsonCB->subscribe(Subscription::LedColorsUpdate);
-		QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-		if (hyperion)
+		if (auto hyperion = _hyperionWeak.toStrongRef())
 		{
 			// push once
 			hyperion->update();
@@ -2029,8 +2031,7 @@ void JsonAPI::sendNewRequest(const QJsonValue &infoData, const QString &command,
 
 	if (instanceCmdType != InstanceCmd::No)
 	{
-		QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-		if (hyperion)
+		if (auto hyperion = _hyperionWeak.toStrongRef())
 		{
 			request["instance"] = hyperion->getInstanceIndex();
 		}

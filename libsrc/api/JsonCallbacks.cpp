@@ -487,7 +487,12 @@ void JsonCallbacks::handlePriorityUpdate(int currentPriority, const PriorityMuxe
 {
 	QJsonObject data;
 	data["priorities"] = JsonInfo::getPrioritiestInfo(currentPriority, activeInputs);
-	data["priorities_autoselect"] = _hyperionWeak.toStrongRef()->sourceAutoSelectEnabled();
+	bool isAutoSelectEnabled = false;
+	if (auto hyperion = _hyperionWeak.toStrongRef())
+	{
+		isAutoSelectEnabled = hyperion->sourceAutoSelectEnabled();
+	}
+	data["priorities_autoselect"] = isAutoSelectEnabled;
 
 	doCallback(Subscription::PrioritiesUpdate, data);
 }

@@ -240,6 +240,9 @@ void HyperionDaemon::stopServices()
 {
 	Info(_log, "Stopping Hyperion services...");
 
+	// Stop event services first to inform clients about shutdown and prevent further communication via JSON API
+	stopEventServices();
+	
 	stopGrabberServices();
 
 	// Ensure that all Instances and their threads are stopped
@@ -253,8 +256,6 @@ void HyperionDaemon::stopServices()
 
 	stopNetworkOutputServices();
 	stopNetworkServices();
-
-	stopEventServices();
 
 	HyperionIManager::destroyInstance();
 
