@@ -18,7 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Hue Bridge - Use https and certificates for all API calls, support Bridge Pro (V3)
 - Hue Bridge - Alternate certificate support
 - Linux: New DRM/KMS screen grabber with plane-based capture - not feature complete yet
-- Logging/Tracing: Introduced qlogging categories to enable dynamic tracing
 - Home Assistant: Dynamically set brightness for higher dynamic range (#1922)
 - Add DRM_FORMAT_RGB565 format to DRM frame grabber
 
@@ -28,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Hue Bridge - Wizard updates to support bridge-ids, overall code refactoring
 - USB Grabber - Default hardware control properties are now applied when a new USB grabber is selected (avoids black images)
+- USB Grabber - Correct garbage default control values to avoid save issues (#1928)
 - Amlogic grabber - Support to switch between DRM & FB-DEV for CoreElec New Order version
 - Web UI: Update panel title uses "Hyperion - <version>"; skip showing the "nightly" tag in releases list
 - Screen grabbers: Commonized base with getDeviceName/getInputDeviceDetails; explicit constructors; improved error handling
@@ -44,9 +44,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - LED-devices are resolving IP-addresses for API and UDP two times in sequence
   - LED-device updates queue up and let Hyperion crash (#1887)
   - LED-device switch-off were not always executed during instance stopping
+  - LED-Device latchTime was not considered correctly 
+  - Segfault when turning an LED instance off (#1903)
   - Fix concurrent mDNS resolution (#1906) - _Thanks to @discordianfish_
   - The color of the backlight threshold is green, not white/gray (#1899)
   - Install - Ubuntu 25.10 unable to install due to libcec package (#1934)
+  - hyperion-remote/standalone grabbers cannot resolve local address (#1909)
+  - RAM Leak with hyperiond. Gbytes in a matter of days. (#1792)
+  - Memory Leak with new Hyperion 2.1.1 on Windows 11 (#1892)
+  - JSON-API: Instance Command without proper instances is using wrong instance ID
+  
+- **Refactors:**
+  - Fixed Image & ImageData and add debug logging (#1792, #1892)
+  - Aligned grabbers with reworked Image handling avoiding extra copies
+  - Moved Image & LEDData throttling to Callback, limit image size
+  - Streamlined LEDDevice code
+  - Removed unnecessary allocations. Recreate imageToLedColors only if a parameter changed
+  - JSON-API add resillance, e.g. reject instance cmds if no instance is running
+  - Logging/Tracing: Introduced qlogging categories to enable dynamic tracing, removed bespoke compile time tracing
+  - Handle singletons consistently
+  - Adressed Linter findings
+  - 
 
 ---
 
@@ -55,7 +73,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Technical
 
 - Update mbedTLS to v3.6.4, Update flatbuffers to v25.9.23, Update rpi_ws281x library
-
+- Have vscode launch configurations working across OS
+- Ensure consistent build timestamp
 
 ## [2.1.1](https://github.com/hyperion-project/hyperion.ng/compare/2.1.1...HEAD) - 2025-06-14
 
