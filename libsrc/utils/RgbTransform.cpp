@@ -83,11 +83,22 @@ int RgbTransform::getBacklightThreshold() const
 {
 	return _backlightThreshold;
 }
-	
+
 void RgbTransform::setBacklightThreshold(int backlightThreshold)
 {
 	_backlightThreshold = backlightThreshold;
-	_sumBrightnessLow = static_cast<uint8_t>(qBound(0, _backlightThreshold, static_cast<int>(UINT8_MAX)));
+
+	// Normalize to [0,1]
+	double t = qBound(0, _backlightThreshold, 100) / 100.0;
+
+	// Exponential shaping (k=2). Curve: f(t)= (2^(k*t)-1)/(2^k-1)
+	// Ensures full dynamic use of 0..100 -> 0..255
+	const double k = 2.0;
+	double shaped = (qPow(2.0, k * t) - 1.0) / (qPow(2.0, k) - 1.0);
+
+	double floorVal = static_cast<double>(UINT8_MAX) * shaped;
+
+	_sumBrightnessLow = static_cast<uint8_t>(qBound(0.0, floorVal, static_cast<double>(UINT8_MAX)));
 }
 
 bool RgbTransform::getBacklightColored() const
