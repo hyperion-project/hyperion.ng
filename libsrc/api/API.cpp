@@ -343,9 +343,11 @@ bool API::setHyperionInstance(quint8 inst)
 		if (hyperion.isNull())
 		{
 			_currInstanceIndex = NO_INSTANCE_ID;
-			return false;
 		}
-		_currInstanceIndex = inst;
+		else
+		{
+			_currInstanceIndex = inst;
+		}
 	}
 	else
 	{
