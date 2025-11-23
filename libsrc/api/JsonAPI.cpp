@@ -312,15 +312,6 @@ void JsonAPI::handleMessage(const QString &messageString, const QString &httpAut
 
 void JsonAPI::handleInstanceCommand(const JsonApiCommand& cmd, const QJsonObject &message)
 {
-	if (auto im = _instanceManagerWeak.toStrongRef())
-	{
-		if (im->getRunningInstanceIdx().isEmpty())
-		{
-			sendErrorReply("No running instance available", cmd);
-			return;
-		}
-	}
-
 	QJsonArray instances;
 	const QJsonValue instanceElement = message.value("instance");
 
