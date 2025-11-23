@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - UI - Language is not selectable (#1877)
   - UI - Release were not shown on Update page
   - UI - Fixes for input/format selection
+  - UI - Fix that gap-length could get negative
   - CEC-Handler is not stopped properly
   - Qt-Grabber (Windows) does not apply pixel ratio (#1882) - _Thanks to @SolberLight_
   - LED-devices are not retrying to establish connectivity, if supported by the device
@@ -65,7 +66,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Logging/Tracing: Introduced qlogging categories to enable dynamic tracing, removed bespoke compile time tracing
   - Handle singletons consistently
   - Adressed Linter findings
-  - 
 
 ---
 
