@@ -7,7 +7,9 @@
 #include <QString>
 #include <QTextStream>
 #include <QRgb>
+#include <QDebug>
 
+#include <utils/global_defines.h>
 #include <utils/Packed.h>
 
 ///
@@ -167,4 +169,16 @@ inline bool operator>=(const ColorRgb & lhs, const ColorRgb & rhs)
 	return	lhs.red   >= rhs.red   &&
 		lhs.green >= rhs.green &&
 		lhs.blue  >= rhs.blue;
+}
+
+inline QDebug operator << (QDebug dbg, const ColorRgb& color )
+{
+	dbg.noquote().nospace() << color.toQString();
+	return dbg.space();
+}
+
+inline QDebug operator<<(QDebug dbg, const QVector<ColorRgb>& colors)
+{
+	dbg.noquote().nospace() << "Color " << limitForDebug(colors, -1);
+	return dbg.space();	
 }

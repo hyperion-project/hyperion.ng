@@ -50,6 +50,7 @@ bool LedDeviceSk6812_ftdi::init(const QJsonObject &deviceConfig)
 
 int LedDeviceSk6812_ftdi::write(const QVector<ColorRgb> &ledValues)
 {
+	qCDebug(leddevice_write) << limitForDebug(ledValues, 10);
 	unsigned spi_ptr = 0;
 	const int SPI_BYTES_PER_LED = sizeof(ColorRgbw) * SPI_BYTES_PER_COLOUR;
 
