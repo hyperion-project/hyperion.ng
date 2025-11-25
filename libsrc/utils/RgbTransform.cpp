@@ -89,7 +89,7 @@ void RgbTransform::setBacklightThreshold(int backlightThreshold)
 	_backlightThreshold = backlightThreshold;
 
 	// Normalize to [0,1]
-	double t = qBound(0, _backlightThreshold, 100) / 100.0;
+	double t = qBound(0.0, _backlightThreshold, 100.0) / 100.0;
 
 	// Exponential shaping (k=2). Curve: f(t)= (2^(k*t)-1)/(2^k-1)
 	// Ensures full dynamic use of 0..100 -> 0..255
@@ -98,7 +98,7 @@ void RgbTransform::setBacklightThreshold(int backlightThreshold)
 
 	double floorVal = static_cast<double>(UINT8_MAX) * shaped;
 
-	_sumBrightnessLow = static_cast<uint8_t>(qBound(0.0, floorVal, static_cast<double>(UINT8_MAX)));
+	_brightnessLow = static_cast<uint8_t>(qBound(0.0, floorVal, static_cast<double>(UINT8_MAX)));
 }
 
 bool RgbTransform::getBacklightColored() const
@@ -180,26 +180,20 @@ void RgbTransform::applyGamma(uint8_t & red, uint8_t & green, uint8_t & blue) co
 
 void RgbTransform::applyBacklight(uint8_t & red, uint8_t & green, uint8_t & blue) const
 {
-	if (_backLightEnabled && _sumBrightnessLow > 0)
+	int rgbSum = red+green+blue;
+	if (_backLightEnabled && rgbSum < _brightnessLow * 3)
 	{
 		if (_backlightColored)
 		{
-			red = qMax(red, _sumBrightnessLow);
-			green = qMax(green, _sumBrightnessLow);
-			blue = qMax(blue, _sumBrightnessLow);
+			red = qMax(red, _brightnessLow);
+			green = qMax(green, _brightnessLow);
+			blue = qMax(blue, _brightnessLow);
 		}
 		else
 		{
-			// Average of min and max channel values for backlight decision
-			int minVal = qMin<int>(red, qMin<int>(green, blue));
-			int maxVal = qMax<int>(red, qMax<int>(green, blue));
-			int avVal = (minVal + maxVal) / 2;
-			if (avVal < _sumBrightnessLow)
-			{
-				red = _sumBrightnessLow;
-				green = _sumBrightnessLow;
-				blue = _sumBrightnessLow;
-			}
+			red = _brightnessLow;
+			green = _brightnessLow;
+			blue = _brightnessLow;
 		}
 	}
 }
