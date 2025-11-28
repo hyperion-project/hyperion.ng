@@ -110,15 +110,19 @@ inline void discoverMdnsServices(const QString& serviceType)
 #ifdef ENABLE_MDNS
 		QMetaObject::invokeMethod(MdnsBrowser::getInstance().data(), "browseForServiceType",
 								  Qt::QueuedConnection, Q_ARG(QByteArray, MdnsServiceRegister::getServiceType(serviceType)));
-#endif		
+#endif
 }
 
 inline QJsonArray getMdnsServicesDiscovered(const QString& serviceType)
 {
+#ifdef ENABLE_MDNS
 	return MdnsBrowser::getInstance().data()->getServicesDiscoveredJson(
 		MdnsServiceRegister::getServiceType(serviceType),
 		MdnsServiceRegister::getServiceNameFilter(serviceType),
 		DEFAULT_DISCOVER_TIMEOUT);
+#else
+	return {};
+#endif
 }
 
 ///
@@ -175,13 +179,13 @@ inline bool resolveMdnsHostToAddress(QSharedPointer<Logger> log, QString &hostna
 		return false;
 	}
 
+#ifdef ENABLE_MDNS
 	if (!MdnsBrowser::isMdns(hostname))
 	{
 		Debug(log, "Given name [%s] is not an mDNS hostname, no mDNS resolution is required", QSTRING_CSTR(hostname));
 		return true;
 	}
 
-#ifdef ENABLE_MDNS
 	MdnsBrowser *browser = MdnsBrowser::getInstance().get();
 	QEventLoop loop;
 
@@ -230,6 +234,7 @@ inline bool resolveMdnsHostToAddress(QSharedPointer<Logger> log, QString &hostna
 ///
 inline bool convertMdnsToIp(QSharedPointer<Logger> log, QString& mdnsName, int& port, QAbstractSocket::NetworkLayerProtocol protocol = QAbstractSocket::AnyIPProtocol)
 {
+#ifdef ENABLE_MDNS
 	if (!MdnsBrowser::isMdns(mdnsName))
 	{
 		Debug(log, "Given name [%s] is not an mDNS name, no mDNS resolution is required", QSTRING_CSTR(mdnsName));
@@ -241,7 +246,7 @@ inline bool convertMdnsToIp(QSharedPointer<Logger> log, QString& mdnsName, int& 
 	if (MdnsBrowser::isMdnsService(mdnsName))
 	{
 		Debug(log, "Given hostname [%s] is an mDNS service name, will try to resolve it into an mDNS hostname", QSTRING_CSTR(mdnsName));
-#ifdef ENABLE_MDNS
+
 		QMdnsEngine::Record const service = resolveMdnsServiceRecord(mdnsName.toUtf8());
 		if (!service.target().isEmpty())
 		{
@@ -254,9 +259,6 @@ inline bool convertMdnsToIp(QSharedPointer<Logger> log, QString& mdnsName, int& 
 			Error(log, "Failed to resolve the mDNS service [%s] into an mDNS hostname!", QSTRING_CSTR(mdnsName));
 			return false;
 		}
-#else
-		return false;
-#endif		
 	}
 
 	qDebug() << "Input mdnsName:" << mdnsName;
@@ -277,6 +279,9 @@ inline bool convertMdnsToIp(QSharedPointer<Logger> log, QString& mdnsName, int& 
 	mdnsName = address;
 
 	return true;
+#else
+	return false;
+#endif
 }
 
 inline bool convertMdnsToIp(QSharedPointer<Logger> log, QString& mdnsName)
