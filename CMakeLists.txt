@@ -699,6 +699,11 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin" AND (${QT_VERSION_MAJOR} GREATER_EQUAL 6))
 endif()
 
 #=============================================================================
+# Disable QT debug output for release builds
+#=============================================================================
+add_compile_definitions($<$<CONFIG:Release>:QT_NO_DEBUG_OUTPUT>)
+
+#=============================================================================
 # Add our Code
 #=============================================================================
 
