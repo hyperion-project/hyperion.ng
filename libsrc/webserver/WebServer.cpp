@@ -87,6 +87,7 @@ void WebServer::onServerStopped()
 {
 	Info(_log, "%s stopped", _server->getServerName().toStdString().c_str());
 	emit stateChange(false);
+	emit isStopped();
 }
 
 void WebServer::onServerError(const QString& msg)
@@ -250,6 +251,11 @@ void WebServer::stop()
 	if (_server != nullptr)
 	{
 		_server->stop();
+	}
+	else
+	{
+		// server was never started
+		emit isStopped();
 	}
 }
 

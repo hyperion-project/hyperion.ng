@@ -19,6 +19,7 @@ Q_DECLARE_LOGGING_CATEGORY(mdns_provider)
 
 class MdnsProvider : public QObject
 {
+	Q_OBJECT
 
 public:
 
@@ -40,6 +41,12 @@ public slots:
 	void stop();
 
 	void publishService (const QString& serviceType, quint16 servicePort, const QByteArray& serviceName = "");
+
+Q_SIGNALS:
+	///
+/// @emits when the mDNS provider has completed its stop/cleanup
+///
+	void isStopped();
 
 private slots:
 

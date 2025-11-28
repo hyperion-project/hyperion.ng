@@ -90,6 +90,8 @@ add_library(hyperion-utils
 	${CMAKE_SOURCE_DIR}/libsrc/utils/MemoryTracker.cpp
 	# Weak Ptrs utilities
 	${CMAKE_SOURCE_DIR}/include/utils/WeakConnect.h
+	# Thread utilities
+	${CMAKE_SOURCE_DIR}/include/utils/ThreadUtils.h
 	# Semver namespace
 	${CMAKE_SOURCE_DIR}/include/utils/version.hpp
 	# Utility methods for Hyperion class

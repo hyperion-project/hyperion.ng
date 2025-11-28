@@ -17,6 +17,7 @@
 // util
 #include <hyperion/Hyperion.h>
 #include <utils/JsonUtils.h>
+#include <utils/ThreadUtils.h>
 
 LedDeviceRegistry LedDeviceWrapper::_ledDeviceMap {};
 static std::once_flag initFlag;
@@ -116,7 +117,7 @@ void LedDeviceWrapper::onIsOnChanged(bool isOn)
 
 void LedDeviceWrapper::stopDevice()
 {
-	Debug(_log, "Stop LED-Device thread");
+	Debug(_log, "Stop LED-Device service");
 
 	//Disable updates to the LedDevice
 	disconnect(this, &LedDeviceWrapper::updateLeds, _ledDevice.get(), &LedDevice::updateLeds);
@@ -126,22 +127,15 @@ void LedDeviceWrapper::stopDevice()
 	disconnect(this, &LedDeviceWrapper::switchOn, _ledDevice.get(), &LedDevice::switchOn);
 
 	// Stop the LedDevice and wait for it to be done
-	QEventLoop loop;
-	connect(_ledDevice.get(), &LedDevice::isStopped, &loop, &QEventLoop::quit);
-	QMetaObject::invokeMethod(_ledDevice.get(), "stop", Qt::QueuedConnection);	
-	loop.exec();
+	safeShutdownThread(
+		_ledDevice.get(),
+		_ledDeviceThread.get(),
+		&LedDevice::isStopped,
+		&LedDevice::stop,
+		5000 // 5 second timeout
+	);
 
-	if (!_ledDeviceThread.isNull())
-	{
-		if (_ledDeviceThread->isRunning())
-		{
-			_ledDeviceThread->quit();
-			_ledDeviceThread->wait();
-			_ledDeviceThread.reset();
-		}
-	}
-
-	Debug(_log, "LED-Device thread stopped");
+	Debug(_log, "LED-Device service stopped");
 	emit isStopped();
 }
 
@@ -237,7 +231,7 @@ QJsonObject LedDeviceWrapper::getLedDeviceSchemas()
 			qFatal("JSON parse error: %s", QSTRING_CSTR(errorList.join(' ')));
 		}
 
-        schemaJson = schema;
+		schemaJson = schema;
 		schemaJson["title"] = QString("edt_dev_spec_header_title");
 
 		result[devName] = schemaJson;

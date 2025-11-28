@@ -47,6 +47,11 @@ signals:
 	///
 	void publishService(const QString& serviceType, quint16 servicePort, const QByteArray& serviceName = "");
 
+	///
+	/// @emits when the FlatBuffer server has completed its stop/cleanup
+	///
+	void isStopped();
+
 private slots:
 	///
 	/// @brief Is called whenever a new socket wants to connect

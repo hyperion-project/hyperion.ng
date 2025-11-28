@@ -74,6 +74,12 @@ public slots:
 	void start();
 	void stop();
 
+Q_SIGNALS:
+	///
+	/// @emits when the MessageForwarder has completed its stop/cleanup
+	///
+	void stopped();
+
 private slots:
 	///
 	/// @brief Handle component state change MessageForwarder

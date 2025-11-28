@@ -28,6 +28,7 @@
 #include "utils/VideoMode.h"
 #include "utils/global_defines.h"
 #include <utils/GlobalSignals.h>
+#include <utils/ThreadUtils.h>
 
 #include <HyperionConfig.h> // Required to determine the cmake options
 
@@ -361,37 +362,54 @@ void HyperionDaemon::startNetworkServices()
 void HyperionDaemon::stopNetworkServices()
 {
 #if defined(ENABLE_MDNS)
-	QMetaObject::invokeMethod(MdnsBrowser::getInstance().get(), "stop", Qt::QueuedConnection);
-	QMetaObject::invokeMethod(_mDNSProvider.get(), &MdnsProvider::stop, Qt::QueuedConnection);
-	if (_mDnsThread->isRunning()) {
-		_mDnsThread->quit();
-		_mDnsThread->wait();
+	if (_mDnsThread->isRunning() && MdnsBrowser::getInstance().get() && _mDNSProvider.get())
+	{
+		QObject::connect(MdnsBrowser::getInstance().get(), &MdnsBrowser::isStopped,
+			_mDNSProvider.get(), &MdnsProvider::stop,
+			Qt::QueuedConnection);
+
+		QObject::connect(_mDNSProvider.get(), &MdnsProvider::isStopped,
+			_mDnsThread.get(), &QThread::quit,
+			Qt::DirectConnection);
+
+		QMetaObject::invokeMethod(MdnsBrowser::getInstance().get(), &MdnsBrowser::stop, Qt::QueuedConnection);
+
+		if (!_mDnsThread->wait(5000)) {
+			qWarning() << "mDNS thread failed to exit gracefully!";
+		}
 	}
 	MdnsBrowser::destroyInstance();
 #endif
 
-	if (_webServerThread->isRunning()) {
-		_webServerThread->quit();
-		_webServerThread->wait();
-	}
+	safeShutdownThread(
+		_webServer.get(),
+		_webServerThread.get(),
+		&WebServer::isStopped,
+		&WebServer::stop,
+		5000 // 5 second timeout
+	);
 
-	QMetaObject::invokeMethod(_sslWebServer.get(), &WebServer::stop, Qt::QueuedConnection);
-	if (_sslWebServerThread->isRunning()) {
-		_sslWebServerThread->quit();
-		_sslWebServerThread->wait();
-	}
+	safeShutdownThread(
+		_sslWebServer.get(),
+		_sslWebServerThread.get(),
+		&WebServer::isStopped,
+		&WebServer::stop
+	);
 
-	QMetaObject::invokeMethod(_jsonServer.get(), &JsonServer::stop, Qt::QueuedConnection);
-	if (_jsonServerThread->isRunning()) {
-		_jsonServerThread->quit();
-		_jsonServerThread->wait();
-	}
+	safeShutdownThread(
+		_jsonServer.get(),
+		_jsonServerThread.get(),
+		&JsonServer::isStopped,
+		&JsonServer::stop,
+		5000 // 5 second timeout
+	);
 
-	QMetaObject::invokeMethod(_ssdpHandler.get(), &SSDPHandler::stop, Qt::QueuedConnection);
-	if (_ssdpHandlerThread->isRunning()) {
-		_ssdpHandlerThread->quit();
-		_ssdpHandlerThread->wait();
-	}
+	safeShutdownThread(
+		_ssdpHandler.get(),
+		_ssdpHandlerThread.get(),
+		&SSDPHandler::isStopped,
+		&SSDPHandler::stop
+	);
 }
 
 void HyperionDaemon::createNetworkInputCaptureServices()
@@ -448,19 +466,21 @@ void HyperionDaemon::startNetworkInputCaptureServices()
 void HyperionDaemon::stopNetworkInputCaptureServices()
 {
 #if defined(ENABLE_PROTOBUF_SERVER)
-	if (_protoServerThread->isRunning()) {
-		QMetaObject::invokeMethod(_protoServer.get(), &ProtoServer::stop, Qt::QueuedConnection);
-		_protoServerThread->quit();
-		_protoServerThread->wait();
-	}
+	safeShutdownThread(
+		_protoServer.get(),
+		_protoServerThread.get(),
+		&ProtoServer::isStopped,
+		&ProtoServer::stop
+	);
 #endif
 
 #if defined(ENABLE_FLATBUF_SERVER)
-	if (_flatBufferServerThread->isRunning()) {
-		QMetaObject::invokeMethod(_flatBufferServer.get(), &FlatBufferServer::stop, Qt::QueuedConnection);
-		_flatBufferServerThread->quit();
-		_flatBufferServerThread->wait();
-	}
+	safeShutdownThread(
+		_flatBufferServer.get(),
+		_flatBufferServerThread.get(),
+		&FlatBufferServer::isStopped,
+		&FlatBufferServer::stop
+	);
 #endif
 }
 
@@ -491,12 +511,12 @@ void HyperionDaemon::startNetworkOutputServices()
 void HyperionDaemon::stopNetworkOutputServices()
 {
 #if defined(ENABLE_FORWARDER)
-	if (_messageForwarderThread->isRunning())
-	{
-		QMetaObject::invokeMethod(_messageForwarder.get(), &MessageForwarder::stop, Qt::QueuedConnection);
-		_messageForwarderThread->quit();
-		_messageForwarderThread->wait();
-	}
+	safeShutdownThread(
+		_messageForwarder.get(),
+		_messageForwarderThread.get(),
+		&MessageForwarder::stopped,
+		&MessageForwarder::stop
+	);
 #endif
 }
 
@@ -530,12 +550,12 @@ void HyperionDaemon::startEventServices()
 void HyperionDaemon::stopEventServices()
 {
 #if defined(ENABLE_CEC)
-	QMetaObject::invokeMethod(_cecHandler.get(), &CECHandler::stop, Qt::QueuedConnection);
-	if (_cecHandlerThread->isRunning())
-	{
-		_cecHandlerThread->quit();
-		_cecHandlerThread->wait();
-	}
+	safeShutdownThread(
+		_cecHandler.get(),
+		_cecHandlerThread.get(),
+		&CECHandler::isStopped,
+		&CECHandler::stop
+	);
 #endif
 
 	_osEventHandler.reset(nullptr);

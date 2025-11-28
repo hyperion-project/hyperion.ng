@@ -40,7 +40,10 @@ void MdnsProvider::stop()
 	_providedServiceTypes.clear();
 	_server.reset();
 	_hostname.reset();
+
 	Info(_log, "mDNS info service stopped");
+
+	emit isStopped();
 }
 
 void MdnsProvider::publishService(const QString& serviceType, quint16 servicePort, const QByteArray& serviceName)

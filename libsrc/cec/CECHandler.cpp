@@ -126,6 +126,8 @@ void CECHandler::stop()
 		UnloadLibCec(_cecAdapter);
 	}
 	Info(_logger, "CEC handler stopped");
+
+	emit isStopped();
 }
 
 bool CECHandler::enable()

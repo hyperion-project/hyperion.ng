@@ -48,6 +48,11 @@ signals:
 	///
 	void publishService(const QString& serviceType, quint16 servicePort, const QByteArray& serviceName = "");
 
+	///
+	/// @emits when the JSON server has completed its stop/cleanup
+	///
+	void isStopped();
+
 public slots:
 	///
 	/// @brief Handle settings update from Hyperion Settingsmanager emit or this constructor

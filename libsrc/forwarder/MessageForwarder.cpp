@@ -91,6 +91,8 @@ void MessageForwarder::stop()
 
 		Info(_log, "Forwarding service stopped");
 	}
+
+	emit stopped();
 }
 
 bool MessageForwarder::connectToInstance(quint8 instanceID)

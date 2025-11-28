@@ -70,15 +70,22 @@ void JsonServer::start()
 
 void JsonServer::stop()
 {
-	if(!_server->isListening())
+	// Close the server if available
+	if (!_server.isNull())
 	{
-		return;
+		if (_server->isListening())
+		{
+			_server->close();
+		}
 	}
-	_server->close();
 
+	// Ensure all open connections are deleted from the owning thread
 	qDeleteAll(_openConnections);
 	_openConnections.clear();
+
 	Info(_log, "JSON-Server stopped");
+
+	emit isStopped();
 }
 
 void JsonServer::handleSettingsUpdate(settings::type type, const QJsonDocument& config)

@@ -119,6 +119,11 @@ Q_SIGNALS:
 
 	void isServiceRecordResolved(QByteArray serviceInstance, QMdnsEngine::Record serviceRecord) const;
 
+	///
+	/// @emits when the mDNS browser has completed its stop/cleanup
+	///
+	void isStopped();
+
 private slots:
 
 	void initMdns();

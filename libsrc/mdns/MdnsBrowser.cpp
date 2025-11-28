@@ -57,6 +57,10 @@ void MdnsBrowser::stop()
 	_browsedServiceTypes.clear();
 	_cache.reset();
 	_server.reset();
+
+	Info(_log, "mDNS-Browser stopped");
+
+	emit isStopped();
 }
 
 QSharedPointer<MdnsBrowser>& MdnsBrowser::getInstance(QThread* externalThread)
