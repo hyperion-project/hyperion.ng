@@ -23,28 +23,30 @@ const char SERVICE_TYPE[] = "jsonapi";
 
 JsonServer::JsonServer(const QJsonDocument& config)
 	: QObject()
-	, _server(new QTcpServer(this))
+	, _server(nullptr)
 	, _openConnections()
 	, _log(Logger::getInstance("JSONSERVER"))
 	, _netOriginWeak(NetOrigin::getInstance())
 	, _config(config)
 {
 	TRACK_SCOPE();
-	Debug(_log, "JSON API  server created");
 }
 
 JsonServer::~JsonServer()
 {
 	TRACK_SCOPE();
-	stop();
-	qDeleteAll(_openConnections);
-	_openConnections.clear();
 }
 
 void JsonServer::initServer()
 {
+	Debug(_log, "Initialize JSON API server");
+	if (_server.isNull())
+	{
+		_server.reset(new QTcpServer());
+	}
+
 	// Set trigger for incoming connections
-	connect(_server, &QTcpServer::newConnection, this, &JsonServer::newConnection);
+	connect(_server.get(), &QTcpServer::newConnection, this, &JsonServer::newConnection);
 
 	// init
 	handleSettingsUpdate(settings::JSONSERVER, _config);
@@ -72,8 +74,10 @@ void JsonServer::stop()
 	{
 		return;
 	}
-
 	_server->close();
+
+	qDeleteAll(_openConnections);
+	_openConnections.clear();
 	Info(_log, "JSON-Server stopped");
 }
 
@@ -82,9 +86,10 @@ void JsonServer::handleSettingsUpdate(settings::type type, const QJsonDocument& 
 	if(type == settings::JSONSERVER)
 	{
 		QJsonObject obj = config.object();
-		if(_port != obj["port"].toInt())
+		auto port = static_cast<uint16_t>(obj["port"].toInt());
+		if(_port != port)
 		{
-			_port = obj["port"].toInt();
+			_port = port;
 			stop();
 			start();
 		}
@@ -100,7 +105,7 @@ void JsonServer::newConnection()
 {
 	while(_server->hasPendingConnections())
 	{
-		if (QTcpSocket * socket = _server->nextPendingConnection())
+		if (auto* socket = _server->nextPendingConnection())
 		{
 			Debug(_log, "New connection from: %s",QSTRING_CSTR(socket->peerAddress().toString()));
 			bool isLocal = false;

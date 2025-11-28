@@ -381,11 +381,11 @@ void HyperionDaemon::stopNetworkServices()
 		_sslWebServerThread->wait();
 	}
 
+	QMetaObject::invokeMethod(_jsonServer.get(), &JsonServer::stop, Qt::QueuedConnection);
 	if (_jsonServerThread->isRunning()) {
 		_jsonServerThread->quit();
 		_jsonServerThread->wait();
 	}
-	_jsonServer.reset(nullptr);
 
 	QMetaObject::invokeMethod(_ssdpHandler.get(), &SSDPHandler::stop, Qt::QueuedConnection);
 	if (_ssdpHandlerThread->isRunning()) {

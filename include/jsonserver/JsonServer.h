@@ -2,6 +2,10 @@
 
 // Qt includes
 #include <QSet>
+#include <QTcpServer>
+
+#include <QScopedPointer>
+#include <QSharedPointer>
 #include <QWeakPointer>
 
 // Hyperion includes
@@ -28,7 +32,7 @@ public:
 	/// JsonServer constructor
 	/// @param The configuration
 	///
-	JsonServer(const QJsonDocument& config);
+	explicit JsonServer(const QJsonDocument& config);
 	~JsonServer() override;
 
 	void initServer();
@@ -44,6 +48,17 @@ signals:
 	///
 	void publishService(const QString& serviceType, quint16 servicePort, const QByteArray& serviceName = "");
 
+public slots:
+	///
+	/// @brief Handle settings update from Hyperion Settingsmanager emit or this constructor
+	/// @param type   settings type from enum
+	/// @param config configuration object
+	///
+	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
+
+		void start();
+	void stop();
+
 private slots:
 	///
 	/// Slot which is called when a client tries to create a new connection
@@ -55,17 +70,9 @@ private slots:
 	///
 	void closedConnection();
 
-public slots:
-	///
-	/// @brief Handle settings update from Hyperion Settingsmanager emit or this constructor
-	/// @param type   settings type from enum
-	/// @param config configuration object
-	///
-	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
-
 private:
 	/// The TCP server object
-	QTcpServer * _server;
+	QScopedPointer<QTcpServer> _server;
 
 	/// List with open connections
 	QSet<JsonClientConnection *> _openConnections;
@@ -79,7 +86,4 @@ private:
 	uint16_t _port = 0;
 
 	const QJsonDocument _config;
-
-	void start();
-	void stop();
 };
