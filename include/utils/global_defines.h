@@ -3,27 +3,30 @@
 #include <cstdint>
 
 #include <QList>
+#include <QVector>
+#include <QDebug>
+#include <QtGlobal>
 
 #define QSTRING_CSTR(str) str.toUtf8().constData()
 using QIntList = QList<int>;
 
 constexpr double DOUBLE_UINT8_MAX_SQUARED = static_cast<double>(UINT8_MAX) * UINT8_MAX;
 
-template <typename T>
+template <typename Container>
 struct DebugLimitedListWrapper
 {
-    const QList<T>& list;
+    const Container& list;
     const int limit;
 };
 
-template <typename T>
-DebugLimitedListWrapper<T> limitForDebug(const QList<T>& list, int limit = -1)
+template <typename Container>
+DebugLimitedListWrapper<Container> limitForDebug(const Container& list, int limit = -1)
 {
     return {list, limit};
 }
 
-template <typename T>
-QDebug operator<<(QDebug dbg, const DebugLimitedListWrapper<T>& wrapper)
+template <typename Container>
+QDebug operator<<(QDebug dbg, const DebugLimitedListWrapper<Container>& wrapper)
 {
     const int max = wrapper.limit <= 0 ? wrapper.list.size() : wrapper.limit;
     const int size = wrapper.list.size();
