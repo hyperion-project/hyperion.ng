@@ -27,7 +27,7 @@ QDebug operator<<(QDebug dbg, const DebugLimitedListWrapper<T>& wrapper)
 {
     const int max = wrapper.limit <= 0 ? wrapper.list.size() : wrapper.limit;
     const int size = wrapper.list.size();
-    const int printCount = std::min(size, max);
+    const int printCount = qMin(size, max);
 
     if (wrapper.limit  <= 0)
     {
