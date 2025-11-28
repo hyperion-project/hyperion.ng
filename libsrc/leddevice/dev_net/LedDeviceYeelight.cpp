@@ -288,7 +288,7 @@ int YeelightLight::writeCommand( const QJsonDocument &command, QJsonArray &resul
 	}
 	else
 	{
-		qDebug(leddevice_write) << "Skip write. Device is in error";
+		qCDebug(leddevice_write) << "Skip write. Device is in error";
 	}
 
 	qCDebug(leddevice_write) << "writeCommand() rc:" << rc;
