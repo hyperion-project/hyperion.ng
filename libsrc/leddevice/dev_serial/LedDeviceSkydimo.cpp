@@ -50,11 +50,12 @@ void LedDeviceSkydimo::prepareHeader()
 
 int LedDeviceSkydimo::write(const QVector<ColorRgb> & ledValues)
 {
-	if (_ledCount != ledValues.size())
+	auto ledCount = static_cast<uint>(ledValues.size());
+	if (_ledCount != ledCount)
 	{
-		Warning(_log, "Skydimo LED count has changed (old: %d, new: %d). Rebuilding header.", _ledCount, ledValues.size());
-		_ledCount = static_cast<uint>(ledValues.size());
-		_ledRGBCount = _ledCount * 3;
+		Warning(_log, "Skydimo LED count has changed (old: %d, new: %d). Rebuilding header.", _ledCount, ledCount);
+
+		_ledRGBCount = ledCount * 3;
 		prepareHeader();
 	}
 

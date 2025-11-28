@@ -45,7 +45,7 @@ bool LedDeviceAPA102::init(const QJsonObject &deviceConfig)
 void LedDeviceAPA102::bufferWithBrightness(QVector<uint8_t> &txBuf, const QVector<ColorRgb> & ledValues, const int brightness) const
 {
 
-	for (int iLed = 0; iLed < _ledCount; ++iLed)
+	for (int iLed = 0; iLed < static_cast<int>(_ledCount); ++iLed)
 	{
 		const ColorRgb &rgb = ledValues[iLed];
 		const uint8_t red = rgb.red;
