@@ -93,7 +93,7 @@ bool AmlogicGrabber::isGbmSupported() const
 
 	if (symbol != nullptr)
 	{
-		qDebug(grabber_screen_properties) << "System likely supports DRM/GBM. Found 'gbm_create_device' in" << libName + ".so.";
+		qCDebug(grabber_screen_properties) << "System likely supports DRM/GBM. Found 'gbm_create_device' in" << libName + ".so.";
 		return true;
 	}
 
