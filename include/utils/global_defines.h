@@ -22,7 +22,7 @@ struct DebugLimitedListWrapper
 template <typename Container>
 DebugLimitedListWrapper<Container> limitForDebug(const Container& list, int limit = -1)
 {
-    return {list, limit};
+    return { list, limit };
 }
 
 template <typename Container>
@@ -32,7 +32,7 @@ QDebug operator<<(QDebug dbg, const DebugLimitedListWrapper<Container>& wrapper)
     const int size = wrapper.list.size();
     const int printCount = qMin(size, max);
 
-    if (wrapper.limit  <= 0)
+    if (wrapper.limit <= 0)
     {
         dbg.noquote().nospace() << "Items (" << size << ") [";
     }
@@ -45,7 +45,7 @@ QDebug operator<<(QDebug dbg, const DebugLimitedListWrapper<Container>& wrapper)
     {
         dbg.nospace() << wrapper.list[i];
     }
-    
+
     if (size > printCount)
     {
         dbg.nospace() << "...";
