@@ -97,7 +97,7 @@ bool AmlogicGrabber::isGbmSupported() const
 		return true;
 	}
 
-	qDebug(grabber_screen_properties) << "System likely does not support DRM/GBM. Could not find 'gbm_create_device' in" << libName + ".so.";
+	qCDebug(grabber_screen_properties) << "System likely does not support DRM/GBM. Could not find 'gbm_create_device' in" << libName + ".so.";
 	return false;
 }
 
