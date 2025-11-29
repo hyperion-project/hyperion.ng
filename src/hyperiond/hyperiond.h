@@ -214,6 +214,7 @@ private:
 	void stopNetworkOutputServices();
 
 	void startGrabberServices();
+	void restartGrabberServices();
 	void stopGrabberServices();
 
 	void updateScreenGrabbers(const QJsonDocument& grabberConfig);
