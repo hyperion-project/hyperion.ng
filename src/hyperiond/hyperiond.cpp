@@ -581,44 +581,38 @@ void HyperionDaemon::startGrabberServices()
 
 void HyperionDaemon::restartGrabberServices()
 {
-	// Start screen capture if enabled on this platform
-#if defined(ENABLE_DISPMANX) || defined(ENABLE_OSX) || defined(ENABLE_FB) || defined(ENABLE_X11) || defined(ENABLE_XCB) || defined(ENABLE_AMLOGIC) || defined(ENABLE_QT) || defined(ENABLE_DX) || defined(ENABLE_DDA) || defined(ENABLE_DRM)
 	if (_screenGrabber)
-		_screenGrabber->start();
-#endif
+	{
+		_screenGrabber.get()->start();
+	}
 
-	// Start video capture only if a video grabber implementation is compiled in
-#if defined(ENABLE_V4L2) || defined(ENABLE_MF)
 	if (_videoGrabber)
-		_videoGrabber->start();
-#endif
+	{
+		_videoGrabber.get()->start();
+	}
 
-	// Start audio capture only if audio support is compiled in
-#ifdef ENABLE_AUDIO
 	if (_audioGrabber)
-		_audioGrabber->start();
-#endif
+	{
+		_audioGrabber.get()->start();
+	}
 }
 
 void HyperionDaemon::stopGrabberServices()
 {
-	// Stop screen capture if present
-#if defined(ENABLE_DISPMANX) || defined(ENABLE_OSX) || defined(ENABLE_FB) || defined(ENABLE_X11) || defined(ENABLE_XCB) || defined(ENABLE_AMLOGIC) || defined(ENABLE_QT) || defined(ENABLE_DX) || defined(ENABLE_DDA) || defined(ENABLE_DRM)
 	if (_screenGrabber)
-		_screenGrabber->stop();
-#endif
+	{
+		_screenGrabber.get()->stop();
+	}
 
-	// Stop video capture if present
-#if defined(ENABLE_V4L2) || defined(ENABLE_MF)
 	if (_videoGrabber)
-		_videoGrabber->stop();
-#endif
+	{
+		_videoGrabber.get()->stop();
+	}
 
-	// Stop audio capture if present
-#ifdef ENABLE_AUDIO
 	if (_audioGrabber)
-		_audioGrabber->stop();
-#endif
+	{
+		_audioGrabber.get()->stop();
+	}
 }
 
 void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJsonDocument& config)
