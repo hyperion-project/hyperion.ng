@@ -57,6 +57,11 @@ namespace DefaultSignalHandler {
 		stack.AddrPC.Offset = context->Eip;
 		stack.AddrFrame.Offset = context->Ebp;
 		stack.AddrStack.Offset = context->Esp;
+#elif defined(_M_ARM64)
+		DWORD machineType = IMAGE_FILE_MACHINE_ARM64;
+		stack.AddrPC.Offset = context->Pc;
+		stack.AddrFrame.Offset = context->Fp;
+		stack.AddrStack.Offset = context->Sp;
 #else
 #error Unsupported architecture
 #endif
