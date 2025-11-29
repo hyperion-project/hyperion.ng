@@ -77,6 +77,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update mbedTLS to v3.6.4, Update flatbuffers to v25.9.23, Update rpi_ws281x library
 - Have vscode launch configurations working across OS
 - Ensure consistent build timestamp
+- Windows: added more granular stack tracing
 
 ## [2.1.1](https://github.com/hyperion-project/hyperion.ng/compare/2.1.1...HEAD) - 2025-06-14
 
