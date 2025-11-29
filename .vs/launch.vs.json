@@ -12,23 +12,24 @@
       "type": "default",
       "project": "CMakeLists.txt",
       "projectTarget": "hyperiond.exe (bin\\hyperiond.exe)",
-      "name": "Run hyperion with debug logging and external console",
+      "name": "Run hyperion with debug logging",
       "args": [
-        "-d",
-        "-c"
+        "-d"
       ],
-      "externalConsole": true
+      "env": {
+        "QT_LOGGING_CONF": "${workspaceRoot}/qtlogging.ini"
+      },
+      "externalConsole": false
     },
     {
       "type": "default",
       "project": "CMakeLists.txt",
       "projectTarget": "hyperiond.exe (bin\\hyperiond.exe)",
-      "name": "Run hyperion with verbose logging with external console",
+      "name": "Run hyperion with verbose logging",
       "args": [
-        "-v",
-        "-c"
+        "-v"
       ],
-      "externalConsole": true
+      "externalConsole": false
     },
     {
       "type": "default",
@@ -37,11 +38,23 @@
       "name": "Run hyperion with debug logging and a test configuration DB",
       "args": [
         "-d",
-        "-c",
-        "-u",
-        "${workspaceRoot}\\configs\\testConfig"
+        "-u ${workspaceRoot}\\configs\\testConfig"
       ],
-      "externalConsole": true
+      "env": {
+        "QT_LOGGING_CONF": "${workspaceRoot}/qtlogging.ini"
+      },
+      "externalConsole": false
+    },
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "hyperiond.exe (bin\\hyperiond.exe)",
+      "name": "test configuration DB - Dominant",
+      "args": [
+        "-d",
+        "-u ${workspaceRoot}\\build\\dominat"
+      ],
+      "externalConsole": false
     }
   ]
 }

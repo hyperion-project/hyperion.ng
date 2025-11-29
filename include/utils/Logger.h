@@ -23,7 +23,7 @@
 #include <utils/global_defines.h>
 #include <utils/MemoryTracker.h>
 
-Q_DECLARE_LOGGING_CATEGORY(memory_logger_track)
+Q_DECLARE_LOGGING_CATEGORY(hyperion_logger_track)
 
 // Forward declaration
 class LoggerManager;

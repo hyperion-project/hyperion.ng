@@ -34,11 +34,6 @@ bool QtWrapper::start()
 	return false;
 }
 
-bool QtWrapper::open()
-{
-	return _grabber.setupDisplay();
-}
-
 void QtWrapper::action()
 {
 	if (!_grabber.isAvailable())

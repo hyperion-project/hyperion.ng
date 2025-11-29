@@ -105,17 +105,15 @@ public:
 		int w = grabber.getImageWidth();
 		int h = grabber.getImageHeight();
 
-		//qDebug() << "GrabberWrapper::transferFrame - grabber image size : " << w << "x" << h;
 		if (_image.width() != w || _image.height() != h)
 		{
-			qDebug() << "GrabberWrapper::transferFrame - resizing image from " << _image.width() << "x" << _image.height() << " to " << w << "x" << h;
+			qCDebug(image_track) << "Image [" << _image.id() << "], resizing image from " << _image.width() << "x" << _image.height() << " to " << w << "x" << h;
 			_image.resize(w, h);
 		}
 
 		int ret = grabber.grabFrame(_image);
 		if (ret >= 0)
 		{
-			//qDebug() << "GrabberWrapper::transferFrame - image size : " << _image.width() << "x" << _image.height();
 			emit systemImage(_grabberName, _image);
 			return true;
 		}

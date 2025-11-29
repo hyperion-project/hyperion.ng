@@ -5,11 +5,12 @@
 #include <utils/ColorRgba.h>
 #include <utils/Logger.h>
 
-Q_LOGGING_CATEGORY(memory_image_create, "memory.image.create");
-Q_LOGGING_CATEGORY(memory_image_copy, "memory.image.copy");
-Q_LOGGING_CATEGORY(memory_image_move, "memory.image.move");
-Q_LOGGING_CATEGORY(memory_image_assign, "memory.image.assign");
-Q_LOGGING_CATEGORY(memory_image_destroy, "memory.image.destroy");
+Q_LOGGING_CATEGORY(image_create, "hyperion.image.create");
+Q_LOGGING_CATEGORY(image_copy, "hyperion.image.copy");
+Q_LOGGING_CATEGORY(image_move, "hyperion.image.move");
+Q_LOGGING_CATEGORY(image_assign, "hyperion.image.assign");
+Q_LOGGING_CATEGORY(image_destroy, "hyperion.image.destroy");
+Q_LOGGING_CATEGORY(image_track, "hyperion.image.track");
 
 // The static instance counter needs to be defined in a .cpp file.
 QAtomicInteger<quint64> ImageDataCounter::_imageData_instance_counter(0);
@@ -21,7 +22,7 @@ ImageData<Pixel_T>::ImageData(int width, int height, const pixel_type background
 	_pixels(static_cast<size_t>(width) * static_cast<size_t>(height), background),
 	_instanceId(++_imageData_instance_counter)
 {
-	qCDebug(memory_image_create).noquote() << QString("|ImageData| CREATE: Creating new ImageData [%1] of size %2x%3").arg(_instanceId).arg(width).arg(height);
+	qCDebug(image_create).noquote() << QString("|ImageData| CREATE: Creating new ImageData [%1] of size %2x%3").arg(_instanceId).arg(width).arg(height);
 }
 
 template <typename Pixel_T>
@@ -31,13 +32,13 @@ ImageData<Pixel_T>::ImageData(const ImageData& other) :
 	_pixels(other._pixels),
 	_instanceId(++_imageData_instance_counter)
 {
-	qCDebug(memory_image_copy).noquote() << QString("|ImageData| COPY (DEEP): New ImageData [%1] created as a deep copy of [%2].").arg(_instanceId).arg(other._instanceId);
+	qCDebug(image_copy).noquote() << QString("|ImageData| COPY (DEEP): New ImageData [%1] created as a deep copy of [%2].").arg(_instanceId).arg(other._instanceId);
 }
 
 template <typename Pixel_T>
 ImageData<Pixel_T>::~ImageData()
 {
-	qCDebug(memory_image_destroy).noquote() << QString("|ImageData| DESTROY: Destroying ImageData [%1]").arg(_instanceId);
+	qCDebug(image_destroy).noquote() << QString("|ImageData| DESTROY: Destroying ImageData [%1]").arg(_instanceId);
 }
 
 template <typename Pixel_T>

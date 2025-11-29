@@ -17,8 +17,8 @@
 #include <utils/JsonUtils.h>
 #include <utils/MemoryTracker.h>
 
-Q_LOGGING_CATEGORY(mdns_browser, "mdns.browser")
-Q_LOGGING_CATEGORY(mdns_browser_cache, "mdns.browser.cache")
+Q_LOGGING_CATEGORY(mdns_browser, "hyperion.mdns.browser")
+Q_LOGGING_CATEGORY(mdns_browser_cache, "hyperion.mdns.browser.cache")
 
 namespace {
 const int SERVICE_LOOKUP_RETRIES = 5;

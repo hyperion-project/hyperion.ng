@@ -17,11 +17,11 @@
 #include <utils/JsonUtils.h>
 #include <utils/WaitTime.h>
 
-Q_LOGGING_CATEGORY(leddevice_config, "leddevice.config");
-Q_LOGGING_CATEGORY(leddevice_control, "leddevice.control");
-Q_LOGGING_CATEGORY(leddevice_flow, "leddevice.flow");
-Q_LOGGING_CATEGORY(leddevice_properties, "leddevice.properties");
-Q_LOGGING_CATEGORY(leddevice_write, "leddevice.write");
+Q_LOGGING_CATEGORY(leddevice_config, "hyperion.leddevice.config");
+Q_LOGGING_CATEGORY(leddevice_control, "hyperion.leddevice.control");
+Q_LOGGING_CATEGORY(leddevice_flow, "hyperion.leddevice.flow");
+Q_LOGGING_CATEGORY(leddevice_properties, "hyperion.leddevice.properties");
+Q_LOGGING_CATEGORY(leddevice_write, "hyperion.leddevice.write");
 
 #define TRACK_DEVICE(category,action, ...) qCDebug(category).noquote() << QString("|%1| %2 device '%3'").arg(_log->getSubName(), action, _activeDeviceType) << ##__VA_ARGS__;
 

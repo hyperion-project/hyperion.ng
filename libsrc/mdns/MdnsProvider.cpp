@@ -10,7 +10,7 @@
 #include <HyperionConfig.h>
 #include <hyperion/AuthManager.h>
 
-Q_LOGGING_CATEGORY(mdns_provider, "mdns.provider")
+Q_LOGGING_CATEGORY(mdns_provider, "hyperion.mdns.provider")
 
 MdnsProvider::MdnsProvider(QObject* parent)
 	: QObject(parent)

@@ -66,6 +66,8 @@ namespace hyperion
 		template <typename Pixel_T>
 		bool process(const Image<Pixel_T> & image)
 		{
+			qCDebug(image_track) << "Image [" << image.id() << "]";
+
 			// get the border for the single image
 			BlackBorder imageBorder;
 			imageBorder.horizontalSize = 0;

@@ -1,20 +1,20 @@
 #include <hyperion/Grabber.h>
 #include <hyperion/GrabberWrapper.h>
 
-Q_LOGGING_CATEGORY(grabber_screen_capture, "grabber.screen.capture");
-Q_LOGGING_CATEGORY(grabber_screen_flow, "grabber.screen.flow");
-Q_LOGGING_CATEGORY(grabber_screen_properties, "grabber.screen.properties");
-Q_LOGGING_CATEGORY(grabber_screen_benchmark, "grabber.screen.benchmark");
+Q_LOGGING_CATEGORY(grabber_screen_capture, "hyperion.grabber.screen.capture");
+Q_LOGGING_CATEGORY(grabber_screen_flow, "hyperion.grabber.screen.flow");
+Q_LOGGING_CATEGORY(grabber_screen_properties, "hyperion.grabber.screen.properties");
+Q_LOGGING_CATEGORY(grabber_screen_benchmark, "hyperion.grabber.screen.benchmark");
 
-Q_LOGGING_CATEGORY(grabber_video_capture, "grabber.video.capture");
-Q_LOGGING_CATEGORY(grabber_video_flow, "grabber.video.flow");
-Q_LOGGING_CATEGORY(grabber_video_properties, "grabber.video.properties");
-Q_LOGGING_CATEGORY(grabber_video_benchmark, "grabber.video.benchmark");
+Q_LOGGING_CATEGORY(grabber_video_capture, "hyperion.grabber.video.capture");
+Q_LOGGING_CATEGORY(grabber_video_flow, "hyperion.grabber.video.flow");
+Q_LOGGING_CATEGORY(grabber_video_properties, "hyperion.grabber.video.properties");
+Q_LOGGING_CATEGORY(grabber_video_benchmark, "hyperion.grabber.video.benchmark");
 
-Q_LOGGING_CATEGORY(grabber_audio_capture, "grabber.audio.capture");
-Q_LOGGING_CATEGORY(grabber_audio_flow, "grabber.audio.flow");
-Q_LOGGING_CATEGORY(grabber_audio_properties, "grabber.audio.properties");
-Q_LOGGING_CATEGORY(grabber_audio_benchmark, "grabber.audio.benchmark");
+Q_LOGGING_CATEGORY(grabber_audio_capture, "hyperion.grabber.audio.capture");
+Q_LOGGING_CATEGORY(grabber_audio_flow, "hyperion.grabber.audio.flow");
+Q_LOGGING_CATEGORY(grabber_audio_properties, "hyperion.grabber.audio.properties");
+Q_LOGGING_CATEGORY(grabber_audio_benchmark, "hyperion.grabber.audio.benchmark");
 
 
 Grabber::Grabber(const QString& grabberName, int cropLeft, int cropRight, int cropTop, int cropBottom)

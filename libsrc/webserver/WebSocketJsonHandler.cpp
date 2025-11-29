@@ -5,8 +5,8 @@
 #include <utils/JsonUtils.h>
 #include <utils/NetOrigin.h>
 
-Q_LOGGING_CATEGORY(comm_websocket_receive, "comm.websocket.receive");
-Q_LOGGING_CATEGORY(comm_websocket_send, "comm.websocket.send");
+Q_LOGGING_CATEGORY(comm_websocket_receive, "hyperion.comm.websocket.receive");
+Q_LOGGING_CATEGORY(comm_websocket_send, "hyperion.comm.websocket.send");
 
 WebSocketJsonHandler::WebSocketJsonHandler(QWebSocket* websocket, QObject* parent)
 	: QObject(parent)

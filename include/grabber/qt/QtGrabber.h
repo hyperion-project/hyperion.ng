@@ -116,6 +116,8 @@ private:
 	///
 	int updateScreenDimensions(bool force);
 
+	bool resetDeviceAndCapture();
+
 	///
 	/// @brief free the _screen pointer
 	///

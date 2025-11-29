@@ -28,7 +28,7 @@
 #include <mdns/MdnsServiceRegister.h>
 #endif
  
-Q_LOGGING_CATEGORY(forwarder_write, "forwarder.write");
+Q_LOGGING_CATEGORY(forwarder_write, "hyperion.forwarder.write");
 
 // Constants
 namespace {

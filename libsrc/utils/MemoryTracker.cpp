@@ -2,4 +2,4 @@
 
 #include <QLoggingCategory>
 
-Q_LOGGING_CATEGORY(memory_objects_track, "memory.objects.track");
+Q_LOGGING_CATEGORY(hyperion_objects_track, "hyperion.objects.track");

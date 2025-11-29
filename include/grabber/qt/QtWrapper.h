@@ -43,11 +43,6 @@ public:
 	///
 	bool start() override;
 
-	///
-	/// Starts the grabber which produces led values with the specified update rate
-	///
-	bool open() override;
-
 public slots:
 	///
 	/// Performs a single frame grab and computes the led-colors

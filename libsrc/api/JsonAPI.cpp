@@ -59,12 +59,12 @@
 #include <chrono>
 #include <utility>
 
-Q_LOGGING_CATEGORY(api_msg_request, "api.msg.request");
-Q_LOGGING_CATEGORY(api_msg_reply_success, "api.msg.reply.success");
-Q_LOGGING_CATEGORY(api_msg_reply_error, "api.msg.reply.error");
-Q_LOGGING_CATEGORY(api_msg_new, "api.msg.new");
-Q_LOGGING_CATEGORY(api_inputsource, "api.inputsource");
-Q_LOGGING_CATEGORY(api_leddevice, "api.leddevice");
+Q_LOGGING_CATEGORY(api_msg_request, "hyperion.api.msg.request");
+Q_LOGGING_CATEGORY(api_msg_reply_success, "hyperion.api.msg.reply.success");
+Q_LOGGING_CATEGORY(api_msg_reply_error, "hyperion.api.msg.reply.error");
+Q_LOGGING_CATEGORY(api_msg_new, "hyperion.api.msg.new");
+Q_LOGGING_CATEGORY(api_inputsource, "hyperion.api.inputsource");
+Q_LOGGING_CATEGORY(api_leddevice, "hyperion.api.leddevice");
 
 using namespace hyperion;
 

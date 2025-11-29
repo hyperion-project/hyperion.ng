@@ -105,6 +105,7 @@ void CaptureCont::handleVideoImage(const QString& name, const Image<ColorRgb> & 
 
 void CaptureCont::handleScreenImage(const QString& name, const Image<ColorRgb>& image)
 {
+	qCDebug(image_track).noquote() << "Image [" << image.id() << "], name:" << name << " image size:" << image.width() << "x" << image.height();
 	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
 	if(_screenCaptureName != name)
 	{

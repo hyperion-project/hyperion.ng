@@ -404,6 +404,7 @@ bool Hyperion::setInput(int priority, const QVector<ColorRgb>& ledColors, int ti
 
 bool Hyperion::setInputImage(int priority, const Image<ColorRgb>& image, int64_t timeout_ms, bool clearEffect)
 {
+	qCDebug(image_track) << "Image [" << image.id() << "], priority:" << priority << "timeout:" << timeout_ms << "ms";
 	if (!_muxer->hasPriority(priority))
 	{
 		emit GlobalSignals::getInstance()->globalRegRequired(priority);

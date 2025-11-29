@@ -21,11 +21,12 @@
 typedef SSIZE_T ssize_t;
 #endif
 
-Q_DECLARE_LOGGING_CATEGORY(memory_image_create)
-Q_DECLARE_LOGGING_CATEGORY(memory_image_copy)
-Q_DECLARE_LOGGING_CATEGORY(memory_image_move)
-Q_DECLARE_LOGGING_CATEGORY(memory_image_assign)
-Q_DECLARE_LOGGING_CATEGORY(memory_image_destroy)
+Q_DECLARE_LOGGING_CATEGORY(image_create)
+Q_DECLARE_LOGGING_CATEGORY(image_copy)
+Q_DECLARE_LOGGING_CATEGORY(image_move)
+Q_DECLARE_LOGGING_CATEGORY(image_assign)
+Q_DECLARE_LOGGING_CATEGORY(image_destroy)
+Q_DECLARE_LOGGING_CATEGORY(image_track)
 
 // Define to enable memory tracing for Image objects.
 // Define as TraceEvent::All; for all events, or a combination of TraceEvent flags.

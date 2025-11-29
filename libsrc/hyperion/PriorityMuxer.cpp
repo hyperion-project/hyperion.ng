@@ -192,6 +192,7 @@ hyperion::Components PriorityMuxer::getComponentOfPriority(int priority) const
 
 void PriorityMuxer::registerInput(int priority, hyperion::Components component, const QString& origin, const QString& owner, unsigned smooth_cfg)
 {
+	TRACK_SCOPE_SUBCOMPONENT() << "Priority:" << priority << ",component:" << hyperion::componentToIdString(component) << ",origin:" << origin << ",owner:" << owner << ",smooth_cfg:" << smooth_cfg;
 	// detect new registers
 	bool newInput = false;
 
@@ -207,6 +208,7 @@ void PriorityMuxer::registerInput(int priority, hyperion::Components component, 
 		}
 	}
 
+	TRACK_SCOPE_SUBCOMPONENT() << "Priority:" << priority << ",component:" << hyperion::componentToIdString(component) << ",origin:" << origin << ",owner:" << owner << ",smooth_cfg:" << smooth_cfg << ",newInput:" << newInput;
 	InputInfo& input     = _activeInputs[priority];
 	input.priority       = priority;
 	input.timeoutTime_ms = newInput ? TIMEOUT_NOT_ACTIVE_PRIO : input.timeoutTime_ms;
@@ -292,6 +294,7 @@ bool PriorityMuxer::setInput(int priority, const QVector<ColorRgb>& ledColors, i
 
 bool PriorityMuxer::setInputImage(int priority, const Image<ColorRgb>& image, int64_t timeout_ms)
 {
+	qCDebug(image_track) << "Image [" << image.id() << "], Priority:" << priority << ",timeout:" << timeout_ms << "ms";
 	if(!_activeInputs.contains(priority))
 	{
 		Error(_log,"setInputImage() used without registerInput() for priority '%d', probably the priority reached timeout",priority);
@@ -327,6 +330,7 @@ bool PriorityMuxer::setInputImage(int priority, const Image<ColorRgb>& image, in
 	input.image          = image;
 	input.ledColors.clear();
 
+	qCDebug(image_track) << "Image [" << image.id() << "] assigned to priority:" << priority << ",timeout:" << timeout_ms << "ms";
 	// emit active change
 	if(activeChange)
 	{
@@ -343,6 +347,7 @@ bool PriorityMuxer::setInputImage(int priority, const Image<ColorRgb>& image, in
 
 bool PriorityMuxer::setInputInactive(int priority)
 {
+	TRACK_SCOPE_SUBCOMPONENT() << "Deactivate priority:" << priority;
 	Image<ColorRgb> image;
 	return setInputImage(priority, image, TIMEOUT_NOT_ACTIVE_PRIO);
 }

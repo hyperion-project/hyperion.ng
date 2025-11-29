@@ -16,10 +16,10 @@
 #include <QVariant>
 #include <QImage>
 #include <QBuffer>
- 
-Q_LOGGING_CATEGORY(api_callback_msg, "api.callback.msg");
-Q_LOGGING_CATEGORY(api_callback_image, "api.callback.image");
-Q_LOGGING_CATEGORY(api_callback_leds, "api.callback.leds");
+
+Q_LOGGING_CATEGORY(api_callback_msg, "hyperion.api.callback.msg");
+Q_LOGGING_CATEGORY(api_callback_image, "hyperion.api.callback.image");
+Q_LOGGING_CATEGORY(api_callback_leds, "hyperion.api.callback.leds");
 
 // Constants
 namespace {

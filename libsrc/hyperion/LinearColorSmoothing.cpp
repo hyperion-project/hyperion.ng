@@ -17,7 +17,7 @@
 
 #include <hyperion/Hyperion.h>
 
-Q_LOGGING_CATEGORY(smoothing, "smoothing")
+Q_LOGGING_CATEGORY(smoothing, "hyperion.smoothing")
 
 /// Clamps the rounded values to the byte-interval of [0, 255].
 ALWAYS_INLINE long clampRounded(const floatT x) {

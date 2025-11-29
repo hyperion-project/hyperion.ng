@@ -123,11 +123,12 @@ public:
 	QVector<ColorRgb> process(const Image<Pixel_T>& image)
 	{
 		QVector<ColorRgb> colors;
+		qCDebug(image_track) << "Image [" << image.id() << "]";
 
 		if (image.width()>0 && image.height()>0)
 		{
 			// Ensure that the buffer-image is the proper size
-			setSize(image);
+		setSize(image);
 
 			assert(!_imageToLedColors.isNull());
 
@@ -177,6 +178,8 @@ public:
 	template <typename Pixel_T>
 	void process(const Image<Pixel_T>& image, QVector<ColorRgb>& ledColors)
 	{
+		qCDebug(image_track).noquote() << "Image  [" << image.id() << "], ledColors";
+
 		if ( image.width()>0 && image.height()>0)
 		{
 			// Ensure that the buffer-image is the proper size

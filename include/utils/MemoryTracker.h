@@ -16,7 +16,7 @@
 #include <utils/global_defines.h>
 
 // Base categories used when no explicit category passed.
-Q_DECLARE_LOGGING_CATEGORY(memory_objects_track)
+Q_DECLARE_LOGGING_CATEGORY(hyperion_objects_track)
 
 // Dynamic category variants (pass any QLoggingCategory expression returning const QLoggingCategory&)
 #define TRACK_SCOPE_CATEGORY(category) \
@@ -28,10 +28,10 @@ Q_DECLARE_LOGGING_CATEGORY(memory_objects_track)
 #define MAKE_TRACKED_SHARED_CAT(T, catExpr, ...) makeTrackedShared<T>(this, (catExpr), __VA_ARGS__)
 
 #define TRACK_SCOPE() \
-    TRACK_SCOPE_CATEGORY(memory_objects_track)
+    TRACK_SCOPE_CATEGORY(hyperion_objects_track)
 #define TRACK_SCOPE_SUBCOMPONENT() \
-    TRACK_SCOPE_SUBCOMPONENT_CATEGORY(memory_objects_track)
-#define MAKE_TRACKED_SHARED(T, ...) makeTrackedShared<T>(this, memory_objects_track(), __VA_ARGS__)
+    TRACK_SCOPE_SUBCOMPONENT_CATEGORY(hyperion_objects_track)
+#define MAKE_TRACKED_SHARED(T, ...) makeTrackedShared<T>(this, hyperion_objects_track(), __VA_ARGS__)
 
 // Internal helper macro: unified instance creation with dynamic category and variadic ctor args.
 #define _MT_CREATE(storageRef, Type, creatorObj, catExpr, ...)                                                                                        \
@@ -58,7 +58,7 @@ Q_DECLARE_LOGGING_CATEGORY(memory_objects_track)
 
 // Public convenience macros
 #define CREATE_INSTANCE_WITH_TRACKING(storageRef, Type, creatorObj, ...) \
-    _MT_CREATE(storageRef, Type, creatorObj, memory_objects_track(), __VA_ARGS__)
+    _MT_CREATE(storageRef, Type, creatorObj, hyperion_objects_track(), __VA_ARGS__)
 
 #define CREATE_INSTANCE_WITH_TRACKING_CAT(storageRef, Type, creatorObj, catExpr, ...) \
     _MT_CREATE(storageRef, Type, creatorObj, (catExpr), __VA_ARGS__)
@@ -162,7 +162,7 @@ QSharedPointer<T> makeTrackedShared(Creator creator, const QLoggingCategory& cat
 template<typename T, typename Creator, typename... Args>
 QSharedPointer<T> makeTrackedShared(Creator creator, Args&&... args)
 {
-    return makeTrackedShared<T>(creator, memory_objects_track(), std::forward<Args>(args)...);
+    return makeTrackedShared<T>(creator, hyperion_objects_track(), std::forward<Args>(args)...);
 }
 
 // Factory: create a tracked singleton (QObject-friendly) and assign storage
