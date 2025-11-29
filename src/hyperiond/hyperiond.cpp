@@ -178,6 +178,7 @@ void HyperionDaemon::handleInstanceStateChange(InstanceState state, quint8 insta
 	break;
 	case InstanceState::H_STARTED:
 	{
+		restartGrabberServices();
 		startNetworkInputCaptureServices();
 #if defined(ENABLE_FORWARDER)
 		QMetaObject::invokeMethod(_messageForwarder.get(),
@@ -202,6 +203,7 @@ void HyperionDaemon::handleInstanceStateChange(InstanceState state, quint8 insta
 		{
 			if(mgr->getRunningInstanceIdx().empty())
 			{
+				stopGrabberServices();
 #if defined(ENABLE_FORWARDER)
 				QMetaObject::invokeMethod(_messageForwarder.get(), &MessageForwarder::stop, Qt::QueuedConnection);
 #endif
@@ -577,11 +579,18 @@ void HyperionDaemon::startGrabberServices()
 	handleSettingsUpdate(settings::AUDIO, getSetting(settings::AUDIO));
 }
 
+void HyperionDaemon::restartGrabberServices()
+{
+	_screenGrabber->start();
+	_videoGrabber->start();
+	_audioGrabber->start();
+}
+
 void HyperionDaemon::stopGrabberServices()
 {
-	_screenGrabber.reset();
-	_videoGrabber.reset();
-	_audioGrabber.reset();
+	_screenGrabber->stop();
+	_videoGrabber->stop();
+	_audioGrabber->stop();
 }
 
 void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJsonDocument& config)
