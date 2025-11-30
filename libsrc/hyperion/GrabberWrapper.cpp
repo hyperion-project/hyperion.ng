@@ -71,19 +71,24 @@ GrabberWrapper::~GrabberWrapper()
 
 bool GrabberWrapper::start()
 {
-	bool rc = false;
-	if ( open() )
+	if (!_ggrabber->isAvailable())
 	{
-		if (!_timer->isActive())
-		{
-			// Start the timer with the pre configured interval
-			Info(_log,"%s grabber started", QSTRING_CSTR(getName()));
-			_timer->start();
-		}
-
-		rc = _timer->isActive();
+		return false;
 	}
-	return rc;
+
+	if ( !open() )
+	{
+		return false;
+	}
+	
+	if (!_timer->isActive())
+	{
+		// Start the timer with the pre configured interval
+		Info(_log,"%s grabber started", QSTRING_CSTR(getName()));
+		_timer->start();
+	}
+
+	return _timer->isActive();
 }
 
 void GrabberWrapper::stop()
