@@ -583,17 +583,17 @@ void HyperionDaemon::restartGrabberServices()
 {
 	if (_screenGrabber)
 	{
-		_screenGrabber.get()->start();
+		_screenGrabber->start();
 	}
 
 	if (_videoGrabber)
 	{
-		_videoGrabber.get()->start();
+		_videoGrabber->start();
 	}
 
 	if (_audioGrabber)
 	{
-		_audioGrabber.get()->start();
+		_audioGrabber->start();
 	}
 }
 
@@ -601,17 +601,17 @@ void HyperionDaemon::stopGrabberServices()
 {
 	if (_screenGrabber)
 	{
-		_screenGrabber.get()->stop();
+		_screenGrabber->stop();
 	}
 
 	if (_videoGrabber)
 	{
-		_videoGrabber.get()->stop();
+		_videoGrabber->stop();
 	}
 
 	if (_audioGrabber)
 	{
-		_audioGrabber.get()->stop();
+		_audioGrabber->stop();
 	}
 }
 
@@ -663,6 +663,7 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 void HyperionDaemon::updateScreenGrabbers(const QJsonDocument& grabberConfig)
 {
 #if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB) && !defined(ENABLE_X11) && !defined(ENABLE_XCB) && !defined(ENABLE_AMLOGIC) && !defined(ENABLE_QT) && !defined(ENABLE_DX) && !defined(ENABLE_DDA) && !defined(ENABLE_DRM)
+	_screenGrabber.reset();
 	Info(_log, "No screen capture supported on this platform");
 	return;
 #endif
@@ -752,6 +753,7 @@ void HyperionDaemon::updateScreenGrabbers(const QJsonDocument& grabberConfig)
 #endif
 		else
 		{
+			_screenGrabber.reset();
 			Warning(_log, "The %s grabber is not enabled on this platform", QSTRING_CSTR(type));
 			return;
 		}
@@ -771,11 +773,12 @@ void HyperionDaemon::updateVideoGrabbers(const QJsonObject& /*grabberConfig*/)
 	Debug(_log, "V4L2 grabber created");
 #endif
 	// connect to HyperionDaemon signal
-	connect(this, &HyperionDaemon::videoMode, _videoGrabber.get(), &VideoWrapper::setVideoMode);
-	connect(this, &HyperionDaemon::settingsChanged, _videoGrabber.get(), &VideoWrapper::handleSettingsUpdate);
+	connect(this, &HyperionDaemon::videoMode, _videoGrabber.get(), &GrabberWrapper::setVideoMode);
+	connect(this, &HyperionDaemon::settingsChanged, _videoGrabber.get(), &GrabberWrapper::handleSettingsUpdate);
 
 	Debug(_log, "Video grabber created");
 #else
+	_videoGrabber.reset();
 	Warning(_log, "No video capture supported on this platform");
 #endif
 }
@@ -787,10 +790,11 @@ void HyperionDaemon::updateAudioGrabbers(const QJsonObject& /*grabberConfig*/)
 	_audioGrabber.reset(new AudioWrapper());
 	_audioGrabber->handleSettingsUpdate(settings::AUDIO, getSetting(settings::AUDIO));
 
-	connect(this, &HyperionDaemon::settingsChanged, _audioGrabber.get(), &AudioWrapper::handleSettingsUpdate);
+	connect(this, &HyperionDaemon::settingsChanged, _audioGrabber.get(), &GrabberWrapper::handleSettingsUpdate);
 
 	Debug(_log, "Audio grabber created");
 #else
+	_audioGrabber.reset();
 	Warning(_log, "No audio capture supported on this platform");
 #endif
 }

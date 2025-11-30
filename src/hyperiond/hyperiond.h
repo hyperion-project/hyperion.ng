@@ -304,8 +304,8 @@ private:
 
 	/// Grabber services
 	QScopedPointer<GrabberWrapper> _screenGrabber;
-	QScopedPointer<VideoWrapper> _videoGrabber;
-	QScopedPointer<AudioWrapper> _audioGrabber;
+	QScopedPointer<GrabberWrapper> _videoGrabber;
+	QScopedPointer<GrabberWrapper> _audioGrabber;
 
 	QString                    _prevType;
 	VideoMode                  _currVideoMode;
