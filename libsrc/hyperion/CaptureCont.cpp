@@ -85,10 +85,6 @@ void CaptureCont::stop()
 		disconnect(hyperion.get(), &Hyperion::settingsChanged, this, &CaptureCont::handleSettingsUpdate);
 	}
 
-	_videoInactiveTimer->stop();
-	_screenCaptureInactiveTimer->stop();
-	_audioCaptureInactiveTimer->stop();
-
 	disconnect(_videoInactiveTimer.get(), &QTimer::timeout, this, &CaptureCont::onVideoIsInactive);
 	disconnect(_screenCaptureInactiveTimer.get(), &QTimer::timeout, this, &CaptureCont::onScreenIsInactive);
 	disconnect(_audioCaptureInactiveTimer.get(), &QTimer::timeout, this, &CaptureCont::onAudioIsInactive);

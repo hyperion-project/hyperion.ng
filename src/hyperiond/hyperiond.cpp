@@ -178,7 +178,6 @@ void HyperionDaemon::handleInstanceStateChange(InstanceState state, quint8 insta
 	break;
 	case InstanceState::H_STARTED:
 	{
-		//restartGrabberServices();
 		startNetworkInputCaptureServices();
 #if defined(ENABLE_FORWARDER)
 		QMetaObject::invokeMethod(_messageForwarder.get(),
@@ -203,7 +202,6 @@ void HyperionDaemon::handleInstanceStateChange(InstanceState state, quint8 insta
 		{
 			if(mgr->getRunningInstanceIdx().empty())
 			{
-				//stopGrabberServices();
 #if defined(ENABLE_FORWARDER)
 				QMetaObject::invokeMethod(_messageForwarder.get(), &MessageForwarder::stop, Qt::QueuedConnection);
 #endif
