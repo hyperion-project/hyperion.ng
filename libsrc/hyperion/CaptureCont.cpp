@@ -74,6 +74,10 @@ void CaptureCont::start()
 
 void CaptureCont::stop()
 {
+	setScreenCaptureEnable(false);
+	setVideoCaptureEnable(false);
+	setAudioCaptureEnable(false);
+
 	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
 	if (hyperion)
 	{
