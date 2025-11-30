@@ -1,17 +1,16 @@
 #pragma once
 
-// util
+#include <QMap>
+#include <QSharedPointer>
+#include <QScopedPointer>
+
 #include <utils/Logger.h>
 #include <utils/VideoMode.h>
 #include <utils/settings.h>
 #include <utils/Components.h>
 #include <events/EventEnum.h>
 #include <db/InstanceTable.h>
-
-// qt
-#include <QMap>
-#include <QSharedPointer>
-#include <QScopedPointer>
+#include <db/SettingsTable.h>
 
 class Hyperion;
 class InstanceTable;
@@ -249,6 +248,12 @@ private:
 	/// @brief Stop all instances, used from hyperiond
 	///
 	void stopAll();
+
+	///
+	/// @brief Update instance source settings in line with grabber enable states
+	/// @param settingsTable 
+	/// @return Return true on success,
+	bool alignInstanceSourceSettings(SettingsTable &settingsTable) const;
 
 private:
 	QSharedPointer<Logger> _log;

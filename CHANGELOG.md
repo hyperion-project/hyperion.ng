@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Screen grabbers: Commonized base with getDeviceName/getInputDeviceDetails; explicit constructors; improved error handling
 - Framebuffer grabber: Internal cleanup, consistent device naming, safer mmap usage
 - Logger internals: use smart pointers and clean-ups
+- Align instance source settings for new instances with grabber enable state
 
 - **Fixes:**
   - UI - Language is not selectable (#1877)

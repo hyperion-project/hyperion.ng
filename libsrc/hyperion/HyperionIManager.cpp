@@ -3,7 +3,6 @@
 // hyperion
 #include <hyperion/Hyperion.h>
 #include <db/InstanceTable.h>
-#include <db/SettingsTable.h>
 #include <utils/MemoryTracker.h>
 
 // qt
@@ -294,7 +293,7 @@ bool HyperionIManager::stopInstance(quint8 instanceId)
 	Debug(_log,"Cannot stop Hyperion instance [%u]. It is not configured.", instanceId);
 	return false;
 }
-
+	
 bool HyperionIManager::createInstance(const QString& name, bool start)
 {
 	quint8 instanceId = 0;
@@ -302,6 +301,9 @@ bool HyperionIManager::createInstance(const QString& name, bool start)
 	{
 		SettingsTable settingsTable(instanceId);
 		settingsTable.addMissingDefaults();
+
+		alignInstanceSourceSettings(settingsTable);
+
 		Info(_log,"New Hyperion instance [%u] created with name '%s'", instanceId, QSTRING_CSTR(name));
 		emit instanceStateChanged(InstanceState::H_CREATED, instanceId, name);
 		emit change();
@@ -422,4 +424,22 @@ void HyperionIManager::handleStarted()
 		Error(_log, "Cannot find instance [%u] - '%s' in the starting list.",
 			  instanceId, QSTRING_CSTR(_instanceTable->getNamebyIndex(instanceId)));
 	}
+}
+
+bool HyperionIManager::alignInstanceSourceSettings(SettingsTable &settingsTable) const
+{
+	//Get grabber settings
+	SettingsTable globalSettings(NO_INSTANCE_ID);
+	QJsonObject systemCaptureSettings = globalSettings.getSettingsRecordJson(typeToString(settings::SYSTEMCAPTURE)).object();
+	QJsonObject videoCaptureSettings = globalSettings.getSettingsRecordJson(typeToString(settings::V4L2)).object();
+	QJsonObject audioCaptureSettings = globalSettings.getSettingsRecordJson(typeToString(settings::AUDIO)).object();
+
+	//Update instance source settings in line with grabber enable states
+	QJsonObject instCaptureSettings = settingsTable.getSettingsRecordJson(typeToString(settings::INSTCAPTURE)).object();
+	instCaptureSettings["systemEnable"] = systemCaptureSettings.value("enable").toBool(false);
+	instCaptureSettings["v4lEnable"] = videoCaptureSettings.value("enable").toBool(false);
+	instCaptureSettings["audioEnable"] = audioCaptureSettings.value("enable").toBool(false);
+
+	//Update settings table
+	return settingsTable.createSettingsRecord(typeToString(settings::INSTCAPTURE), JsonUtils::jsonValueToQString(instCaptureSettings));
 }
