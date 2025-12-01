@@ -179,6 +179,11 @@ QString SettingsTable::getSettingsRecordString(const QString& type) const
 	return getSettingsRecord(type).toString();
 }
 
+QJsonObject SettingsTable::getSettings(const QString& filteredType) const
+{
+	return getSettings(_instance, {filteredType});
+}
+
 QJsonObject SettingsTable::getSettings(const QStringList& filteredTypes ) const
 {
 	return getSettings(_instance, filteredTypes);

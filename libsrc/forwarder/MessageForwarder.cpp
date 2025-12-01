@@ -410,7 +410,7 @@ void MessageForwarder::addJsonTarget(const QJsonObject& targetConfig)
 				targetHost.port = static_cast<quint16>(port);
 
 				// check for loop with JSON-server
-				const QJsonObject& obj = _settings.getSettings(settings::JSONSERVER);
+				const QJsonObject& obj = _settings.getSettingsRecordJson(typeToString(settings::JSONSERVER)).object();
 				if ((QNetworkInterface::allAddresses().indexOf(targetHost.host) != -1) && targetHost.port == static_cast<quint16>(obj["port"].toInt()))
 				{
 					Error(_log, "Loop between JSON-Server and Forwarder! Configuration for host: %s, port: %d is ignored.", QSTRING_CSTR(targetHost.host.toString()), port);
@@ -515,7 +515,7 @@ void MessageForwarder::addFlatbufferTarget(const QJsonObject& targetConfig)
 				targetHost.port = static_cast<quint16>(port);
 
 				// check for loop with Flatbuffer-server
-				const QJsonObject& obj = _settings.getSettings(settings::FLATBUFSERVER);
+				const QJsonObject& obj = _settings.getSettingsRecordJson(typeToString(settings::FLATBUFSERVER)).object();
 				if ((QNetworkInterface::allAddresses().indexOf(targetHost.host) != -1) && targetHost.port == static_cast<quint16>(obj["port"].toInt()))
 				{
 					Error(_log, "Loop between Flatbuffer-Server and Forwarder! Configuration for host: %s, port: %d is ignored.", QSTRING_CSTR(targetHost.host.toString()), port);
