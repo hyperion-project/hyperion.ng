@@ -126,7 +126,7 @@ void FlatBufferConnection::setColor(const ColorRgb& color, int duration)
 
 void FlatBufferConnection::setImage(const Image<ColorRgb> &image)
 {
-	qDebug() << "FlatBufferConnection::setImage - Image [" << image.id() << "]";
+	qCDebug(image_track) << "FlatBufferConnection::setImage - Image [" << image.id() << "]";
 	if (!isClientRegistered()) return;
 
 	const auto* buffer = reinterpret_cast<const uint8_t*>(image.memptr());
