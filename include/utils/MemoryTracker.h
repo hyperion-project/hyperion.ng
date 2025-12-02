@@ -184,4 +184,22 @@ QSharedPointer<T> makeTrackedSingleton(QObject* parent)
     return makeTrackedShared<T>(parent, parent);
 }
 
+static void setTracingLogPattern()
+{
+    //Turn off Qt debug logging per default
+	QLoggingCategory::setFilterRules("*.debug = false");
+	qSetMessagePattern(
+		"%{time yyyy-MM-ddTHH:mm:ss.zzz} |--|                   : <TRACE> %{category}"
+		"%{if-debug} %{function}()[%{line}] TID:%{threadid}"
+	#if (QT_VERSION >= QT_VERSION_CHECK(6, 10, 0))
+		" (%{threadname})"
+	#endif
+		"%{endif} %{message}"
+#if 0		
+		" << %{backtrace depth=3}"
+#endif
+	);
+}
+
+
 #endif // MEMORYTRACKER_H
