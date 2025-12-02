@@ -196,7 +196,7 @@ $(document).ready(function () {
         case "BOBLIGHTSERVER":
         case "FLATBUFSERVER":
         case "PROTOSERVER":       
-          ownerText = `${$.i18n("general_comp_" + componentId)})`;
+          ownerText = `${$.i18n("general_comp_" + componentId)}`;
           break;
       }
 
