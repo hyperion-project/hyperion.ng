@@ -93,6 +93,7 @@ int ComponentRegister::isComponentEnabled(hyperion::Components comp) const
 
 void ComponentRegister::setNewComponentState(hyperion::Components comp, bool isActive)
 {
+	TRACK_SCOPE_SUBCOMPONENT() << "Component:" << componentToString(comp) << "State:" << isActive;
 	if (_componentStates.count(comp) > 0)
 	{
 		if (_componentStates[comp] != isActive)
@@ -107,6 +108,7 @@ void ComponentRegister::setNewComponentState(hyperion::Components comp, bool isA
 
 void ComponentRegister::handleCompStateChangeRequest(hyperion::Components comps, bool isActive)
 {
+	TRACK_SCOPE_SUBCOMPONENT() << "Component:" << componentToString(comps) << "State:" << isActive;
 	if(comps == COMP_ALL )
 	{
 		handleCompStateChangeRequestAll(isActive,{});
@@ -115,6 +117,7 @@ void ComponentRegister::handleCompStateChangeRequest(hyperion::Components comps,
 
 void ComponentRegister::handleCompStateChangeRequestAll(bool isActive, const ComponentList& excludeList)
 {
+	TRACK_SCOPE_SUBCOMPONENT() << "State:" << isActive;
 	if (!_inProgress)
 	{
 		_inProgress = true;

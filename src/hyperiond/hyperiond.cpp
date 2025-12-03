@@ -245,6 +245,7 @@ void HyperionDaemon::stopServices()
 	stopEventServices();
 	
 	stopGrabberServices();
+	stopNetworkOutputServices();
 
 	// Ensure that all Instances and their threads are stopped
 	QEventLoop loopInstances;
@@ -254,8 +255,6 @@ void HyperionDaemon::stopServices()
 		mgr->stopAll();
 	}
 	loopInstances.exec();
-
-	stopNetworkOutputServices();
 	stopNetworkServices();
 
 	HyperionIManager::destroyInstance();

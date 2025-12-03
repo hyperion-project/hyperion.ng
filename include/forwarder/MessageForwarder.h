@@ -23,6 +23,7 @@
 #include <utils/Logger.h>
 #include <utils/Components.h>
 #include <utils/Image.h>
+#include <utils/JsonUtils.h>
 
 // Hyperion includes
 #ifdef ENABLE_MDNS
@@ -31,6 +32,7 @@
 #include <db/SettingsTable.h>
 #include <hyperion/PriorityMuxer.h>
 
+Q_DECLARE_LOGGING_CATEGORY(forwarder_track);
 Q_DECLARE_LOGGING_CATEGORY(forwarder_write);
 
 // Forward declaration
@@ -48,7 +50,25 @@ struct TargetHost {
 	{
 		return ((host == a.host) && (port == a.port));
 	}
+
+	QString toQString() const
+	{
+		return QString("[%1]:%2 - %3").arg(host.toString()).arg(port).arg(JsonUtils::jsonValueToQString(instanceIds));
+	}
 };
+
+inline QDebug operator<<(QDebug dbg, const TargetHost &target)
+{
+	QDebugStateSaver saver(dbg);
+	dbg.nospace() << target.toQString();
+	return dbg;
+}
+
+inline QDebug operator<<(QDebug dbg, const QList<TargetHost>& hosts)
+{
+	dbg.noquote() << "Target" << limitForDebug(hosts, -1);
+	return dbg.space();	
+}
 
 class MessageForwarder : public QObject
 {
@@ -122,7 +142,7 @@ private:
 	void handleTargets(bool enable, const QJsonObject& config = {});
 	bool activateFlatbufferTargets(int priority = PriorityMuxer::LOWEST_PRIORITY);
 
-	bool isFlatbufferComponent(int priority);
+	bool isFlatbufferComponent(int priority) const;
 	void disconnectFlatBufferComponents(int priority = PriorityMuxer::LOWEST_PRIORITY) const;
 
 	int startJsonTargets(const QJsonObject& config);
