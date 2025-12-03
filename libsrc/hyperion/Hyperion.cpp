@@ -199,19 +199,19 @@ void Hyperion::stop(const QString name)
 	_muxer->stop();
 	_deviceSmooth->stop();
 
-	_raw2ledAdjustment.reset();
+	//_raw2ledAdjustment.reset();
 
 	_ledDeviceWrapper->stopDevice();
 
 	//Clear all objects maintained/shared by <Hyperion> being the master
-	_BGEffectHandler.clear();
-	_captureCont.clear();
-	_deviceSmooth.clear();
-	_ledDeviceWrapper.clear();
-	_muxer.clear();
-	_imageProcessor.clear();
-	_componentRegister.clear();
-	_settingsManager.reset();
+	//_BGEffectHandler.clear();
+	//_captureCont.clear();
+	//_deviceSmooth.clear();
+	//_ledDeviceWrapper.clear();
+	//_muxer.clear();
+	//_imageProcessor.clear();
+	//_componentRegister.clear();
+	//_settingsManager.reset();
 
 	emit finished(name);
 }
@@ -355,6 +355,7 @@ bool Hyperion::sourceAutoSelectEnabled() const
 
 void Hyperion::setNewComponentState(hyperion::Components component, bool state)
 {
+	TRACK_SCOPE_SUBCOMPONENT() << "component" << componentToString(component) << "state" << state;
 	if (_componentRegister.isNull())
 	{
 		Debug(_log, "ComponentRegister is not initialized, cannot set state for component '%s'", componentToString(component));
