@@ -81,6 +81,7 @@ void LedDeviceWrapper::handleComponentState(hyperion::Components component, bool
 {
 	if (component == hyperion::COMP_LEDDEVICE)
 	{
+		TRACK_SCOPE_SUBCOMPONENT_CATEGORY(leddevice_flow) << "state" << state;
 		if (state)
 		{
 			emit enable();
@@ -94,6 +95,14 @@ void LedDeviceWrapper::handleComponentState(hyperion::Components component, bool
 
 void LedDeviceWrapper::onIsEnabledChanged(bool isEnabled)
 {
+	if (_isEnabled == isEnabled)
+	{
+		TRACK_SCOPE_SUBCOMPONENT_CATEGORY(leddevice_flow) << "Device is already in the correct state. It is" << (_isEnabled ? "enabled" : "disabled");
+		return;
+	}
+
+	TRACK_SCOPE_SUBCOMPONENT_CATEGORY(leddevice_flow) << "Device" << _ledDevice->getActiveDeviceType() << "changed to" << (isEnabled ? "enabled" : "disabled");
+
 	QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
 	if (hyperion)
 	{
@@ -104,7 +113,15 @@ void LedDeviceWrapper::onIsEnabledChanged(bool isEnabled)
 
 void LedDeviceWrapper::onIsOnChanged(bool isOn)
 {
+	if (_isOn == isOn)
+	{
+		TRACK_SCOPE_SUBCOMPONENT_CATEGORY(leddevice_flow) << "Device is already in the correct state. It is" << (_isOn ? "on" : "off");
+		return;
+	}
+
 	_isOn = isOn;
+	TRACK_SCOPE_SUBCOMPONENT_CATEGORY(leddevice_flow) << "Device" << _ledDevice->getActiveDeviceType() << "changed to" << (isOn ? "on" : "off");
+
 	if (_isOn)
 	{
 		QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();

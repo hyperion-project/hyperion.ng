@@ -458,6 +458,7 @@ bool LedDeviceWled::powerOff()
 
 bool LedDeviceWled::storeState()
 {
+	trackDevice(leddevice_flow, "Store State for") << ",is device ready:" << (_isDeviceReady ? "YES" : "NO") << ",is device on:" <<(_isOn ? "YES" : "NO");
 	bool rc = true;
 
 	if ( _isRestoreOrigState || _isSyncOverwrite || _isStreamToSegment)

@@ -155,58 +155,54 @@ void LedDevice::setInError(const QString& errorMsg, bool isRecoverable)
 		_isDeviceRecoverable = isRecoverable;
 	}
 	Error(_log, "Device disabled, device '%s' signals error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(errorMsg));
+	trackDevice(leddevice_flow, "Disabled") << "due to error:" << errorMsg;
 	emit isEnabledChanged(_isEnabled);
 }
 
 void LedDevice::enable()
 {
 	trackDevice(leddevice_flow, "Enable") << ", current state is :" << (_isEnabled ? "enabled" : "disabled");
-	if (!_isEnabled)
+	if (_isEnabled)
 	{
-		if (_enableAttemptsTimer != nullptr && _enableAttemptsTimer->isActive())
-		{
-			_enableAttemptsTimer->stop();
-		}
-
-		_isDeviceInError = false;
-
-		if (!_isDeviceInitialised)
-		{
-			_isDeviceInitialised = init(_devConfig);
-		}
-
-		if (!_isDeviceReady)
-		{
-			if (open() < 0)
-			{
-				setInError("Failed to open device", _isDeviceRecoverable);
-			}
-		}
-
-		bool isEnableFailed(true);
-
-		if (_isDeviceReady)
-		{
-			if (switchOn())
-			{
-				stopEnableAttemptsTimer();
-				_isEnabled = true;
-				isEnableFailed = false;
-				emit isEnabledChanged(_isEnabled);
-				Info(_log, "LedDevice '%s' enabled", QSTRING_CSTR(_activeDeviceType));
-			}
-		}
-
-		if (isEnableFailed)
-		{
-			emit isEnabledChanged(false);
-			QMetaObject::invokeMethod(this, "retryEnable", Qt::QueuedConnection);
-		}
+		return;
 	}
+
+	if (_enableAttemptsTimer != nullptr && _enableAttemptsTimer->isActive())
+	{
+		_enableAttemptsTimer->stop();
+	}
+
+	_isDeviceInError = false;
+
+	if (!_isDeviceInitialised)
+	{
+		_isDeviceInitialised = init(_devConfig);
+	}
+
+	if (!_isDeviceReady && open() < 0)
+	{
+			setInError("Failed to open device", _isDeviceRecoverable);
+			QMetaObject::invokeMethod(this, "retryEnable", Qt::QueuedConnection);				
+			return;
+	}
+
+	if (_isDeviceReady && switchOn())	
+	{
+		trackDevice(leddevice_flow, "Enabled") << "successfully";
+		stopEnableAttemptsTimer();
+		_isEnabled = true;
+		emit isEnabledChanged(_isEnabled);
+		Info(_log, "LedDevice '%s' enabled", QSTRING_CSTR(_activeDeviceType));
+		return;
+	}
+
+	trackDevice(leddevice_flow, "Enabling") << "failed - trigger retry";
+	QMetaObject::invokeMethod(this, "retryEnable", Qt::QueuedConnection);
 }
 
 void LedDevice::retryEnable()
 {
+	trackDevice(leddevice_flow, "Retrying to enable");
 	if (_maxEnableAttempts > 0 && _isDeviceRecoverable)
 	{
 		Debug(_log, "Device's enablement failed - Start retry timer. Retried already done [%d], isEnabled: [%d]", _enableAttempts, _isEnabled);
@@ -221,17 +217,20 @@ void LedDevice::retryEnable()
 void LedDevice::disable()
 {
 	trackDevice(leddevice_flow, "Disable") << ", current state is :" << (_isEnabled ? "enabled" : "disabled");
-	if (_isEnabled)
+	if (!_isEnabled)
 	{
-		_isEnabled = false;
-		this->stopEnableAttemptsTimer();
-		this->stopRefreshTimer();
-
-		switchOff();
-		close();
-
-		emit isEnabledChanged(_isEnabled);
+		return;
 	}
+
+	_isEnabled = false;
+	this->stopEnableAttemptsTimer();
+	this->stopRefreshTimer();
+
+	switchOff();
+	close();
+
+	trackDevice(leddevice_flow, "Disabled");
+	emit isEnabledChanged(_isEnabled);
 }
 
 void LedDevice::setActiveDeviceType(const QString& deviceType)
@@ -617,6 +616,8 @@ bool LedDevice::powerOff()
 {
 	bool rc{ true };
 
+	trackDevice(leddevice_flow, "Power OFF") << ", current state is :" << (_isOn ? "ON" : "OFF");
+
 	if (!_isStayOnAfterStreaming)
 	{
 		Debug(_log, "Power Off: %s", QSTRING_CSTR(_activeDeviceType));
@@ -632,6 +633,8 @@ bool LedDevice::powerOff()
 bool LedDevice::powerOn()
 {
 	bool rc{ true };
+
+	trackDevice(leddevice_flow, "Power ON") << ", current state is :" << (_isOn ? "ON" : "OFF");
 
 	Debug(_log, "Power On: %s", QSTRING_CSTR(_activeDeviceType));
 
