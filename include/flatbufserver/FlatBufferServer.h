@@ -1,8 +1,10 @@
 #pragma once
 
 #include <QVector>
+#include <QSharedPointer>
 #include <QScopedPointer>
 #include <QWeakPointer>
+
 #include <QLoggingCategory>
 
 #include <utils/Logger.h>
@@ -94,5 +96,5 @@ private:
 
 	int _pixelDecimation;
 
-	QVector<FlatBufferClient*> _openConnections;
+	QVector<QSharedPointer<FlatBufferClient>> _openConnections;
 };

@@ -51,7 +51,7 @@ void ProtoServer::handleSettingsUpdate(settings::type type, const QJsonDocument&
 		
 		const QJsonObject& obj = config.object();
 
-		quint16 port = obj["port"].toInt(19445);
+		auto port = static_cast<quint16>(obj["port"].toInt(19445));
 
 		// port check
 		if(_server->serverPort() != port)
@@ -74,15 +74,16 @@ void ProtoServer::newConnection()
 		if(QTcpSocket * socket = _server->nextPendingConnection())
 		{
 			Debug(_log, "New connection from %s", QSTRING_CSTR(socket->peerAddress().toString()));
-			auto* client = new ProtoClientConnection(socket, _timeout, this);
+			auto client = MAKE_TRACKED_SHARED(ProtoClientConnection, socket, _timeout);
+
 			// internal
-			connect(client, &ProtoClientConnection::clientDisconnected, this, &ProtoServer::clientDisconnected);
-			connect(client, &ProtoClientConnection::registerGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::registerGlobalInput);
-			connect(client, &ProtoClientConnection::clearGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::clearGlobalInput);
-			connect(client, &ProtoClientConnection::setGlobalInputImage, GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage);
-			connect(client, &ProtoClientConnection::setGlobalInputColor, GlobalSignals::getInstance(), &GlobalSignals::setGlobalColor);
-			connect(client, &ProtoClientConnection::setBufferImage, GlobalSignals::getInstance(), &GlobalSignals::setBufferImage);
-			connect(GlobalSignals::getInstance(), &GlobalSignals::globalRegRequired, client, &ProtoClientConnection::registationRequired);
+			connect(client.get(), &ProtoClientConnection::clientDisconnected, this, &ProtoServer::clientDisconnected);
+			connect(client.get(), &ProtoClientConnection::registerGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::registerGlobalInput);
+			connect(client.get(), &ProtoClientConnection::clearGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::clearGlobalInput);
+			connect(client.get(), &ProtoClientConnection::setGlobalInputImage, GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage);
+			connect(client.get(), &ProtoClientConnection::setGlobalInputColor, GlobalSignals::getInstance(), &GlobalSignals::setGlobalColor);
+			connect(client.get(), &ProtoClientConnection::setBufferImage, GlobalSignals::getInstance(), &GlobalSignals::setBufferImage);
+			connect(GlobalSignals::getInstance(), &GlobalSignals::globalRegRequired, client.get(), &ProtoClientConnection::registationRequired);
 			_openConnections.append(client);
 		}
 	}
@@ -90,14 +91,21 @@ void ProtoServer::newConnection()
 
 void ProtoServer::clientDisconnected()
 {
-	ProtoClientConnection* client = qobject_cast<ProtoClientConnection*>(sender());
-
+	auto const* client = qobject_cast<ProtoClientConnection*>(sender());
 	qCDebug(proto_server_flow) << "Protocol Buffer client disconnected" << QString("PROTO@%1").arg(client->getAddress());
-	client->deleteLater();
-	_openConnections.removeAll(client);
+
+	// remove the client from the list
+	for (auto i = 0; i < _openConnections.size(); ++i)
+	{
+		if (_openConnections.at(i).get() == client)
+		{
+			_openConnections.remove(i);
+			break;
+		}
+	}
 }
 
-void ProtoServer::start()
+void ProtoServer::start() const
 {
 	qCDebug(proto_server_flow) << "Starting Protocol Buffer server, isListening" << _server->isListening() << "on port" << _port;
 }

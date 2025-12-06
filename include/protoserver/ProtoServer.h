@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QVector>
+#include <QSharedPointer>
 #include <QScopedPointer>
 #include <QWeakPointer>
 #include <QLoggingCategory>
@@ -83,7 +84,7 @@ private:
 	///
 	/// @brief Start the server with current _port
 	///
-	void start();
+	void start() const;
 
 private:
 	QScopedPointer<QTcpServer> _server;
@@ -93,5 +94,5 @@ private:
 	quint16 _port;
 	const QJsonDocument _config;
 
-	QVector<ProtoClientConnection*> _openConnections;
+	QVector<QSharedPointer<ProtoClientConnection>> _openConnections;
 };

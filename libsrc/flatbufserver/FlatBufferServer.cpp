@@ -9,6 +9,7 @@
 
 #include <utils/NetOrigin.h>
 #include <utils/GlobalSignals.h>
+#include "utils/MemoryTracker.h"
 
 Q_LOGGING_CATEGORY(flatbuffer_server_flow, "hyperion.flatbuffer.server.flow");
 
@@ -76,23 +77,22 @@ void FlatBufferServer::handleSettingsUpdate(settings::type type, const QJsonDocu
 
 void FlatBufferServer::newConnection()
 {
-	while(_server->hasPendingConnections())
+	while (_server->hasPendingConnections())
 	{
-		if(QTcpSocket* socket = _server->nextPendingConnection())
+		if (QTcpSocket* socket = _server->nextPendingConnection())
 		{
 			Debug(_log, "New connection from %s", QSTRING_CSTR(socket->peerAddress().toString()));
-			auto* client = new FlatBufferClient(socket, _timeout, this);
-
+			auto client = MAKE_TRACKED_SHARED(FlatBufferClient, socket, _timeout);
 			client->setPixelDecimation(_pixelDecimation);
 
 			// internal
-			connect(client, &FlatBufferClient::clientDisconnected, this, &FlatBufferServer::clientDisconnected);
-			connect(client, &FlatBufferClient::registerGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::registerGlobalInput);
-			connect(client, &FlatBufferClient::clearGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::clearGlobalInput);
-			connect(client, &FlatBufferClient::setGlobalInputImage, GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage);
-			connect(client, &FlatBufferClient::setGlobalInputColor, GlobalSignals::getInstance(), &GlobalSignals::setGlobalColor);
-			connect(client, &FlatBufferClient::setBufferImage, GlobalSignals::getInstance(), &GlobalSignals::setBufferImage);
-			connect(GlobalSignals::getInstance(), &GlobalSignals::globalRegRequired, client, &FlatBufferClient::registationRequired);
+			connect(client.get(), &FlatBufferClient::clientDisconnected, this, &FlatBufferServer::clientDisconnected);
+			connect(client.get(), &FlatBufferClient::registerGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::registerGlobalInput);
+			connect(client.get(), &FlatBufferClient::clearGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::clearGlobalInput);
+			connect(client.get(), &FlatBufferClient::setGlobalInputImage, GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage);
+			connect(client.get(), &FlatBufferClient::setGlobalInputColor, GlobalSignals::getInstance(), &GlobalSignals::setGlobalColor);
+			connect(client.get(), &FlatBufferClient::setBufferImage, GlobalSignals::getInstance(), &GlobalSignals::setBufferImage);
+			connect(GlobalSignals::getInstance(), &GlobalSignals::globalRegRequired, client.get(), &FlatBufferClient::registationRequired);
 
 			_openConnections.append(client);
 		}
@@ -101,12 +101,18 @@ void FlatBufferServer::newConnection()
 
 void FlatBufferServer::clientDisconnected()
 {
+	auto const* client = qobject_cast<FlatBufferClient*>(sender());
+	qCDebug(flatbuffer_server_flow) << "FlatBuffer client disconnected" << QString("%1@%2").arg(client->getOrigin(), client->getAddress());
 
-	FlatBufferClient* client = qobject_cast<FlatBufferClient*>(sender());
-
-	qCDebug(flatbuffer_server_flow) << "FlatBuffer client disconnected" << QString("%1@%2").arg(client->getOrigin(),client->getAddress());
-	client->deleteLater();
-	_openConnections.removeAll(client);
+	// remove the client from the list
+	for (auto i = 0; i < _openConnections.size(); ++i)
+	{
+		if (_openConnections.at(i).get() == client)
+		{
+			_openConnections.remove(i);
+			break;
+		}
+	}
 }
 
 void FlatBufferServer::start() const

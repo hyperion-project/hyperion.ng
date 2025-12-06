@@ -41,7 +41,7 @@ public:
 	/// @param timeout  The timeout when a client is automatically disconnected and the priority unregistered
 	/// @param parent   The parent
 	///
-	explicit ProtoClientConnection(QTcpSocket* socket, int timeout, QObject *parent);
+	explicit ProtoClientConnection(QTcpSocket* socket, int timeout, QObject *parent = nullptr);
 
 	int getPriority() const { return _priority; }
 	QString getAddress() const { return _clientAddress; }
