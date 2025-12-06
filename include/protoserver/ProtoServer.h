@@ -1,13 +1,14 @@
 #pragma once
 
-// util
-#include <utils/Logger.h>
-#include <utils/settings.h>
-
-// qt
 #include <QVector>
 #include <QScopedPointer>
 #include <QWeakPointer>
+#include <QLoggingCategory>
+
+#include <utils/Logger.h>
+#include <utils/settings.h>
+
+Q_DECLARE_LOGGING_CATEGORY(proto_server_flow);
 
 class QTcpServer;
 class ProtoClientConnection;
@@ -23,8 +24,13 @@ class ProtoServer : public QObject
 	Q_OBJECT
 
 public:
-	ProtoServer(const QJsonDocument& config, QObject* parent = nullptr);
+	explicit ProtoServer(const QJsonDocument& config, QObject* parent = nullptr);
 	~ProtoServer() override;
+
+	///
+	/// @brief Register all connected clients again (e.g. after a Hyperion instance restart)
+	///	
+	void registerClients() const;
 
 signals:
 	///
@@ -46,6 +52,16 @@ public slots:
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 	void initServer();
+
+	///
+	/// @brief Open server for connections
+	///
+	void open();
+
+	///
+	/// @brief Close server connections
+	///
+	void close();
 
 	///
 	/// @brief Stop server

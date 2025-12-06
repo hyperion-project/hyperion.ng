@@ -32,7 +32,7 @@
 #include <db/SettingsTable.h>
 #include <hyperion/PriorityMuxer.h>
 
-Q_DECLARE_LOGGING_CATEGORY(forwarder_track);
+Q_DECLARE_LOGGING_CATEGORY(forwarder_flow);
 Q_DECLARE_LOGGING_CATEGORY(forwarder_write);
 
 // Forward declaration

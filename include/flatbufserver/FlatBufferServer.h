@@ -1,18 +1,18 @@
 #pragma once
 
-// util
-#include <utils/Logger.h>
-#include <utils/settings.h>
-
-// qt
 #include <QVector>
 #include <QScopedPointer>
 #include <QWeakPointer>
+#include <QLoggingCategory>
+
+#include <utils/Logger.h>
+#include <utils/settings.h>
+
+Q_DECLARE_LOGGING_CATEGORY(flatbuffer_server_flow);
 
 class QTcpServer;
 class FlatBufferClient;
 class NetOrigin;
-
 
 ///
 /// @brief A TcpServer to receive images of different formats with Google Flatbuffer
@@ -26,6 +26,11 @@ public:
 	explicit FlatBufferServer(const QJsonDocument& config, QObject* parent = nullptr);
 	~FlatBufferServer() override;
 
+	///
+	/// @brief Register all connected clients again (e.g. after a Hyperion instance restart)
+	///	
+	void registerClients() const;
+
 public slots:
 	///
 	/// @brief Handle settings update
@@ -35,6 +40,16 @@ public slots:
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 	void initServer();
+
+	///
+	/// @brief Open server for connections
+	///
+	void open();
+
+	///
+	/// @brief Close server connections
+	///
+	void close();
 
 	///
 	/// @brief Stop server
@@ -67,7 +82,7 @@ private:
 	///
 	/// @brief Start the server with current _port
 	///
-	void start();
+	void start() const;
 
 private:
 	QScopedPointer<QTcpServer> _server;

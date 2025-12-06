@@ -1,14 +1,14 @@
 #include "ProtoClientConnection.h"
 #include <protoserver/ProtoServer.h>
 
-// util
-#include <utils/NetOrigin.h>
-#include <utils/GlobalSignals.h>
-
-// qt
 #include <QJsonObject>
 #include <QTcpServer>
 #include <QTcpSocket>
+
+#include <utils/NetOrigin.h>
+#include <utils/GlobalSignals.h>
+
+Q_LOGGING_CATEGORY(proto_server_flow, "hyperion.proto.server.flow");
 
 // Constants
 namespace {
@@ -34,6 +34,7 @@ ProtoServer::~ProtoServer()
 
 void ProtoServer::initServer()
 {
+	qCDebug(proto_server_flow) << "Initializing Protocol Buffer Server";
 	_server.reset(new QTcpServer());
 	_netOriginWeak = NetOrigin::getInstance();
 	connect(_server.get(), &QTcpServer::newConnection, this, &ProtoServer::newConnection);
@@ -46,6 +47,8 @@ void ProtoServer::handleSettingsUpdate(settings::type type, const QJsonDocument&
 {
 	if(type == settings::PROTOSERVER)
 	{
+		qCDebug(proto_server_flow) << "Handling Protocol Buffer server settings update";
+		
 		const QJsonObject& obj = config.object();
 
 		quint16 port = obj["port"].toInt(19445);
@@ -88,12 +91,31 @@ void ProtoServer::newConnection()
 void ProtoServer::clientDisconnected()
 {
 	ProtoClientConnection* client = qobject_cast<ProtoClientConnection*>(sender());
+
+	qCDebug(proto_server_flow) << "Protocol Buffer client disconnected" << QString("PROTO@%1").arg(client->getAddress());
 	client->deleteLater();
 	_openConnections.removeAll(client);
 }
 
 void ProtoServer::start()
 {
+	qCDebug(proto_server_flow) << "Starting Protocol Buffer server, isListening" << _server->isListening() << "on port" << _port;
+}
+
+void ProtoServer::stop()
+{
+	qCDebug(proto_server_flow) << "Stopping Protocol Buffer server on port" << _port;
+	if (!_server.isNull())
+	{
+		close();
+	}
+
+	emit isStopped();
+}
+
+void ProtoServer::open()
+{
+	qCDebug(proto_server_flow) << "Open Protocol Buffer server on port" << _port;
 	if(!_server->isListening())
 	{
 		if(!_server->listen(QHostAddress::Any, _port))
@@ -103,13 +125,15 @@ void ProtoServer::start()
 		else
 		{
 			Info(_log,"Started on port %d", _port);
+
 			emit publishService(SERVICE_TYPE, _port);
 		}
 	}
 }
 
-void ProtoServer::stop()
+void ProtoServer::close()
 {
+	qCDebug(proto_server_flow) << "Close Protocol Buffer server. Number of open connections:" << _openConnections.size();
 	if(_server->isListening())
 	{
 		// close client connections
@@ -117,10 +141,18 @@ void ProtoServer::stop()
 		{
 			client->forceClose();
 		}
-		_openConnections.clear();
 		_server->close();
-		Info(_log, "ProtocolBuffer-Server stopped");
-	}
+		_openConnections.clear();
 
-	emit isStopped();
+		Info(_log, "Protocol Buffer server closed");
+	}
+}
+
+void  ProtoServer::registerClients() const
+{
+	for (const auto& client : _openConnections)
+	{
+		qCDebug(proto_server_flow) << "Registering Protocol Buffer client" << QString("PROTO@%1").arg(client->getAddress());
+		emit client->registerGlobalInput(client->getPriority(), hyperion::COMP_PROTOSERVER, QSTRING_CSTR(QString("PROTO@%1").arg(client->getAddress())));
+	}	
 }

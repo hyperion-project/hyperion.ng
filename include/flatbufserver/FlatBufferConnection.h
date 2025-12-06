@@ -9,6 +9,7 @@
 #include <QTimer>
 #include <QMap>
 #include <QHostAddress>
+#include <QLoggingCategory>
 
 // hyperion util
 #include <utils/Image.h>
@@ -17,6 +18,8 @@
 #include <utils/Logger.h>
 
 #include <flatbuffers/flatbuffers.h>
+
+Q_DECLARE_LOGGING_CATEGORY(flatbuffer_client_cmd);
 
 const int FLATBUFFER_DEFAULT_PORT = 19400;
 

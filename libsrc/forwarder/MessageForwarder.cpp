@@ -21,7 +21,7 @@
 
 #include <flatbufserver/FlatBufferConnection.h>
 
-Q_LOGGING_CATEGORY(forwarder_track, "hyperion.forwarder.track");
+Q_LOGGING_CATEGORY(forwarder_flow, "hyperion.forwarder.flow");
 Q_LOGGING_CATEGORY(forwarder_write, "hyperion.forwarder.write");
 
 // Constants
@@ -62,7 +62,7 @@ void MessageForwarder::init()
 
 void MessageForwarder::start()
 {
-	TRACK_SCOPE_CATEGORY(forwarder_track) << "is Enabled" << _isEnabled;
+	TRACK_SCOPE_CATEGORY(forwarder_flow) << "is Enabled" << _isEnabled;
 	if (_isEnabled)
 	{
 		handleTargets(true, _config.object());
@@ -71,7 +71,7 @@ void MessageForwarder::start()
 
 void MessageForwarder::stop()
 {
-	TRACK_SCOPE_CATEGORY(forwarder_track);
+	TRACK_SCOPE_CATEGORY(forwarder_flow);
 
 	QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
 	if (!hyperion.isNull())
@@ -86,7 +86,7 @@ void MessageForwarder::stop()
 
 bool MessageForwarder::connectToInstance(quint8 instanceID)
 {
-	TRACK_SCOPE_CATEGORY(forwarder_track) << "instanceID" << instanceID << "( to be forwarded instanceID" << _toBeForwardedInstanceID << ")";
+	TRACK_SCOPE_CATEGORY(forwarder_flow) << "instanceID" << instanceID << "( to be forwarded instanceID" << _toBeForwardedInstanceID << ")";
 
 	if (instanceID != _toBeForwardedInstanceID)
 	{
@@ -127,7 +127,7 @@ bool MessageForwarder::connectToInstance(quint8 instanceID)
 
 void MessageForwarder::disconnectFromInstance(quint8 instanceID)
 {
-	TRACK_SCOPE_CATEGORY(forwarder_track) << "instanceID" << instanceID;
+	TRACK_SCOPE_CATEGORY(forwarder_flow) << "instanceID" << instanceID;
 
 	QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
 	if (instanceID == _toBeForwardedInstanceID && !hyperion.isNull())
@@ -223,7 +223,7 @@ bool MessageForwarder::isFlatbufferComponent(int priority) const
 
 bool MessageForwarder::activateFlatbufferTargets(int priority)
 {
-	TRACK_SCOPE_CATEGORY(forwarder_track) << "priority" << priority;
+	TRACK_SCOPE_CATEGORY(forwarder_flow) << "priority" << priority;
 	QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
 	if (hyperion.isNull())
 	{
@@ -308,7 +308,7 @@ void MessageForwarder::handleTargets(bool start, const QJsonObject& config)
 
 void MessageForwarder::disconnectFlatBufferComponents(int priority) const
 {
-	TRACK_SCOPE_CATEGORY(forwarder_track) << "priority" << priority;
+	TRACK_SCOPE_CATEGORY(forwarder_flow) << "priority" << priority;
 
 	QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
 	if (hyperion.isNull())
@@ -481,7 +481,7 @@ int MessageForwarder::startJsonTargets(const QJsonObject& config)
 		}
 	}
 
-	TRACK_SCOPE_CATEGORY(forwarder_track) << "JSON" << _jsonTargets;
+	TRACK_SCOPE_CATEGORY(forwarder_flow) << "JSON" << _jsonTargets;
 
 	return static_cast<int>(_jsonTargets.size());
 }
@@ -489,7 +489,7 @@ int MessageForwarder::startJsonTargets(const QJsonObject& config)
 
 void MessageForwarder::stopJsonTargets()
 {
-	TRACK_SCOPE_CATEGORY(forwarder_track) << "JSON" << _jsonTargets;
+	TRACK_SCOPE_CATEGORY(forwarder_flow) << "JSON" << _jsonTargets;
 
 	if (!_jsonTargets.isEmpty())
 	{
@@ -591,14 +591,14 @@ int MessageForwarder::startFlatbufferTargets(const QJsonObject& config)
 		}
 	}
 
- 	TRACK_SCOPE_CATEGORY(forwarder_track) << "Flatbuffer" << _flatbufferTargets;
+ 	TRACK_SCOPE_CATEGORY(forwarder_flow) << "Flatbuffer" << _flatbufferTargets;
 
 	return static_cast<int>(_flatbufferTargets.size());
 }
 
 void MessageForwarder::stopFlatbufferTargets()
 {
-	TRACK_SCOPE_CATEGORY(forwarder_track) << "Flatbuffer" << _flatbufferTargets;
+	TRACK_SCOPE_CATEGORY(forwarder_flow) << "Flatbuffer" << _flatbufferTargets;
 
 	if (!_flatbufferTargets.isEmpty())
 	{

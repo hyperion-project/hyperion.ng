@@ -1,7 +1,11 @@
 #ifndef FLATBUFFERCLIENT_H
 #define FLATBUFFERCLIENT_H
 
-// util
+#include <QScopedPointer>
+#include <QTcpSocket>
+#include <QTimer>
+#include <QLoggingCategory>
+
 #include <utils/Logger.h>
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
@@ -11,9 +15,8 @@
 // flatbuffer FBS
 #include "hyperion_request_generated.h"
 
-#include <QScopedPointer>
-#include <QTcpSocket>
-#include <QTimer>
+Q_DECLARE_LOGGING_CATEGORY(flatbuffer_server_client_flow);
+Q_DECLARE_LOGGING_CATEGORY(flatbuffer_server_client_cmd);
 
 namespace flatbuf {
 	class HyperionRequest;
@@ -35,6 +38,10 @@ public:
 	explicit FlatBufferClient(QTcpSocket* socket, int timeout, QObject *parent = nullptr);
 
 	void setPixelDecimation(int decimator);
+
+	int getPriority() const { return _priority; }
+	QString getOrigin() const { return _origin; }
+	QString getAddress() const { return _clientAddress; }
 
 signals:
 	///
@@ -68,7 +75,11 @@ signals:
 	void clientDisconnected();
 
 public slots:
-
+	///
+	/// @brief Requests a registration from the client
+	///
+	void registationRequired(int priority);
+	
 	///
 	/// @brief close the socket and call disconnected()
 	///

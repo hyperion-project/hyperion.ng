@@ -10,6 +10,8 @@
 #include "hyperion_reply_generated.h"
 #include "hyperion_request_generated.h"
 
+Q_LOGGING_CATEGORY(flatbuffer_client_cmd, "hyperion.flatbuffer.client.cmd");
+
 FlatBufferConnection::FlatBufferConnection(const QString& origin, const QHostAddress& address, int priority, bool skipReply, quint16 port)
 	: FlatBufferConnection(origin, address.toString(), priority, skipReply, port)
 {
@@ -25,6 +27,7 @@ FlatBufferConnection::FlatBufferConnection(const QString& origin, const QString&
 	, _builder(1024)
 	, _isRegistered(false)
 {
+	TRACK_SCOPE();
 	connect(&_socket, &QTcpSocket::connected, this, &FlatBufferConnection::onConnected);
 	connect(&_socket, &QTcpSocket::disconnected, this, &FlatBufferConnection::onDisconnected);
 	if(!skipReply)
@@ -45,6 +48,7 @@ FlatBufferConnection::FlatBufferConnection(const QString& origin, const QString&
 
 FlatBufferConnection::~FlatBufferConnection()
 {
+	TRACK_SCOPE();
 	_timer.stop();
 
 	//Stop retrying on disconnect
@@ -116,6 +120,8 @@ void FlatBufferConnection::setColor(const ColorRgb& color, int duration)
 {
 	if (!isClientRegistered()) return;
 
+	qCDebug(flatbuffer_client_cmd) << "Set color to" << color.toQString() << "with duration" << duration;	
+
 	_builder.Clear();
 	auto colorReq = hyperionnet::CreateColor(_builder, (color.red << 16) | (color.green << 8) | color.blue, duration);
 	auto req = hyperionnet::CreateRequest(_builder, hyperionnet::Command_Color, colorReq.Union());
@@ -126,8 +132,9 @@ void FlatBufferConnection::setColor(const ColorRgb& color, int duration)
 
 void FlatBufferConnection::setImage(const Image<ColorRgb> &image)
 {
-	qCDebug(image_track) << "FlatBufferConnection::setImage - Image [" << image.id() << "]";
 	if (!isClientRegistered()) return;
+
+	qCDebug(image_track) << "Set Image [" << image.id() << "]";
 
 	const auto* buffer = reinterpret_cast<const uint8_t*>(image.memptr());
 	qsizetype bufferSize = image.size();
@@ -140,6 +147,8 @@ void FlatBufferConnection::setImage(const Image<ColorRgb> &image)
 void FlatBufferConnection::setImage(const QByteArray& imageData, int width, int height, int duration)
 {
 	if (!isClientRegistered()) return;
+
+	qCDebug(flatbuffer_client_cmd) << "Set Image Data Size [" << imageData.size() << "] Width [" << width << "] Height [" << height << "] Duration [" << duration << "]";
 
 	_builder.Clear();
 	auto imageDataVector = _builder.CreateVector(reinterpret_cast<const uint8_t*>(imageData.constData()), imageData.size());
@@ -155,6 +164,8 @@ void FlatBufferConnection::clearPriority(int priority)
 {
 	if (!isClientRegistered()) return;
 
+	qCDebug(flatbuffer_client_cmd) << "Clear priority" << priority;	
+
 	_builder.Clear();
 	auto clearReq = hyperionnet::CreateClear(_builder, priority);
 	auto req = hyperionnet::CreateRequest(_builder,hyperionnet::Command_Clear, clearReq.Union());
@@ -165,6 +176,8 @@ void FlatBufferConnection::clearPriority(int priority)
 
 void FlatBufferConnection::clearAllPriorities()
 {
+	qCDebug(flatbuffer_client_cmd) << "Clear all priorities";
+
 	clearPriority(-1);
 }
 

@@ -1,15 +1,16 @@
 #include <flatbufserver/FlatBufferServer.h>
-#include "FlatBufferClient.h"
-#include "HyperionConfig.h"
 
-// util
-#include <utils/NetOrigin.h>
-#include <utils/GlobalSignals.h>
-
-// qt
 #include <QJsonObject>
 #include <QTcpServer>
 #include <QTcpSocket>
+
+#include "FlatBufferClient.h"
+#include "HyperionConfig.h"
+
+#include <utils/NetOrigin.h>
+#include <utils/GlobalSignals.h>
+
+Q_LOGGING_CATEGORY(flatbuffer_server_flow, "hyperion.flatbuffer.server.flow");
 
 // Constants
 namespace {
@@ -35,6 +36,7 @@ FlatBufferServer::~FlatBufferServer()
 
 void FlatBufferServer::initServer()
 {
+	qCDebug(flatbuffer_server_flow) << "Initializing FlatBuffer server";
 	_server.reset(new QTcpServer());
 	_netOriginWeak = NetOrigin::getInstance();
 	connect(_server.get(), &QTcpServer::newConnection, this, &FlatBufferServer::newConnection);
@@ -47,6 +49,7 @@ void FlatBufferServer::handleSettingsUpdate(settings::type type, const QJsonDocu
 {
 	if(type == settings::FLATBUFSERVER)
 	{
+		qCDebug(flatbuffer_server_flow) << "Handling FlatBuffer server settings update";
 		const QJsonObject& obj = config.object();
 
 		auto port = static_cast<quint16>(obj["port"].toInt(19400));
@@ -89,6 +92,8 @@ void FlatBufferServer::newConnection()
 			connect(client, &FlatBufferClient::setGlobalInputImage, GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage);
 			connect(client, &FlatBufferClient::setGlobalInputColor, GlobalSignals::getInstance(), &GlobalSignals::setGlobalColor);
 			connect(client, &FlatBufferClient::setBufferImage, GlobalSignals::getInstance(), &GlobalSignals::setBufferImage);
+			connect(GlobalSignals::getInstance(), &GlobalSignals::globalRegRequired, client, &FlatBufferClient::registationRequired);
+
 			_openConnections.append(client);
 		}
 	}
@@ -96,13 +101,33 @@ void FlatBufferServer::newConnection()
 
 void FlatBufferServer::clientDisconnected()
 {
+
 	FlatBufferClient* client = qobject_cast<FlatBufferClient*>(sender());
+
+	qCDebug(flatbuffer_server_flow) << "FlatBuffer client disconnected" << QString("%1@%2").arg(client->getOrigin(),client->getAddress());
 	client->deleteLater();
 	_openConnections.removeAll(client);
 }
 
-void FlatBufferServer::start()
+void FlatBufferServer::start() const
 {
+	qCDebug(flatbuffer_server_flow) << "Starting FlatBuffer server, isListening" << _server->isListening() << "on port" << _port;
+}
+
+void FlatBufferServer::stop()
+{
+	qCDebug(flatbuffer_server_flow) << "Stopping FlatBuffer server on port" << _port;
+	if (!_server.isNull())
+	{
+		close();
+	}
+
+	emit isStopped();
+}
+
+void FlatBufferServer::open()
+{
+	qCDebug(flatbuffer_server_flow) << "Open FlatBuffer server on port" << _port;
 	if(!_server->isListening())
 	{
 		if(!_server->listen(QHostAddress::Any, _port))
@@ -118,8 +143,9 @@ void FlatBufferServer::start()
 	}
 }
 
-void FlatBufferServer::stop()
+void FlatBufferServer::close()
 {
+	qCDebug(flatbuffer_server_flow) << "Close FlatBuffer server. Number of open connections:" << _openConnections.size();
 	if(_server->isListening())
 	{
 		// close client connections
@@ -127,10 +153,18 @@ void FlatBufferServer::stop()
 		{
 			client->forceClose();
 		}
-		_openConnections.clear();
 		_server->close();
-		Info(_log, "FlatBuffer-Server stopped");
-	}
+		_openConnections.clear();
 
-	emit isStopped();
+		Info(_log, "FlatBuffer-Server closed");
+	}
+}
+
+void  FlatBufferServer::registerClients() const
+{
+	for (const auto& client : _openConnections)
+	{
+		qCDebug(flatbuffer_server_flow) << "Registering FlatBuffer client" << QString("%1@%2").arg(client->getOrigin(),client->getAddress());
+		emit client->registerGlobalInput(client->getPriority(), hyperion::COMP_FLATBUFSERVER, QSTRING_CSTR(QString("%1@%2").arg(client->getOrigin(),client->getAddress())));
+	}	
 }

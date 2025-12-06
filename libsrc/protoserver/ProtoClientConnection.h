@@ -1,5 +1,10 @@
 #pragma once
 
+#include <QScopedPointer>
+#include <QTcpSocket>
+#include <QTimer>
+#include <QLoggingCategory>
+
 // protobuffer PROTO
 // protobuf defines an Error() function itself, so undef it here
 #undef Error
@@ -11,6 +16,9 @@
 #include <utils/ColorRgb.h>
 #include <utils/ColorRgba.h>
 #include <utils/Components.h>
+
+Q_DECLARE_LOGGING_CATEGORY(proto_server_client_flow);
+Q_DECLARE_LOGGING_CATEGORY(proto_server_client_cmd);
 
 class QTcpSocket;
 class QTimer;
@@ -34,6 +42,9 @@ public:
 	/// @param parent   The parent
 	///
 	explicit ProtoClientConnection(QTcpSocket* socket, int timeout, QObject *parent);
+
+	int getPriority() const { return _priority; }
+	QString getAddress() const { return _clientAddress; }
 
 signals:
 	///
@@ -148,14 +159,9 @@ private:
 
 private:
 	QSharedPointer<Logger> _log;
-
-	/// The TCP-Socket that is connected tot the Proto-client
 	QTcpSocket* _socket;
-
-	/// address of client
 	const QString _clientAddress;
-
-	QTimer*_timeoutTimer;
+	QScopedPointer<QTimer, QScopedPointerDeleteLater> _timeoutTimer;
 	int _timeout;
 	int _priority;
 

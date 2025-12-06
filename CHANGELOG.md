@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Linux: New DRM/KMS screen grabber with plane-based capture - not feature complete yet
 - Home Assistant: Dynamically set brightness for higher dynamic range (#1922)
 - Add DRM_FORMAT_RGB565 format to DRM frame grabber
+- Add standalone DRM grabber
 
 ---
 
@@ -59,6 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Import 2.1.1 config via 2.1.2 UI fails validation (#1907)
   - Memory/Image queuing issue when all instances are stopped but grabber is running
   - Forwarder was not using the correct target instance IDs for JSON requests
+  - Flatbuffer/Protobuffer sources are not reconnected after (re)starting a hyperion instance
   
 - **Refactors:**
   - Fixed Image & ImageData and add debug logging (#1792, #1892)

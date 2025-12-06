@@ -160,6 +160,7 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 
 	startNetworkServices();
 	startGrabberServices();
+	startNetworkInputCaptureServices();
 
 	startNetworkOutputServices();
 }
@@ -178,7 +179,20 @@ void HyperionDaemon::handleInstanceStateChange(InstanceState state, quint8 insta
 	break;
 	case InstanceState::H_STARTED:
 	{
-		startNetworkInputCaptureServices();
+		if (auto mgr = _instanceManagerWeak.toStrongRef())
+		{
+			TRACK_SCOPE() << "Instance" << static_cast<int>(instance) << "started. Currently" << mgr->getRunningInstanceIdx().size() << "instance(s) running.";
+
+			if (mgr->getRunningInstanceIdx().size() == 1)
+			{
+				openCurrentNetworkInputCaptureServices();
+			}
+			else
+			{
+				registerCurrentNetworkInputCaptureServices();
+			}
+		}
+
 #if defined(ENABLE_FORWARDER)
 		QMetaObject::invokeMethod(_messageForwarder.get(),
 			[this, instance]() {
@@ -192,6 +206,9 @@ void HyperionDaemon::handleInstanceStateChange(InstanceState state, quint8 insta
 	}
 	break;
 	case InstanceState::H_STOPPED:
+
+		TRACK_SCOPE() << "Instance" << static_cast<int>(instance) << "stopped.";
+
 #if defined(ENABLE_FORWARDER)
 		QMetaObject::invokeMethod(_messageForwarder.get(),
 			[this, instance]() { _messageForwarder->disconnectFromInstance(instance); },
@@ -202,10 +219,12 @@ void HyperionDaemon::handleInstanceStateChange(InstanceState state, quint8 insta
 		{
 			if(mgr->getRunningInstanceIdx().empty())
 			{
+				TRACK_SCOPE() << "Last instance stopped..";
+				closeCurrentNetworkInputCaptureServices();
+
 #if defined(ENABLE_FORWARDER)
 				QMetaObject::invokeMethod(_messageForwarder.get(), &MessageForwarder::stop, Qt::QueuedConnection);
 #endif
-				stopNetworkInputCaptureServices();
 			}
 		}
 		break;
@@ -220,7 +239,6 @@ void HyperionDaemon::handleInstanceStateChange(InstanceState state, quint8 insta
 		qWarning() << "HyperionDaemon::handleInstanceStateChange - Unhandled state:" << static_cast<int>(state);
 	break;
 	}
-
 }
 
 void HyperionDaemon::setVideoMode(VideoMode mode)
@@ -243,7 +261,7 @@ void HyperionDaemon::stopServices()
 
 	// Stop event services first to inform clients about shutdown and prevent further communication via JSON API
 	stopEventServices();
-	
+
 	stopGrabberServices();
 	stopNetworkOutputServices();
 
@@ -255,6 +273,8 @@ void HyperionDaemon::stopServices()
 		mgr->stopAll();
 	}
 	loopInstances.exec();
+
+	stopNetworkInputCaptureServices();	
 	stopNetworkServices();
 
 	HyperionIManager::destroyInstance();
@@ -462,7 +482,7 @@ void HyperionDaemon::startNetworkInputCaptureServices()
 #endif
 }
 
-void HyperionDaemon::stopNetworkInputCaptureServices()
+void HyperionDaemon::stopNetworkInputCaptureServices() const
 {
 #if defined(ENABLE_PROTOBUF_SERVER)
 	safeShutdownThread(
@@ -480,6 +500,36 @@ void HyperionDaemon::stopNetworkInputCaptureServices()
 		&FlatBufferServer::isStopped,
 		&FlatBufferServer::stop
 	);
+#endif
+}
+
+void HyperionDaemon::openCurrentNetworkInputCaptureServices() const
+{
+#if defined(ENABLE_FLATBUF_SERVER)
+	QMetaObject::invokeMethod(_flatBufferServer.get(), &FlatBufferServer::open, Qt::QueuedConnection);
+#endif
+#if defined(ENABLE_PROTOBUF_SERVER)
+	QMetaObject::invokeMethod(_protoServer.get(), &ProtoServer::open, Qt::QueuedConnection);
+#endif
+}
+void HyperionDaemon::closeCurrentNetworkInputCaptureServices() const
+{
+#if defined(ENABLE_FLATBUF_SERVER)
+	QMetaObject::invokeMethod(_flatBufferServer.get(), &FlatBufferServer::close, Qt::QueuedConnection);
+#endif
+#if defined(ENABLE_PROTOBUF_SERVER)
+	QMetaObject::invokeMethod(_protoServer.get(), &ProtoServer::close, Qt::QueuedConnection);
+#endif
+}
+
+void HyperionDaemon::registerCurrentNetworkInputCaptureServices() const
+{
+#if defined(ENABLE_FLATBUF_SERVER)
+	QMetaObject::invokeMethod(_flatBufferServer.get(), &FlatBufferServer::registerClients, Qt::QueuedConnection);
+#endif
+
+#if defined(ENABLE_PROTOBUF_SERVER)
+	QMetaObject::invokeMethod(_protoServer.get(), &ProtoServer::registerClients, Qt::QueuedConnection);
 #endif
 }
 
@@ -507,7 +557,7 @@ void HyperionDaemon::startNetworkOutputServices()
 #endif
 }
 
-void HyperionDaemon::stopNetworkOutputServices()
+void HyperionDaemon::stopNetworkOutputServices() const
 {
 #if defined(ENABLE_FORWARDER)
 	safeShutdownThread(

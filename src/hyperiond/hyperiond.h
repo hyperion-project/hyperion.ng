@@ -207,11 +207,14 @@ private:
 
 	void createNetworkInputCaptureServices();
 	void startNetworkInputCaptureServices();
-	void stopNetworkInputCaptureServices();
+	void stopNetworkInputCaptureServices() const;
+	void openCurrentNetworkInputCaptureServices() const;
+	void closeCurrentNetworkInputCaptureServices() const;
+	void registerCurrentNetworkInputCaptureServices() const;
 
 	void createNetworkOutputServices();
 	void startNetworkOutputServices();
-	void stopNetworkOutputServices();
+	void stopNetworkOutputServices() const;
 
 	void startGrabberServices();
 	void restartGrabberServices();

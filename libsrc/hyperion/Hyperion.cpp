@@ -199,21 +199,13 @@ void Hyperion::stop(const QString name)
 	_muxer->stop();
 	_deviceSmooth->stop();
 
-	//_raw2ledAdjustment.reset();
-
+	// Trigger instance stopped when the LedDevice signals it has stopped
+	connect(_ledDeviceWrapper.get(), &LedDeviceWrapper::isStopped, [this, name]()
+	{
+		TRACK_SCOPE_SUBCOMPONENT() << "LedDeviceWrapper signaled it has stopped for Hyperion instance:" << QSTRING_CSTR(name);
+		emit finished(name);
+	});
 	_ledDeviceWrapper->stopDevice();
-
-	//Clear all objects maintained/shared by <Hyperion> being the master
-	//_BGEffectHandler.clear();
-	//_captureCont.clear();
-	//_deviceSmooth.clear();
-	//_ledDeviceWrapper.clear();
-	//_muxer.clear();
-	//_imageProcessor.clear();
-	//_componentRegister.clear();
-	//_settingsManager.reset();
-
-	emit finished(name);
 }
 
 void Hyperion::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
@@ -426,7 +418,14 @@ bool Hyperion::setInput(int priority, const QVector<ColorRgb>& ledColors, int ti
 
 bool Hyperion::setInputImage(int priority, const Image<ColorRgb>& image, int64_t timeout_ms, bool clearEffect)
 {
-	qCDebug(image_track) << "Image [" << image.id() << "], priority:" << priority << "timeout:" << timeout_ms << "ms";
+	if (_muxer.isNull())
+	{
+		qCDebug(image_track) << "Image [" << image.id() << "] not set, as muxer is null.";
+		return false;
+	}
+
+	TRACK_SCOPE_SUBCOMPONENT_CATEGORY(image_track) << "Image [" << image.id() << "], priority" << priority << "image id" << image.id() << "timeout" << timeout_ms << "ms";
+
 	if (!_muxer->hasPriority(priority))
 	{
 		emit GlobalSignals::getInstance()->globalRegRequired(priority);
