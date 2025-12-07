@@ -128,7 +128,7 @@ public:
 		if (image.width()>0 && image.height()>0)
 		{
 			// Ensure that the buffer-image is the proper size
-		setSize(image);
+			setSize(image);
 
 			assert(!_imageToLedColors.isNull());
 
