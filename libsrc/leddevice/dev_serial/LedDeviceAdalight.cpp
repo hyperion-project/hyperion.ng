@@ -118,6 +118,8 @@ void LedDeviceAdalight::prepareHeader()
 
 int LedDeviceAdalight::write(const QVector<ColorRgb> & ledValues)
 {
+	qCDebug(leddevice_write) << limitForDebug(ledValues, 10);
+	
 	if (_ledCount != ledValues.size())
 	{
 		Warning(_log, "Adalight LED count has changed (old: %d, new: %d). Rebuilding header.", _ledCount, ledValues.size());

@@ -330,6 +330,7 @@ void LedDevice::stopEnableAttemptsTimer()
 
 int LedDevice::updateLeds(const QVector<ColorRgb>& ledValues)
 {
+	trackDevice(leddevice_write, "Update LED values on") << (_isLedUpdatePending.load() ? ", but skipping update as an LED update is pending." : "will be executed.");
 	// Take the LED update into a shared buffer and return quickly
 	{
 		QMutexLocker locker(&_ledBufferMutex);
@@ -363,17 +364,20 @@ int LedDevice::writeLedUpdate(const QVector<ColorRgb>& ledValues)
 	if (!_isEnabled || !_isOn || !_isDeviceReady || _isDeviceInError)
 	{
 		// LedDevice NOT ready!
-		trackDevice(leddevice_flow, "Writing LED values") << "' is not ready."
-								 << " isEnabled=" << _isEnabled
-								 << " isOn=" << _isOn
-								 << " isDeviceReady=" << _isDeviceReady
-								 << " isDeviceInError=" << _isDeviceInError;
+		trackDevice(leddevice_flow, "Not ready writing LED values on") << QString("Status: isEnabled=%1 isOn=%2 isDeviceReady=%3 isDeviceInError=%4")
+									.arg(_isEnabled)
+									.arg(_isOn)
+									.arg(_isDeviceReady)
+									.arg(_isDeviceInError);
 		return -1;
 	}
 
-	trackDevice(leddevice_write, "Writing LED values to") << ", number of LEDs:" << ledValues.size();
-
 	qint64 const elapsedTimeMs = _lastWriteTime.msecsTo(QDateTime::currentDateTime());
+	trackDevice(leddevice_write, "Writing LED values to") << QString("Time since last write: %1 ms, Latch time: %2 ms, number of LEDs: %3")
+									.arg(elapsedTimeMs)
+									.arg(_latchTime_ms)
+									.arg(ledValues.size());
+
 	if (_latchTime_ms > 0 && elapsedTimeMs < _latchTime_ms)
 	{
 		// Skip write as elapsedTime < latchTime
@@ -400,6 +404,7 @@ int LedDevice::writeLedUpdate(const QVector<ColorRgb>& ledValues)
 
 int LedDevice::rewriteLEDs()
 {
+	trackDevice(leddevice_write, "Rewriting LED values") << (_isLedUpdatePending.load() ? ", but skipping update as an LED update is pending." : "will be executed.");
 	bool expected = false;
 	if (!_isLedUpdatePending.compare_exchange_strong(expected, true))
 	{
@@ -410,8 +415,14 @@ int LedDevice::rewriteLEDs()
 
 	if (!(_isEnabled && _isOn && _isDeviceReady && !_isDeviceInError))
 	{
+		trackDevice(leddevice_write, "Not ready rewriting LED values on") << QString("Status: isEnabled=%1 isOn=%2 isDeviceReady=%3 isDeviceInError=%4")
+									.arg(_isEnabled)
+									.arg(_isOn)
+									.arg(_isDeviceReady)
+									.arg(_isDeviceInError);
 		// If Device is not ready stop timer
 		this->stopRefreshTimer();
+		_isLedUpdatePending.store(false);
 		return -1;
 	}
 
@@ -420,7 +431,7 @@ int LedDevice::rewriteLEDs()
 	{
 		trackDevice(leddevice_write, "Rewriting LED values");
 		success = write(_lastLedValues);
-		_lastWriteTime = QDateTime::currentDateTime();
+		_isLedUpdatePending.store(false);		
 	}
 
 	return success;
@@ -451,7 +462,7 @@ int LedDevice::writeColor(const ColorRgb& color, int numberOfWrites)
 
 void LedDevice::waitForPendingSwitchOff() const
 {
-	trackDevice(leddevice_flow, "Waiting for pending Switch OFF") << "_isSwitchOffInProgress:" << _isSwitchOffInProgress.load();
+	trackDevice(leddevice_flow, "Waiting for pending Switch OFF") << (_isSwitchOffInProgress.load() ? "is in progress" : "is not in required");
 	if (!_isSwitchOffInProgress.load(std::memory_order_acquire))
 	{
 		return;
@@ -463,7 +474,7 @@ void LedDevice::waitForPendingSwitchOff() const
 		return;
 	}
 
-	trackDevice(leddevice_flow, "Waiting for pending Switch OFF - start loop") << "_isSwitchOffInProgress:" << _isSwitchOffInProgress.load();
+	trackDevice(leddevice_flow, "Waiting for pending Switch OFF - start loop") << "Switch Off is" << (_isSwitchOffInProgress.load() ? "in progress" : "not in progress");
 	QEventLoop loop;
 	QMetaObject::Connection const connection = connect(this, &LedDevice::switchOffCompleted, &loop, &QEventLoop::quit, Qt::QueuedConnection);
 	QTimer timeoutTimer;
@@ -484,14 +495,14 @@ void LedDevice::waitForPendingSwitchOff() const
 bool LedDevice::beginSwitchOff()
 {
 	bool expected = false;
-	trackDevice(leddevice_flow, "Begin Switch OFF") << "_isSwitchOffInProgress:" << _isSwitchOffInProgress.load();
+	trackDevice(leddevice_flow, "Begin Switch OFF") << "Switch Off is" << (_isSwitchOffInProgress.load() ? "in progress" : "will be started");
 	return _isSwitchOffInProgress.compare_exchange_strong(expected, true, std::memory_order_acq_rel);
 }
 
 void LedDevice::endSwitchOff()
 {
 	_isSwitchOffInProgress.store(false, std::memory_order_release);
-	trackDevice(leddevice_flow, "Switch OFF completed") << "_isSwitchOffInProgress:" << _isSwitchOffInProgress.load();
+	trackDevice(leddevice_flow, "End Switch OFF") << "Switch Off" << (_isSwitchOffInProgress.load() ? "is in progress" : "completed");
 	emit switchOffCompleted();
 }
 
