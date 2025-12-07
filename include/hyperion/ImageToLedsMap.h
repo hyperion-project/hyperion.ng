@@ -14,9 +14,12 @@
 #include <utils/Logger.h>
 #include <utils/ColorRgbScalar.h>
 #include <utils/ColorSys.h>
+#include <QLoggingCategory>
 
 // hyperion includes
 #include <hyperion/LedString.h>
+
+Q_DECLARE_LOGGING_CATEGORY(imageToLedsMap_track);
 
 namespace hyperion
 {
@@ -92,6 +95,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		QVector<ColorRgb> getMeanLedColor(const Image<Pixel_T> & image) const
 		{
+			qCDebug(imageToLedsMap_track) << "ImageToLedsMap::getMeanLedColor called with image size" << image.width() << "x" << image.height();
 			QVector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0,0,0});
 			getMeanLedColor(image, colors);
 			return colors;
@@ -107,6 +111,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		void getMeanLedColor(const Image<Pixel_T> & image, QVector<ColorRgb> & ledColors) const
 		{
+			qCDebug(imageToLedsMap_track) << "ImageToLedsMap::getMeanLedColor called with image size" << image.width() << "x" << image.height() << "and ledColors size" << ledColors.size();	
 			if(_colorsMap.size() != ledColors.size())
 			{
 				Debug(_log, "ImageToLedsMap: colorsMap.size != ledColors.size -> %d != %d", _colorsMap.size(), ledColors.size());
@@ -120,6 +125,8 @@ namespace hyperion
 				const ColorRgb color = calcMeanColor(image, *colors);
 				*led = color;
 			}
+
+			qCDebug(imageToLedsMap_track) << "ImageToLedsMap::getMeanLedColor completed" << ledColors;
 		}
 
 		///
@@ -133,6 +140,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		QVector<ColorRgb> getMeanSqrtLedColor(const Image<Pixel_T> & image) const
 		{
+			qCDebug(imageToLedsMap_track) << "ImageToLedsMap::getMeanSqrtLedColor called with image size" << image.width() << "x" << image.height();
 			QVector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0,0,0});
 			getMeanSqrtLedColor(image, colors);
 			return colors;
@@ -148,6 +156,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		void getMeanSqrtLedColor(const Image<Pixel_T> & image, QVector<ColorRgb> & ledColors) const
 		{
+			qCDebug(imageToLedsMap_track) << "ImageToLedsMap::getMeanSqrtLedColor called with image size" << image.width() << "x" << image.height() << "and ledColors size" << ledColors.size();
 			if(_colorsMap.size() != ledColors.size())
 			{
 				Debug(_log, "ImageToLedsMap: colorsMap.size != ledColors.size -> %d != %d", _colorsMap.size(), ledColors.size());
@@ -173,6 +182,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		QVector<ColorRgb> getUniLedColor(const Image<Pixel_T> & image) const
 		{
+			qCDebug(imageToLedsMap_track) << "ImageToLedsMap::getUniLedColor called with image size" << image.width() << "x" << image.height();
 			QVector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0,0,0});
 			getUniLedColor(image, colors);
 			return colors;
@@ -187,6 +197,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		void getUniLedColor(const Image<Pixel_T> & image, QVector<ColorRgb> & ledColors) const
 		{
+			qCDebug(imageToLedsMap_track) << "ImageToLedsMap::getUniLedColor called with image size" << image.width() << "x" << image.height() << "and ledColors size" << ledColors.size();
 			if(_colorsMap.size() != ledColors.size())
 			{
 				Debug(_log, "ImageToLedsMap: colorsMap.size != ledColors.size -> %d != %d", _colorsMap.size(), ledColors.size());
@@ -210,6 +221,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		QVector<ColorRgb> getDominantLedColor(const Image<Pixel_T> & image) const
 		{
+			qCDebug(imageToLedsMap_track) << "ImageToLedsMap::getDominantLedColor called with image size" << image.width() << "x" << image.height();
 			QVector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0,0,0});
 			getDominantLedColor(image, colors);
 			return colors;
@@ -225,6 +237,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		void getDominantLedColor(const Image<Pixel_T> & image, QVector<ColorRgb> & ledColors) const
 		{
+			qCDebug(imageToLedsMap_track) << "ImageToLedsMap::getDominantLedColor called with image size" << image.width() << "x" << image.height() << "and ledColors size" << ledColors.size();
 			// Sanity check for the number of LEDs
 			if(_colorsMap.size() != ledColors.size())
 			{
@@ -251,6 +264,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		QVector<ColorRgb> getDominantUniLedColor(const Image<Pixel_T> & image) const
 		{
+			qCDebug(imageToLedsMap_track) << "ImageToLedsMap::getDominantUniLedColor called with image size" << image.width() << "x" << image.height();
 			QVector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0,0,0});
 			getDominantUniLedColor(image, colors);
 			return colors;
@@ -265,6 +279,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		void getDominantUniLedColor(const Image<Pixel_T> & image, QVector<ColorRgb> & ledColors) const
 		{
+			qCDebug(imageToLedsMap_track) << "ImageToLedsMap::getDominantUniLedColor called with image size" << image.width() << "x" << image.height() << "and ledColors size" << ledColors.size();
 			if(_colorsMap.size() != ledColors.size())
 			{
 				Debug(_log, "ImageToLedsMap: colorsMap.size != ledColors.size -> %d != %d", _colorsMap.size(), ledColors.size());
@@ -288,6 +303,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		QVector<ColorRgb> getDominantAdvLedColor(const Image<Pixel_T> & image) const
 		{
+			qCDebug(imageToLedsMap_track) << "ImageToLedsMap::getDominantAdvLedColor called with image size" << image.width() << "x" << image.height();
 			QVector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0,0,0});
 			getDominantAdvLedColor(image, colors);
 			return colors;
@@ -303,6 +319,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		void getDominantAdvLedColor(const Image<Pixel_T> & image, QVector<ColorRgb> & ledColors) const
 		{
+			qCDebug(imageToLedsMap_track) << "ImageToLedsMap::getDominantAdvLedColor called with image size" << image.width() << "x" << image.height() << "and ledColors size" << ledColors.size();
 			// Sanity check for the number of LEDs
 			if(_colorsMap.size() != ledColors.size())
 			{
@@ -329,6 +346,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		QVector<ColorRgb> getDominantAdvUniLedColor(const Image<Pixel_T> & image) const
 		{
+			qCDebug(imageToLedsMap_track) << "ImageToLedsMap::getDominantAdvUniLedColor called with image size" << image.width() << "x" << image.height();
 			QVector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0,0,0});
 			getDominantAdvUniLedColor(image, colors);
 			return colors;
@@ -343,6 +361,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		void getDominantAdvUniLedColor(const Image<Pixel_T> & image, QVector<ColorRgb> & ledColors) const
 		{
+			qCDebug(imageToLedsMap_track) << "ImageToLedsMap::getDominantAdvUniLedColor called with image size" << image.width() << "x" << image.height() << "and ledColors size" << ledColors.size();
 			if(_colorsMap.size() != ledColors.size())
 			{
 				Debug(_log, "ImageToLedsMap: colorsMap.size != ledColors.size -> %d != %d", _colorsMap.size(), ledColors.size());
@@ -388,6 +407,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		ColorRgb calcMeanColor(const Image<Pixel_T> & image, const QVector<int32_t> & pixels) const
 		{
+			qCDebug(imageToLedsMap_track) << "ImageToLedsMap::calcMeanColor called with image size" << image.width() << "x" << image.height() << "and pixels size" << pixels.size();
 			const auto pixelNum = pixels.size();
 			if (pixelNum == 0)
 			{
@@ -428,6 +448,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		ColorRgb calcMeanColor(const Image<Pixel_T> & image) const
 		{
+			qCDebug(imageToLedsMap_track) << "ImageToLedsMap::calcMeanColor called with image size" << image.width() << "x" << image.height();
 			// Accumulate the sum of each separate color channel
 			uint_fast32_t cummRed   = 0;
 			uint_fast32_t cummGreen = 0;
@@ -465,6 +486,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		ColorRgb calcMeanColorSqrt(const Image<Pixel_T> & image, const QVector<int32_t> & pixels) const
 		{
+			qCDebug(imageToLedsMap_track) << "ImageToLedsMap::calcMeanColorSqrt called with image size" << image.width() << "x" << image.height() << "and pixels size" << pixels.size();
 			const auto pixelNum = pixels.size();
 			if (pixelNum == 0)
 			{
@@ -511,6 +533,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		ColorRgb calcMeanColorSqrt(const Image<Pixel_T> & image) const
 		{
+			qCDebug(imageToLedsMap_track) << "ImageToLedsMap::calcMeanColorSqrt called with image size" << image.width() << "x" << image.height();
 			// Accumulate the squared sum of each separate color channel
 			uint_fast32_t cummRed   = 0;
 			uint_fast32_t cummGreen = 0;
@@ -547,6 +570,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		ColorRgb calculateDominantColor(const Image<Pixel_T> & image, const QVector<int> & pixels) const
 		{
+			qCDebug(imageToLedsMap_track) << "ImageToLedsMap::calculateDominantColor called with image size" << image.width() << "x" << image.height() << "and pixels size" << pixels.size();
 			ColorRgb dominantColor {ColorRgb::BLACK};
 
 			const auto pixelNum = pixels.size();
@@ -586,6 +610,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		ColorRgb calculateDominantColor(const Image<Pixel_T> & image) const
 		{
+			qCDebug(imageToLedsMap_track) << "ImageToLedsMap::calculateDominantColor called with image size" << image.width() << "x" << image.height();
 			const unsigned pixelNum = image.width() * image.height();
 
 			QVector<int> pixels(pixelNum);
@@ -625,6 +650,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		ColorRgb calculateDominantColorAdv(const Image<Pixel_T> & image, const QVector<int> & pixels) const
 		{
+			qCDebug(imageToLedsMap_track) << "ImageToLedsMap::calculateDominantColorAdv called with image size" << image.width() << "x" << image.height() << "and pixels size" << pixels.size();
 			ColorRgb dominantColor {ColorRgb::BLACK};
 			const auto pixelNum = pixels.size();
 			if (pixelNum > 0)
@@ -723,6 +749,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		ColorRgb calculateDominantColorAdv(const Image<Pixel_T> & image) const
 		{
+			qCDebug(imageToLedsMap_track) << "ImageToLedsMap::calculateDominantColorAdv called with image size" << image.width() << "x" << image.height();
 			const unsigned pixelNum = image.width() * image.height();
 
 			QVector<int> pixels(pixelNum);

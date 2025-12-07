@@ -1,5 +1,7 @@
 #include <hyperion/ImageToLedsMap.h>
 
+Q_LOGGING_CATEGORY(imageToLedsMap_track, "hyperion.ImageToLedsMap.track");
+
 using namespace hyperion;
 
 ImageToLedsMap::ImageToLedsMap(
