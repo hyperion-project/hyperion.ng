@@ -1,15 +1,19 @@
+#include <hyperion/ImageProcessor.h>
+
 #include <QSharedPointer>
 #include <QRgb>
+#include <QLoggingCategory>
 
 // Hyperion includes
 #include <hyperion/Hyperion.h>
-#include <hyperion/ImageProcessor.h>
 #include <hyperion/ImageToLedsMap.h>
 
 // Blackborder includes
 #include <blackborder/BlackBorderProcessor.h>
 
 #include "utils/MemoryTracker.h"
+
+Q_LOGGING_CATEGORY(imageProcessor_track, "hyperion.imageProcessor.track");
 
 using namespace hyperion;
 
@@ -23,11 +27,13 @@ void ImageProcessor::registerProcessingUnit(
 	if (_imageToLedColors && _imageToLedColors->width() == width && _imageToLedColors->height() == height &&
 		_imageToLedColors->horizontalBorder() == horizontalBorder && _imageToLedColors->verticalBorder() == verticalBorder)
 	{
-		// no change
-		return;
+		qCDebug(imageProcessor_track) << "No change in size/border detected.";
 	}
-	
-	TRACK_SCOPE() << "Size" << width << "x" << height << " hBorder:" << horizontalBorder << " vBorder:" << verticalBorder;
+
+	qCDebug(imageProcessor_track) << "Size" << width << "x" << height
+								  << "horiz. border:" << horizontalBorder << "vert. border:" << verticalBorder
+								  << "pixel factor:" << _reducedPixelSetFactorFactor << "accuracy level:" << _accuracyLevel
+								  << "#LEDs:" << _ledString.leds().size();
 
 	if (width > 0 && height > 0)
 	{
@@ -44,6 +50,7 @@ void ImageProcessor::registerProcessingUnit(
 	}
 	else
 	{
+		qCDebug(imageProcessor_track) << "Invalid size, resetting ImageToLedsMap.";
 		_imageToLedColors = MAKE_TRACKED_SHARED(ImageToLedsMap, _log, 0, 0, 0, 0, _ledString.leds());
 	}
 }
@@ -156,6 +163,7 @@ void ImageProcessor::handleSettingsUpdate(settings::type type, const QJsonDocume
 {
 	if(type == settings::COLOR)
 	{
+		qCDebug(imageProcessor_track) << "Handling settings update for COLOR";
 		const QJsonObject& obj = config.object();
 		int newType = mappingTypeToInt(obj["imageToLedMappingType"].toString());
 		if(_userMappingType != newType)
@@ -173,11 +181,18 @@ void ImageProcessor::handleSettingsUpdate(settings::type type, const QJsonDocume
 
 void ImageProcessor::setSize(int width, int height)
 {
+
 	// Check if the existing buffer-image is already the correct dimensions
 	if (!_imageToLedColors.isNull() && _imageToLedColors->width() == width && _imageToLedColors->height() == height)
 	{
 		return;
 	}
+
+	qCDebug(imageProcessor_track) << "Image size changed from ["
+								  << (_imageToLedColors.isNull() ? 0 : _imageToLedColors->width())
+								  << "x"
+								  << (_imageToLedColors.isNull() ? 0 : _imageToLedColors->height())
+								  << "] to [" << width << "x" << height << "] - update image processing unit";
 
 	// Construct a new buffer and mapping
 	registerProcessingUnit(width, height, 0, 0);
@@ -187,6 +202,7 @@ void ImageProcessor::setLedString(const LedString& ledString)
 {
 	if ( !_imageToLedColors.isNull() )
 	{
+		qCDebug(imageProcessor_track) << "Update LED-String in image processing unit.";
 		_ledString = ledString;
 
 		// get current width/height
@@ -200,16 +216,19 @@ void ImageProcessor::setLedString(const LedString& ledString)
 
 void ImageProcessor::setBlackbarDetectDisable(bool enable)
 {
+	qCDebug(imageProcessor_track) << (enable ? "Disable" : "Enable") << "black border detection";
 	_borderProcessor->setHardDisable(enable);
 }
 
 bool ImageProcessor::blackBorderDetectorEnabled() const
 {
+	qCDebug(imageProcessor_track) << "Black border detector is" << (_borderProcessor->enabled() ? "enabled" : "disabled");
 	return _borderProcessor->enabled();
 }
 
 void ImageProcessor::setReducedPixelSetFactorFactor(int count)
 {
+
 	int currentReducedPixelSetFactor= _reducedPixelSetFactorFactor;
 
 	_reducedPixelSetFactorFactor = count;
@@ -217,6 +236,7 @@ void ImageProcessor::setReducedPixelSetFactorFactor(int count)
 
 	if (currentReducedPixelSetFactor != _reducedPixelSetFactorFactor && !_imageToLedColors.isNull())
 	{
+		qCDebug(imageProcessor_track) << "Set reduced pixel set factor to" << count << "- update image processing unit";
 		int width = _imageToLedColors->width();
 		int height = _imageToLedColors->height();
 
@@ -227,6 +247,7 @@ void ImageProcessor::setReducedPixelSetFactorFactor(int count)
 
 void ImageProcessor::setAccuracyLevel(int level)
 {
+	qCDebug(imageProcessor_track) << "Set accuracy level to" << level;
 	_accuracyLevel = level;
 	Debug(_log, "Set processing accuracy level to %d", _accuracyLevel);
 
@@ -238,12 +259,14 @@ void ImageProcessor::setAccuracyLevel(int level)
 
 void ImageProcessor::setLedMappingType(int mapType)
 {
+
+
 	int currentMappingType = _mappingType;
 
 	// if the _hardMappingType is >-1 we aren't allowed to overwrite it
 	_userMappingType = mapType;
 
-	Debug(_log, "Set user LED mapping to %s", QSTRING_CSTR(mappingTypeToStr(mapType)));
+	Debug(_log, "Set user LED mapping to [%d] - %s", mapType, QSTRING_CSTR(mappingTypeToStr(mapType)));
 
 	if(_hardMappingType == -1)
 	{
@@ -252,6 +275,7 @@ void ImageProcessor::setLedMappingType(int mapType)
 
 	if (currentMappingType != _mappingType && !_imageToLedColors.isNull())
 	{
+		qCDebug(imageProcessor_track) << "Set LED mapping to [" << mapType << "] -" << mappingTypeToStr(mapType) << "- update image processing unit";
 		int width = _imageToLedColors->width();
 		int height = _imageToLedColors->height();
 
@@ -261,16 +285,22 @@ void ImageProcessor::setLedMappingType(int mapType)
 
 void ImageProcessor::setHardLedMappingType(int mapType)
 {
+	qCDebug(imageProcessor_track) << "Set hard LED mapping to [" << mapType << "] -" << mappingTypeToStr(mapType) ;
+	//
 	// force the maptype, if set to -1 we use the last requested _userMappingType
 	_hardMappingType = mapType;
 	if(mapType == -1)
+	{
 		_mappingType = _userMappingType;
+	}
 	else
+	{
 		_mappingType = mapType;
+	}
 }
-
 bool ImageProcessor::getScanParameters(size_t led, double &hscanBegin, double &hscanEnd, double &vscanBegin, double &vscanEnd) const
 {
+	qCDebug(imageProcessor_track) << "Get scan parameters for LED" << led;
 	if (led < _ledString.leds().size())
 	{
 		const Led & l = _ledString.leds()[led];
@@ -279,6 +309,11 @@ bool ImageProcessor::getScanParameters(size_t led, double &hscanBegin, double &h
 		vscanBegin = l.minY_frac;
 		vscanEnd = l.maxY_frac;
 	}
+	else
+	{
+		qCWarning(imageProcessor_track) << "Requested LED index" << led << "is out of bounds, max is" << _ledString.leds().size();
+		return false;
+	}
 
-	return false;
+	return true;
 }

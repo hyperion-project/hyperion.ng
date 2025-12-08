@@ -347,7 +347,7 @@ bool Hyperion::sourceAutoSelectEnabled() const
 
 void Hyperion::setNewComponentState(hyperion::Components component, bool state)
 {
-	TRACK_SCOPE_SUBCOMPONENT() << "component" << componentToString(component) << "state" << state;
+	TRACK_SCOPE_SUBCOMPONENT() << "component" << componentToString(component) << "will be set to" << (state ? "ENABLED" : "DISABLED");
 	if (_componentRegister.isNull())
 	{
 		Debug(_log, "ComponentRegister is not initialized, cannot set state for component '%s'", componentToString(component));

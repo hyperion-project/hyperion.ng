@@ -3,6 +3,7 @@
 #include <QString>
 #include <QVector>
 #include <QSharedPointer>
+#include <QLoggingCategory>
 
 // Utils includes
 #include <utils/Image.h>
@@ -17,6 +18,8 @@
 
 // Black border includes
 #include <blackborder/BlackBorderProcessor.h>
+
+Q_DECLARE_LOGGING_CATEGORY(imageProcessor_track);
 
 class Hyperion;
 
@@ -249,7 +252,7 @@ private:
 	{
 		if (!_borderProcessor->enabled() && ( _imageToLedColors->horizontalBorder()!=0 || _imageToLedColors->verticalBorder()!=0 ))
 		{
-			Debug(_log, "Reset border");
+			Debug(_log, "Black border disabled; resetting to no border");
 			_borderProcessor->process(image);
 			registerProcessingUnit(image.width(), image.height(), 0, 0);
 		}
@@ -260,11 +263,20 @@ private:
 
 			if (border.unknown)
 			{
+				qCDebug(imageProcessor_track) << "Detected unknown black border setup; resetting to no border";
 				registerProcessingUnit(image.width(), image.height(), 0, 0);
 			}
 			else
 			{
-				registerProcessingUnit(image.width(), image.height(), border.horizontalSize, border.verticalSize);
+				if (border.horizontalSize != _imageToLedColors->horizontalBorder() || border.verticalSize != _imageToLedColors->verticalBorder())
+				{
+					qCDebug(imageProcessor_track) << "Detected change in black border setup - horizontal:" << border.horizontalSize << " vertical:" << border.verticalSize;
+					registerProcessingUnit(image.width(), image.height(), border.horizontalSize, border.verticalSize);
+				}
+				else
+				{
+					qCDebug(imageProcessor_track) << "Border detection setup has not changed - horizontal:" << border.horizontalSize << " vertical:" << border.verticalSize;
+				}
 			}
 		}
 	}
