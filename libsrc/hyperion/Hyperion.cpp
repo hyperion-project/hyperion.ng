@@ -765,7 +765,7 @@ void Hyperion::update()
 
 	if (image.isNull())
 	{
-		qDebug(image_track) << "Empty image - skip update";
+		qCDebug(image_track) << "Empty image - skip update";
 		return;
 	}
 
