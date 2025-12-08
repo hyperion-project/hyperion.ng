@@ -181,7 +181,6 @@ void ImageProcessor::handleSettingsUpdate(settings::type type, const QJsonDocume
 
 void ImageProcessor::setSize(int width, int height)
 {
-
 	// Check if the existing buffer-image is already the correct dimensions
 	if (!_imageToLedColors.isNull() && _imageToLedColors->width() == width && _imageToLedColors->height() == height)
 	{
@@ -259,8 +258,6 @@ void ImageProcessor::setAccuracyLevel(int level)
 
 void ImageProcessor::setLedMappingType(int mapType)
 {
-
-
 	int currentMappingType = _mappingType;
 
 	// if the _hardMappingType is >-1 we aren't allowed to overwrite it
@@ -286,7 +283,7 @@ void ImageProcessor::setLedMappingType(int mapType)
 void ImageProcessor::setHardLedMappingType(int mapType)
 {
 	qCDebug(imageProcessor_track) << "Set hard LED mapping to [" << mapType << "] -" << mappingTypeToStr(mapType) ;
-	//
+
 	// force the maptype, if set to -1 we use the last requested _userMappingType
 	_hardMappingType = mapType;
 	if(mapType == -1)
@@ -298,6 +295,7 @@ void ImageProcessor::setHardLedMappingType(int mapType)
 		_mappingType = mapType;
 	}
 }
+
 bool ImageProcessor::getScanParameters(size_t led, double &hscanBegin, double &hscanEnd, double &vscanBegin, double &vscanEnd) const
 {
 	qCDebug(imageProcessor_track) << "Get scan parameters for LED" << led;

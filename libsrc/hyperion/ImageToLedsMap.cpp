@@ -1,6 +1,6 @@
 #include <hyperion/ImageToLedsMap.h>
 
-Q_LOGGING_CATEGORY(imageToLedsMap_track, "hyperion.ImageToLedsMap.track");
+Q_LOGGING_CATEGORY(imageToLedsMap_track, "hyperion.imageToLedsMap.track");
 
 using namespace hyperion;
 
@@ -41,7 +41,6 @@ ImageToLedsMap::ImageToLedsMap(
 	const int actualHeight = _height - 2 * _horizontalBorder;
 
 	size_t	totalCount = 0;
-	size_t	totalCapacity = 0;
 	int     ledCounter = 0;
 
 	for (const Led& led : leds)
@@ -88,7 +87,7 @@ ImageToLedsMap::ImageToLedsMap(
 
 		if (!skipPixelProcessing && totalSize > 1600)
 		{
-			skipPixelProcessing = true; // TO DO Review, as value is variable is never read
+			skipPixelProcessing = true; // TO DO Review, variable is never read
 			_nextPixelCount = 2;
 			Warning(_log, "Mapping LED/light [%d]. The current mapping area contains %d pixels which is huge. Therefore every %d pixels will be skipped. You can enable reduced processing to hide that warning.", ledCounter, totalSize, _nextPixelCount);
 		}
@@ -107,12 +106,11 @@ ImageToLedsMap::ImageToLedsMap(
 		_colorsMap.push_back(ledColors);
 
 		totalCount += ledColors.size();
-		totalCapacity += ledColors.capacity();
 
 		ledCounter++;
 	}
-	Debug(_log, "Total index number is: %d (memory: %d). Reduced pixel set factor: %d, Accuracy level: %d, Image size: %d x %d, LED areas: %d",
-		totalCount, totalCapacity, reducedPixelSetFactor, accuracyLevel, width, height, leds.size());
+	Debug(_log, "LED areas: %d, #indicies: %d . Reduced pixel factor: %d, Accuracy: %d, Image size: %d x %d, ",
+		  leds.size(), totalCount, reducedPixelSetFactor, accuracyLevel, width, height);
 }
 
 ImageToLedsMap::~ImageToLedsMap()
