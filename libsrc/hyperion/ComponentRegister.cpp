@@ -93,7 +93,7 @@ int ComponentRegister::isComponentEnabled(hyperion::Components comp) const
 
 void ComponentRegister::setNewComponentState(hyperion::Components comp, bool isActive)
 {
-	TRACK_SCOPE_SUBCOMPONENT() << "Component:" << componentToString(comp) << "State:" << isActive;
+	TRACK_SCOPE_SUBCOMPONENT() << "Set component:" << componentToString(comp) << "to" << (isActive ? "ENABLED" : "DISABLED");
 	if (_componentStates.count(comp) > 0)
 	{
 		if (_componentStates[comp] != isActive)
@@ -108,88 +108,97 @@ void ComponentRegister::setNewComponentState(hyperion::Components comp, bool isA
 
 void ComponentRegister::handleCompStateChangeRequest(hyperion::Components comps, bool isActive)
 {
-	TRACK_SCOPE_SUBCOMPONENT() << "Component:" << componentToString(comps) << "State:" << isActive;
 	if(comps == COMP_ALL )
 	{
+		TRACK_SCOPE_SUBCOMPONENT() << "Set all components to" << componentToString(comps) << "to" << (isActive ? "ENABLED" : "DISABLED");
+
 		handleCompStateChangeRequestAll(isActive,{});
 	}
 }
 
 void ComponentRegister::handleCompStateChangeRequestAll(bool isActive, const ComponentList& excludeList)
 {
-	TRACK_SCOPE_SUBCOMPONENT() << "State:" << isActive;
-	if (!_inProgress)
+	TRACK_SCOPE_SUBCOMPONENT() << "Set all components to" << (isActive ? "ENABLED" : "DISABLED") << "with exclusions:" << [&excludeList]() 
 	{
-		_inProgress = true;
-		if(!isActive)
+		QStringList exclNames;
+		for (const auto& comp : excludeList)
 		{
-			if (excludeList.isEmpty())
-			{
-				Debug(_log,"Disable Hyperion instance, store current components' state");
-			}
-			else
-			{
-				Debug(_log,"Disable selected Hyperion components, store their current state");
-			}
+			exclNames << componentToString(comp);
+		}
+		return exclNames.join(", ");
+	}();
 
-			for (const auto& comp : _componentStates)
-			{
-				if (!excludeList.contains(comp.first) && comp.first != COMP_ALL)
-				{
-					// save state
-					_prevComponentStates.emplace(comp.first, comp.second);
-					// disable if enabled
-					if(comp.second)
-					{
-						QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-						if (hyperion)
-						{
-							emit hyperion->compStateChangeRequest(comp.first, false);
-						}
-					}
-				}
-			}
-
-			if (excludeList.isEmpty())
-			{
-				setNewComponentState(COMP_ALL, false);
-			}
+	if (_inProgress)
+	{
+		return;
+	}
+	
+	_inProgress = true;
+	if(!isActive)
+	{
+		if (excludeList.isEmpty())
+		{
+			Debug(_log,"Disable Hyperion instance, store current components' state");
 		}
 		else
 		{
-			if(isActive && !_prevComponentStates.empty())
-			{
-				if (excludeList.isEmpty())
-				{
-					Debug(_log,"Enable Hyperion instance, restore components' previous state");
-				}
-				else
-				{
-					Debug(_log,"Enable selected Hyperion components, restore their previous state");
-				}
+			Debug(_log,"Disable selected Hyperion components, store their current state");
+		}
 
-				for(const auto &comp : _prevComponentStates)
+		for (const auto& [component, isEnabled] : _componentStates)
+		{
+			if (!excludeList.contains(component) && component != COMP_ALL)
+			{
+				// save state
+				_prevComponentStates.emplace(component, isEnabled);
+				// disable if enabled
+				if(isEnabled)
 				{
-					if (!excludeList.contains(comp.first) && comp.first != COMP_ALL)
+					QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
+					if (hyperion)
 					{
-						// if comp was enabled, enable again
-						if(comp.second)
-						{
-							QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-							if (hyperion)
-							{
-								emit hyperion->compStateChangeRequest(comp.first, true);
-							}
-						}
+						emit hyperion->compStateChangeRequest(component, false);
 					}
-				}
-				_prevComponentStates.clear();
-				if (excludeList.isEmpty())
-				{
-					setNewComponentState(COMP_ALL, true);
 				}
 			}
 		}
-		_inProgress = false;
+
+		if (excludeList.isEmpty())
+		{
+			setNewComponentState(COMP_ALL, false);
+		}
 	}
+	else
+	{
+		if(isActive && !_prevComponentStates.empty())
+		{
+			if (excludeList.isEmpty())
+			{
+				Debug(_log,"Enable Hyperion instance, restore components' previous state");
+			}
+			else
+			{
+				Debug(_log,"Enable selected Hyperion components, restore their previous state");
+			}
+
+			for (const auto& [component, wasEnabled] : _prevComponentStates)
+			{
+				if (!excludeList.contains(component) && component != COMP_ALL && wasEnabled)
+				{
+				// if comp was enabled, enable again
+					QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
+					if (hyperion)
+					{
+						emit hyperion->compStateChangeRequest(component, true);
+					}
+				}
+			}
+			_prevComponentStates.clear();
+			if (excludeList.isEmpty())
+			{
+				setNewComponentState(COMP_ALL, true);
+			}
+		}
+	}
+	_inProgress = false;
 }
