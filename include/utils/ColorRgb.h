@@ -46,22 +46,19 @@ struct ColorRgb
 
 	ColorRgb() = default;
 
-	ColorRgb(uint8_t _red, uint8_t _green,uint8_t _blue):
-		  red(_red),
-		  green(_green),
-		  blue(_blue)
+	ColorRgb(uint8_t _red, uint8_t _green, uint8_t _blue) : red(_red),
+															green(_green),
+															blue(_blue)
 	{
-
 	}
 
-	ColorRgb(const QRgb rgb): ColorRgb()
+	explicit ColorRgb(const QRgb rgb) : ColorRgb()
 	{
 		setRgb(rgb);
 	}
 
-	ColorRgb operator-(const ColorRgb& b) const
+	friend inline ColorRgb operator-(ColorRgb a, const ColorRgb &b)
 	{
-		ColorRgb a(*this);
 		a.red -= b.red;
 		a.green -= b.green;
 		a.blue -= b.blue;
@@ -70,7 +67,7 @@ struct ColorRgb
 
 	QRgb rgb() const
 	{
-		return qRgb(red,green,blue);
+		return qRgb(red, green, blue);
 	}
 
 	void setRgb(QRgb rgb)
@@ -84,101 +81,100 @@ struct ColorRgb
 	{
 		return QString("(%1,%2,%3)").arg(red).arg(green).arg(blue);
 	}
-}
-PACKED_STRUCT_END;
+
+	///
+	/// Stream operator to write ColorRgb to an outputstream (format "'{'[red]','[green]','[blue]'}'")
+	///
+	/// @param os The output stream
+	/// @param color The color to write
+	/// @return The output stream (with the color written to it)
+	///
+	friend inline std::ostream &operator<<(std::ostream &os, const ColorRgb &color)
+	{
+		os << "{"
+		   << static_cast<unsigned>(color.red) << ","
+		   << static_cast<unsigned>(color.green) << ","
+		   << static_cast<unsigned>(color.blue)
+		   << "}";
+
+		return os;
+	}
+
+	///
+	/// Stream operator to write ColorRgb to a QTextStream (format "'{'[red]','[green]','[blue]'}'")
+	///
+	/// @param os The output stream
+	/// @param color The color to write
+	/// @return The output stream (with the color written to it)
+	///
+	friend inline QTextStream &operator<<(QTextStream &os, const ColorRgb &color)
+	{
+		os << "{"
+		   << static_cast<unsigned>(color.red) << ","
+		   << static_cast<unsigned>(color.green) << ","
+		   << static_cast<unsigned>(color.blue)
+		   << "}";
+
+		return os;
+	}
+
+	/// Compare operator to check if a color is 'equal' to another color
+	friend inline bool operator==(const ColorRgb &lhs, const ColorRgb &rhs)
+	{
+		return lhs.red == rhs.red &&
+			   lhs.green == rhs.green &&
+			   lhs.blue == rhs.blue;
+	}
+
+	/// Compare operator to check if a color is 'smaller' than another color
+	friend inline bool operator<(const ColorRgb &lhs, const ColorRgb &rhs)
+	{
+		return lhs.red < rhs.red &&
+			   lhs.green < rhs.green &&
+			   lhs.blue < rhs.blue;
+	}
+
+	/// Compare operator to check if a color is 'not equal' to another color
+	friend inline bool operator!=(const ColorRgb &lhs, const ColorRgb &rhs)
+	{
+		return !(lhs == rhs);
+	}
+
+	/// Compare operator to check if a color is 'smaller' than or 'equal' to another color
+	friend inline bool operator<=(const ColorRgb &lhs, const ColorRgb &rhs)
+	{
+		return lhs.red <= rhs.red &&
+			   lhs.green <= rhs.green &&
+			   lhs.blue <= rhs.blue;
+	}
+
+	/// Compare operator to check if a color is 'greater' to another color
+	friend inline bool operator>(const ColorRgb &lhs, const ColorRgb &rhs)
+	{
+		return lhs.red > rhs.red &&
+			   lhs.green > rhs.green &&
+			   lhs.blue > rhs.blue;
+	}
+
+	/// Compare operator to check if a color is 'greater' than or 'equal' to another color
+	friend inline bool operator>=(const ColorRgb &lhs, const ColorRgb &rhs)
+	{
+		return lhs.red >= rhs.red &&
+			   lhs.green >= rhs.green &&
+			   lhs.blue >= rhs.blue;
+	}
+
+	friend inline QDebug operator<<(QDebug dbg, const ColorRgb &color)
+	{
+		dbg.noquote().nospace() << color.toQString();
+		return dbg.space();
+	}
+
+	friend inline QDebug operator<<(QDebug dbg, const QVector<ColorRgb> &colors)
+	{
+		dbg.noquote().nospace() << "Color " << limitForDebug(colors, -1);
+		return dbg.space();
+	}
+} PACKED_STRUCT_END;
 
 static_assert(sizeof(ColorRgb) == 3, "ColorRgb must be exactly 3 bytes");
-
-///
-/// Stream operator to write ColorRgb to an outputstream (format "'{'[red]','[green]','[blue]'}'")
-///
-/// @param os The output stream
-/// @param color The color to write
-/// @return The output stream (with the color written to it)
-///
-inline std::ostream& operator<<(std::ostream& os, const ColorRgb& color)
-{
-	os << "{"
-	   << static_cast<unsigned>(color.red) << ","
-	   << static_cast<unsigned>(color.green) << ","
-	   << static_cast<unsigned>(color.blue)
-	<< "}";
-
-	return os;
-}
-
-///
-/// Stream operator to write ColorRgb to a QTextStream (format "'{'[red]','[green]','[blue]'}'")
-///
-/// @param os The output stream
-/// @param color The color to write
-/// @return The output stream (with the color written to it)
-///
-inline QTextStream& operator<<(QTextStream &os, const ColorRgb& color)
-{
-	os << "{"
-	   << static_cast<unsigned>(color.red) << ","
-	   << static_cast<unsigned>(color.green) << ","
-	   << static_cast<unsigned>(color.blue)
-	<< "}";
-
-	return os;
-}
-
-/// Compare operator to check if a color is 'equal' to another color
-inline bool operator==(const ColorRgb & lhs, const ColorRgb & rhs)
-{
-	return	lhs.red   == rhs.red   &&
-		lhs.green == rhs.green &&
-		lhs.blue  == rhs.blue;
-}
-
-/// Compare operator to check if a color is 'smaller' than another color
-inline bool operator<(const ColorRgb & lhs, const ColorRgb & rhs)
-{
-	return	lhs.red   < rhs.red   &&
-		lhs.green < rhs.green &&
-		lhs.blue  < rhs.blue;
-}
-
-/// Compare operator to check if a color is 'not equal' to another color
-inline bool operator!=(const ColorRgb & lhs, const ColorRgb & rhs)
-{
-	return !(lhs == rhs);
-}
-
-/// Compare operator to check if a color is 'smaller' than or 'equal' to another color
-inline bool operator<=(const ColorRgb & lhs, const ColorRgb & rhs)
-{
-	return	lhs.red   <= rhs.red   &&
-		lhs.green <= rhs.green &&
-		lhs.blue  <= rhs.blue;
-}
-
-/// Compare operator to check if a color is 'greater' to another color
-inline bool operator>(const ColorRgb & lhs, const ColorRgb & rhs)
-{
-	return	lhs.red   > rhs.red   &&
-		lhs.green > rhs.green &&
-		lhs.blue  > rhs.blue;
-}
-
-/// Compare operator to check if a color is 'greater' than or 'equal' to another color
-inline bool operator>=(const ColorRgb & lhs, const ColorRgb & rhs)
-{
-	return	lhs.red   >= rhs.red   &&
-		lhs.green >= rhs.green &&
-		lhs.blue  >= rhs.blue;
-}
-
-inline QDebug operator << (QDebug dbg, const ColorRgb& color )
-{
-	dbg.noquote().nospace() << color.toQString();
-	return dbg.space();
-}
-
-inline QDebug operator<<(QDebug dbg, const QVector<ColorRgb>& colors)
-{
-	dbg.noquote().nospace() << "Color " << limitForDebug(colors, -1);
-	return dbg.space();	
-}
