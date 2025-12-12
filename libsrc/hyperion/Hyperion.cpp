@@ -46,6 +46,9 @@
 #include <boblightserver/BoblightServer.h>
 #endif
 
+Q_LOGGING_CATEGORY(instance_flow, "hyperion.instance.flow");
+Q_LOGGING_CATEGORY(instance_update, "hyperion.instance.update");
+
 Hyperion::Hyperion(quint8 instance, QObject* parent)
 	: QObject(parent)
 	, _instIndex(instance)
@@ -202,7 +205,7 @@ void Hyperion::stop(const QString name)
 	// Trigger instance stopped when the LedDevice signals it has stopped
 	connect(_ledDeviceWrapper.get(), &LedDeviceWrapper::isStopped, [this, name]()
 	{
-		TRACK_SCOPE_SUBCOMPONENT() << "LedDeviceWrapper signaled it has stopped for Hyperion instance:" << QSTRING_CSTR(name);
+		TRACK_SCOPE_SUBCOMPONENT_CATEGORY(instance_flow) << "LedDeviceWrapper signaled it has stopped for Hyperion instance:" << QSTRING_CSTR(name);
 		emit finished(name);
 	});
 	_ledDeviceWrapper->stopDevice();
@@ -347,7 +350,7 @@ bool Hyperion::sourceAutoSelectEnabled() const
 
 void Hyperion::setNewComponentState(hyperion::Components component, bool state)
 {
-	TRACK_SCOPE_SUBCOMPONENT() << "component" << componentToString(component) << "will be set to" << (state ? "ENABLED" : "DISABLED");
+	TRACK_SCOPE_SUBCOMPONENT_CATEGORY(instance_flow) << "component" << componentToString(component) << "will be set to" << (state ? "ENABLED" : "DISABLED");
 	if (_componentRegister.isNull())
 	{
 		Debug(_log, "ComponentRegister is not initialized, cannot set state for component '%s'", componentToString(component));
@@ -420,7 +423,7 @@ bool Hyperion::setInputImage(int priority, const Image<ColorRgb>& image, int64_t
 {
 	if (_muxer.isNull())
 	{
-		qCDebug(image_track) << "Image [" << image.id() << "] not set, as muxer is null.";
+		TRACK_SCOPE_SUBCOMPONENT_CATEGORY(image_track) << "Image [" << image.id() << "] not set, as muxer is null.";
 		return false;
 	}
 
@@ -757,6 +760,27 @@ void Hyperion::refreshUpdate()
 
 void Hyperion::update()
 {
+	TRACK_SCOPE_SUBCOMPONENT_CATEGORY(instance_update) << "Update output" << (_isUpdatePending.load() ? "will be skipped as another update is pending." : "will be executed.");
+
+	// If an update processing is NOT already scheduled, schedule one.
+	if (!_isUpdatePending.exchange(true))
+	{
+		QTimer::singleShot(0, this, &Hyperion::handleUpdate);
+	}
+
+	return; // Return immediately
+}
+
+void Hyperion::handleUpdate()
+{
+	processUpdate();
+
+	_isUpdatePending.store(false);
+}
+
+
+void Hyperion::processUpdate()
+{
 	// Obtain the current priority channel
 	const PriorityMuxer::InputInfo& priorityInfo = _muxer->getInputInfo(_muxer->getCurrentPriority());
 
@@ -765,7 +789,7 @@ void Hyperion::update()
 
 	if (image.isNull())
 	{
-		qCDebug(image_track) << "Empty image - skip update";
+		TRACK_SCOPE_SUBCOMPONENT_CATEGORY(image_track) << "Empty image - skip update";
 		return;
 	}
 

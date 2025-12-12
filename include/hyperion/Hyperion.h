@@ -3,6 +3,7 @@
 // stl includes
 #include <list>
 #include <chrono>
+#include <atomic>
 
 // QT includes
 #include <QString>
@@ -18,6 +19,7 @@
 #include <QSharedPointer>
 #include <QElapsedTimer>
 #include <QThread>
+#include <QLoggingCategory>
 
 // hyperion-utils includes
 #include <utils/Image.h>
@@ -50,6 +52,9 @@
 #include <utils/settings.h>
 
 #include <utils/MemoryTracker.h>
+
+Q_DECLARE_LOGGING_CATEGORY(instance_flow);
+Q_DECLARE_LOGGING_CATEGORY(instance_update);
 
 // Forward class declaration
 class ImageProcessor;
@@ -510,10 +515,21 @@ private slots:
 	///
 	void handleSourceAvailability(int priority);
 
+	///
+	/// @brief Handle updates requested.
+	///
+	void handleUpdate();
+
 signals:
 	void isSetNewComponentState(hyperion::Components component, bool state);
 
 private:
+
+	///
+	/// @brief Process images for output.
+	///
+	void processUpdate();
+
 	void updateLedColorAdjustment(int ledCount, const QJsonObject& colors);
 	void updateLedLayout(const QJsonArray& ledLayout);
 
@@ -590,6 +606,8 @@ private:
 	int _layoutLedCount;
 	QString _colorOrder;
 	QSize _layoutGridSize;
+
+	std::atomic<bool> _isUpdatePending{ false };
 
 	/// buffer for leds (with adjustment)
 	QVector<ColorRgb> _ledBuffer;

@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Home Assistant: Dynamically set brightness for higher dynamic range (#1922)
 - Add DRM_FORMAT_RGB565 format to DRM frame grabber
 - Add standalone DRM grabber
+- Avoid queueing on image processing for output
 
 ---
 
