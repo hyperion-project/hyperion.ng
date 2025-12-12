@@ -201,6 +201,7 @@ int AmlogicGrabber::grabFrame(Image<ColorRgb> &image)
 	if (_grabbingModeNotification != 2)
 	{
 		Info(_log, "Switch to Framebuffer capture mode");
+		_screenGrabber->setupScreen();
 		_grabbingModeNotification = 2;
 		_lastError = 0;
 		return -1; // Skip the first frame after mode switch
@@ -301,6 +302,11 @@ bool AmlogicGrabber::setWidthHeight(int width, int height)
 
 bool AmlogicGrabber::setFramerate(int fps)
 {
+	if (!Grabber::setFramerate(fps))
+	{
+		return false;
+	}
+
 	return (_screenGrabber->setFramerate(fps));
 }
 
