@@ -29,7 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Hue Bridge - Wizard updates to support bridge-ids, overall code refactoring
   - USB Grabber - Default hardware control properties are now applied when a new USB grabber is selected (avoids black images)
   - USB Grabber - Correct garbage default control values to avoid save issues (#1928)
-  - Amlogic grabber - Support to switch between DRM & FB-DEV for CoreElec New Order version
   - Web UI: Update panel title uses "Hyperion - <version>"; skip showing the "nightly" tag in releases list
   - Screen grabbers: Commonized base with getDeviceName/getInputDeviceDetails; explicit constructors; improved error handling
   - Framebuffer grabber: Internal cleanup, consistent device naming, safer mmap usage
@@ -76,6 +75,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 ### 🗑️ Removed
+
+  - Amlogic grabber - Removed support to grab DRM & FB-DEV, i.e.Kodi screens on will be captued on CoreElec
 
 ### Technical
 

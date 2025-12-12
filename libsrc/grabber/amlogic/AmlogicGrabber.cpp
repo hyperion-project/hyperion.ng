@@ -21,6 +21,7 @@
 #include <QJsonDocument>
 #include <QDir>
 #include <QSize>
+#include <QScopedPointer>
 
 // Local includes
 #include <utils/Logger.h>
@@ -41,22 +42,10 @@ AmlogicGrabber::AmlogicGrabber(int deviceIdx)
 	  , _captureDev(-1)
 	  , _videoDev(-1)
 	  , _lastError(0)
-	  , _screenGrabber(nullptr)
 	  , _grabbingModeNotification(0)
 {
 	_image_ptr = _image_bgr.memptr();
 	_useImageResampler = true;
-
-	if (isGbmSupported())
-	{
-		qCDebug(grabber_screen_properties) << "System supports DRM/GBM, using DRMFrameGrabber for screen capture.";
-		_screenGrabber.reset(new DRMFrameGrabber(deviceIdx));
-	}
-	else
-	{
-		qCDebug(grabber_screen_properties) << "DRM/GBM not supported, using FramebufferFrameGrabber for screen capture.";
-		_screenGrabber.reset(new FramebufferFrameGrabber(deviceIdx));
-	}
 }
 
 AmlogicGrabber::~AmlogicGrabber()
@@ -68,13 +57,13 @@ AmlogicGrabber::~AmlogicGrabber()
 bool AmlogicGrabber::isGbmSupported() const
 {
 	// Check for the existence of gbm_create_device, a core GBM function, within libdrm.so
-	
+
 	QString libName = "libMali";
-	QString lib  = libName + ".so";
+	QString lib = libName + ".so";
 
 	// 1. Attempt to open the library.
 	// RTLD_LAZY resolves symbols only when they are needed.
-	void *handle = dlopen( QSTRING_CSTR(lib), RTLD_LAZY);
+	void *handle = dlopen(QSTRING_CSTR(lib), RTLD_LAZY);
 
 	if (!handle)
 	{
@@ -99,23 +88,6 @@ bool AmlogicGrabber::isGbmSupported() const
 
 	qCDebug(grabber_screen_properties) << "System likely does not support DRM/GBM. Could not find 'gbm_create_device' in" << libName + ".so.";
 	return false;
-}
-
-// ToDo Check, currently not used
-bool AmlogicGrabber::setupScreen()
-{
-	QSize screenSize = _screenGrabber->getScreenSize();
-	if (screenSize.isEmpty())
-	{
-		return false;
-	}
-
-	if (!setWidthHeight(screenSize.width(), screenSize.height()))
-	{
-		return false;
-	}
-
-	return _screenGrabber->setupScreen();
 }
 
 bool AmlogicGrabber::openDevice(int &fd, const char *dev) const
@@ -148,7 +120,7 @@ bool AmlogicGrabber::isVideoPlaying()
 		return false;
 	}
 
-	int videoDisabled {1};
+	int videoDisabled{1};
 	if (!openDevice(_videoDev, DEFAULT_VIDEO_DEVICE))
 	{
 		Error(_log, "Failed to open video device(%s): %d - %s", DEFAULT_VIDEO_DEVICE, errno, strerror(errno));
@@ -179,35 +151,38 @@ int AmlogicGrabber::grabFrame(Image<ColorRgb> &image)
 	}
 
 	// Make sure video is playing, else there is nothing to grab
-	if (isVideoPlaying())
+	if (!isVideoPlaying())
 	{
-		if (_grabbingModeNotification != 1)
+		if (_grabbingModeNotification == 2)
 		{
-			Info(_log, "Switch to VPU capture mode");
-			_grabbingModeNotification = 1;
-			_lastError = 0;
-			return -1; // Skip the first frame after mode switch
-		}
-
-		if (grabFrame_amvideocap(image) < 0)
-		{
-			closeDevice(_captureDev);
+			qCDebug(grabber_screen_capture) << "No video is playing. No image captured from amlogic framebuffer.";
 			return -1;
 		}
 
+		qCDebug(grabber_screen_flow) << "Video playing stopped. Stop VPU capture mode.";
+		closeDevice(_captureDev);
+		image.clear();
+		_grabbingModeNotification = 2;
+		_lastError = 0;
 		return 0;
 	}
 
-	if (_grabbingModeNotification != 2)
+	if (_grabbingModeNotification != 1)
 	{
-		Info(_log, "Switch to Framebuffer capture mode");
-		_screenGrabber->setupScreen();
-		_grabbingModeNotification = 2;
+		qCDebug(grabber_screen_flow) << "Video is playing. Switch to VPU capture mode";
+		_grabbingModeNotification = 1;
 		_lastError = 0;
 		return -1; // Skip the first frame after mode switch
 	}
 
-	return _screenGrabber->grabFrame(image);
+	if (grabFrame_amvideocap(image) < 0)
+	{
+		qCDebug(grabber_screen_capture) << "Capture failed with error: " << _lastError << ", no image captured from amlogic framebuffer.";
+		closeDevice(_captureDev);
+		return -1;
+	}
+
+	return 0;
 }
 
 int AmlogicGrabber::grabFrame_amvideocap(Image<ColorRgb> &image)
@@ -256,6 +231,8 @@ int AmlogicGrabber::grabFrame_amvideocap(Image<ColorRgb> &image)
 		return -1;
 	}
 
+	qCDebug(grabber_screen_capture) << "Size: " << _width << "x" << _height;
+
 	// If bytesRead = -1 but no error or EAGAIN or ENODATA, return last image to cover video pausing scenario
 	//  EAGAIN : // 11 - Resource temporarily unavailable
 	//  ENODATA: // 61 - No data available
@@ -268,24 +245,6 @@ int AmlogicGrabber::grabFrame_amvideocap(Image<ColorRgb> &image)
 	return 0;
 }
 
-void AmlogicGrabber::setVideoMode(VideoMode mode)
-{
-	Grabber::setVideoMode(mode);
-	_screenGrabber->setVideoMode(mode);
-}
-
-bool AmlogicGrabber::setPixelDecimation(int pixelDecimation)
-{
-	return (Grabber::setPixelDecimation(pixelDecimation) &&
-			_screenGrabber->setPixelDecimation(pixelDecimation));
-}
-
-void AmlogicGrabber::setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom)
-{
-	Grabber::setCropping(cropLeft, cropRight, cropTop, cropBottom);
-	_screenGrabber->setCropping(cropLeft, cropRight, cropTop, cropBottom);
-}
-
 bool AmlogicGrabber::setWidthHeight(int width, int height)
 {
 	if (!Grabber::setWidthHeight(width, height))
@@ -294,27 +253,28 @@ bool AmlogicGrabber::setWidthHeight(int width, int height)
 	}
 
 	_image_bgr.resize(static_cast<unsigned>(width), static_cast<unsigned>(height));
-	_width = width;
 	_image_ptr = _image_bgr.memptr();
 
-	return _screenGrabber->setWidthHeight(width, height);
-}
-
-bool AmlogicGrabber::setFramerate(int fps)
-{
-	if (!Grabber::setFramerate(fps))
-	{
-		return false;
-	}
-
-	return (_screenGrabber->setFramerate(fps));
+	return true;
 }
 
 QJsonObject AmlogicGrabber::discover(const QJsonObject &params)
 {
 	QJsonObject inputsDiscovered;
 
-	QJsonArray const video_inputs = _screenGrabber->getInputDeviceDetails();
+	QScopedPointer<Grabber> screenGrabber;
+	if (isGbmSupported())
+	{
+		qCDebug(grabber_screen_properties) << "System supports DRM/GBM, using DRMFrameGrabber for screen capture.";
+		screenGrabber.reset(new DRMFrameGrabber(DEFAULT_DEVICE_IDX));
+	}
+	else
+	{
+		qCDebug(grabber_screen_properties) << "DRM/GBM not supported, using FramebufferFrameGrabber for screen capture.";
+		screenGrabber.reset(new FramebufferFrameGrabber(DEFAULT_DEVICE_IDX));
+	}
+
+	QJsonArray const video_inputs = screenGrabber->getInputDeviceDetails();
 	if (video_inputs.isEmpty())
 	{
 		qCDebug(grabber_screen_properties) << "No displays found to capture from!";
