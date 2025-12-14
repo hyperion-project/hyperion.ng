@@ -14,12 +14,6 @@
 
 #include <cmath>
 
-
-// Constants
-namespace {
-	const bool verbose = true;
-} //End of constants
-
 // Logs a message along with the hex error HRESULT.
 #define LOG_ERROR(hr, msg) Error(_log, msg ": 0x%x", hr)
 
@@ -75,18 +69,19 @@ DDAGrabber::DDAGrabber(int display, int cropLeft, int cropRight, int cropTop, in
 	: Grabber("GRABBER-DDA", cropLeft, cropRight, cropTop, cropBottom)
 	, d(new DDAGrabberImpl)
 {
+	TRACK_SCOPE() << "Creating DDA grabber for display" << d->display;
 	_useImageResampler = false;
 	d->display = display;
-	qDebug() << "Creating DDA grabber for display" << d->display;
 }
 
 DDAGrabber::~DDAGrabber()
 {
+	TRACK_SCOPE();
 }
 
 bool DDAGrabber::open()
 {
-	qDebug() << "Opening DDA grabber for display" << d->display;
+	qCDebug(grabber_screen_flow) << "Opening DDA grabber for display" << d->display;
 
 	d->device.Release();
 	d->deviceContext.Release();
@@ -165,7 +160,7 @@ bool DDAGrabber::restartCapture()
 		return false;
 	}
 
-	qDebug() << "Restarting capture for display" << d->display;
+	qCDebug(grabber_screen_flow) << "Restarting capture for display" << d->display;
 
 	if (d->dxgiAdapter == nullptr)
 	{
@@ -185,12 +180,12 @@ bool DDAGrabber::restartCapture()
 
 	if (d->dxgiOutput1 == nullptr)
 	{
-		Debug(_log, "Creating new output for display %d", d->display);
+		qCDebug(grabber_screen_flow) << "Creating new output for display" << d->display;
 		CComPtr<IDXGIOutput1> output1;
 		hr = output->QueryInterface(&output1);
 		RETURN_IF_ERROR(hr, "Failed to get output1", false);
 		d->dxgiOutput1 = output1;
-		Debug(_log, "Created new output for display %d", d->display);
+		qCDebug(grabber_screen_flow) << "Created new output for display" << d->display;
 	}
 
 	DXGI_OUTPUT_DESC desc;
@@ -227,7 +222,7 @@ bool DDAGrabber::restartCapture()
 		RETURN_IF_ERROR(hr, "Failed to create desktop duplication interface", false);
 
 		// 1. Create the final GPU texture and staging texture.
-		Debug(_log, "Creating final-sized GPU resources [%dx%d]", _width, _height);
+		qCDebug(grabber_screen_flow) << "Creating final-sized GPU resources [" << _width << "x" << _height << "]";
 		D3D11_TEXTURE2D_DESC finalDesc = {};
 		finalDesc.Width = _width;
 		finalDesc.Height = _height;
@@ -310,7 +305,7 @@ bool DDAGrabber::restartCapture()
 	}
 	else
 	{
-		Debug(_log, "Reusing existing output for display %d", d->display);
+		qCDebug(grabber_screen_flow) << "Reusing existing output for display" << d->display;
 	}
 
 	return true;
@@ -318,18 +313,20 @@ bool DDAGrabber::restartCapture()
 
 bool DDAGrabber::resetDeviceAndCapture()
 {
-	Debug(_log, "Resetting device and capture for display %d", d->display);
+	qCDebug(grabber_screen_flow) << "Resetting device and capture for display" << d->display;
 	return open() && restartCapture();
 }
 
 int DDAGrabber::grabFrame(Image<ColorRgb>& image)
 {
-	if (!_isEnabled || _isDeviceInError)
+	if (_isDeviceInError)
 	{
-		if (_isDeviceInError)
-		{
-			Error(_log, "Cannot grab frame, device is in error state");
-		}
+		Error(_log, "Cannot grab frame, device is in error state");
+		return -1;
+	}
+
+	if (!_isEnabled)
+	{
 		return -1;
 	}
 
@@ -338,6 +335,8 @@ int DDAGrabber::grabFrame(Image<ColorRgb>& image)
 		Error(_log, "Failed to open or restart capture for display %d", d->display);
 		return -1;
 	}
+
+	return 0;
 
 	HRESULT hr{ S_OK };
 	hr = d->desktopDuplication->ReleaseFrame();
@@ -352,7 +351,7 @@ int DDAGrabber::grabFrame(Image<ColorRgb>& image)
 
 	if (hr == DXGI_ERROR_ACCESS_LOST || hr == DXGI_ERROR_INVALID_CALL)
 	{
-		Debug(_log, "Access lost (hr=0x%08x), resetting capture.", hr);
+		qCDebug(grabber_screen_flow,"Access lost (hr=0x%08x), resetting capture.", hr);
 		if (!restartCapture())
 		{
 			Error(_log, "Access lost - Failed to restart capture.");
@@ -370,7 +369,7 @@ int DDAGrabber::grabFrame(Image<ColorRgb>& image)
 	hr = desktopResource->QueryInterface(&sourceTexture);
 	RETURN_IF_ERROR(hr, "Failed to get 2D texture from resource", -1);
 
-	//qDebug() << "DDAGrabber::grabFrame: _width: " << _width << ", height: " << _height	<< ", _pixelDecimation: " << _pixelDecimation;
+	qCDebug(grabber_screen_capture) << " Capture setup: width:" << _width << ", height:" << _height << ", pixelDecimation:" << _pixelDecimation;
 
 	// Use the D2D pipeline to handle any transformation or format conversion.
 	CComPtr<IDXGISurface> sourceSurface;
@@ -464,6 +463,7 @@ void DDAGrabber::setCropping(int cropLeft, int cropRight, int cropTop, int cropB
 
 bool DDAGrabber::setDisplayIndex(int index)
 {
+	qCDebug(grabber_screen_flow) << "Setting display index to" << index << ", current is" << d->display;
 	bool rc = true;
 	if (d->display != index)
 	{
@@ -475,13 +475,14 @@ bool DDAGrabber::setDisplayIndex(int index)
 
 void DDAGrabber::setVideoMode(VideoMode mode)
 {
+	qCDebug(grabber_screen_flow) << "Setting video mode to" << static_cast<int>(mode);
 	Grabber::setVideoMode(mode);
 	restartCapture();
 }
 
 bool DDAGrabber::setPixelDecimation(int pixelDecimation)
 {
-	qDebug() << "Setting pixel decimation to" << pixelDecimation << ", current is" << _pixelDecimation;
+	qCDebug(grabber_screen_flow) << "Setting pixel decimation to" << pixelDecimation << ", current is" << _pixelDecimation;
 	if (Grabber::setPixelDecimation(pixelDecimation))
 	{
 		restartCapture();
@@ -496,8 +497,7 @@ QJsonObject DDAGrabber::discover(const QJsonObject& params)
 	QJsonObject inputsDiscovered;
 	if (isAvailable(false) && open())
 	{
-
-		HRESULT hr = S_OK;
+			HRESULT hr = S_OK;
 
 		// Enumerate through the outputs.
 		QJsonArray videoInputs;
@@ -563,7 +563,10 @@ QJsonObject DDAGrabber::discover(const QJsonObject& params)
 			};
 		}
 	}
-	DebugIf(verbose, _log, "device: [%s]", QString(QJsonDocument(inputsDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
+	if (inputsDiscovered.isEmpty())
+	{
+		qCDebug(grabber_screen_properties) << "No displays found to capture from!";
+	}
 	return inputsDiscovered;
 }

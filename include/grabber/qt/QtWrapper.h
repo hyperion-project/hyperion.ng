@@ -45,7 +45,7 @@ public:
 
 public slots:
 	///
-	/// Performs a single frame grab and computes the led-colors
+	/// Performs a single frame grab and computes the LED-colors
 	///
 	void action() override;
 

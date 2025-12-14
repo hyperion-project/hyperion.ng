@@ -385,14 +385,12 @@ int QtGrabber::updateScreenDimensions(bool force)
 
 bool QtGrabber::resetDeviceAndCapture()
 {
-
 	qCDebug(grabber_screen_flow) << "Resetting device and capture for display" << _display;
 	return open() && updateScreenDimensions(true);
 }
 
 void QtGrabber::setVideoMode(VideoMode mode)
 {
-	qCDebug(grabber_screen_flow);
 	Grabber::setVideoMode(mode);
 	updateScreenDimensions(true);
 }
