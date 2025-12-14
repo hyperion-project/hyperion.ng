@@ -6,6 +6,8 @@
 #include <hyperion/Grabber.h>
 #include <utils/ColorRgb.h>
 
+#include <d3d11.h>
+
 class DDAGrabberImpl;
 
 class DDAGrabber : public Grabber
@@ -63,12 +65,24 @@ public:
 	///
 	QJsonObject discover(const QJsonObject &params);
 
+	///
+	/// @brief Opens the input device.
+	///
+	/// @return Zero, on success (i.e. device is ready), else negative
+	///
+	bool open();
+
 private:
+
 	///
 	/// @brief Setup a new capture display, will free the previous one
 	/// @return True on success, false if no display is found
 	///
 	bool restartCapture();
+
+	bool resetDeviceAndCapture();
+
+	void computeCropBox(int sourceWidth, int sourceHeight, D3D11_BOX& box) const;
 
 private:
 	std::unique_ptr<DDAGrabberImpl> d;

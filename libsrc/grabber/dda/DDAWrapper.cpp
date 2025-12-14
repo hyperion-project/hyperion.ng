@@ -14,6 +14,22 @@ DDAWrapper::DDAWrapper(const QJsonDocument &grabberConfig)
 	GrabberWrapper::handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
 }
 
+bool DDAWrapper::start()
+{
+	if (_isAvailable)
+	{
+		return GrabberWrapper::start();
+	}
+
+	return false;
+}
+
+bool DDAWrapper::open()
+{
+	qDebug() << "DDAWrapper - Opening DDA grabber for display";
+	return true;
+}
+
 void DDAWrapper::action()
 {
 	transferFrame(_grabber);

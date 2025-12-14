@@ -1,35 +1,24 @@
-#include "grabber/dda/DDAGrabber.h"
 
-#include <atlbase.h>
-#include <d3d11.h>
+// Platform-specific only
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
 #include <dxgi1_2.h>
-#include <physicalmonitorenumerationapi.h>
-#include <windows.h>
+#include <d2d1_1.h>
+#include <atlbase.h>
 
-#pragma comment(lib, "d3d9.lib")
-#pragma comment(lib, "dxva2.lib")
+#include "grabber/dda/DDAGrabber.h"
+#include <QDebug>
+#include <QJsonDocument>
 
-namespace
-{
-// Driver types supported.
-constexpr D3D_DRIVER_TYPE kDriverTypes[] = {
-    D3D_DRIVER_TYPE_HARDWARE,
-    D3D_DRIVER_TYPE_WARP,
-    D3D_DRIVER_TYPE_REFERENCE,
-};
+#include <utils/Logger.h>
 
-// Feature levels supported.
-D3D_FEATURE_LEVEL kFeatureLevels[] = {D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_10_1, D3D_FEATURE_LEVEL_10_0,
-                                      D3D_FEATURE_LEVEL_9_1};
+#include <cmath>
 
-// Returns true if the two texture descriptors are compatible for copying.
-bool areTextureDescriptionsCompatible(D3D11_TEXTURE2D_DESC a, D3D11_TEXTURE2D_DESC b)
-{
-	return a.Width == b.Width && a.Height == b.Height && a.MipLevels == b.MipLevels && a.ArraySize == b.ArraySize &&
-	       a.Format == b.Format;
-}
 
-} // namespace
+// Constants
+namespace {
+	const bool verbose = true;
+} //End of constants
 
 // Logs a message along with the hex error HRESULT.
 #define LOG_ERROR(hr, msg) Error(_log, msg ": 0x%x", hr)
@@ -39,7 +28,7 @@ bool areTextureDescriptionsCompatible(D3D11_TEXTURE2D_DESC a, D3D11_TEXTURE2D_DE
 #define RETURN_IF_ERROR(hr, msg, returnValue)                                                                          \
 	if (FAILED(hr))                                                                                                    \
 	{                                                                                                                  \
-		LOG_ERROR(hr, msg);                                                                                            \
+		setInError(QString("%1: 0x%2").arg(msg).arg(hr));                                                              \
 		return returnValue;                                                                                            \
 	}
 
@@ -52,222 +41,423 @@ bool areTextureDescriptionsCompatible(D3D11_TEXTURE2D_DESC a, D3D11_TEXTURE2D_DE
 		return returnValue;                                                                                            \
 	}
 
-// Private implementation. These member variables are here and not in the .h
-// so we don't have to include <atlbase.h> in the header and pollute everything
-// else that includes it.
 class DDAGrabberImpl
 {
 public:
-	int display = 0;
-	int desktopWidth = 0;
-	int desktopHeight = 0;
-
-	// Created in the constructor.
 	CComPtr<ID3D11Device> device;
 	CComPtr<ID3D11DeviceContext> deviceContext;
 	CComPtr<IDXGIDevice> dxgiDevice;
 	CComPtr<IDXGIAdapter> dxgiAdapter;
-
-	// Created in restartCapture - only valid while desktop capture is in
-	// progress.
+	CComPtr<IDXGIOutput1> dxgiOutput1;
 	CComPtr<IDXGIOutputDuplication> desktopDuplication;
+
 	CComPtr<ID3D11Texture2D> intermediateTexture;
-	D3D11_TEXTURE2D_DESC intermediateTextureDesc;
+
+	CComPtr<ID2D1Factory1>        d2dFactory;
+	CComPtr<ID2D1Device>          d2dDevice;
+	CComPtr<ID2D1DeviceContext>   d2dContext;
+	CComPtr<ID3D11Texture2D>      d2dConvertedTexture; // Holds the B8G8R8A8 converted image
+
+	// Pre-calculated members for performance
+	CComPtr<ID2D1Bitmap1>     destBitmap;
+	D2D1_MATRIX_3X2_F         orientationTransform{};
+	D2D1_RECT_F               sourceRect{};
+	D2D1_RECT_F               destRect{};
+
+	int display = 0;
+
+	DXGI_MODE_ROTATION desktopRotation = DXGI_MODE_ROTATION_IDENTITY;
+	int desktopWidth = 0;
+	int desktopHeight = 0;
 };
 
 DDAGrabber::DDAGrabber(int display, int cropLeft, int cropRight, int cropTop, int cropBottom)
-    : Grabber("GRABBER-DDA", cropLeft, cropRight, cropTop, cropBottom), d(new DDAGrabberImpl)
+	: Grabber("GRABBER-DDA", cropLeft, cropRight, cropTop, cropBottom)
+	, d(new DDAGrabberImpl)
 {
+	_useImageResampler = false;
 	d->display = display;
-
-	HRESULT hr = S_OK;
-
-	// Iterate through driver types until we find one that succeeds.
-	D3D_FEATURE_LEVEL featureLevel;
-	for (D3D_DRIVER_TYPE driverType : kDriverTypes)
-	{
-		hr = D3D11CreateDevice(nullptr, driverType, nullptr, 0, kFeatureLevels, std::size(kFeatureLevels),
-		                       D3D11_SDK_VERSION, &d->device, &featureLevel, &d->deviceContext);
-		if (SUCCEEDED(hr))
-		{
-			break;
-		}
-	}
-	RETURN_IF_ERROR(hr, "CreateDevice failed", );
-
-	// Get the DXGI factory.
-	hr = d->device.QueryInterface(&d->dxgiDevice);
-	RETURN_IF_ERROR(hr, "Failed to get DXGI device", );
-
-	// Get the factory's adapter.
-	hr = d->dxgiDevice->GetAdapter(&d->dxgiAdapter);
-	RETURN_IF_ERROR(hr, "Failed to get DXGI Adapter", );
+	qDebug() << "Creating DDA grabber for display" << d->display;
 }
 
 DDAGrabber::~DDAGrabber()
 {
 }
 
+bool DDAGrabber::open()
+{
+	qDebug() << "Opening DDA grabber for display" << d->display;
+
+	d->device.Release();
+	d->deviceContext.Release();
+	d->dxgiDevice.Release();
+	d->dxgiAdapter.Release();
+	d->dxgiOutput1.Release();
+	d->desktopDuplication.Release();
+
+	// Release D2D resources
+	d->d2dFactory.Release();
+	d->d2dDevice.Release();
+	d->d2dContext.Release();
+	d->d2dConvertedTexture.Release();
+	d->destBitmap.Release();
+
+	static const D3D_DRIVER_TYPE driverTypes[] = {
+		D3D_DRIVER_TYPE_HARDWARE,
+		D3D_DRIVER_TYPE_WARP,
+		D3D_DRIVER_TYPE_REFERENCE
+	};
+
+	// Add a variable for the creation flags
+	UINT createFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+
+	// If you want D3D debug messages, you can add the debug flag too
+#ifdef QT_DEBUG
+	createFlags |= D3D11_CREATE_DEVICE_DEBUG;
+#endif
+
+	HRESULT hr{ S_OK };
+	for (auto driverType : driverTypes)
+	{
+		hr = D3D11CreateDevice(
+			nullptr,                 // Adapter to use
+			driverType,              // Driver type (since we specified adapter)
+			nullptr,                 // Software device (not used)
+			createFlags,             // Flags
+			nullptr,                 // Feature levels to attempt
+			0,                       // Number of feature levels
+			D3D11_SDK_VERSION,       // SDK version
+			&d->device,              // Returned ID3D11Device
+			nullptr,                 // Returned feature level
+			&d->deviceContext        // Returned ID3D11DeviceContext
+		);
+		if (SUCCEEDED(hr)) break;
+	}
+	RETURN_IF_ERROR(hr, "CreateDevice failed", false);
+
+	hr = d->device->QueryInterface(&d->dxgiDevice);
+	RETURN_IF_ERROR(hr, "Failed to get DXGI device", false);
+
+	D2D1_FACTORY_OPTIONS d2dOptions = {};
+#ifdef QT_DEBUG
+	d2dOptions.debugLevel = D2D1_DEBUG_LEVEL_INFORMATION;
+#endif
+	hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, __uuidof(ID2D1Factory1), &d2dOptions, (void**)&d->d2dFactory);
+	RETURN_IF_ERROR(hr, "Failed to create D2D1Factory", false);
+
+	hr = d->d2dFactory->CreateDevice(d->dxgiDevice, &d->d2dDevice);
+	RETURN_IF_ERROR(hr, "Failed to create D2D1Device", false);
+
+	hr = d->d2dDevice->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE, &d->d2dContext);
+	RETURN_IF_ERROR(hr, "Failed to create D2D1DeviceContext", false);
+
+	hr = d->dxgiDevice->GetAdapter(&d->dxgiAdapter);
+	RETURN_IF_ERROR(hr, "Failed to get DXGI adapter", false);
+
+	return true;
+}
+
 bool DDAGrabber::restartCapture()
 {
-	if (!d->dxgiAdapter)
+	if (_isDeviceInError)
 	{
+		Error(_log, "Cannot restart capture, device is in error state");
 		return false;
 	}
 
-	HRESULT hr = S_OK;
+	qDebug() << "Restarting capture for display" << d->display;
 
-	d->desktopDuplication.Release();
+	if (d->dxgiAdapter == nullptr)
+	{
+		if (!open())
+		{
+			setInError("restartCapture - Open failed");
+			return false;
+		}
+		return false;
+	}
 
-	// Get the output that was selected.
+	HRESULT hr{ S_OK };
+
 	CComPtr<IDXGIOutput> output;
 	hr = d->dxgiAdapter->EnumOutputs(d->display, &output);
 	RETURN_IF_ERROR(hr, "Failed to get output", false);
 
-	// Get the descriptor which has the size of the display.
+	if (d->dxgiOutput1 == nullptr)
+	{
+		Debug(_log, "Creating new output for display %d", d->display);
+		CComPtr<IDXGIOutput1> output1;
+		hr = output->QueryInterface(&output1);
+		RETURN_IF_ERROR(hr, "Failed to get output1", false);
+		d->dxgiOutput1 = output1;
+		Debug(_log, "Created new output for display %d", d->display);
+	}
+
 	DXGI_OUTPUT_DESC desc;
 	hr = output->GetDesc(&desc);
 	RETURN_IF_ERROR(hr, "Failed to get output description", false);
 
 	d->desktopWidth = desc.DesktopCoordinates.right - desc.DesktopCoordinates.left;
 	d->desktopHeight = desc.DesktopCoordinates.bottom - desc.DesktopCoordinates.top;
-	_width = (d->desktopWidth - _cropLeft - _cropRight) / _pixelDecimation;
-	_height = (d->desktopHeight - _cropTop - _cropBottom) / _pixelDecimation;
-	Info(_log, "Desktop size: %dx%d, cropping=%d,%d,%d,%d, decimation=%d, final image size=%dx%d", d->desktopWidth,
-	     d->desktopHeight, _cropLeft, _cropTop, _cropRight, _cropBottom, _pixelDecimation, _width, _height);
 
-	// Get the DXGIOutput1 interface.
-	CComPtr<IDXGIOutput1> output1;
-	hr = output.QueryInterface(&output1);
-	RETURN_IF_ERROR(hr, "Failed to get output1", false);
+	if (_cropLeft + _cropRight >= d->desktopWidth || _cropTop + _cropBottom >= d->desktopHeight)
+	{
+		Error(_log, "Invalid cropping values which exceed the screen size. Cropping disabled.");
+		_cropLeft = _cropRight = _cropTop = _cropBottom = 0;
+	}
 
-	// Create the desktop duplication interface.
-	hr = output1->DuplicateOutput(d->device, &d->desktopDuplication);
-	RETURN_IF_ERROR(hr, "Failed to create desktop duplication interface", false);
+	int croppedWidth = d->desktopWidth - (_cropLeft + _cropRight);
+	int croppedHeight = d->desktopHeight - (_cropTop + _cropBottom);
+
+	int finalWidth = qMax(1, croppedWidth / _pixelDecimation);
+	int	finalHeight = qMax(1, croppedHeight / _pixelDecimation);
+
+	// Check if a full re-initialization is needed
+	if (desc.Rotation != d->desktopRotation || finalWidth != _width || finalHeight != _height || d->desktopDuplication == nullptr)
+	{
+		Debug(_log, "New capture size or rotation detected. Creating Desktop Duplication for display %d", d->display);
+
+		_width = finalWidth;
+		_height = finalHeight;
+		d->desktopRotation = desc.Rotation;
+
+		// Recreate desktop duplication
+		d->desktopDuplication.Release();
+		hr = d->dxgiOutput1->DuplicateOutput(d->device, &d->desktopDuplication);
+		RETURN_IF_ERROR(hr, "Failed to create desktop duplication interface", false);
+
+		// 1. Create the final GPU texture and staging texture.
+		Debug(_log, "Creating final-sized GPU resources [%dx%d]", _width, _height);
+		D3D11_TEXTURE2D_DESC finalDesc = {};
+		finalDesc.Width = _width;
+		finalDesc.Height = _height;
+		finalDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+		finalDesc.MipLevels = 1;
+		finalDesc.ArraySize = 1;
+		finalDesc.SampleDesc.Count = 1;
+		finalDesc.Usage = D3D11_USAGE_DEFAULT;
+		finalDesc.BindFlags = D3D11_BIND_RENDER_TARGET;
+
+		d->d2dConvertedTexture.Release();
+		hr = d->device->CreateTexture2D(&finalDesc, nullptr, &d->d2dConvertedTexture);
+		RETURN_IF_ERROR(hr, "Failed to create final GPU texture", false);
+
+		// Recreate the CPU staging texture to match
+		finalDesc.Usage = D3D11_USAGE_STAGING;
+		finalDesc.BindFlags = 0;
+		finalDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+		d->intermediateTexture.Release();
+		hr = d->device->CreateTexture2D(&finalDesc, nullptr, &d->intermediateTexture);
+		RETURN_IF_ERROR(hr, "Failed to create final staging texture", false);
+
+		// 2. Pre-create the destination D2D bitmap
+		CComPtr<IDXGISurface> destSurface;
+		d->d2dConvertedTexture->QueryInterface(&destSurface);
+		d->destBitmap.Release();
+		d->d2dContext->CreateBitmapFromDxgiSurface(destSurface, nullptr, &d->destBitmap);
+
+		// Determine rotated dimensions for D3D
+		bool swapDimensions = d->desktopRotation == DXGI_MODE_ROTATION_ROTATE90 || d->desktopRotation == DXGI_MODE_ROTATION_ROTATE270;
+		// This should reference the final output size, not the full desktop size
+		int renderTargetWidth = swapDimensions ? _height : _width;
+		int renderTargetHeight = swapDimensions ? _width : _height;
+
+		// 3. Pre-calculate the transformation matrix for D2D
+		switch (d->desktopRotation)
+		{
+		case DXGI_MODE_ROTATION_ROTATE90:
+			d->orientationTransform =
+				D2D1::Matrix3x2F::Rotation(90.0f) *
+				D2D1::Matrix3x2F::Translation(static_cast<float>(renderTargetHeight), 0.0f);
+			break;
+		case DXGI_MODE_ROTATION_ROTATE180:
+			d->orientationTransform =
+				D2D1::Matrix3x2F::Rotation(180.0f) *
+				D2D1::Matrix3x2F::Translation(static_cast<float>(renderTargetWidth), static_cast<float>(renderTargetHeight));
+			break;
+		case DXGI_MODE_ROTATION_ROTATE270:
+			d->orientationTransform =
+				D2D1::Matrix3x2F::Rotation(270.0f) *
+				D2D1::Matrix3x2F::Translation(0.0f, static_cast<float>(renderTargetWidth));
+			break;
+		default:
+			d->orientationTransform =
+				D2D1::Matrix3x2F::Identity();
+			break;
+		}
+
+		// 4. Pre-calculate crop and destination rectangles
+
+		// Source D3D picture captured is always not rotated
+		int sourceWidth = swapDimensions ? d->desktopHeight : d->desktopWidth;
+		int sourceHeight = swapDimensions ? d->desktopWidth : d->desktopHeight;
+
+		D3D11_BOX cropBox{};
+		computeCropBox(sourceWidth, sourceHeight, cropBox);
+
+		d->sourceRect = D2D1::RectF(
+			static_cast<float>(cropBox.left),
+			static_cast<float>(cropBox.top),
+			static_cast<float>(cropBox.right),
+			static_cast<float>(cropBox.bottom)
+		);
+
+		d->destRect = D2D1::RectF(0.0f, 0.0f, static_cast<float>(renderTargetWidth), static_cast<float>(renderTargetHeight));
+
+		Debug(_log, "Display capture set up - Desktop size: %dx%d, Rotation=%d, cropping=%d,%d,%d,%d, decimation=%d, output image size=%dx%d",
+			d->desktopWidth, d->desktopHeight, d->desktopRotation, _cropLeft, _cropTop, _cropRight, _cropBottom, _pixelDecimation,
+			_width, _height);
+	}
+	else
+	{
+		Debug(_log, "Reusing existing output for display %d", d->display);
+	}
 
 	return true;
 }
 
-int DDAGrabber::grabFrame(Image<ColorRgb> &image)
+bool DDAGrabber::resetDeviceAndCapture()
 {
-	// Do nothing if we're disabled.
-	if (!_isEnabled)
-	{
-		return 0;
-	}
+	Debug(_log, "Resetting device and capture for display %d", d->display);
+	return open() && restartCapture();
+}
 
-	// Start the capture if it's not already running.
-	if (!d->desktopDuplication && !restartCapture())
+int DDAGrabber::grabFrame(Image<ColorRgb>& image)
+{
+	if (!_isEnabled || _isDeviceInError)
 	{
+		if (_isDeviceInError)
+		{
+			Error(_log, "Cannot grab frame, device is in error state");
+		}
 		return -1;
 	}
 
-	HRESULT hr = S_OK;
+	if (!d->desktopDuplication && !resetDeviceAndCapture())
+	{
+		Error(_log, "Failed to open or restart capture for display %d", d->display);
+		return -1;
+	}
 
-	// Release the last frame, if any.
+	HRESULT hr{ S_OK };
 	hr = d->desktopDuplication->ReleaseFrame();
 	if (FAILED(hr) && hr != DXGI_ERROR_INVALID_CALL)
 	{
 		LOG_ERROR(hr, "Failed to release frame");
 	}
 
-	// Acquire the next frame.
 	CComPtr<IDXGIResource> desktopResource;
-	DXGI_OUTDUPL_FRAME_INFO frameInfo;
+	DXGI_OUTDUPL_FRAME_INFO frameInfo = {};
 	hr = d->desktopDuplication->AcquireNextFrame(500, &frameInfo, &desktopResource);
+
 	if (hr == DXGI_ERROR_ACCESS_LOST || hr == DXGI_ERROR_INVALID_CALL)
 	{
+		Debug(_log, "Access lost (hr=0x%08x), resetting capture.", hr);
 		if (!restartCapture())
 		{
-			return -1;
+			Error(_log, "Access lost - Failed to restart capture.");
 		}
-		return 0;
+		return -1;
 	}
 	if (hr == DXGI_ERROR_WAIT_TIMEOUT)
 	{
-		// Nothing changed on the screen in the 500ms we waited.
 		return 0;
 	}
-	RETURN_IF_ERROR(hr, "Failed to acquire next frame", 0);
+	RETURN_IF_ERROR(hr, "Failed to acquire next frame", -1);
 
-	// Get the 2D texture.
-	CComPtr<ID3D11Texture2D> texture;
-	hr = desktopResource.QueryInterface(&texture);
-	RETURN_IF_ERROR(hr, "Failed to get 2D texture", 0);
 
-	// The texture we acquired is on the GPU and can't be accessed from the CPU,
-	// so we have to copy it into another texture that can.
-	D3D11_TEXTURE2D_DESC textureDesc;
-	texture->GetDesc(&textureDesc);
+	CComPtr<ID3D11Texture2D> sourceTexture;
+	hr = desktopResource->QueryInterface(&sourceTexture);
+	RETURN_IF_ERROR(hr, "Failed to get 2D texture from resource", -1);
 
-	// Create a new intermediate texture if we haven't done so already, or the
-	// existing one is incompatible with the acquired texture (i.e. it has
-	// different dimensions).
-	if (!d->intermediateTexture || !areTextureDescriptionsCompatible(d->intermediateTextureDesc, textureDesc))
+	//qDebug() << "DDAGrabber::grabFrame: _width: " << _width << ", height: " << _height	<< ", _pixelDecimation: " << _pixelDecimation;
+
+	// Use the D2D pipeline to handle any transformation or format conversion.
+	CComPtr<IDXGISurface> sourceSurface;
+	sourceTexture->QueryInterface(&sourceSurface);
+	CComPtr<ID2D1Bitmap1> sourceBitmap;
+	d->d2dContext->CreateBitmapFromDxgiSurface(sourceSurface, nullptr, &sourceBitmap);
+
+	// Draw to our B8G8R8A8 target, performing all transforms (using pre-calculated members)
+	d->d2dContext->SetTarget(d->destBitmap);
+	d->d2dContext->BeginDraw();
+	d->d2dContext->SetTransform(d->orientationTransform);
+	d->d2dContext->DrawBitmap(sourceBitmap, d->destRect, 1.0f, D2D1_INTERPOLATION_MODE_LINEAR, d->sourceRect);
+	hr = d->d2dContext->EndDraw();
+	d->d2dContext->SetTarget(nullptr);
+	RETURN_IF_ERROR(hr, "D2D DrawBitmap failed", -1);
+
+	// Copy the D2D result to the staging texture
+	d->deviceContext->CopyResource(d->intermediateTexture, d->d2dConvertedTexture);
+
+	// Map and copy to user image
+	D3D11_MAPPED_SUBRESOURCE mapped;
+	hr = d->deviceContext->Map(d->intermediateTexture, 0, D3D11_MAP_READ, 0, &mapped);
+	RETURN_IF_ERROR(hr, "Failed to map final texture", -1);
+
+	// CPU pixel copy from BGRA to output RGB image
+	ColorRgb* destPtr = image.memptr();
+	const uint8_t* srcPtr = static_cast<const uint8_t*>(mapped.pData);
+
+	for (int y = 0; y < _height; ++y)
 	{
-		Info(_log, "Creating intermediate texture");
-		d->intermediateTexture.Release();
+		// Set pointers to the start of the current row
+		const uint32_t* srcRowPtr = reinterpret_cast<const uint32_t*>(srcPtr + y * mapped.RowPitch);
+		ColorRgb* destRowPtr = destPtr + y * _width;
 
-		d->intermediateTextureDesc = textureDesc;
-		d->intermediateTextureDesc.Usage = D3D11_USAGE_STAGING;
-		d->intermediateTextureDesc.BindFlags = 0;
-		d->intermediateTextureDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
-		d->intermediateTextureDesc.MiscFlags = 0;
-
-		hr = d->device->CreateTexture2D(&d->intermediateTextureDesc, nullptr, &d->intermediateTexture);
-		RETURN_IF_ERROR(hr, "Failed to create intermediate texture", 0);
-	}
-
-	// Copy the texture to the intermediate texture.
-	d->deviceContext->CopyResource(d->intermediateTexture, texture);
-	RETURN_IF_ERROR(hr, "Failed to copy texture", 0);
-
-	// Map the texture so we can access its pixels.
-	D3D11_MAPPED_SUBRESOURCE resource;
-	hr = d->deviceContext->Map(d->intermediateTexture, 0, D3D11_MAP_READ, 0, &resource);
-	RETURN_IF_ERROR(hr, "Failed to map texture", 0);
-
-	// Copy the texture to the output image.
-	RET_CHECK(textureDesc.Format == DXGI_FORMAT_B8G8R8A8_UNORM, 0);
-
-	ColorRgb *dest = image.memptr();
-	for (size_t destY = 0, srcY = _cropTop; destY < image.height(); destY++, srcY += _pixelDecimation)
-	{
-		uint32_t *src =
-		    reinterpret_cast<uint32_t *>(reinterpret_cast<unsigned char *>(resource.pData) + srcY * resource.RowPitch) +
-		    _cropLeft;
-		for (size_t destX = 0; destX < image.width(); destX++, src += _pixelDecimation, dest++)
+		for (int x = 0; x < _width; ++x)
 		{
-			*dest = ColorRgb{static_cast<uint8_t>(((*src) >> 16) & 0xff), static_cast<uint8_t>(((*src) >> 8) & 0xff),
-			                 static_cast<uint8_t>(((*src) >> 0) & 0xff)};
+			const uint8_t* bgra = reinterpret_cast<const uint8_t*>(srcRowPtr);
+			destRowPtr->red = bgra[2];
+			destRowPtr->green = bgra[1];
+			destRowPtr->blue = bgra[0];
+
+			// Move to the next pixel
+			srcRowPtr++;
+			destRowPtr++;
 		}
 	}
 
+	d->deviceContext->Unmap(d->intermediateTexture, 0);
 	return 0;
 }
 
-void DDAGrabber::setVideoMode(VideoMode mode)
+void DDAGrabber::computeCropBox(int sourceWidth, int sourceHeight, D3D11_BOX& box) const
 {
-	Grabber::setVideoMode(mode);
-	restartCapture();
-}
+	switch (d->desktopRotation) {
+	case DXGI_MODE_ROTATION_ROTATE90:
+		box.left = _cropTop;
+		box.right = sourceWidth - _cropBottom;
+		box.top = _cropRight;
+		box.bottom = sourceHeight - _cropLeft;
+		break;
+	case DXGI_MODE_ROTATION_ROTATE270:
+		box.left = _cropBottom;
+		box.right = sourceWidth - _cropTop;
+		box.top = _cropLeft;
+		box.bottom = sourceHeight - _cropRight;
+		break;
+	case DXGI_MODE_ROTATION_ROTATE180:
+		box.left = _cropRight;
+		box.right = sourceWidth - _cropLeft;
+		box.top = _cropBottom;
+		box.bottom = sourceHeight - _cropTop;
+		break;
+	case DXGI_MODE_ROTATION_IDENTITY:
+	default:
+		box.left = _cropLeft;
+		box.right = sourceWidth - _cropRight;
+		box.top = _cropTop;
+		box.bottom = sourceHeight - _cropBottom;
+		break;
+	}
 
-bool DDAGrabber::setPixelDecimation(int pixelDecimation)
-{
-	if (Grabber::setPixelDecimation(pixelDecimation))
-		return restartCapture();
-
-	return false;
+	box.front = 0;
+	box.back = 1;
 }
 
 void DDAGrabber::setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom)
 {
-	// Grabber::setCropping rejects the cropped size if it is larger than _width
-	// and _height, so temporarily set those back to the original pre-cropped full
-	// desktop sizes first. They'll be set back to the cropped sizes by
-	// restartCapture.
-	_width = d->desktopWidth;
-	_height = d->desktopHeight;
 	Grabber::setCropping(cropLeft, cropRight, cropTop, cropBottom);
 	restartCapture();
 }
@@ -278,80 +468,102 @@ bool DDAGrabber::setDisplayIndex(int index)
 	if (d->display != index)
 	{
 		d->display = index;
-		rc = restartCapture();
+		rc = resetDeviceAndCapture();
 	}
 	return rc;
 }
 
-QJsonObject DDAGrabber::discover(const QJsonObject &params)
+void DDAGrabber::setVideoMode(VideoMode mode)
 {
-	QJsonObject ret;
-	if (!d->dxgiAdapter)
+	Grabber::setVideoMode(mode);
+	restartCapture();
+}
+
+bool DDAGrabber::setPixelDecimation(int pixelDecimation)
+{
+	qDebug() << "Setting pixel decimation to" << pixelDecimation << ", current is" << _pixelDecimation;
+	if (Grabber::setPixelDecimation(pixelDecimation))
 	{
-		return ret;
+		restartCapture();
+		return true;
 	}
 
-	HRESULT hr = S_OK;
+	return false;
+}
 
-	// Enumerate through the outputs.
-	QJsonArray videoInputs;
-	for (int i = 0;; ++i)
+QJsonObject DDAGrabber::discover(const QJsonObject& params)
+{
+	QJsonObject inputsDiscovered;
+	if (isAvailable(false) && open())
 	{
-		CComPtr<IDXGIOutput> output;
-		hr = d->dxgiAdapter->EnumOutputs(i, &output);
-		if (!output || !SUCCEEDED(hr))
+
+		HRESULT hr = S_OK;
+
+		// Enumerate through the outputs.
+		QJsonArray videoInputs;
+		for (int i = 0;; ++i)
 		{
-			break;
+			CComPtr<IDXGIOutput> output;
+			hr = d->dxgiAdapter->EnumOutputs(i, &output);
+			if (!output || !SUCCEEDED(hr))
+			{
+				break;
+			}
+
+			// Get the output description.
+			DXGI_OUTPUT_DESC desc;
+			hr = output->GetDesc(&desc);
+			if (FAILED(hr))
+			{
+				Error(_log, "Failed to get output description");
+				continue;
+			}
+
+			// Add it to the JSON.
+			const int width = desc.DesktopCoordinates.right - desc.DesktopCoordinates.left;
+			const int height = desc.DesktopCoordinates.bottom - desc.DesktopCoordinates.top;
+
+			qDebug() << "Found video input" << i << "with name" << QString::fromWCharArray(desc.DeviceName)
+				<< "and size" << width << "x" << height;
+
+			videoInputs.append(QJsonObject{
+				{"inputIdx", i},
+				{"name", QString::fromWCharArray(desc.DeviceName)},
+				{"formats",
+				 QJsonArray{
+					 QJsonObject{
+						 {"resolutions",
+						  QJsonArray{
+							  QJsonObject{
+								  {"width", width},
+								  {"height", height},
+								  {"fps", QJsonArray{1, 5, 10, 15, 20, 25, 30, 40, 50, 60, 120, 144}},
+							  },
+						  }},
+					 },
+				 }},
+				});
 		}
 
-		// Get the output description.
-		DXGI_OUTPUT_DESC desc;
-		hr = output->GetDesc(&desc);
-		if (FAILED(hr))
+		inputsDiscovered["video_inputs"] = videoInputs;
+		if (!videoInputs.isEmpty())
 		{
-			Error(_log, "Failed to get output description");
-			continue;
+			inputsDiscovered["device"] = "dda";
+			inputsDiscovered["device_name"] = "DXGI DDA";
+			inputsDiscovered["type"] = "screen";
+			inputsDiscovered["default"] = QJsonObject{
+				{"video_input",
+				 QJsonObject{
+					 {"inputIdx", 0},
+					 {"resolution",
+					  QJsonObject{
+						  {"fps", 60},
+					  }},
+				 }},
+			};
 		}
-
-		// Add it to the JSON.
-		const int width = desc.DesktopCoordinates.right - desc.DesktopCoordinates.left;
-		const int height = desc.DesktopCoordinates.bottom - desc.DesktopCoordinates.top;
-		videoInputs.append(QJsonObject{
-		    {"inputIdx", i},
-		    {"name", QString::fromWCharArray(desc.DeviceName)},
-		    {"formats",
-		     QJsonArray{
-		         QJsonObject{
-		             {"resolutions",
-		              QJsonArray{
-		                  QJsonObject{
-		                      {"width", width},
-		                      {"height", height},
-		                      {"fps", QJsonArray{1, 5, 10, 15, 20, 25, 30, 40, 50, 60, 120, 144}},
-		                  },
-		              }},
-		         },
-		     }},
-		});
 	}
+	DebugIf(verbose, _log, "device: [%s]", QString(QJsonDocument(inputsDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
-	ret["video_inputs"] = videoInputs;
-	if (!videoInputs.isEmpty())
-	{
-		ret["device"] = "dda";
-		ret["device_name"] = "DXGI DDA";
-		ret["type"] = "screen";
-		ret["default"] = QJsonObject{
-		    {"video_input",
-		     QJsonObject{
-		         {"inputIdx", 0},
-		         {"resolution",
-		          QJsonObject{
-		              {"fps", 60},
-		          }},
-		     }},
-		};
-	}
-
-	return ret;
+	return inputsDiscovered;
 }
