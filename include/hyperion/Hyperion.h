@@ -17,8 +17,8 @@
 #include <QMap>
 #include <QScopedPointer>
 #include <QSharedPointer>
-#include <QElapsedTimer>
 #include <QThread>
+#include <QTimer>
 #include <QLoggingCategory>
 
 // hyperion-utils includes
@@ -526,6 +526,15 @@ private slots:
 	void handleForceUpdate();
 
 	///
+	/// Reset the statistics on image processing and restart the timer
+	///
+	void resetImagesProcessedStatistics();
+
+	///
+	/// Report image processing statistics
+	///
+	void reportImagesProcessedStatistics();
+	///
 	/// @brief Process images for output.
 	///
 	void processUpdate();	
@@ -611,12 +620,16 @@ private:
 	int _layoutLedCount;
 	QString _colorOrder;
 	QSize _layoutGridSize;
+	VideoMode _currVideoMode = VideoMode::VIDEO_2D;	
 
 	std::atomic<bool> _isUpdatePending{ false };
 	std::atomic<bool> _isUpdateQueued{ false };
-
-	/// buffer for leds (with adjustment)
+	
+	// buffer for leds (with adjustment)
 	QVector<ColorRgb> _ledBuffer;
 
-	VideoMode _currVideoMode = VideoMode::VIDEO_2D;
+	/// statistics timer
+	QScopedPointer<QTimer> _statisticsTimer;
+	std::atomic<int> _totalImagesProcessed{ 0 };
+	std::atomic<int> _imagesSkipped{ 0 };
 };
