@@ -115,8 +115,8 @@ public slots:
 	/// Performs the main output processing.
 	/// Retrieves the current priority input and processes it to update the LEDs.
 	///
-	void update();	
-
+	void update();
+	
 	///
 	/// Forces one update to the priority muxer with the current time and (re)writes the led color with applied
 	/// transforms.
@@ -520,15 +520,20 @@ private slots:
 	///
 	void handleUpdate();
 
-signals:
-	void isSetNewComponentState(hyperion::Components component, bool state);
-
-private:
+	///
+	/// @brief Handle a forced update
+	///
+	void handleForceUpdate();
 
 	///
 	/// @brief Process images for output.
 	///
-	void processUpdate();
+	void processUpdate();	
+
+signals:
+	void isSetNewComponentState(hyperion::Components component, bool state);
+
+private:
 
 	void updateLedColorAdjustment(int ledCount, const QJsonObject& colors);
 	void updateLedLayout(const QJsonArray& ledLayout);
@@ -608,6 +613,7 @@ private:
 	QSize _layoutGridSize;
 
 	std::atomic<bool> _isUpdatePending{ false };
+	std::atomic<bool> _isUpdateQueued{ false };
 
 	/// buffer for leds (with adjustment)
 	QVector<ColorRgb> _ledBuffer;

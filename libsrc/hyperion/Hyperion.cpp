@@ -754,8 +754,9 @@ void Hyperion::writeToLeds()
 
 void Hyperion::refreshUpdate()
 {
+	qCDebug(instance_flow) << "A forced refresh update is requested, waiting for latch time of" << _ledDeviceWrapper->getLatchTime() << "ms before processing.";
 	wait(_ledDeviceWrapper->getLatchTime());
-	update();
+	QTimer::singleShot(0, this, &Hyperion::handleForceUpdate);
 }
 
 void Hyperion::update()
@@ -771,9 +772,19 @@ void Hyperion::update()
 	return; // Return immediately
 }
 
+void Hyperion::handleForceUpdate()
+{
+	_isUpdateQueued.store(true);
+	update();
+}
+
 void Hyperion::handleUpdate()
 {
-	processUpdate();
+	do
+	{
+		_isUpdateQueued.store(false);
+		processUpdate();
+	} while (_isUpdateQueued.load());
 
 	_isUpdatePending.store(false);
 }
