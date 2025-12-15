@@ -6,6 +6,8 @@
 #include <dxgi1_2.h>
 #include <d2d1_1.h>
 #include <atlbase.h>
+//#include <Wtsapi32.h>
+//#pragma comment(lib, "Wtsapi32.lib")
 
 #include "grabber/dda/DDAGrabber.h"
 #include <QDebug>
@@ -149,6 +151,21 @@ bool DDAGrabber::open()
 
 	hr = d->dxgiDevice->GetAdapter(&d->dxgiAdapter);
 	RETURN_IF_ERROR(hr, "Failed to get DXGI adapter", false);
+
+	// Log adapter description and LUID for diagnostics
+	if (grabber_screen_flow().isDebugEnabled())
+	{
+		DXGI_ADAPTER_DESC adapterDesc{};
+		d->dxgiAdapter->GetDesc(&adapterDesc);
+		qCDebug(grabber_screen_flow) << "DXGI Adapter:" << QString::fromWCharArray(adapterDesc.Description)
+			<< ", VendorId:" << adapterDesc.VendorId << ", DeviceId:" << adapterDesc.DeviceId
+			<< ", SubSysId:" << adapterDesc.SubSysId << ", Revision:" << adapterDesc.Revision
+			<< ", LUID:" << (qulonglong)adapterDesc.AdapterLuid.HighPart << ":" << (qulonglong)adapterDesc.AdapterLuid.LowPart;
+
+		// Log session info (console session id)
+		DWORD sessionId = WTSGetActiveConsoleSessionId();
+		qCDebug(grabber_screen_flow) << "Active console session id:" << sessionId;
+	}
 
 	return true;
 }
@@ -346,13 +363,42 @@ int DDAGrabber::grabFrame(Image<ColorRgb>& image)
 	CComPtr<IDXGIResource> desktopResource;
 	DXGI_OUTDUPL_FRAME_INFO frameInfo = {};
 	hr = d->desktopDuplication->AcquireNextFrame(500, &frameInfo, &desktopResource);
+	if (FAILED(hr))
+	{
+		LOG_ERROR(hr, "AcquireNextFrame failed");
+	}
 
-	if (hr == DXGI_ERROR_ACCESS_LOST || hr == DXGI_ERROR_INVALID_CALL || hr == DXGI_ERROR_SESSION_DISCONNECTED)
+	if (hr == DXGI_ERROR_ACCESS_LOST || hr == DXGI_ERROR_INVALID_CALL || hr == DXGI_ERROR_SESSION_DISCONNECTED || hr == DXGI_ERROR_ACCESS_DENIED || hr == DXGI_ERROR_NOT_CURRENTLY_AVAILABLE)
 	{
 		qCDebug(grabber_screen_flow,"Access lost (hr=0x%08x), resetting capture.", hr);
+		if (grabber_screen_flow().isDebugEnabled())
+		{
+			// Log session/desktop info for diagnostics
+			DWORD sessionId = WTSGetActiveConsoleSessionId();
+			qCDebug(grabber_screen_flow) << "Active console session id:" << sessionId;
+			DXGI_OUTDUPL_DESC duplDesc{};
+			if (d->desktopDuplication)
+			{
+				d->desktopDuplication->GetDesc(&duplDesc);
+				qCDebug(grabber_screen_flow) << "Duplication Desc: ModeDesc(" << duplDesc.ModeDesc.Width << "x" << duplDesc.ModeDesc.Height << ") Rot=" << duplDesc.Rotation;
+			}
+		}
 		if (!restartCapture())
 		{
 			Error(_log, "Access lost - Failed to restart capture.");
+		}
+		// After restart, optionally warm-up by trying a short acquire to re-sync
+		CComPtr<IDXGIResource> warmResource;
+		DXGI_OUTDUPL_FRAME_INFO warmInfo{};
+		HRESULT hrWarm = d->desktopDuplication ? d->desktopDuplication->AcquireNextFrame(100, &warmInfo, &warmResource) : E_POINTER;
+		if (FAILED(hrWarm))
+		{
+			LOG_ERROR(hrWarm, "Warm-up AcquireNextFrame failed");
+		}
+		else
+		{
+			// Release warm-up frame
+			d->desktopDuplication->ReleaseFrame();
 		}
 		return -1;
 	}
@@ -361,6 +407,11 @@ int DDAGrabber::grabFrame(Image<ColorRgb>& image)
 		return 0;
 	}
 	RETURN_IF_ERROR(hr, "Failed to acquire next frame", -1);
+
+	qCDebug(grabber_screen_capture) << "FrameInfo: Accumulated=" << frameInfo.AccumulatedFrames
+		<< ", PointerVisible=" << (int)frameInfo.PointerPosition.Visible
+		<< ", LastPresentTime=" << (qulonglong)frameInfo.LastPresentTime.QuadPart
+		<< ", LastMouseUpdateTime=" << (qulonglong)frameInfo.LastMouseUpdateTime.QuadPart;
 
 	CComPtr<ID3D11Texture2D> sourceTexture;
 	hr = desktopResource->QueryInterface(&sourceTexture);
