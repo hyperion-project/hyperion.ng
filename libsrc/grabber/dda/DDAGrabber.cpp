@@ -38,6 +38,24 @@
 		return returnValue;                                                                                            \
 	}
 
+// Safely call IDXGIOutputDuplication::ReleaseFrame and swallow SEH that some drivers raise
+static inline HRESULT SafeReleaseFrame(IDXGIOutputDuplication* dup)
+{
+    if (!dup) return E_POINTER;
+#if defined(_MSC_VER)
+    __try
+    {
+        return dup->ReleaseFrame();
+    }
+    __except(EXCEPTION_EXECUTE_HANDLER)
+    {
+        return DXGI_ERROR_INVALID_CALL;
+    }
+#else
+    return dup->ReleaseFrame();
+#endif
+}
+
 class DDAGrabberImpl
 {
 public:
@@ -100,13 +118,7 @@ bool DDAGrabber::open()
 	d->d2dConvertedTexture.Release();
 	d->destBitmap.Release();
 
-	static const D3D_DRIVER_TYPE driverTypes[] = {
-		D3D_DRIVER_TYPE_HARDWARE,
-		D3D_DRIVER_TYPE_WARP,
-		D3D_DRIVER_TYPE_REFERENCE
-	};
-
-	// Add a variable for the creation flags
+    // Create a hardware device only (Desktop Duplication requires hardware adapter)
 	UINT createFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 
 	// If you want D3D debug messages, you can add the debug flag too
@@ -114,23 +126,19 @@ bool DDAGrabber::open()
 	createFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
-	HRESULT hr{ S_OK };
-	for (auto driverType : driverTypes)
-	{
-		hr = D3D11CreateDevice(
-			nullptr,                 // Adapter to use
-			driverType,              // Driver type (since we specified adapter)
-			nullptr,                 // Software device (not used)
-			createFlags,             // Flags
-			nullptr,                 // Feature levels to attempt
-			0,                       // Number of feature levels
-			D3D11_SDK_VERSION,       // SDK version
-			&d->device,              // Returned ID3D11Device
-			nullptr,                 // Returned feature level
-			&d->deviceContext        // Returned ID3D11DeviceContext
-		);
-		if (SUCCEEDED(hr)) break;
-	}
+    HRESULT hr{ S_OK };
+    hr = D3D11CreateDevice(
+        nullptr,                 // Default adapter
+        D3D_DRIVER_TYPE_HARDWARE,// Require hardware for DDA
+        nullptr,                 // Software device (not used)
+        createFlags,             // Flags
+        nullptr,                 // Feature levels to attempt
+        0,                       // Number of feature levels
+        D3D11_SDK_VERSION,       // SDK version
+        &d->device,              // Returned ID3D11Device
+        nullptr,                 // Returned feature level
+        &d->deviceContext        // Returned ID3D11DeviceContext
+    );
 	RETURN_IF_ERROR(hr, "CreateDevice failed", false);
 
 	hr = d->device->QueryInterface(&d->dxgiDevice);
@@ -241,7 +249,30 @@ bool DDAGrabber::restartCapture()
 
 		// Recreate desktop duplication
 		hr = d->dxgiOutput1->DuplicateOutput(d->device, &d->desktopDuplication);
-		RETURN_IF_ERROR(hr, "Failed to create desktop duplication interface", false);
+		if (FAILED(hr))
+		{
+			LOG_ERROR(hr, "DuplicateOutput failed");
+			// If device is lost/removed, recreate device and try again once
+			if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
+			{
+				qCDebug(grabber_screen_flow) << "Device removed/reset. Recreating D3D device and retrying duplication.";
+				if (!open())
+				{
+					RETURN_IF_ERROR(hr, "Failed to recreate device after removal", false);
+				}
+				// Need to re-enum output after device recreation
+				CComPtr<IDXGIOutput> outputRetry;
+				hr = d->dxgiAdapter->EnumOutputs(d->display, &outputRetry);
+				RETURN_IF_ERROR(hr, "Failed to get output (retry)", false);
+				CComPtr<IDXGIOutput1> output1Retry;
+				hr = outputRetry->QueryInterface(&output1Retry);
+				RETURN_IF_ERROR(hr, "Failed to get output1 (retry)", false);
+				d->dxgiOutput1 = output1Retry;
+				// Retry DuplicateOutput
+				hr = d->dxgiOutput1->DuplicateOutput(d->device, &d->desktopDuplication);
+			}
+			RETURN_IF_ERROR(hr, "Failed to create desktop duplication interface", false);
+		}
 
 		// 1. Create the final GPU texture and staging texture.
 		qCDebug(grabber_screen_flow) << "Creating final-sized GPU resources [" << _width << "x" << _height << "]";
@@ -359,13 +390,17 @@ int DDAGrabber::grabFrame(Image<ColorRgb>& image)
 	}
 
 	HRESULT hr{ S_OK };
-
+	bool frameHeld = false;
 	CComPtr<IDXGIResource> desktopResource;
 	DXGI_OUTDUPL_FRAME_INFO frameInfo = {};
-	hr = d->desktopDuplication->AcquireNextFrame(500, &frameInfo, &desktopResource);
+	hr = d->desktopDuplication->AcquireNextFrame(20, &frameInfo, &desktopResource);
 	if (FAILED(hr))
 	{
 		LOG_ERROR(hr, "AcquireNextFrame failed");
+	}
+	else
+	{
+		frameHeld = true;
 	}
 
 	if (hr == DXGI_ERROR_ACCESS_LOST || hr == DXGI_ERROR_INVALID_CALL || hr == DXGI_ERROR_SESSION_DISCONNECTED || hr == DXGI_ERROR_ACCESS_DENIED || hr == DXGI_ERROR_NOT_CURRENTLY_AVAILABLE)
@@ -397,8 +432,8 @@ int DDAGrabber::grabFrame(Image<ColorRgb>& image)
 		}
 		else
 		{
-			// Release warm-up frame
-			d->desktopDuplication->ReleaseFrame();
+			// Release warm-up frame safely
+			SafeReleaseFrame(d->desktopDuplication);
 		}
 		return -1;
 	}
@@ -411,13 +446,12 @@ int DDAGrabber::grabFrame(Image<ColorRgb>& image)
 	qCDebug(grabber_screen_capture) << "FrameInfo: Accumulated=" << frameInfo.AccumulatedFrames
 		<< ", PointerVisible=" << (int)frameInfo.PointerPosition.Visible
 		<< ", LastPresentTime=" << (qulonglong)frameInfo.LastPresentTime.QuadPart
-		<< ", LastMouseUpdateTime=" << (qulonglong)frameInfo.LastMouseUpdateTime.QuadPart;
+		<< ", LastMouseUpdateTime=" << (qulonglong)frameInfo.LastMouseUpdateTime.QuadPart
+		<< " Capture setup: width:" << _width << ", height:" << _height << ", pixelDecimation:" << _pixelDecimation;
 
 	CComPtr<ID3D11Texture2D> sourceTexture;
 	hr = desktopResource->QueryInterface(&sourceTexture);
 	RETURN_IF_ERROR(hr, "Failed to get 2D texture from resource", -1);
-
-	qCDebug(grabber_screen_capture) << " Capture setup: width:" << _width << ", height:" << _height << ", pixelDecimation:" << _pixelDecimation;
 
 	// Use the D2D pipeline to handle any transformation or format conversion.
 	CComPtr<IDXGISurface> sourceSurface;
@@ -432,7 +466,23 @@ int DDAGrabber::grabFrame(Image<ColorRgb>& image)
 	d->d2dContext->DrawBitmap(sourceBitmap, d->destRect, 1.0f, D2D1_INTERPOLATION_MODE_LINEAR, d->sourceRect);
 	hr = d->d2dContext->EndDraw();
 	d->d2dContext->SetTarget(nullptr);
-	RETURN_IF_ERROR(hr, "D2D DrawBitmap failed", -1);
+
+	// Release duplication frame as early as possible to minimize AccumulatedFrames
+	if (frameHeld && d->desktopDuplication)
+	{
+		HRESULT hrRelease = SafeReleaseFrame(d->desktopDuplication);
+		frameHeld = false;
+		if (FAILED(hrRelease) && hrRelease != DXGI_ERROR_INVALID_CALL)
+		{
+			LOG_ERROR(hrRelease, "Failed to release frame");
+		}
+	}
+
+	if (FAILED(hr))
+	{
+		setInError(QString("D2D DrawBitmap failed: 0x%1").arg(hr));
+		return -1;
+	}
 
 	// Copy the D2D result to the staging texture
 	d->deviceContext->CopyResource(d->intermediateTexture, d->d2dConvertedTexture);
@@ -467,15 +517,7 @@ int DDAGrabber::grabFrame(Image<ColorRgb>& image)
 
 	d->deviceContext->Unmap(d->intermediateTexture, 0);
 
-	// Release the acquired frame now that processing is complete
-	if (d->desktopDuplication)
-	{
-		HRESULT hrRelease = d->desktopDuplication->ReleaseFrame();
-		if (FAILED(hrRelease) && hrRelease != DXGI_ERROR_INVALID_CALL)
-		{
-			LOG_ERROR(hrRelease, "Failed to release frame");
-		}
-	}
+	// No final release needed if we already released after GPU work
 	return 0;
 }
 
