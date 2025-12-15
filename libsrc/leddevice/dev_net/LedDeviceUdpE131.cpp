@@ -61,6 +61,11 @@ bool LedDeviceUdpE131::init(const QJsonObject &deviceConfig)
 
 		_e131_universe = deviceConfig["universe"].toInt(1);
 		_e131_dmx_max = deviceConfig["dmx-max"].toInt(DMX_MAX);
+        if (_e131_dmx_max > DMX_MAX)
+        {
+            _e131_dmx_max > DMX_MAX);
+            Warning(_log, "Maximum channels configured [%d] cannot exceed maximum channels defined by the E1.31 protocol. Corrected to %d channels.", _e131_dmx_max, DMX_MAX)
+        }
 		_e131_source_name = deviceConfig["source-name"].toString("hyperion on "+QHostInfo::localHostName());
 		QString _json_cid = deviceConfig["cid"].toString("");
 
