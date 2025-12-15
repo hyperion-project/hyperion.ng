@@ -1,4 +1,5 @@
 
+
 // Platform-specific only
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -169,7 +170,7 @@ bool DDAGrabber::restartCapture()
 			setInError("restartCapture - Open failed");
 			return false;
 		}
-		return false;
+		// Continue with capture setup after successful open
 	}
 
 	HRESULT hr{ S_OK };
@@ -178,7 +179,12 @@ bool DDAGrabber::restartCapture()
 	hr = d->dxgiAdapter->EnumOutputs(d->display, &output);
 	RETURN_IF_ERROR(hr, "Failed to get output", false);
 
-	if (d->dxgiOutput1 == nullptr)
+	// Forcefully drop previous duplication state after ACCESS_LOST/SESSION_DISCONNECTED
+	// so we never "reuse" an invalid duplication/output.
+	d->desktopDuplication.Release();
+	d->dxgiOutput1.Release();
+
+	// Always re-query a fresh IDXGIOutput1 from the current output
 	{
 		qCDebug(grabber_screen_flow) << "Creating new output for display" << d->display;
 		CComPtr<IDXGIOutput1> output1;
@@ -207,7 +213,7 @@ bool DDAGrabber::restartCapture()
 	int finalWidth = qMax(1, croppedWidth / _pixelDecimation);
 	int	finalHeight = qMax(1, croppedHeight / _pixelDecimation);
 
-	// Check if a full re-initialization is needed
+	// Now duplication is null, so this block will recreate the duplication (and resources if needed)
 	if (desc.Rotation != d->desktopRotation || finalWidth != _width || finalHeight != _height || d->desktopDuplication == nullptr)
 	{
 		Debug(_log, "New capture size or rotation detected. Creating Desktop Duplication for display %d", d->display);
@@ -217,7 +223,6 @@ bool DDAGrabber::restartCapture()
 		d->desktopRotation = desc.Rotation;
 
 		// Recreate desktop duplication
-		d->desktopDuplication.Release();
 		hr = d->dxgiOutput1->DuplicateOutput(d->device, &d->desktopDuplication);
 		RETURN_IF_ERROR(hr, "Failed to create desktop duplication interface", false);
 
@@ -276,8 +281,7 @@ bool DDAGrabber::restartCapture()
 				D2D1::Matrix3x2F::Translation(0.0f, static_cast<float>(renderTargetWidth));
 			break;
 		default:
-			d->orientationTransform =
-				D2D1::Matrix3x2F::Identity();
+			d->orientationTransform = D2D1::Matrix3x2F::Identity();
 			break;
 		}
 
@@ -305,6 +309,7 @@ bool DDAGrabber::restartCapture()
 	}
 	else
 	{
+		// Should not happen since we forced Release(), but keep fallback log
 		qCDebug(grabber_screen_flow) << "Reusing existing output for display" << d->display;
 	}
 
@@ -336,20 +341,13 @@ int DDAGrabber::grabFrame(Image<ColorRgb>& image)
 		return -1;
 	}
 
-	return 0;
-
 	HRESULT hr{ S_OK };
-	hr = d->desktopDuplication->ReleaseFrame();
-	if (FAILED(hr) && hr != DXGI_ERROR_INVALID_CALL)
-	{
-		LOG_ERROR(hr, "Failed to release frame");
-	}
 
 	CComPtr<IDXGIResource> desktopResource;
 	DXGI_OUTDUPL_FRAME_INFO frameInfo = {};
 	hr = d->desktopDuplication->AcquireNextFrame(500, &frameInfo, &desktopResource);
 
-	if (hr == DXGI_ERROR_ACCESS_LOST || hr == DXGI_ERROR_INVALID_CALL)
+	if (hr == DXGI_ERROR_ACCESS_LOST || hr == DXGI_ERROR_INVALID_CALL || hr == DXGI_ERROR_SESSION_DISCONNECTED)
 	{
 		qCDebug(grabber_screen_flow,"Access lost (hr=0x%08x), resetting capture.", hr);
 		if (!restartCapture())
@@ -363,7 +361,6 @@ int DDAGrabber::grabFrame(Image<ColorRgb>& image)
 		return 0;
 	}
 	RETURN_IF_ERROR(hr, "Failed to acquire next frame", -1);
-
 
 	CComPtr<ID3D11Texture2D> sourceTexture;
 	hr = desktopResource->QueryInterface(&sourceTexture);
@@ -418,6 +415,16 @@ int DDAGrabber::grabFrame(Image<ColorRgb>& image)
 	}
 
 	d->deviceContext->Unmap(d->intermediateTexture, 0);
+
+	// Release the acquired frame now that processing is complete
+	if (d->desktopDuplication)
+	{
+		HRESULT hrRelease = d->desktopDuplication->ReleaseFrame();
+		if (FAILED(hrRelease) && hrRelease != DXGI_ERROR_INVALID_CALL)
+		{
+			LOG_ERROR(hrRelease, "Failed to release frame");
+		}
+	}
 	return 0;
 }
 
