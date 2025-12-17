@@ -46,6 +46,15 @@
 #include <boblightserver/BoblightServer.h>
 #endif
 
+Q_LOGGING_CATEGORY(instance_flow, "hyperion.instance.flow");
+Q_LOGGING_CATEGORY(instance_update, "hyperion.instance.update");
+
+// Constants
+namespace {
+	const double DEFAULT_SKIPPEDUPDATES_LOWERBOUND = {5}; // Report skipped updates only if greater 5%
+	constexpr std::chrono::seconds DEFAULT_STATISTICS_INTERVAL{ 60 }; //Generate statistics every 60 seconds
+} //End of constants
+
 Hyperion::Hyperion(quint8 instance, QObject* parent)
 	: QObject(parent)
 	, _instIndex(instance)
@@ -68,6 +77,7 @@ Hyperion::Hyperion(quint8 instance, QObject* parent)
 	, _hwLedCount(0)
 	, _layoutLedCount(0)
 	, _colorOrder("rgb")
+	, _statisticsTimer(nullptr)
 {
 	qRegisterMetaType<ComponentList>("ComponentList");
 	qRegisterMetaType<Image<ColorRgb>>("ColorRgbImage");
@@ -88,6 +98,11 @@ Hyperion::~Hyperion()
 void Hyperion::start()
 {
 	Debug(_log, "Hyperion instance starting...");
+
+	_statisticsTimer.reset(new QTimer());
+	_statisticsTimer->setTimerType(Qt::PreciseTimer);
+	_statisticsTimer->setInterval(DEFAULT_STATISTICS_INTERVAL.count() * 1000);
+	connect(_statisticsTimer.get(), &QTimer::timeout, this, &Hyperion::reportImagesProcessedStatistics);
 
 	_settingsManager.reset(new SettingsManager(_instIndex));
 
@@ -112,6 +127,9 @@ void Hyperion::start()
 	connect(_muxer.get(), &PriorityMuxer::visiblePriorityChanged, this, &Hyperion::update);
 	connect(_muxer.get(), &PriorityMuxer::visiblePriorityChanged, this, &Hyperion::handleSourceAvailability);
 	connect(_muxer.get(), &PriorityMuxer::visibleComponentChanged, this, &Hyperion::handleVisibleComponentChanged);
+
+	connect(_muxer.get(), &PriorityMuxer::visiblePriorityChanged, this, &Hyperion::resetImagesProcessedStatistics);
+	connect(_muxer.get(), &PriorityMuxer::visibleComponentChanged, this, &Hyperion::resetImagesProcessedStatistics);
 
 	QJsonArray const ledLayout = getSetting(settings::LEDS).array();
 	updateLedLayout(ledLayout);
@@ -163,6 +181,9 @@ void Hyperion::start()
 	// if there is no startup / background effect and no sending capture interface we probably want to push once BLACK (as PrioMuxer won't emit a priority change)
 	refreshUpdate();
 
+
+	_statisticsTimer->start();
+
 #if defined(ENABLE_BOBLIGHT_SERVER)
 	// boblight, can't live in global scope as it depends on layout
 	_boblightServer = MAKE_TRACKED_SHARED(BoblightServer, sharedFromThis(), getSetting(settings::BOBLSERVER));
@@ -202,7 +223,7 @@ void Hyperion::stop(const QString name)
 	// Trigger instance stopped when the LedDevice signals it has stopped
 	connect(_ledDeviceWrapper.get(), &LedDeviceWrapper::isStopped, [this, name]()
 	{
-		TRACK_SCOPE_SUBCOMPONENT() << "LedDeviceWrapper signaled it has stopped for Hyperion instance:" << QSTRING_CSTR(name);
+		TRACK_SCOPE_SUBCOMPONENT_CATEGORY(instance_flow) << "LedDeviceWrapper signaled it has stopped for Hyperion instance:" << QSTRING_CSTR(name);
 		emit finished(name);
 	});
 	_ledDeviceWrapper->stopDevice();
@@ -347,7 +368,7 @@ bool Hyperion::sourceAutoSelectEnabled() const
 
 void Hyperion::setNewComponentState(hyperion::Components component, bool state)
 {
-	TRACK_SCOPE_SUBCOMPONENT() << "component" << componentToString(component) << "will be set to" << (state ? "ENABLED" : "DISABLED");
+	TRACK_SCOPE_SUBCOMPONENT_CATEGORY(instance_flow) << "component" << componentToString(component) << "will be set to" << (state ? "ENABLED" : "DISABLED");
 	if (_componentRegister.isNull())
 	{
 		Debug(_log, "ComponentRegister is not initialized, cannot set state for component '%s'", componentToString(component));
@@ -420,7 +441,7 @@ bool Hyperion::setInputImage(int priority, const Image<ColorRgb>& image, int64_t
 {
 	if (_muxer.isNull())
 	{
-		qCDebug(image_track) << "Image [" << image.id() << "] not set, as muxer is null.";
+		TRACK_SCOPE_SUBCOMPONENT_CATEGORY(image_track) << "Image [" << image.id() << "] not set, as muxer is null.";
 		return false;
 	}
 
@@ -751,11 +772,47 @@ void Hyperion::writeToLeds()
 
 void Hyperion::refreshUpdate()
 {
+	qCDebug(instance_flow) << "A forced refresh update is requested, waiting for latch time of" << _ledDeviceWrapper->getLatchTime() << "ms before processing.";
 	wait(_ledDeviceWrapper->getLatchTime());
-	update();
+	QTimer::singleShot(0, this, &Hyperion::handleForceUpdate);
 }
 
 void Hyperion::update()
+{
+	_totalImagesProcessed++;
+	TRACK_SCOPE_SUBCOMPONENT_CATEGORY(instance_update) << "Update output" << (_isUpdatePending.load() ? "will be skipped as another update is pending." : "will be executed.");
+
+	// If an update processing is NOT already scheduled, schedule one.
+	if (!_isUpdatePending.exchange(true))
+	{
+		QTimer::singleShot(0, this, &Hyperion::handleUpdate);
+	}
+	else
+	{
+		_imagesSkipped++;
+	}
+
+	return; // Return immediately
+}
+
+void Hyperion::handleForceUpdate()
+{
+	_isUpdateQueued.store(true);
+	update();
+}
+
+void Hyperion::handleUpdate()
+{
+	do
+	{
+		_isUpdateQueued.store(false);
+		processUpdate();
+	} while (_isUpdateQueued.load());
+
+	_isUpdatePending.store(false);
+}
+
+void Hyperion::processUpdate()
 {
 	// Obtain the current priority channel
 	const PriorityMuxer::InputInfo& priorityInfo = _muxer->getInputInfo(_muxer->getCurrentPriority());
@@ -765,7 +822,7 @@ void Hyperion::update()
 
 	if (image.isNull())
 	{
-		qCDebug(image_track) << "Empty image - skip update";
+		TRACK_SCOPE_SUBCOMPONENT_CATEGORY(image_track) << "Empty image - skip update";
 		return;
 	}
 
@@ -792,4 +849,36 @@ void Hyperion::update()
 	std::copy_n(ledColors.begin(), std::min<qsizetype>(_ledBuffer.size(), ledColors.size()), _ledBuffer.begin());
 
 	writeToLeds();
+}
+
+void Hyperion::resetImagesProcessedStatistics()
+{
+	_totalImagesProcessed.store(0);
+	_imagesSkipped.store(0);
+	if (_statisticsTimer)
+	{
+		_statisticsTimer->start();
+	}
+}
+
+void Hyperion::reportImagesProcessedStatistics()
+{
+	int total = _totalImagesProcessed.exchange(0);
+	int skipped = _imagesSkipped.exchange(0);
+
+	if (total > 0)
+	{
+		double interval_s = _statisticsTimer->interval() / 1000.0;
+		if (interval_s > 0)
+		{
+			Debug(_log, "Processed %d images in the last %d seconds. Images processed per second: %.2f", total, static_cast<int>(interval_s), total / interval_s);
+		}
+
+		double percentage = (double)skipped / total * 100.0;
+		if (percentage > DEFAULT_SKIPPEDUPDATES_LOWERBOUND)
+		{
+			double actual_updates_ps = (total - skipped) / interval_s;
+			Warning(_log, "Skipped %d of %d images (%.2f %%) in the last %d seconds. Actual images processed per second: %.2f", skipped, total, percentage, static_cast<int>(interval_s), actual_updates_ps);
+		}
+	}
 }

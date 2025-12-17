@@ -10,6 +10,7 @@
 #include <QSet>
 #include <QSharedPointer>
 #include <QWeakPointer>
+#include <QElapsedTimer>
 #include <QLoggingCategory>
 
 #include <utils/Components.h>

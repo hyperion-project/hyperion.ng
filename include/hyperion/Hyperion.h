@@ -3,6 +3,7 @@
 // stl includes
 #include <list>
 #include <chrono>
+#include <atomic>
 
 // QT includes
 #include <QString>
@@ -16,8 +17,9 @@
 #include <QMap>
 #include <QScopedPointer>
 #include <QSharedPointer>
-#include <QElapsedTimer>
 #include <QThread>
+#include <QTimer>
+#include <QLoggingCategory>
 
 // hyperion-utils includes
 #include <utils/Image.h>
@@ -50,6 +52,9 @@
 #include <utils/settings.h>
 
 #include <utils/MemoryTracker.h>
+
+Q_DECLARE_LOGGING_CATEGORY(instance_flow);
+Q_DECLARE_LOGGING_CATEGORY(instance_update);
 
 // Forward class declaration
 class ImageProcessor;
@@ -110,8 +115,8 @@ public slots:
 	/// Performs the main output processing.
 	/// Retrieves the current priority input and processes it to update the LEDs.
 	///
-	void update();	
-
+	void update();
+	
 	///
 	/// Forces one update to the priority muxer with the current time and (re)writes the led color with applied
 	/// transforms.
@@ -510,10 +515,35 @@ private slots:
 	///
 	void handleSourceAvailability(int priority);
 
+	///
+	/// @brief Handle updates requested.
+	///
+	void handleUpdate();
+
+	///
+	/// @brief Handle a forced update
+	///
+	void handleForceUpdate();
+
+	///
+	/// Reset the statistics on image processing and restart the timer
+	///
+	void resetImagesProcessedStatistics();
+
+	///
+	/// Report image processing statistics
+	///
+	void reportImagesProcessedStatistics();
+	///
+	/// @brief Process images for output.
+	///
+	void processUpdate();	
+
 signals:
 	void isSetNewComponentState(hyperion::Components component, bool state);
 
 private:
+
 	void updateLedColorAdjustment(int ledCount, const QJsonObject& colors);
 	void updateLedLayout(const QJsonArray& ledLayout);
 
@@ -590,9 +620,16 @@ private:
 	int _layoutLedCount;
 	QString _colorOrder;
 	QSize _layoutGridSize;
+	VideoMode _currVideoMode = VideoMode::VIDEO_2D;	
 
-	/// buffer for leds (with adjustment)
+	std::atomic<bool> _isUpdatePending{ false };
+	std::atomic<bool> _isUpdateQueued{ false };
+	
+	// buffer for leds (with adjustment)
 	QVector<ColorRgb> _ledBuffer;
 
-	VideoMode _currVideoMode = VideoMode::VIDEO_2D;
+	/// statistics timer
+	QScopedPointer<QTimer> _statisticsTimer;
+	std::atomic<int> _totalImagesProcessed{ 0 };
+	std::atomic<int> _imagesSkipped{ 0 };
 };
