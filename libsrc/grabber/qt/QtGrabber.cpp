@@ -268,19 +268,11 @@ int QtGrabber::grabFrame(Image<ColorRgb>& image)
 	{
 		return -1;
 	}
-
 	QImage imageFrame = originalPixmap.toImage().scaled(_width, _height).convertToFormat(QImage::Format_RGB888);
-	const qsizetype rawSize = imageFrame.width() * imageFrame.height() * 3;
 
-	// Get a modifiable pointer to the destination buffer.
-	// This will only trigger a deep copy if the image is shared AND we are the first to modify it.
+	// It is required that _width is a multiple of 4, so no per-row copying is needed
 	unsigned char* destPtr = reinterpret_cast<unsigned char*>(image.memptr());
-
-	// Get a read-only pointer to the source QImage buffer.
-	const unsigned char* srcPtr = imageFrame.constBits();
-
-	// Copy the entire image data in one operation.
-	memcpy(destPtr, srcPtr, rawSize);
+	memcpy(destPtr, imageFrame.constBits(), imageFrame.sizeInBytes());
 
 	return 0;
 }
@@ -370,6 +362,10 @@ int QtGrabber::updateScreenDimensions(bool force)
 		_src_y_max = _screenHeight - _cropBottom - _cropTop;
 		break;
 	}
+
+	// Round _width down to the nearest multiple of 4.
+	// This ensures QImage::Format_RGB888 has no padding (bytesPerLine == width * 3).
+	_width = (_width / 4) * 4;
 
 	Info(_log, "Update output image resolution to [%dx%d]", _width, _height);
 
