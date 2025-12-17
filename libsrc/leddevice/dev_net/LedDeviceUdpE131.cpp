@@ -34,12 +34,14 @@ const uint32_t VECTOR_E131_DATA_PACKET = 0x00000002;
 #define E131_DISCOVERY_UNIVERSE                 64214
 #endif
 
+const int DMX_MAX = 512; // 512 usable slots
 }
 
 LedDeviceUdpE131::LedDeviceUdpE131(const QJsonObject &deviceConfig)
 	: ProviderUdp(deviceConfig)
 	, _whiteAlgorithm(RGBW::WhiteAlgorithm::INVALID)
 	, _dmxChannelCount(0)
+	, _e131_dmx_max(DMX_MAX)
 {
 }
 
