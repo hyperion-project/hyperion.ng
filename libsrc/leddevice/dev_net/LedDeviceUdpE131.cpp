@@ -34,7 +34,6 @@ const uint32_t VECTOR_E131_DATA_PACKET = 0x00000002;
 #define E131_DISCOVERY_UNIVERSE                 64214
 #endif
 
-const int DMX_MAX = 512; // 512 usable slots
 }
 
 LedDeviceUdpE131::LedDeviceUdpE131(const QJsonObject &deviceConfig)
@@ -63,7 +62,7 @@ bool LedDeviceUdpE131::init(const QJsonObject &deviceConfig)
 		_e131_dmx_max = deviceConfig["dmx-max"].toInt(DMX_MAX);
         if (_e131_dmx_max > DMX_MAX)
         {
-            _e131_dmx_max > DMX_MAX);
+            _e131_dmx_max = DMX_MAX;
             Warning(_log, "Maximum channels configured [%d] cannot exceed maximum channels defined by the E1.31 protocol. Corrected to %d channels.", _e131_dmx_max, DMX_MAX)
         }
 		_e131_source_name = deviceConfig["source-name"].toString("hyperion on "+QHostInfo::localHostName());

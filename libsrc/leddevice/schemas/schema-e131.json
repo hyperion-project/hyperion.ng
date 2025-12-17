@@ -28,7 +28,7 @@
       "minimum": 1,
       "maximum": 512,
       "default": 512,
-      "access": "advanced",
+      "access": "expert",
       "propertyOrder": 4
     },
     "latchTime": {
