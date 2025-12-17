@@ -17,11 +17,20 @@ DDAWrapper::DDAWrapper(const QJsonDocument& grabberConfig)
 	}
 }
 
+void DDAWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& grabberConfig)
+{
+	GrabberWrapper::handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
+	_grabber.resetDeviceAndCapture();
+}
+
 bool DDAWrapper::start()
 {
 	if (_grabber.isAvailable())
 	{
-		return GrabberWrapper::start();
+		if (_grabber.resetDeviceAndCapture())
+		{
+			return GrabberWrapper::start();
+		}
 	}
 
 	return false;

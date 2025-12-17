@@ -26,11 +26,6 @@ public:
 	int grabFrame(Image<ColorRgb> &image) override;
 
 	///
-	/// @brief Set a new video mode
-	///
-	void setVideoMode(VideoMode mode) override;
-
-	///
 	/// @brief Apply new width/height values, overwrite Grabber.h implementation
 	///
 	bool setWidthHeight(int /* width */, int /*height*/) override
@@ -38,25 +33,11 @@ public:
 		return true;
 	}
 
-	///
-	/// @brief Apply new pixelDecimation
-	///
-	bool setPixelDecimation(int pixelDecimation) override;
-
-	///
-	/// Set the crop values
-	/// @param  cropLeft    Left pixel crop
-	/// @param  cropRight   Right pixel crop
-	/// @param  cropTop     Top pixel crop
-	/// @param  cropBottom  Bottom pixel crop
-	///
-	void setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom);
 
 	///
 	/// @brief Apply display index
 	///
 	bool setDisplayIndex(int index) override;
-
 	/// @brief Discover QT screens available (for configuration).
 	///
 	/// @param[in] params Parameters used to overwrite discovery default behaviour
@@ -72,6 +53,8 @@ public:
 	///
 	bool open();
 
+	bool resetDeviceAndCapture();
+
 private:
 
 	///
@@ -79,8 +62,6 @@ private:
 	/// @return True on success, false if no display is found
 	///
 	bool restartCapture();
-
-	bool resetDeviceAndCapture();
 
 	void computeCropBox(int sourceWidth, int sourceHeight, D3D11_BOX& box) const;
 

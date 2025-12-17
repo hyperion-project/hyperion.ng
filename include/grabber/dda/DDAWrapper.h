@@ -43,6 +43,8 @@ public slots:
 	///
 	void action();
 
+	void handleSettingsUpdate(settings::type type, const QJsonDocument& grabberConfig) override;
+
 private:
 	DDAGrabber _grabber;
 };
