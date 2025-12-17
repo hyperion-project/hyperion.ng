@@ -99,7 +99,8 @@ message(STATUS "Current Version: ${HYPERION_VERSION}")
 # Set build timestamp
 #=============================================================================
 
-execute_process(COMMAND date "+%Y-%m-%d %H:%M:%S" OUTPUT_VARIABLE BUILD_TIMESTAMP OUTPUT_STRIP_TRAILING_WHITESPACE)
+# Get the current UTC time in a cross-platform way
+string(TIMESTAMP BUILD_TIMESTAMP "%Y-%m-%d %H:%M:%S" UTC)
 add_compile_definitions(BUILD_TIMESTAMP="${BUILD_TIMESTAMP}")
 
 message(STATUS " - Build: ${HYPERION_BUILD_ID} - ${BUILD_TIMESTAMP}")
