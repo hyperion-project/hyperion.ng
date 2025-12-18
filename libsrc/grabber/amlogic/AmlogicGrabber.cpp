@@ -37,19 +37,25 @@ namespace
 
 } // End of constants
 
-AmlogicGrabber::AmlogicGrabber(int deviceIdx)
-	: Grabber("GRABBER-AMLOGIC") // Minimum required width or height is 160
+AmlogicGrabber::AmlogicGrabber(int deviceIdx, int cropLeft, int cropRight, int cropTop, int cropBottom)
+	: Grabber("GRABBER-AMLOGIC", cropLeft, cropRight, cropTop, cropBottom) // Minimum required width or height is 160
 	  , _captureDev(-1)
 	  , _videoDev(-1)
 	  , _lastError(0)
 	  , _grabbingModeNotification(0)
 {
+	TRACK_SCOPE() << "Creating Amlogic grabber - deviceIdx:" << deviceIdx;	
 	_image_ptr = _image_bgr.memptr();
 	_useImageResampler = true;
+
+	// Scaling and cropping will be done during grabbing
+	_imageResampler.setPixelDecimation(1);	
+	_imageResampler.setCropping(0, 0, 0, 0);
 }
 
 AmlogicGrabber::~AmlogicGrabber()
 {
+	TRACK_SCOPE();	
 	closeDevice(_captureDev);
 	closeDevice(_videoDev);
 }
@@ -198,12 +204,14 @@ int AmlogicGrabber::grabFrame_amvideocap(Image<ColorRgb> &image)
 		}
 	}
 
+	int cropValues[4] = {_cropLeft, _cropTop, _cropLeft + _cropRight, _cropTop + _cropBottom};
+	long r0 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_CROP, cropValues);
 	long r1 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_WIDTH, _width);
 	long r2 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_HEIGHT, _height);
 	long r3 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_AT_FLAGS, CAP_FLAG_AT_END);
 	long r4 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_WAIT_MAX_MS, AMVIDEOCAP_WAIT_MAX_MS);
 
-	if (r1 < 0 || r2 < 0 || r3 < 0 || r4 < 0 || _height == 0 || _width == 0)
+	if (r0 < 0 || r1 < 0 || r2 < 0 || r3 < 0 || r4 < 0 || _height == 0 || _width == 0)
 	{
 		ErrorIf(_lastError != 2, _log, "Failed to configure capture device (%d - %s)", errno, strerror(errno));
 		_lastError = 2;
@@ -252,7 +260,10 @@ bool AmlogicGrabber::setWidthHeight(int width, int height)
 		return false;
 	}
 
-	_image_bgr.resize(static_cast<unsigned>(width), static_cast<unsigned>(height));
+	_width = width / _pixelDecimation;
+	_height = height / _pixelDecimation;
+
+	_image_bgr.resize(static_cast<unsigned>(_width), static_cast<unsigned>(_height));
 	_image_ptr = _image_bgr.memptr();
 
 	return true;
