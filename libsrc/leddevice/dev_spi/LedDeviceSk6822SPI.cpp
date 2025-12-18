@@ -101,10 +101,12 @@ int LedDeviceSk6822SPI::write(const QVector<ColorRgb> &ledValues)
 		{
 			if (i % 16 == 0)
 			{
-				ptr += snprintf(ptr + debug_line, sizeof(debug_line) - ptr, "%03x: ", i);
+				int len = snprintf(ptr + debug_line, sizeof(debug_line) - ptr, "%03x: ", i);
+				if (len > 0) ptr += len;
 			}
 
-			ptr += snprintf(ptr + debug_line, sizeof(debug_line) - ptr, "%02x ", _ledBuffer.data()[i]);
+			int len = snprintf(ptr + debug_line, sizeof(debug_line) - ptr, "%02x ", _ledBuffer.data()[i]);
+			if (len > 0) ptr += len;
 
 			if ((i % 16 == 15) || (i == _ledBuffer.size() - 1))
 			{
