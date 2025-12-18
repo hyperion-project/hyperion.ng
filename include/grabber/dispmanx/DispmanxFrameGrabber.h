@@ -38,7 +38,7 @@ public:
 	///
 	/// @return true, on success (i.e. library is present), else false
 	///
-	bool isAvailable(bool logError = true) override;
+	bool isAvailable(bool logError = false) override;
 
 	///
 	/// @brief Opens the input device.

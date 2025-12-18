@@ -85,17 +85,19 @@
 #endif
 
 namespace {
-	const GlobalSignals * const ensureGlobalSignalsInitialized = GlobalSignals::getInstance();
+	// The following line ensures that the GlobalSignals singleton is created when the library is loaded
+	[[maybe_unused]] const auto ensureGlobalSignalsInitialized = GlobalSignals::getInstance();
 }
 
 HyperionDaemon* HyperionDaemon::daemon = nullptr;
 
 HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool logLvlOverwrite)
-	: QObject(parent), _log(Logger::getInstance("DAEMON"))
+	: QObject(parent)
+	, _log(Logger::getInstance("DAEMON"))
 	, _settingsManager(new SettingsManager(NO_INSTANCE_ID, this)) // init settings, this settingsManager accesses global settings which are independent from instances
-	#if defined(ENABLE_EFFECTENGINE)
+#if defined(ENABLE_EFFECTENGINE)
 	, _pyInit(new PythonInit())
-	#endif
+#endif
 	, _currVideoMode(VideoMode::VIDEO_2D)
 {
 	TRACK_SCOPE();

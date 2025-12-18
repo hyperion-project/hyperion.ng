@@ -761,10 +761,13 @@ MessageForwarderFlatbufferClientsHelper::~MessageForwarderFlatbufferClientsHelpe
 	clearClientsHandler();
 
 	auto* oldThread = this->thread();
-	QObject::disconnect(oldThread, nullptr, nullptr, nullptr);
-	oldThread->quit();
-	oldThread->wait();
-	delete oldThread;
+	if (oldThread != nullptr)
+	{
+		QObject::disconnect(oldThread, nullptr, nullptr, nullptr);
+		oldThread->quit();
+		oldThread->wait();
+		delete oldThread;
+	}
 }
 
 void MessageForwarderFlatbufferClientsHelper::addClientHandler(const QString& origin, const TargetHost& targetHost, int priority, bool skipReply)
