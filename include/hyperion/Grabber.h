@@ -139,7 +139,7 @@ public:
 	///
 	/// @return true, on success (i.e. library is present), else false
 	///
-	virtual bool isAvailable(bool logError = true) { return _isAvailable; }
+	virtual bool isAvailable(bool logError = false) { return _isAvailable; }
 
 	virtual int grabFrame(Image<ColorRgb> &) { return 0; }
 	virtual bool setupScreen() { return true; }

@@ -180,7 +180,7 @@ bool API::setImage(ImageCmdData &data, hyperion::Components comp, QString &reply
 		// extract image
 		img = img.convertToFormat(QImage::Format_ARGB32_Premultiplied);
 		data.data.clear();
-		data.data.reserve(img.width() * img.height() * 3);
+		data.data.reserve(static_cast<qsizetype>(img.width()) * img.height() * 3);
 		for (int i = 0; i < img.height(); ++i)
 		{
 			const auto* scanline = reinterpret_cast<const QRgb *>(img.scanLine(i));

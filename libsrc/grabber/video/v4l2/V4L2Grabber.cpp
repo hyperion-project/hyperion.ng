@@ -255,9 +255,9 @@ bool V4L2Grabber::init()
 		}
 
 		// Ensure valid framerate
-		if (auto encodingIt = encodingFormats.find(_pixelFormat); encodingIt != encodingFormats.end())
+		if (auto framerateEncodingIt = encodingFormats.find(_pixelFormat); framerateEncodingIt != encodingFormats.end())
 		{
-			const auto &framerates = encodingIt.value().framerates;
+			const auto &framerates = framerateEncodingIt.value().framerates;
 			qCDebug(grabber_video_flow) << "Framerates: " << framerates;
 			if (!framerates.isEmpty() && !framerates.contains(_fps))
 			{
