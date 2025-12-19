@@ -4,14 +4,10 @@
 
 // Constants
 namespace {
-
-const bool verbose = false;
-
 const char CONFIG_HOST[] = "host";
 const char CONFIG_PORT[] = "port";
 const ushort RAW_DEFAULT_PORT=5568;
 const int UDP_MAX_LED_NUM = 490;
-
 } //End of constants
 
 LedDeviceUdpRaw::LedDeviceUdpRaw(const QJsonObject &deviceConfig)
@@ -26,74 +22,61 @@ LedDevice* LedDeviceUdpRaw::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceUdpRaw::init(const QJsonObject &deviceConfig)
 {
+	if (!ProviderUdp::init(deviceConfig))
+	{
+		return false;
+	}
+
 	bool isInitOK {false};
 
-	if ( ProviderUdp::init(deviceConfig) )
+	if (this->getLedCount() > UDP_MAX_LED_NUM)
 	{
-		if (this->getLedCount() > UDP_MAX_LED_NUM)
-		{
-			QString errorReason = QString("Device type %1 can only be run with maximum %2 LEDs for streaming protocol = UDP-RAW!").arg(this->getActiveDeviceType()).arg(UDP_MAX_LED_NUM);
-			this->setInError ( errorReason );
-		}
-		else
-		{
-			_hostName = deviceConfig[ CONFIG_HOST ].toString();
-			_port = deviceConfig[CONFIG_PORT].toInt(RAW_DEFAULT_PORT);
+		QString errorReason = QString("Device type %1 can only be run with maximum %2 LEDs for streaming protocol = UDP-RAW!").arg(this->getActiveDeviceType()).arg(UDP_MAX_LED_NUM);
+		this->setInError ( errorReason );
+	}
+	else
+	{
+		_hostName = deviceConfig[ CONFIG_HOST ].toString();
+		_port = deviceConfig[CONFIG_PORT].toInt(RAW_DEFAULT_PORT);
 
-			Debug(_log, "Hostname/IP       : %s", QSTRING_CSTR(_hostName) );
-			Debug(_log, "Port              : %d", _port );
+		Debug(_log, "Hostname/IP       : %s", QSTRING_CSTR(_hostName) );
+		Debug(_log, "Port              : %d", _port );
 
-			isInitOK = true;
-		}
+		isInitOK = true;
 	}
 	return isInitOK;
 }
 
 int LedDeviceUdpRaw::open()
 {
-	QHostAddress resolvedAddress;
-	this->setIsRecoverable(true);
-	if (NetUtils::resolveHostToAddress(_log, _hostName, resolvedAddress))
-	{
-		return open(resolvedAddress);
-	}
-
-	return -1;
-}
-
-int LedDeviceUdpRaw::open(const QHostAddress& address)
-{
-	int retval = -1;
 	_isDeviceReady = false;
+	this->setIsRecoverable(true);	
 
-	if (address.isNull())
+	if (_hostName.isNull())
 	{
-		Error(_log, "Empty IP address. UDP stream cannot be initiatised.");
-		return retval;
+		Error(_log, "Empty hostname or IP address. UDP stream cannot be initiatised.");
+		return -1;
 	}
 
-	_address = address;
+	NetUtils::convertMdnsToIp(_log, _hostName);
 	if (ProviderUdp::open() == 0)
 	{
 		// Everything is OK, device is ready
 		_isDeviceReady = true;
-		retval = 0;
 	}
 
-	return retval;
+	return _isDeviceReady ? 0 : -1;
 }
 
-int LedDeviceUdpRaw::write(const std::vector<ColorRgb> &ledValues)
+int LedDeviceUdpRaw::write(const QVector<ColorRgb> &ledValues)
 {
-	const uint8_t * dataPtr = reinterpret_cast<const uint8_t *>(ledValues.data());
+	auto dataPtr = reinterpret_cast<const uint8_t *>(ledValues.data());
 
 	return writeBytes(_ledRGBCount, dataPtr);
 }
 
 QJsonObject LedDeviceUdpRaw::getProperties(const QJsonObject& params)
 {
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData() );
-
 	QJsonObject properties;
 
 	Info(_log, "Get properties for %s", QSTRING_CSTR(_activeDeviceType));
@@ -102,8 +85,6 @@ QJsonObject LedDeviceUdpRaw::getProperties(const QJsonObject& params)
 	propertiesDetails.insert("maxLedCount", UDP_MAX_LED_NUM);
 
 	properties.insert("properties", propertiesDetails);
-
-	DebugIf(verbose, _log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 
 	return properties;
 }

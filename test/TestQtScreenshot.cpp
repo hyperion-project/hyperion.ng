@@ -5,6 +5,7 @@
 // QT includes
 #include <QApplication>
 #include <QPixmap>
+#include <QImage>
 #include <QFile>
 #include <QRgb>
 #include <QScreen>

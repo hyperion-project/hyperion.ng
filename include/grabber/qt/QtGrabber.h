@@ -15,7 +15,7 @@ class QtGrabber : public Grabber
 {
 public:
 
-	QtGrabber(int display=0, int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0);
+	explicit QtGrabber(int display=0, int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0);
 
 	~QtGrabber() override;
 
@@ -26,7 +26,7 @@ public:
 	/// @param[out] image  The snapped screenshot (should be initialized with correct width and
 	/// height)
 	///
-	int grabFrame(Image<ColorRgb> & image);
+	int grabFrame(Image<ColorRgb> & image) override;
 
 	///
 	/// @brief Set a new video mode
@@ -77,7 +77,7 @@ public:
 	///
 	/// @return true, on success (i.e. Window Manager is not Wayland), else false
 	///
-	bool isAvailable(bool logError = true) override;
+	bool isAvailable(bool logError = false) override;
 
 	///
 	/// @brief Opens the input device.
@@ -115,6 +115,8 @@ private:
 	/// @brief Is called whenever we need new screen dimension calculations based on window geometry
 	///
 	int updateScreenDimensions(bool force);
+
+	bool resetDeviceAndCapture();
 
 	///
 	/// @brief free the _screen pointer

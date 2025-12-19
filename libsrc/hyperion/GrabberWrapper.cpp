@@ -25,17 +25,16 @@ bool GrabberWrapper::GLOBAL_GRABBER_V4L_ENABLE = false;
 bool GrabberWrapper::GLOBAL_GRABBER_AUDIO_ENABLE = false;
 
 GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber * ggrabber, int updateRate_Hz)
-	: _grabberName(grabberName)
-	  , _log(Logger::getInstance(("Grabber-" + grabberName).toUpper()))
-	  , _timer(nullptr)
-	  , _updateInterval_ms(1000/updateRate_Hz)
-	  , _ggrabber(ggrabber)
-	  , _isAvailable(true)
+	: _ggrabber(ggrabber)
+	, _grabberName(grabberName)
+	, _log(Logger::getInstance(("Grabber-" + grabberName).toUpper()))
+	, _timer(nullptr)
+	, _updateInterval_ms(1000/updateRate_Hz)
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 	GrabberWrapper::instance = this;
 
-	_timer.reset(new QTimer(this));
+	_timer.reset(new QTimer());
 
 	// Configure the timer to generate events every n milliseconds
 	_timer->setTimerType(Qt::PreciseTimer);
@@ -65,26 +64,31 @@ GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber * ggrabber, i
 
 GrabberWrapper::~GrabberWrapper()
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 	_timer->stop();
 	GrabberWrapper::instance = nullptr;
 }
 
 bool GrabberWrapper::start()
 {
-	bool rc = false;
-	if ( open() )
+	if (!_ggrabber->isAvailable())
 	{
-		if (!_timer->isActive())
-		{
-			// Start the timer with the pre configured interval
-			Info(_log,"%s grabber started", QSTRING_CSTR(getName()));
-			_timer->start();
-		}
-
-		rc = _timer->isActive();
+		return false;
 	}
-	return rc;
+
+	if ( !open() )
+	{
+		return false;
+	}
+	
+	if (!_timer->isActive())
+	{
+		// Start the timer with the pre configured interval
+		Info(_log,"%s grabber started", QSTRING_CSTR(getName()));
+		_timer->start();
+	}
+
+	return _timer->isActive();
 }
 
 void GrabberWrapper::stop()
@@ -109,7 +113,7 @@ bool GrabberWrapper::isActive() const
 
 QStringList GrabberWrapper::getActive(int inst, GrabberTypeFilter type) const
 {
-	QStringList result = QStringList();
+	auto result = QStringList();
 
 	if (type == GrabberTypeFilter::SCREEN || type == GrabberTypeFilter::ALL)
 	{

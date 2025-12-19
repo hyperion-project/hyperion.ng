@@ -137,7 +137,7 @@ private:
 	int _priority;
 
 	/// The latest led color data
-	std::vector<ColorRgb> _ledColors;
+	QVector<ColorRgb> _ledColors;
 
 	/// logger instance
 	QSharedPointer<Logger> _log;

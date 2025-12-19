@@ -3,6 +3,7 @@
 
 // Local hyperion includes
 #include "ProviderSpi.h"
+#include <QVector>
 
 ///
 /// Implementation of the LedDevice interface for writing to LDP6803 LED-device.
@@ -49,7 +50,7 @@ private:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	int write(const std::vector<ColorRgb> & ledValues) override;
+	int write(const QVector<ColorRgb> & ledValues) override;
 };
 
 #endif // LEDEVICELPD6803_H

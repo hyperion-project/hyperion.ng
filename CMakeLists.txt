@@ -94,7 +94,16 @@ file(WRITE ${CMAKE_BINARY_DIR}/settings/hyperion.settings.json.default "${DEFAUL
 
 include(GitVersion)
 message(STATUS "Current Version: ${HYPERION_VERSION}")
-message(STATUS " - Build: ${HYPERION_BUILD_ID}")
+
+#=============================================================================
+# Set build timestamp
+#=============================================================================
+
+# Get the current UTC time in a cross-platform way
+string(TIMESTAMP BUILD_TIMESTAMP "%Y-%m-%d %H:%M:%S" UTC)
+add_compile_definitions(BUILD_TIMESTAMP="${BUILD_TIMESTAMP}")
+
+message(STATUS " - Build: ${HYPERION_BUILD_ID} - ${BUILD_TIMESTAMP}")
 
 #=============================================================================
 # Set default build variables
@@ -157,6 +166,10 @@ set(DEFAULT_DEPLOY_DEPENDENCIES         ON)
 set(DEFAULT_JSONCHECKS                  ON)
 set(DEFAULT_EXPERIMENTAL                OFF)
 set(DEFAULT_PROFILER                    OFF)
+set(DEFAULT_GLOBAL_MEMORY_TRACKING      OFF)
+set(DEFAULT_TRACE_IMAGE_MEMORY          OFF)
+set(DEFAULT_TRACE_IMAGE_DATA_MEMORY     OFF)
+
 
 # Build Hyperion with a reduced set of functionality, overwrites other default values
 set(DEFAULT_HYPERION_LIGHT              OFF)
@@ -511,6 +524,15 @@ message(STATUS "ENABLE_EXPERIMENTAL = ${ENABLE_EXPERIMENTAL}")
 option(ENABLE_PROFILER "Enable profiler capabilities - NOT FOR RELEASE CODE" ${DEFAULT_PROFILER})
 message(STATUS "ENABLE_PROFILER = ${ENABLE_PROFILER}")
 
+option(ENABLE_GLOBAL_MEMORY_TRACKING "Enable global memory tracking capabilities - NOT FOR RELEASE CODE" ${DEFAULT_GLOBAL_MEMORY_TRACKING})
+message(STATUS "ENABLE_GLOBAL_MEMORY_TRACKING = ${ENABLE_GLOBAL_MEMORY_TRACKING}")
+
+option(ENABLE_TRACE_IMAGE_MEMORY "Enable Image memory tracking capabilities - NOT FOR RELEASE CODE" ${DEFAULT_TRACE_IMAGE_MEMORY})
+message(STATUS "ENABLE_TRACE_IMAGE_MEMORY = ${ENABLE_TRACE_IMAGE_MEMORY}")
+
+option(ENABLE_TRACE_IMAGE_DATA_MEMORY "Enable ImageData memory tracking capabilities - NOT FOR RELEASE CODE" ${DEFAULT_TRACE_IMAGE_DATA_MEMORY})
+message(STATUS "ENABLE_TRACE_IMAGE_DATA_MEMORY = ${ENABLE_TRACE_IMAGE_DATA_MEMORY}")
+
 removeIndent()
 
 #=============================================================================
@@ -676,6 +698,11 @@ message(STATUS "Qt version used: ${QT_VERSION}")
 if(CMAKE_SYSTEM_NAME MATCHES "Darwin" AND (${QT_VERSION_MAJOR} GREATER_EQUAL 6))
 	set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
 endif()
+
+#=============================================================================
+# Disable QT debug output for release builds
+#=============================================================================
+add_compile_definitions($<$<CONFIG:Release>:QT_NO_DEBUG_OUTPUT>)
 
 #=============================================================================
 # Add our Code

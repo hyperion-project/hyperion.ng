@@ -17,21 +17,16 @@ QtWrapper::QtWrapper(const QJsonDocument& grabberConfig)
 				GrabberWrapper::DEFAULT_PIXELDECIMATION,
 				0,0,0,0)
 {
-	_isAvailable = _grabber.isAvailable();
-	if (_isAvailable)
+	if (_grabber.isAvailable(true))
 	{
-		this->handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
+		GrabberWrapper::handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
 	}
 }
 
-bool QtWrapper::isAvailable()
-{
-	return _isAvailable;
-}
 
 bool QtWrapper::start()
 {
-	if (_isAvailable)
+	if (_grabber.isAvailable())
 	{
 		return GrabberWrapper::start();
 	}
@@ -39,14 +34,9 @@ bool QtWrapper::start()
 	return false;
 }
 
-bool QtWrapper::open()
-{
-	return _grabber.open();
-}
-
 void QtWrapper::action()
 {
-	if (!_isAvailable)
+	if (!_grabber.isAvailable())
 	{
 		return;
 	}

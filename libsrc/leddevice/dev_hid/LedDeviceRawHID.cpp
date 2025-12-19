@@ -14,18 +14,18 @@ LedDevice* LedDeviceRawHID::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceRawHID::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = false;
-
 	// Initialise sub-class
-	if ( ProviderHID::init(deviceConfig) )
+	if ( !ProviderHID::init(deviceConfig) )
 	{
-		_ledBuffer.resize(_ledRGBCount);
-		isInitOK = true;
+		return false;
 	}
-	return isInitOK;
+
+	_ledBuffer.resize(_ledRGBCount);
+
+	return true;
 }
 
-int LedDeviceRawHID::write(const std::vector<ColorRgb> & ledValues)
+int LedDeviceRawHID::write(const QVector<ColorRgb> & ledValues)
 {
 	// write data
 	memcpy(_ledBuffer.data(), ledValues.data(), _ledRGBCount);

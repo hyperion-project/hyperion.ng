@@ -1,7 +1,9 @@
 #pragma once
 
 #include <QString>
+#include <QVector>
 #include <QSharedPointer>
+#include <QLoggingCategory>
 
 // Utils includes
 #include <utils/Image.h>
@@ -16,6 +18,8 @@
 
 // Black border includes
 #include <blackborder/BlackBorderProcessor.h>
+
+Q_DECLARE_LOGGING_CATEGORY(imageProcessor_track);
 
 class Hyperion;
 
@@ -119,9 +123,10 @@ public:
 	/// @return The color value per LED
 	///
 	template <typename Pixel_T>
-	std::vector<ColorRgb> process(const Image<Pixel_T>& image)
+	QVector<ColorRgb> process(const Image<Pixel_T>& image)
 	{
-		std::vector<ColorRgb> colors;
+		QVector<ColorRgb> colors;
+		qCDebug(image_track) << "Image [" << image.id() << "]";
 
 		if (image.width()>0 && image.height()>0)
 		{
@@ -174,8 +179,10 @@ public:
 	/// @param[out] ledColors  The color value per LED
 	///
 	template <typename Pixel_T>
-	void process(const Image<Pixel_T>& image, std::vector<ColorRgb>& ledColors)
+	void process(const Image<Pixel_T>& image, QVector<ColorRgb>& ledColors)
 	{
+		qCDebug(image_track).noquote() << "Image  [" << image.id() << "], ledColors";
+
 		if ( image.width()>0 && image.height()>0)
 		{
 			// Ensure that the buffer-image is the proper size
@@ -245,7 +252,7 @@ private:
 	{
 		if (!_borderProcessor->enabled() && ( _imageToLedColors->horizontalBorder()!=0 || _imageToLedColors->verticalBorder()!=0 ))
 		{
-			Debug(_log, "Reset border");
+			Debug(_log, "Black border disabled; resetting to no border");
 			_borderProcessor->process(image);
 			registerProcessingUnit(image.width(), image.height(), 0, 0);
 		}
@@ -256,11 +263,20 @@ private:
 
 			if (border.unknown)
 			{
+				qCDebug(imageProcessor_track) << "Detected unknown black border setup; resetting to no border";
 				registerProcessingUnit(image.width(), image.height(), 0, 0);
 			}
 			else
 			{
-				registerProcessingUnit(image.width(), image.height(), border.horizontalSize, border.verticalSize);
+				if (border.horizontalSize != _imageToLedColors->horizontalBorder() || border.verticalSize != _imageToLedColors->verticalBorder())
+				{
+					qCDebug(imageProcessor_track) << "Detected change in black border setup - horizontal:" << border.horizontalSize << " vertical:" << border.verticalSize;
+					registerProcessingUnit(image.width(), image.height(), border.horizontalSize, border.verticalSize);
+				}
+				else
+				{
+					qCDebug(imageProcessor_track) << "Border detection setup has not changed - horizontal:" << border.horizontalSize << " vertical:" << border.verticalSize;
+				}
 			}
 		}
 	}
@@ -288,7 +304,7 @@ private:
 	/// Type of last requested hard type
 	int _hardMappingType;
 
-	int _accuraryLevel;
+	int _accuracyLevel;
 	int _reducedPixelSetFactorFactor;
 
 	/// Hyperion instance pointer

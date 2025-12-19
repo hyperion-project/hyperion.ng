@@ -12,6 +12,7 @@
 #include <QWeakPointer>
 #include <QMap>
 #include <QAtomicInteger>
+#include <QLoggingCategory>
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
     #include <QRecursiveMutex>
@@ -21,6 +22,8 @@
 
 #include <utils/global_defines.h>
 #include <utils/MemoryTracker.h>
+
+Q_DECLARE_LOGGING_CATEGORY(hyperion_logger_track)
 
 // Forward declaration
 class LoggerManager;
@@ -47,9 +50,12 @@ class Logger : public QObject
 {
     Q_OBJECT
 
-    // Grant friendship to the memory tracking function
+    // Grant friendship to the memory tracking factory (with category param)
     template<typename T, typename Creator, typename... Args>
-    friend QSharedPointer<T> makeTrackedShared(Creator creator, Args&&... args);
+    friend QSharedPointer<T> makeTrackedShared(Creator creator, const QLoggingCategory& category, Args&&... args);
+    // Grant friendship to custom deleters so they can access protected destructor
+    template<typename T>
+    friend void objectDeleter(T* ptr, const QString& subComponent, const QString& typeName, const QLoggingCategory& category);
 public:
     enum class LogLevel
     {
@@ -103,9 +109,9 @@ public:
 signals:
 	void newLogMessage(Logger::T_LOG_MESSAGE);
 
-protected:
-	explicit Logger(const QString & name="", const QString & subName = "__", LogLevel minLevel = LogLevel::Info);
-	~Logger() override;
+public: // made public to allow generic tracked factory usage
+    explicit Logger(const QString & name="", const QString & subName = "__", LogLevel minLevel = LogLevel::Info);
+    ~Logger() override;
 
 private:
 	void write(const Logger::T_LOG_MESSAGE & message);

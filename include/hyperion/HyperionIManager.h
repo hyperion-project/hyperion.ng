@@ -1,17 +1,16 @@
 #pragma once
 
-// util
+#include <QMap>
+#include <QSharedPointer>
+#include <QScopedPointer>
+
 #include <utils/Logger.h>
 #include <utils/VideoMode.h>
 #include <utils/settings.h>
 #include <utils/Components.h>
 #include <events/EventEnum.h>
 #include <db/InstanceTable.h>
-
-// qt
-#include <QMap>
-#include <QSharedPointer>
-#include <QScopedPointer>
+#include <db/SettingsTable.h>
 
 class Hyperion;
 class InstanceTable;
@@ -40,8 +39,12 @@ public:
 	};
 
 	// global instance pointer
-	static HyperionIManager* getInstance() { return HIMinstance; }
-	static HyperionIManager* HIMinstance;
+	static HyperionIManager* getInstance();
+	static QSharedPointer<HyperionIManager>& instanceRef();
+	static QWeakPointer<HyperionIManager> getInstanceWeak() { return _instance.toWeakRef(); }
+	static void createInstance(QObject* parent = nullptr);
+	static void destroyInstance();
+	static bool isValid();
 
 	~HyperionIManager() override;
 
@@ -233,6 +236,8 @@ private:
 	/// @brief Construct the Manager
 	///
 	HyperionIManager(QObject* parent = nullptr);
+	// Singleton storage
+	static QSharedPointer<HyperionIManager> _instance;
 
 	///
 	/// @brief Start all instances that are marked as enabled in db. Non blocking
@@ -243,6 +248,12 @@ private:
 	/// @brief Stop all instances, used from hyperiond
 	///
 	void stopAll();
+
+	///
+	/// @brief Update instance source settings in line with grabber enable states
+	/// @param settingsTable 
+	/// @return Return true on success,
+	bool alignInstanceSourceSettings(SettingsTable &settingsTable) const;
 
 private:
 	QSharedPointer<Logger> _log;

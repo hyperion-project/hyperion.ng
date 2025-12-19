@@ -19,8 +19,6 @@
 
 // Constants
 namespace {
-const bool verbose = false;
-
 // fb discovery service
 const char DISCOVERY_DIRECTORY[] = "/dev/";
 const char DISCOVERY_FILEPATTERN[] = "fb?";
@@ -144,7 +142,7 @@ QSize FramebufferFrameGrabber::getScreenSize(const QString& device) const
 	{
 		size.setWidth(static_cast<int>(vinfo.xres));
 		size.setHeight(static_cast<int>(vinfo.yres));
-		DebugIf(verbose, _log, "FB device [%s] found with resolution: %dx%d", QSTRING_CSTR(device), size.width(), size.height());
+		qCDebug(grabber_screen_properties) << "FB device [" << device << "] found with resolution:" << size.width() << "x" << size.height();
 	}
 	::close(fbfd);
 
@@ -200,7 +198,7 @@ QJsonArray FramebufferFrameGrabber::getInputDeviceDetails() const
 		int deviceIdx = fileName.right(1).toInt();
 		QString device = deviceFile.absoluteFilePath();
 
-		DebugIf(verbose, _log, "FB device [%s] found", QSTRING_CSTR(device));
+		qCDebug(grabber_screen_properties) << "FB device [" << device << "] found";
 
 		QSize screenSize = getScreenSize(device);
 		if ( !screenSize.isEmpty() )
@@ -241,14 +239,12 @@ QJsonArray FramebufferFrameGrabber::getInputDeviceDetails() const
 
 QJsonObject FramebufferFrameGrabber::discover(const QJsonObject& params)
 {
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	QJsonObject inputsDiscovered;
 
 	QJsonArray const video_inputs = getInputDeviceDetails();
 	if (video_inputs.isEmpty())
 	{
-		DebugIf(verbose, _log, "No displays found to capture from!");
+		qCDebug(grabber_screen_properties) << "No displays found to capture from!";
 		return {};
 	}
 
@@ -268,8 +264,5 @@ QJsonObject FramebufferFrameGrabber::discover(const QJsonObject& params)
 		defaults["video_input"] = video_inputs_default;
 		inputsDiscovered["default"] = defaults;
 	}
-
-	DebugIf(verbose, _log, "device: [%s]", QString(QJsonDocument(inputsDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	return inputsDiscovered;
 }

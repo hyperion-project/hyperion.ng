@@ -18,8 +18,6 @@
 // Utility includes
 #include <utils/Logger.h>
 
-Q_DECLARE_LOGGING_CATEGORY(grabber_drm)
-
 struct DrmProperty
 {
 	drmModePropertyPtr spec;

@@ -9,12 +9,19 @@
 #include <QJsonObject>
 #include <QSet>
 #include <QSharedPointer>
+#include <QWeakPointer>
+#include <QElapsedTimer>
+#include <QLoggingCategory>
 
 #include <utils/Components.h>
 #include <utils/VideoMode.h>
 #include <utils/settings.h>
 #include <hyperion/AuthManager.h>
 #include <hyperion/PriorityMuxer.h>
+
+Q_DECLARE_LOGGING_CATEGORY(api_callback_msg);
+Q_DECLARE_LOGGING_CATEGORY(api_callback_image);
+Q_DECLARE_LOGGING_CATEGORY(api_callback_leds);
 
 class Hyperion;
 class ComponentRegister;
@@ -161,13 +168,13 @@ private slots:
 	/// @brief Is called whenever the current Hyperion instance pushes new led raw values (if enabled)
 	/// @param ledColors  The current led colors
 	///
-	void handleLedColorUpdate(const std::vector<ColorRgb> &ledColors);
+	void handleLedColorUpdate(const QVector<ColorRgb>& ledColors);
 
 	///
 	/// @brief Is called whenever the current Hyperion instance pushes new image update (if enabled)
 	/// @param image  The current image
 	///
-	void handleImageUpdate(const Image<ColorRgb> &image);
+	void handleImageUpdate(const Image<ColorRgb>& image);
 
 	///
 	/// @brief Process and push new log messages from logger (if enabled)
@@ -188,6 +195,16 @@ private slots:
 	///
 	void handleInstanceStateChange(InstanceState state, quint8 instanceId, const QString &name = QString());
 
+	///
+	/// @brief Process image updates requested.
+	///
+	void processImageUpdate();
+
+	///
+	/// @brief Process LED updates requested.
+	///
+	void processLedUpdate();
+
 private:
 
 	/// construct callback msg
@@ -198,6 +215,7 @@ private:
 	QSharedPointer<Logger> _log;
 	quint8 _instanceID;
 	QWeakPointer<Hyperion> _hyperionWeak;
+	QWeakPointer<HyperionIManager> _instanceManagerWeak;
 
 	/// The peer address of the client
 	QString _peerAddress;
@@ -213,4 +231,24 @@ private:
 
 	/// flag to determine state of log streaming
 	bool _islogMsgStreamingActive;
+
+	std::atomic<bool> _ledColorsUpdatePending{ false };
+	// The mutex protects the data buffer.
+	QMutex _ledColorsBufferMutex;
+	QVector<ColorRgb> _ledColorsUpdateBuffer;
+
+	QElapsedTimer _ledUpdateTimer;
+	/// Timestamp of last led update
+	qint64 _lastLedUpdateTime;
+
+	std::atomic<bool> _imageUpdatePending{ false };
+	// The mutex protects the data buffer.
+	QMutex _imageBufferMutex;
+	Image<ColorRgb> _imageUpdateBuffer;	
+
+	QElapsedTimer _imageUpdateTimer;
+	/// Timestamp of last image update
+	qint64 _lastImageUpdateTime;
+
+	bool _isImageSizeLimited;
 };

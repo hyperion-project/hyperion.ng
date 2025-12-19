@@ -1,5 +1,9 @@
 #pragma once
 
+#include <QString>
+#include <QVector>
+#include <QSharedPointer>
+
 // hyperion includes
 #include <utils/Logger.h>
 #include <utils/Components.h>
@@ -8,12 +12,9 @@
 // auth manager
 #include <hyperion/AuthManager.h>
 
+
 #include <utils/ColorRgb.h>
 #include <utils/ColorSys.h>
-
-// qt includes
-#include <QString>
-#include <QSharedPointer>
 
 class JsonCallbacks;
 class HyperionIManager;
@@ -39,11 +40,11 @@ class API : public QObject
 	Q_OBJECT
 
 public:
-#include <api/apiStructs.h>
 
-	// workaround Q_ARG std::map template issues
-	typedef std::map<int, registerData> MapRegister;
-	typedef QMap<QString, AuthManager::AuthDefinition> MapAuthDefs;
+	#include <api/apiStructs.h>
+
+	using MapRegister = QMap<int, registerData>;
+	using MapAuthDefs = QMap<QString, AuthManager::AuthDefinition>;
 
 	///
 	/// Constructor
@@ -70,7 +71,7 @@ protected:
 	/// @param[in] timeout_ms The time the leds are set to the given color [ms]
 	/// @param[in] origin   The setter
 	///
-	void setColor(int priority, const std::vector<uint8_t> &ledColors, int timeout_ms = -1, const QString &origin = "API", hyperion::Components callerComp = hyperion::COMP_INVALID);
+	void setColor(int priority, const QVector<uint8_t> &ledColors, int timeout_ms = -1, const QString &origin = "API", hyperion::Components callerComp = hyperion::COMP_INVALID) const;
 
 	///
 	/// @brief Set a image
@@ -80,7 +81,7 @@ protected:
 	/// @param      callerComp The HYPERION COMPONENT that calls this function! e.g. PROT/FLATBUF
 	/// @return True on success
 	///
-	bool setImage(ImageCmdData &data, hyperion::Components comp, QString &replyMsg, hyperion::Components callerComp = hyperion::COMP_INVALID);
+	bool setImage(ImageCmdData &data, hyperion::Components comp, QString &replyMsg, hyperion::Components callerComp = hyperion::COMP_INVALID) const;
 
 	///
 	/// @brief Clear a priority in the Muxer, if -1 all priorities are cleared
@@ -89,7 +90,7 @@ protected:
 	/// @param callerComp The HYPERION COMPONENT that calls this function! e.g. PROT/FLATBUF
 	/// @return  True on success
 	///
-	bool clearPriority(int priority, QString &replyMsg, hyperion::Components callerComp = hyperion::COMP_INVALID);
+	bool clearPriority(int priority, QString &replyMsg, hyperion::Components callerComp = hyperion::COMP_INVALID) const;
 
 	///
 	/// @brief Set a new component state
@@ -99,21 +100,21 @@ protected:
 	/// @param callerComp The HYPERION COMPONENT that calls this function! e.g. PROT/FLATBUF
 	/// @ return True on success
 	///
-	bool setComponentState(const QString &comp, bool &compState, QString &replyMsg, hyperion::Components callerComp = hyperion::COMP_INVALID);
+	bool setComponentState(const QString &comp, const bool &compState, QString &replyMsg, hyperion::Components callerComp = hyperion::COMP_INVALID) const;
 
 	///
 	/// @brief Set a ledToImageMapping type
 	/// @param type       mapping type string
 	/// @param callerComp The HYPERION COMPONENT that calls this function! e.g. PROT/FLATBUF
 	///
-	void setLedMappingType(int type, hyperion::Components callerComp = hyperion::COMP_INVALID);
+	void setLedMappingType(int type, hyperion::Components callerComp = hyperion::COMP_INVALID) const;
 
 	///
 	/// @brief Set the 2D/3D modes type
 	/// @param mode       The VideoMode
 	/// @param callerComp The HYPERION COMPONENT that calls this function! e.g. PROT/FLATBUF
 	///
-	void setVideoMode(VideoMode mode, hyperion::Components callerComp = hyperion::COMP_INVALID);
+	void setVideoMode(VideoMode mode, hyperion::Components callerComp = hyperion::COMP_INVALID) const;
 
 #if defined(ENABLE_EFFECTENGINE)
 	///
@@ -123,7 +124,7 @@ protected:
 	/// REQUIRED dat fields: effectName, priority, duration, origin
 	/// @return  True on success else false
 	///
-	bool setEffect(const EffectCmdData &dat, hyperion::Components callerComp = hyperion::COMP_INVALID);
+	bool setEffect(const EffectCmdData &dat, hyperion::Components callerComp = hyperion::COMP_INVALID) const;
 #endif
 
 	///
@@ -131,14 +132,14 @@ protected:
 	/// @param sate       The new state
 	/// @param callerComp The HYPERION COMPONENT that calls this function! e.g. PROT/FLATBUF
 	///
-	void setSourceAutoSelect(bool state, hyperion::Components callerComp = hyperion::COMP_INVALID);
+	void setSourceAutoSelect(bool state, hyperion::Components callerComp = hyperion::COMP_INVALID) const;
 
 	///
 	/// @brief Set the visible priority to given priority
 	/// @param priority   The priority to set
 	/// @param callerComp The HYPERION COMPONENT that calls this function! e.g. PROT/FLATBUF
 	///
-	void setVisiblePriority(int priority, hyperion::Components callerComp = hyperion::COMP_INVALID);
+	void setVisiblePriority(int priority, hyperion::Components callerComp = hyperion::COMP_INVALID) const;
 
 	///
 	/// @brief Register a input or update the meta data of a previous register call
@@ -169,7 +170,7 @@ protected:
 	/// @brief Check if Hyperion ist enabled
 	/// @return True when enabled else false
 	///
-	bool isHyperionEnabled();
+	bool isHyperionEnabled() const;
 
 	///
 	/// @brief Get all instances data
@@ -230,14 +231,14 @@ protected:
 	/// @param name The effect name
 	/// @return  True on success else false
 	///
-	QString deleteEffect(const QString &name);
+	QString deleteEffect(const QString &name) const;
 
 	///
 	/// @brief Delete an effect. Requires ADMIN ACCESS
 	/// @param name The effect name
 	/// @return  True on success else false
 	///
-	QString saveEffect(const QJsonObject &data);
+	QString saveEffect(const QJsonObject &data) const;
 #endif
 
 	///
@@ -376,8 +377,8 @@ protected:
 	void logout();
 
 
-	AuthManager *_authManager;
-	HyperionIManager *_instanceManager;
+	QWeakPointer<AuthManager> _authManagerWeak;
+	QWeakPointer<HyperionIManager> _instanceManagerWeak;
 
 	QSharedPointer<Logger> _log;
 
@@ -424,5 +425,5 @@ private:
 	bool _localConnection;
 
 	// Contains all active register call data
-	std::map<int, registerData> _activeRegisters;
+	QMap<int, registerData> _activeRegisters;
 };

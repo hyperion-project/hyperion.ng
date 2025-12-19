@@ -11,7 +11,7 @@ DDAWrapper::DDAWrapper(int updateRate_Hz, int display, int pixelDecimation, int 
 DDAWrapper::DDAWrapper(const QJsonDocument &grabberConfig)
     : DDAWrapper(GrabberWrapper::DEFAULT_RATE_HZ, 0, GrabberWrapper::DEFAULT_PIXELDECIMATION, 0, 0, 0, 0)
 {
-	this->handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
+	GrabberWrapper::handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
 }
 
 void DDAWrapper::action()

@@ -27,6 +27,8 @@ const char SETTINGS_FULL_SCHEMA_FILE[] = ":/schema-settings-full.json";
 DBConfigManager::DBConfigManager(QObject* parent)
 	: DBManager(parent)
 {
+	TRACK_SCOPE();
+	_log = Logger::getInstance("DB-CONFIGMGR");	
 }
 
 QPair<bool, QStringList> DBConfigManager::importJson(const QString& configFile)

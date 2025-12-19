@@ -16,16 +16,15 @@ DRMWrapper::DRMWrapper(const QJsonDocument &grabberConfig)
 				 GrabberWrapper::DEFAULT_PIXELDECIMATION,
 				 0, 0, 0, 0)
 {
-	_isAvailable = _grabber.isAvailable();
-	if (_isAvailable)
+	if (_grabber.isAvailable())
 	{
-		handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
+		GrabberWrapper::handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
 	}
 }
 
 void DRMWrapper::action()
 {
-	if (!_isAvailable)
+	if (!_grabber.isAvailable())
 	{
 		return;
 	}

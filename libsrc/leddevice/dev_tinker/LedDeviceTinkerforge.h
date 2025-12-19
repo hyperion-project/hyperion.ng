@@ -4,6 +4,8 @@
 // STL includes
 #include <cstdio>
 
+#include <QVector>
+
 // Hyperion-Leddevice includes
 #include <leddevice/LedDevice.h>
 
@@ -55,7 +57,7 @@ protected:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	int write(const std::vector<ColorRgb> & ledValues) override;
+	int write(const QVector<ColorRgb> & ledValues) override;
 
 private:
 
@@ -82,13 +84,13 @@ private:
 	LEDStrip *_ledStrip;
 
 	/// buffer for red channel led data
-	std::vector<uint8_t> _redChannel;
+	QVector<uint8_t> _redChannel;
 
 	/// buffer for red channel led data
-	std::vector<uint8_t> _greenChannel;
+	QVector<uint8_t> _greenChannel;
 
 	/// buffer for red channel led data
-	std::vector<uint8_t> _blueChannel;
+	QVector<uint8_t> _blueChannel;
 
 	/// buffer size of the color channels
 	unsigned int _colorChannelSize;

@@ -1,6 +1,9 @@
 #include <leddevice/LedDevice.h>
 
-//QT include
+#include <sstream>
+#include <iomanip>
+#include <chrono>
+
 #include <QResource>
 #include <QStringList>
 #include <QDir>
@@ -8,15 +11,19 @@
 #include <QEventLoop>
 #include <QTimer>
 #include <QDateTime>
+#include <QThread>
 
 #include "hyperion/Hyperion.h"
 #include <utils/JsonUtils.h>
 #include <utils/WaitTime.h>
 
-//std includes
-#include <sstream>
-#include <iomanip>
-#include <chrono>
+Q_LOGGING_CATEGORY(leddevice_config, "hyperion.leddevice.config");
+Q_LOGGING_CATEGORY(leddevice_control, "hyperion.leddevice.control");
+Q_LOGGING_CATEGORY(leddevice_flow, "hyperion.leddevice.flow");
+Q_LOGGING_CATEGORY(leddevice_properties, "hyperion.leddevice.properties");
+Q_LOGGING_CATEGORY(leddevice_write, "hyperion.leddevice.write");
+
+#define TRACK_DEVICE(category,action, ...) qCDebug(category).noquote() << QString("|%1| %2 device '%3'").arg(_log->getSubName(), action, _activeDeviceType) << ##__VA_ARGS__;
 
 // Constants
 namespace {
@@ -37,6 +44,7 @@ namespace {
 
 	const int DEFAULT_MAX_ENABLE_ATTEMPTS{ 5 };
 	constexpr std::chrono::seconds DEFAULT_ENABLE_ATTEMPTS_INTERVAL{ 5 };
+	constexpr std::chrono::milliseconds SWITCH_OFF_WAIT_TIMEOUT{ 5000 };
 
 } //End of constants
 
@@ -65,13 +73,13 @@ LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 	, _isRefreshEnabled(false)
 	, _isAutoStart(true)
 {
-	TRACK_SCOPE;
 	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
+	TRACK_SCOPE_SUBCOMPONENT() << _activeDeviceType;	
 }
 
 LedDevice::~LedDevice()
 {
-	TRACK_SCOPE_SUBCOMPONENT;
+	TRACK_SCOPE_SUBCOMPONENT();
 }
 
 void LedDevice::start()
@@ -86,22 +94,33 @@ void LedDevice::start()
 		// Everything is OK -> enable device
 		_isDeviceInitialised = true;
 
-		if (_isAutoStart)
+		if (_isAutoStart && !_isDeviceInError)
 		{
-			if (!_isEnabled)
-			{
 				Debug(_log, "Not enabled -> enable device");
 				enable();
-			}
 		}
 	}
 }
 
 void LedDevice::stop()
 {
-	Debug(_log, "Stop device");
+	trackDevice(leddevice_flow, "Stop");
+	if (_isSwitchOffInProgress.load(std::memory_order_acquire))
+	{
+		if (QThread::currentThread() == thread())
+		{
+			trackDevice(leddevice_flow, "Stop deferred until current switchOff completes");
+			scheduleStopAfterSwitchOff();
+			return;
+		}
+
+		waitForPendingSwitchOff();
+	}
+
+	resetStopDeferral();
 	this->stopEnableAttemptsTimer();
 	this->disable();
+	waitForPendingSwitchOff();
 	this->stopRefreshTimer();
 	Info(_log, "Stopped LedDevice '%s'", QSTRING_CSTR(_activeDeviceType));
 	emit isStopped();
@@ -136,59 +155,54 @@ void LedDevice::setInError(const QString& errorMsg, bool isRecoverable)
 		_isDeviceRecoverable = isRecoverable;
 	}
 	Error(_log, "Device disabled, device '%s' signals error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(errorMsg));
+	trackDevice(leddevice_flow, "Disabled") << "due to error:" << errorMsg;
 	emit isEnabledChanged(_isEnabled);
 }
 
 void LedDevice::enable()
 {
-	Debug(_log, "Enable device %s'", QSTRING_CSTR(_activeDeviceType));
-
-	if (!_isEnabled)
+	trackDevice(leddevice_flow, "Enable") << ", current state is :" << (_isEnabled ? "enabled" : "disabled");
+	if (_isEnabled)
 	{
-		if (_enableAttemptsTimer != nullptr && _enableAttemptsTimer->isActive())
-		{
-			_enableAttemptsTimer->stop();
-		}
-
-		_isDeviceInError = false;
-
-		if (!_isDeviceInitialised)
-		{
-			_isDeviceInitialised = init(_devConfig);
-		}
-
-		if (!_isDeviceReady)
-		{
-			if (open() < 0)
-			{
-				setInError("Failed to open device", _isDeviceRecoverable);
-			}
-		}
-
-		bool isEnableFailed(true);
-
-		if (_isDeviceReady)
-		{
-			if (switchOn())
-			{
-				stopEnableAttemptsTimer();
-				_isEnabled = true;
-				isEnableFailed = false;
-				emit isEnabledChanged(_isEnabled);
-				Info(_log, "LedDevice '%s' enabled", QSTRING_CSTR(_activeDeviceType));
-			}
-		}
-
-		if (isEnableFailed)
-		{
-			emit isEnabledChanged(false);
-			QMetaObject::invokeMethod(this, "retryEnable", Qt::QueuedConnection);
-		}
+		return;
 	}
+
+	if (_enableAttemptsTimer != nullptr && _enableAttemptsTimer->isActive())
+	{
+		_enableAttemptsTimer->stop();
+	}
+
+	_isDeviceInError = false;
+
+	if (!_isDeviceInitialised)
+	{
+		_isDeviceInitialised = init(_devConfig);
+	}
+
+	if (!_isDeviceReady && open() < 0)
+	{
+			setInError("Failed to open device", _isDeviceRecoverable);
+			QMetaObject::invokeMethod(this, "retryEnable", Qt::QueuedConnection);				
+			return;
+	}
+
+	if (_isDeviceReady && switchOn())	
+	{
+		trackDevice(leddevice_flow, "Enabled") << "successfully";
+		stopEnableAttemptsTimer();
+		_isEnabled = true;
+		emit isEnabledChanged(_isEnabled);
+		Info(_log, "LedDevice '%s' enabled", QSTRING_CSTR(_activeDeviceType));
+		return;
+	}
+
+	trackDevice(leddevice_flow, "Enabling") << "failed - trigger retry";
+	QMetaObject::invokeMethod(this, "retryEnable", Qt::QueuedConnection);
 }
 
 void LedDevice::retryEnable()
 {
+	trackDevice(leddevice_flow, "Retrying to enable");
 	if (_maxEnableAttempts > 0 && _isDeviceRecoverable)
 	{
 		Debug(_log, "Device's enablement failed - Start retry timer. Retried already done [%d], isEnabled: [%d]", _enableAttempts, _isEnabled);
@@ -202,18 +216,21 @@ void LedDevice::retryEnable()
 
 void LedDevice::disable()
 {
-	Debug(_log, "Disable device %s'", QSTRING_CSTR(_activeDeviceType));
-	if (_isEnabled)
+	trackDevice(leddevice_flow, "Disable") << ", current state is :" << (_isEnabled ? "enabled" : "disabled");
+	if (!_isEnabled)
 	{
-		_isEnabled = false;
-		this->stopEnableAttemptsTimer();
-		this->stopRefreshTimer();
-
-		switchOff();
-		close();
-
-		emit isEnabledChanged(_isEnabled);
+		return;
 	}
+
+	_isEnabled = false;
+	this->stopEnableAttemptsTimer();
+	this->stopRefreshTimer();
+
+	switchOff();
+	close();
+
+	trackDevice(leddevice_flow, "Disabled");
+	emit isEnabledChanged(_isEnabled);
 }
 
 void LedDevice::setActiveDeviceType(const QString& deviceType)
@@ -223,7 +240,7 @@ void LedDevice::setActiveDeviceType(const QString& deviceType)
 
 bool LedDevice::init(const QJsonObject& deviceConfig)
 {
-	Debug(_log, "deviceConfig: [%s]", QString(QJsonDocument(_devConfig).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	trackDevice(leddevice_config, "Init") << ", deviceConfig:" << JsonUtils::toCompact(_devConfig);
 
 	setLedCount(deviceConfig[CONFIG_HARDWARE_LED_COUNT].toInt(DEFAULT_LED_COUNT)); // property injected to reflect real led count
 	setColorOrder(deviceConfig[CONFIG_COLOR_ORDER].toString(DEFAULT_COLOR_ORDER));
@@ -241,12 +258,13 @@ void LedDevice::startRefreshTimer()
 {
 	if (_refreshTimerInterval_ms > 0)
 	{
+		trackDevice(leddevice_flow, "Starting refresh timer") << ", interval:" << _refreshTimerInterval_ms << "ms";
 		if (_isDeviceReady && _isOn)
 		{
 			// setup refreshTimer
 			if (_refreshTimer == nullptr)
 			{
-				_refreshTimer.reset(new QTimer(this));
+				_refreshTimer.reset(new QTimer());
 				_refreshTimer->setTimerType(Qt::PreciseTimer);
 				connect(_refreshTimer.get(), &QTimer::timeout, this, &LedDevice::rewriteLEDs);
 			}
@@ -264,38 +282,39 @@ void LedDevice::stopRefreshTimer()
 {
 	if (_refreshTimer != nullptr)
 	{
+		trackDevice(leddevice_flow, "Stopping refresh timer");
 		_refreshTimer->stop();
 	}
 }
 
 void LedDevice::startEnableAttemptsTimer()
 {
-	++_enableAttempts;
-
-	if (_isDeviceRecoverable)
+	if (!_isDeviceRecoverable)
 	{
-		if (_enableAttempts <= _maxEnableAttempts)
-		{
-			if (_enableAttemptTimerInterval.count() > 0)
-			{
-				// setup enable retry timer
-				if (_enableAttemptsTimer == nullptr)
-				{
-					_enableAttemptsTimer.reset(new QTimer(this));
-					_enableAttemptsTimer->setTimerType(Qt::PreciseTimer);
-					connect(_enableAttemptsTimer.get(), &QTimer::timeout, this, &LedDevice::enable);
-				}
-				_enableAttemptsTimer->setInterval(static_cast<int>(_enableAttemptTimerInterval.count() * 1000)); //NOLINT
+		return;
+	}
 
-				Info(_log, "Start %d. attempt of %d to enable the device in %d seconds", _enableAttempts, _maxEnableAttempts, _enableAttemptTimerInterval.count());
-				_enableAttemptsTimer->start();
-			}
-		}
-		else
+	++_enableAttempts;
+	trackDevice(leddevice_flow, "Starting enable retry timer") << ", current attempt:" << (_enableAttempts) << "of" << _maxEnableAttempts;
+
+	if (_enableAttempts <= _maxEnableAttempts && _enableAttemptTimerInterval.count() > 0)
+	{
+		// setup enable retry timer
+		if (_enableAttemptsTimer.isNull())
 		{
-			Error(_log, "Device disabled. Maximum number of %d attempts enabling the device reached. Tried for %d seconds.", _maxEnableAttempts, _enableAttempts * _enableAttemptTimerInterval.count());
-			_enableAttempts = 0;
+			_enableAttemptsTimer.reset(new QTimer());
+			_enableAttemptsTimer->setTimerType(Qt::PreciseTimer);
+			connect(_enableAttemptsTimer.get(), &QTimer::timeout, this, &LedDevice::enable);
 		}
+		_enableAttemptsTimer->setInterval(static_cast<int>(_enableAttemptTimerInterval.count() * 1000)); //NOLINT
+
+		Info(_log, "Start %d. attempt of %d to enable the device in %d seconds", _enableAttempts, _maxEnableAttempts, _enableAttemptTimerInterval.count());
+		_enableAttemptsTimer->start();
+	}
+	else
+	{
+		Error(_log, "Device disabled. Maximum number of %d attempts enabling the device reached. Tried for %d seconds.", _maxEnableAttempts, _enableAttempts * _enableAttemptTimerInterval.count());
+		_enableAttempts = 0;
 	}
 }
 
@@ -303,18 +322,19 @@ void LedDevice::stopEnableAttemptsTimer()
 {
 	if (_enableAttemptsTimer != nullptr)
 	{
-		Debug(_log, "Stopping enable retry timer");
+		trackDevice(leddevice_flow, "Stopping enable retry timer");
 		_enableAttemptsTimer->stop();
 		_enableAttempts = 0;
 	}
 }
 
-int LedDevice::updateLeds(std::vector<ColorRgb> ledValues)
+int LedDevice::updateLeds(const QVector<ColorRgb>& ledValues)
 {
+	trackDevice(leddevice_write, "Update LED values on") << (_isLedUpdatePending.load() ? ", but skipping update as an LED update is pending." : "will be executed.");
 	// Take the LED update into a shared buffer and return quickly
 	{
 		QMutexLocker locker(&_ledBufferMutex);
-		_ledUpdateBuffer = std::move(ledValues);
+		_ledUpdateBuffer = ledValues;
 	}
 
 	// If a frame processing is NOT already scheduled, schedule one.
@@ -328,7 +348,7 @@ int LedDevice::updateLeds(std::vector<ColorRgb> ledValues)
 
 void LedDevice::processLedUpdate()
 {
-	std::vector<ColorRgb> valuesToProcess;
+	QVector<ColorRgb> valuesToProcess;
 	{
 		QMutexLocker locker(&_ledBufferMutex);
 		valuesToProcess = _ledUpdateBuffer;
@@ -339,44 +359,52 @@ void LedDevice::processLedUpdate()
 	_isLedUpdatePending.store(false);
 }
 
-int LedDevice::writeLedUpdate(const std::vector<ColorRgb>& ledValues)
+int LedDevice::writeLedUpdate(const QVector<ColorRgb>& ledValues)
 {
-	int retval = 0;
 	if (!_isEnabled || !_isOn || !_isDeviceReady || _isDeviceInError)
 	{
 		// LedDevice NOT ready!
-		retval = -1;
+		trackDevice(leddevice_flow, "Not ready writing LED values on") << QString("Status: isEnabled=%1 isOn=%2 isDeviceReady=%3 isDeviceInError=%4")
+									.arg(_isEnabled)
+									.arg(_isOn)
+									.arg(_isDeviceReady)
+									.arg(_isDeviceInError);
+		return -1;
 	}
-	else
-	{
-		qint64 const elapsedTimeMs = _lastWriteTime.msecsTo(QDateTime::currentDateTime());
-		if (_latchTime_ms == 0 || elapsedTimeMs >= _latchTime_ms)
-		{
-			retval = write(ledValues);
-			_lastWriteTime = QDateTime::currentDateTime();
 
-			// if device requires refreshing, save Led-Values and restart the timer
-			if (_isRefreshEnabled && _isEnabled)
-			{
-				_lastLedValues = ledValues;
-				this->startRefreshTimer();
-			}
-		}
-		else
+	qint64 const elapsedTimeMs = _lastWriteTime.msecsTo(QDateTime::currentDateTime());
+	trackDevice(leddevice_write, "Writing LED values to") << QString("Time since last write: %1 ms, Latch time: %2 ms, number of LEDs: %3")
+									.arg(elapsedTimeMs)
+									.arg(_latchTime_ms)
+									.arg(ledValues.size());
+
+	if (_latchTime_ms > 0 && elapsedTimeMs < _latchTime_ms)
+	{
+		// Skip write as elapsedTime < latchTime
+		if (_isRefreshEnabled)
 		{
-			// Skip write as elapsedTime < latchTime
-			if (_isRefreshEnabled)
-			{
-				//Stop timer to allow for next non-refresh update
-				this->stopRefreshTimer();
-			}
+			//Stop timer to allow for next non-refresh update
+			this->stopRefreshTimer();
 		}
+		return 0;
 	}
-	return retval;
+
+	int const result = write(ledValues);
+	_lastWriteTime = QDateTime::currentDateTime();
+
+	// if device requires refreshing, save Led-Values and restart the timer
+	if (_isRefreshEnabled && _isEnabled)
+	{
+		_lastLedValues = ledValues;
+		this->startRefreshTimer();
+	}
+
+	return result;
 }
 
 int LedDevice::rewriteLEDs()
 {
+	trackDevice(leddevice_write, "Rewriting LED values") << (_isLedUpdatePending.load() ? ", but skipping update as an LED update is pending." : "will be executed.");
 	bool expected = false;
 	if (!_isLedUpdatePending.compare_exchange_strong(expected, true))
 	{
@@ -385,33 +413,39 @@ int LedDevice::rewriteLEDs()
 		return 0;
 	}
 
-	int retval = -1;
-
-	if (_isEnabled && _isOn && _isDeviceReady && !_isDeviceInError)
+	if (!(_isEnabled && _isOn && _isDeviceReady && !_isDeviceInError))
 	{
-		if (!_lastLedValues.empty())
-		{
-			retval = write(_lastLedValues);
-			_lastWriteTime = QDateTime::currentDateTime();
-		}
-	}
-	else
-	{
+		trackDevice(leddevice_write, "Not ready rewriting LED values on") << QString("Status: isEnabled=%1 isOn=%2 isDeviceReady=%3 isDeviceInError=%4")
+									.arg(_isEnabled)
+									.arg(_isOn)
+									.arg(_isDeviceReady)
+									.arg(_isDeviceInError);
 		// If Device is not ready stop timer
 		this->stopRefreshTimer();
+		_isLedUpdatePending.store(false);
+		return -1;
 	}
-	return retval;
+
+	bool success {true};
+	if (!_lastLedValues.empty())
+	{
+		trackDevice(leddevice_write, "Rewriting LED values");
+		success = write(_lastLedValues);
+		_isLedUpdatePending.store(false);		
+	}
+
+	return success;
 }
 
 int LedDevice::writeBlack(int numberOfWrites)
 {
-	Debug(_log, "Set LED strip to black to switch LEDs off");
+	trackDevice(leddevice_flow, "Set LED strip to black for") << "to switch LEDs off";
 	return writeColor(ColorRgb::BLACK, numberOfWrites);
 }
 
 int LedDevice::writeColor(const ColorRgb& color, int numberOfWrites)
 {
-	Debug(_log,"Writes: [%d]", numberOfWrites);
+	trackDevice(leddevice_flow, "Set LED strip's color for") << ", color:" << color.toQString() << ",  number of writes:" << numberOfWrites;
 	int rc = -1;
 
 	for (int i = 0; i < numberOfWrites; i++)
@@ -420,92 +454,180 @@ int LedDevice::writeColor(const ColorRgb& color, int numberOfWrites)
 		{
 			wait(_latchTime_ms);
 		}
-		_lastLedValues = std::vector<ColorRgb>(static_cast<unsigned long>(_ledCount), color);
+		_lastLedValues = QVector<ColorRgb>(_ledCount, color);
 		rc = write(_lastLedValues);
 	}
 	return rc;
 }
 
+void LedDevice::waitForPendingSwitchOff() const
+{
+	trackDevice(leddevice_flow, "Waiting for pending Switch OFF") << (_isSwitchOffInProgress.load() ? "is in progress" : "is not in required");
+	if (!_isSwitchOffInProgress.load(std::memory_order_acquire))
+	{
+		return;
+	}
+
+	if (QThread::currentThread() == thread())
+	{
+		trackDevice(leddevice_flow, "Skip waiting for pending switchOff on device thread");
+		return;
+	}
+
+	trackDevice(leddevice_flow, "Waiting for pending Switch OFF - start loop") << "Switch Off is" << (_isSwitchOffInProgress.load() ? "in progress" : "not in progress");
+	QEventLoop loop;
+	QMetaObject::Connection const connection = connect(this, &LedDevice::switchOffCompleted, &loop, &QEventLoop::quit, Qt::QueuedConnection);
+	QTimer timeoutTimer;
+	timeoutTimer.setSingleShot(true);
+	QObject::connect(&timeoutTimer, &QTimer::timeout, &loop, &QEventLoop::quit);
+	timeoutTimer.start(static_cast<int>(SWITCH_OFF_WAIT_TIMEOUT.count()));
+	if (_isSwitchOffInProgress.load(std::memory_order_acquire))
+	{
+		loop.exec();
+	}
+	disconnect(connection);
+	if (_isSwitchOffInProgress.load(std::memory_order_acquire))
+	{
+		Warning(_log, "Timeout waiting for switch-off completion on device '%s'", QSTRING_CSTR(_activeDeviceType));
+	}
+}
+
+bool LedDevice::beginSwitchOff()
+{
+	bool expected = false;
+	trackDevice(leddevice_flow, "Begin Switch OFF") << "Switch Off is" << (_isSwitchOffInProgress.load() ? "in progress" : "will be started");
+	return _isSwitchOffInProgress.compare_exchange_strong(expected, true, std::memory_order_acq_rel);
+}
+
+void LedDevice::endSwitchOff()
+{
+	_isSwitchOffInProgress.store(false, std::memory_order_release);
+	trackDevice(leddevice_flow, "End Switch OFF") << "Switch Off" << (_isSwitchOffInProgress.load() ? "is in progress" : "completed");
+	emit switchOffCompleted();
+}
+
+void LedDevice::scheduleStopAfterSwitchOff()
+{
+	if (_isStopDeferred.exchange(true))
+	{
+		return;
+	}
+
+	_stopDeferredConnection = connect(this, &LedDevice::switchOffCompleted, this, [this]()
+	{
+		const QMetaObject::Connection connection = _stopDeferredConnection;
+		if (connection)
+		{
+			disconnect(connection);
+		}
+		_stopDeferredConnection = QMetaObject::Connection{};
+		_isStopDeferred.store(false, std::memory_order_release);
+		QMetaObject::invokeMethod(this, "stop", Qt::QueuedConnection);
+	}, Qt::QueuedConnection);
+}
+
+void LedDevice::resetStopDeferral()
+{
+	if (_isStopDeferred.exchange(false))
+	{
+		const QMetaObject::Connection connection = _stopDeferredConnection;
+		if (connection)
+		{
+			disconnect(connection);
+		}
+		_stopDeferredConnection = QMetaObject::Connection{};
+	}
+}
+
 bool LedDevice::switchOn()
 {
-	bool rc{ false };
-
+	trackDevice(leddevice_flow, "Switch ON") << ", current state is :" << (_isOn ? "ON" : "OFF");
 	if (_isOn)
 	{
 		Debug(_log, "Device %s is already on. Skipping.", QSTRING_CSTR(_activeDeviceType));
-		rc = true;
+		return true;
 	}
-	else
+
+	if (_isDeviceReady)
 	{
-		if (_isDeviceReady)
+		Info(_log, "Switching device %s ON", QSTRING_CSTR(_activeDeviceType));
+		if (storeState())
 		{
-			Info(_log, "Switching device %s ON", QSTRING_CSTR(_activeDeviceType));
-			if (storeState())
+			if (powerOn())
 			{
-				if (powerOn())
-				{
-					Info(_log, "Device %s is ON", QSTRING_CSTR(_activeDeviceType));
-					_isOn = true;
-					rc = true;
-				}
-				else
-				{
-					Warning(_log, "Failed switching device %s ON", QSTRING_CSTR(_activeDeviceType));
-				}
+				Info(_log, "Device %s is ON", QSTRING_CSTR(_activeDeviceType));
+				_isOn = true;
+			}
+			else
+			{
+				Warning(_log, "Failed switching device %s ON", QSTRING_CSTR(_activeDeviceType));
 			}
 		}
-		emit isOnChanged(_isOn);
 	}
-	return rc;
+	emit isOnChanged(_isOn);
+
+	return _isOn;
 }
 
 bool LedDevice::switchOff()
 {
-	bool rc{ false };
-
+	trackDevice(leddevice_flow, "Switch OFF") << ", current state is :" << (_isOn ? "ON" : "OFF");
 	if (!_isOn)
 	{
-		rc = true;
+		waitForPendingSwitchOff();
+		return true;
 	}
-	else
+
+	if (!beginSwitchOff())
 	{
-		if (_isDeviceInitialised)
+		waitForPendingSwitchOff();
+		return true;
+	}
+
+	SwitchOffCompletionGuard completion(this);
+
+	if (!_isDeviceInitialised)
+	{
+		_isOn = false;
+		emit isOnChanged(_isOn);
+		return false;
+	}
+
+	Info(_log, "Switching device %s OFF", QSTRING_CSTR(_activeDeviceType));
+
+	// Disable device to ensure no standard LED updates are written/processed
+	_isOn = false;
+
+	if (_isDeviceReady)
+	{
+		if (_isRestoreOrigState)
 		{
-			Info(_log, "Switching device %s OFF", QSTRING_CSTR(_activeDeviceType));
-
-			// Disable device to ensure no standard LED updates are written/processed
-			_isOn = false;
-
-			rc = true;
-
-			if (_isDeviceReady)
+			//Restore devices state
+			restoreState();
+		}
+		else
+		{
+			if (powerOff())
 			{
-				if (_isRestoreOrigState)
-				{
-					//Restore devices state
-					restoreState();
-				}
-				else
-				{
-					if (powerOff())
-					{
-						Info(_log, "Device %s is OFF", QSTRING_CSTR(_activeDeviceType));
-					}
-					else
-					{
-						Warning(_log, "Failed switching device %s OFF", QSTRING_CSTR(_activeDeviceType));
-					}
-				}
+				Info(_log, "Device %s is OFF", QSTRING_CSTR(_activeDeviceType));
+			}
+			else
+			{
+				Warning(_log, "Failed switching device %s OFF", QSTRING_CSTR(_activeDeviceType));
 			}
 		}
-		emit isOnChanged(_isOn);
 	}
-	return rc;
+
+	emit isOnChanged(_isOn);
+
+	return true;
 }
 
 bool LedDevice::powerOff()
 {
 	bool rc{ true };
+
+	trackDevice(leddevice_flow, "Power OFF") << ", current state is :" << (_isOn ? "ON" : "OFF");
 
 	if (!_isStayOnAfterStreaming)
 	{
@@ -523,6 +645,8 @@ bool LedDevice::powerOn()
 {
 	bool rc{ true };
 
+	trackDevice(leddevice_flow, "Power ON") << ", current state is :" << (_isOn ? "ON" : "OFF");
+
 	Debug(_log, "Power On: %s", QSTRING_CSTR(_activeDeviceType));
 
 	return rc;
@@ -531,6 +655,8 @@ bool LedDevice::powerOn()
 bool LedDevice::storeState()
 {
 	bool rc{ true };
+
+	//to be implemented by the subclass if needed
 
 #if 0
 	if (_isRestoreOrigState)
@@ -547,6 +673,8 @@ bool LedDevice::storeState()
 bool LedDevice::restoreState()
 {
 	bool rc{ true };
+
+	//to be implemented by the subclass if needed
 
 #if 0
 	if (_isRestoreOrigState)
@@ -566,9 +694,10 @@ QJsonObject LedDevice::discover(const QJsonObject& /*params*/)
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
 
 	QJsonArray const deviceList;
-	devicesDiscovered.insert("devices", deviceList);
 
-	Debug(_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	//to be implemented by the subclass if needed
+
+	devicesDiscovered.insert("devices", deviceList);
 	return devicesDiscovered;
 }
 
@@ -576,23 +705,32 @@ QString LedDevice::discoverFirst()
 {
 	QString deviceDiscovered;
 
-	Debug(_log, "deviceDiscovered: [%s]", QSTRING_CSTR(deviceDiscovered));
+	//to be implemented by the subclass if needed
 	return deviceDiscovered;
 }
 
-
 QJsonObject LedDevice::getProperties(const QJsonObject& params)
 {
-	Debug(_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	QJsonObject properties;
 
 	QJsonObject const deviceProperties;
+
+	//to be implemented by the subclass if needed
+
 	properties.insert("properties", deviceProperties);
 
-	Debug(_log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	return properties;
+}
+
+void LedDevice::identify(const QJsonObject& /*params*/)
+{
+	//to be implemented by the subclass if needed
+}
+
+QJsonObject LedDevice::addAuthorization(const QJsonObject& /*params*/) 
+{ 
+	//to be implemented by the subclass if needed
+	return QJsonObject(); 
 }
 
 void LedDevice::setLogger(QSharedPointer<Logger> log)
@@ -665,7 +803,7 @@ void LedDevice::setEnableAttempts(int maxEnableRetries, std::chrono::seconds ena
 	Debug(_log, "Max enable retries: %d, enable retry interval = %llds", _maxEnableAttempts, _enableAttemptTimerInterval.count());
 }
 
-void LedDevice::printLedValues(const std::vector<ColorRgb>& ledValues)
+void LedDevice::printLedValues(const QVector<ColorRgb>& ledValues)
 {
 	std::cout << "LedValues [" << ledValues.size() << "] [";
 	for (const ColorRgb& color : ledValues)

@@ -62,6 +62,7 @@ public:
 	///
 	QString getSettingsRecordString(const QString& type) const;
 
+	QJsonObject getSettings(const QString& filteredType = "") const;	
 	QJsonObject getSettings(const QStringList& filteredTypes = {} ) const;
 	QJsonObject getSettings(const QVariant& instance, const QStringList& filteredTypes = {} ) const;
 

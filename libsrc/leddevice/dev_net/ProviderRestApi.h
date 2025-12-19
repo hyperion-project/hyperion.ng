@@ -76,6 +76,7 @@ private:
 };
 
 enum class HttpStatusCode {
+	Undefined	 = 0,
 	NoContent    = 204,
 	BadRequest   = 400,
 	UnAuthorized = 401,

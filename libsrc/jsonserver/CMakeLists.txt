@@ -7,6 +7,7 @@ add_library(jsonserver
 
 target_link_libraries(jsonserver
 	hyperion-api
+	hyperion-utils
 	hyperion
 )
 

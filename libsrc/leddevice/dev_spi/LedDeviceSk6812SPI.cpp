@@ -22,40 +22,36 @@ bool LedDeviceSk6812SPI::init(const QJsonObject &deviceConfig)
 {
 	_baudRate_Hz = 3000000;
 
-	bool isInitOK = false;
-
 	// Initialise sub-class
-	if ( ProviderSpi::init(deviceConfig) )
+	if ( !ProviderSpi::init(deviceConfig) )
 	{
-		QString whiteAlgorithm = deviceConfig["whiteAlgorithm"].toString("white_off");
-
-		_whiteAlgorithm	= RGBW::stringToWhiteAlgorithm(whiteAlgorithm);
-		if (_whiteAlgorithm == RGBW::WhiteAlgorithm::INVALID)
-		{
-			QString errortext = QString ("unknown whiteAlgorithm: %1").arg(whiteAlgorithm);
-			this->setInError(errortext);
-			isInitOK = false;
-		}
-		else
-		{
-			Debug( _log, "whiteAlgorithm : %s", QSTRING_CSTR(whiteAlgorithm));
-
-			WarningIf(( _baudRate_Hz < 2050000 || _baudRate_Hz > 4000000 ), _log, "SPI rate %d outside recommended range (2050000 -> 4000000)", _baudRate_Hz);
-
-			const int SPI_FRAME_END_LATCH_BYTES = 3;
-			_ledBuffer.resize(_ledRGBWCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
-
-			isInitOK = true;
-		}
+		return false;
 	}
-	return isInitOK;
+
+	QString whiteAlgorithm = deviceConfig["whiteAlgorithm"].toString("white_off");
+
+	_whiteAlgorithm = RGBW::stringToWhiteAlgorithm(whiteAlgorithm);
+	if (_whiteAlgorithm == RGBW::WhiteAlgorithm::INVALID)
+	{
+		QString errortext = QString ("unknown whiteAlgorithm: %1").arg(whiteAlgorithm);
+		this->setInError(errortext);
+		return false;
+	}
+
+	Debug( _log, "whiteAlgorithm : %s", QSTRING_CSTR(whiteAlgorithm));
+
+	WarningIf(( _baudRate_Hz < 2050000 || _baudRate_Hz > 4000000 ), _log, "SPI rate %d outside recommended range (2050000 -> 4000000)", _baudRate_Hz);
+
+	const int SPI_FRAME_END_LATCH_BYTES = 3;
+	_ledBuffer.fill(0x00, _ledRGBWCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES);
+
+	return true;
 }
 
-int LedDeviceSk6812SPI::write(const std::vector<ColorRgb> &ledValues)
+int LedDeviceSk6812SPI::write(const QVector<ColorRgb> &ledValues)
 {
 	unsigned spi_ptr = 0;
 	const int SPI_BYTES_PER_LED = sizeof(ColorRgbw) * SPI_BYTES_PER_COLOUR;
-
 
 	for (const ColorRgb& color : ledValues)
 	{
@@ -74,9 +70,12 @@ int LedDeviceSk6812SPI::write(const std::vector<ColorRgb> &ledValues)
 		spi_ptr += SPI_BYTES_PER_LED;
 	}
 
-	_ledBuffer[spi_ptr++] = 0;
-	_ledBuffer[spi_ptr++] = 0;
-	_ledBuffer[spi_ptr++] = 0;
+	_ledBuffer[spi_ptr] = 0;
+	++spi_ptr;
+	_ledBuffer[spi_ptr] = 0;
+	++spi_ptr;
+	_ledBuffer[spi_ptr] = 0;
+	++spi_ptr;
 
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }

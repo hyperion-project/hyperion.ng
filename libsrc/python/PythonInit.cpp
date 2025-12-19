@@ -26,7 +26,7 @@
 
 PythonInit::PythonInit()
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 	// register modules
 	EffectModule::registerHyperionExtensionModule();
 
@@ -190,7 +190,7 @@ void PythonInit::handlePythonError(PyStatus status, PyConfig& config)
 
 PythonInit::~PythonInit()
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 	Debug(Logger::getInstance("DAEMON"), "Cleaning up Python interpreter");
 
 #if (PY_VERSION_HEX < 0x030C0000)

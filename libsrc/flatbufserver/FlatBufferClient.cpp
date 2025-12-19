@@ -11,6 +11,9 @@
 
 #include "hyperion_reply_generated.h"
 
+Q_LOGGING_CATEGORY(flatbuffer_server_client_flow, "hyperion.flatbuffer.server.flow");
+Q_LOGGING_CATEGORY(flatbuffer_server_client_cmd, "hyperion.flatbuffer.server.cmd");
+
 // Constants
 namespace {
 const int FLATBUFFER_PRIORITY_MIN = 100;
@@ -28,10 +31,11 @@ FlatBufferClient::FlatBufferClient(QTcpSocket* socket, int timeout, QObject *par
 	, _priority()
 	, _processingMessage(false)
 {
+	TRACK_SCOPE();
 	_imageResampler.setPixelDecimation(1);
 
 	// timer setup
-	_timeoutTimer.reset(new QTimer(this));
+	_timeoutTimer.reset(new QTimer());
 	_timeoutTimer->setSingleShot(true);
 	_timeoutTimer->setInterval(_timeout);
 	connect(_timeoutTimer.get(), &QTimer::timeout, this, &FlatBufferClient::noDataReceived);
@@ -57,14 +61,14 @@ void FlatBufferClient::readyRead()
 	while(_receiveBuffer.size() >= 4)
 	{
 		// Directly read message size
-		const uint8_t* raw = reinterpret_cast<const uint8_t*>(_receiveBuffer.constData());
+		auto* raw = reinterpret_cast<const uint8_t*>(_receiveBuffer.constData());
 		uint32_t const messageSize = (raw[0] << 24) | (raw[1] << 16) | (raw[2] << 8) | raw[3];
 
 		// check if we can read a complete message
 		if((uint32_t) _receiveBuffer.size() < messageSize + 4) { return; }
 
 		// extract message without header and remove header + msg from buffer :: QByteArray::remove() does not return the removed data
-		const uint8_t* msgData = reinterpret_cast<const uint8_t*>(_receiveBuffer.constData() + 4);
+		auto* msgData = reinterpret_cast<const uint8_t*>(_receiveBuffer.constData() + 4);
 		_receiveBuffer.remove(0, messageSize + 4);
 
 		flatbuffers::Verifier verifier(msgData, messageSize);
@@ -88,6 +92,7 @@ void FlatBufferClient::noDataReceived()
 
 void FlatBufferClient::forceClose()
 {
+	qCDebug(flatbuffer_server_client_flow) << "Forcing close of client" << QString("%1@%2").arg(_origin, _clientAddress);
 	_socket->close();
 }
 
@@ -106,6 +111,7 @@ void FlatBufferClient::disconnected()
 void FlatBufferClient::handleMessage(const hyperionnet::Request* req)
 {
 	if (req == nullptr) {
+		qCDebug(flatbuffer_server_client_flow) << "Received null or invalid request from client" << QString("%1@%2").arg(_origin, _clientAddress);
 		sendErrorReply("Received null or invalid request.");
 		return;
 	}
@@ -129,14 +135,17 @@ void FlatBufferClient::handleMessage(const hyperionnet::Request* req)
 	}
 	else
 	{
+		qCDebug(flatbuffer_server_client_flow) << "Received invalid packet from client" << QString("%1@%2").arg(_origin, _clientAddress);
 		sendErrorReply("Received invalid packet.");
 	}
 }
 void FlatBufferClient::handleColorCommand(const hyperionnet::Color *colorReq)
 {
+	qCDebug(flatbuffer_server_client_cmd) << "Received color command from client" << QString("%1@%2").arg(_origin, _clientAddress);
+
 	// extract parameters
 	const int32_t rgbData = colorReq->data();
-	std::vector<ColorRgb> const color{ ColorRgb{ uint8_t(qRed(rgbData)), uint8_t(qGreen(rgbData)), uint8_t(qBlue(rgbData)) } };
+	QVector<ColorRgb> const color{ ColorRgb{ uint8_t(qRed(rgbData)), uint8_t(qGreen(rgbData)), uint8_t(qBlue(rgbData)) } };
 
 	// set output
 	emit setGlobalInputColor(_priority, color, colorReq->duration());
@@ -158,6 +167,9 @@ void FlatBufferClient::handleRegisterCommand(const hyperionnet::Register *regReq
 
 	_priority = regReq->priority();
 	_origin = regReq->origin()->c_str();
+
+	qCDebug(flatbuffer_server_client_flow) << "Received register request from client" << QString("%1@%2").arg(_origin, _clientAddress) << "with priority" << _priority;
+
 	emit registerGlobalInput(_priority, hyperion::COMP_FLATBUFSERVER, QSTRING_CSTR(QString("%1@%2").arg(_origin, _clientAddress)));
 
 	_builder.Clear();
@@ -174,15 +186,16 @@ void FlatBufferClient::handleImageCommand(const hyperionnet::Image *image)
 
 	if (image->data_as_RawImage() != nullptr)
 	{
-		const auto* img = static_cast<const hyperionnet::RawImage*>(image->data_as_RawImage());
+		const auto* img = image->data_as_RawImage();
 
 		// Read image properties directly from FlatBuffer
 		int32_t const width = img->width();
 		int32_t const height = img->height();
 		const auto* data = img->data();
 
-		if (width <= 0 || height <= 0 || data == nullptr || data->size() == 0)
+		if (width <= 0 || height <= 0 || data == nullptr || data->empty())
 		{
+			qCDebug(flatbuffer_server_client_flow) << "Received RAW image command with invalid width and/or size or empty image by client" << QString("%1@%2").arg(_origin, _clientAddress);
 			sendErrorReply("Invalid width and/or height or no raw image data provided");
 			return;
 		}
@@ -192,6 +205,7 @@ void FlatBufferClient::handleImageCommand(const hyperionnet::Image *image)
 		int const bytesPerPixel = dataSize / (width * height);
 		if (bytesPerPixel != 3 && bytesPerPixel != 4)
 		{
+			qCDebug(flatbuffer_server_client_flow) << "Received RAW image command where the size of image data does not match with the width and height provided by client" << QString("%1@%2").arg(_origin, _clientAddress) << "";
 			sendErrorReply("Size of image data does not match with the width and height");
 			return;
 		}
@@ -206,7 +220,7 @@ void FlatBufferClient::handleImageCommand(const hyperionnet::Image *image)
 	}
 	else if (image->data_as_NV12Image() != nullptr)
 	{
-		const auto* img = static_cast<const hyperionnet::NV12Image*>(image->data_as_NV12Image());
+		const auto* img = image->data_as_NV12Image();
 
 			int32_t const width = img->width();
 			int32_t const height = img->height();
@@ -214,8 +228,9 @@ void FlatBufferClient::handleImageCommand(const hyperionnet::Image *image)
 			const auto* data_uv = img->data_uv();
 
 			if (width <= 0 || height <= 0 || data_y == nullptr || data_uv == nullptr ||
-				data_y->size() == 0 || data_uv->size() == 0)
+				data_y->empty() || data_uv->empty())
 			{
+				qCDebug(flatbuffer_server_client_flow) << "Received NV12 image command with invalid width and/or size or empty image by client" << QString("%1@%2").arg(_origin, _clientAddress);
 				sendErrorReply("Invalid width and/or height or no complete NV12 image data provided");
 				return;
 			}
@@ -246,9 +261,15 @@ void FlatBufferClient::handleImageCommand(const hyperionnet::Image *image)
 	}
 	else
 	{
+		qCDebug(flatbuffer_server_client_flow) << "Received image command with no or unknown image data by client" << QString("%1@%2").arg(_origin, _clientAddress);
 		sendErrorReply("No or unknown image data provided");
 		return;
 	}
+
+	qCDebug(flatbuffer_server_client_cmd) << "Received image from client" << QString("%1@%2").arg(_origin, _clientAddress)
+										   << "with priority" << _priority
+										   << "size" << _imageOutputBuffer.width() << "x" << _imageOutputBuffer.height()
+										   << "and duration" << duration << "ms";
 
 	emit setGlobalInputImage(_priority, _imageOutputBuffer, duration);
 	emit setBufferImage("FlatBuffer", _imageOutputBuffer);
@@ -261,6 +282,8 @@ void FlatBufferClient::handleClearCommand(const hyperionnet::Clear *clear)
 {
 	// extract parameters
 	const int priority = clear->priority();
+
+	qCDebug(flatbuffer_server_client_cmd) << "Received clear command from client" << QString("%1@%2").arg(_origin, _clientAddress)  << "with priority" << priority;
 
 	// Check if we are clearing ourselves.
 	if (priority == _priority)
@@ -275,7 +298,21 @@ void FlatBufferClient::handleClearCommand(const hyperionnet::Clear *clear)
 
 void FlatBufferClient::handleNotImplemented()
 {
+	qCDebug(flatbuffer_server_client_flow) << "Received not implemented command from client" << QString("%1@%2").arg(_origin, _clientAddress);
 	sendErrorReply("Command not implemented");
+}
+
+void FlatBufferClient::registationRequired(int priority)
+{
+	qCDebug(flatbuffer_server_client_flow) << "Registration required for priority" << priority;
+	if (_priority == priority)
+	{
+		_builder.Clear();
+		auto reply = hyperionnet::CreateReplyDirect(_builder, nullptr, -1,  -1);
+		_builder.Finish(reply);
+
+		sendMessage(_builder.GetBufferPointer(), _builder.GetSize());
+	}
 }
 
 void FlatBufferClient::sendMessage(const uint8_t* data, size_t size)
@@ -285,7 +322,7 @@ void FlatBufferClient::sendMessage(const uint8_t* data, size_t size)
 		uint8_t((size >> 24) & 0xFF),
 		uint8_t((size >> 16) & 0xFF),
 		uint8_t((size >>  8) & 0xFF),
-		uint8_t((size	   ) & 0xFF)
+		uint8_t( size	     & 0xFF)
 	};
 
 	// write message
@@ -317,7 +354,7 @@ inline void FlatBufferClient::processRawImage(const uint8_t* buffer,
 											  int32_t height,
 											  int bytesPerPixel,
 											  const ImageResampler& resampler,
-											  Image<ColorRgb>& outputImage)
+											  Image<ColorRgb>& outputImage) const
 {
 	const size_t lineLength = static_cast<size_t>(width) * bytesPerPixel;
 	PixelFormat const pixelFormat = (bytesPerPixel == 4) ? PixelFormat::RGB32 : PixelFormat::RGB24;
@@ -337,7 +374,7 @@ inline void FlatBufferClient::processNV12Image(const uint8_t* nv12_data,
 											   int32_t height,
 											   int32_t stride_y,
 											   const ImageResampler& resampler,
-											   Image<ColorRgb>& outputImage)
+											   Image<ColorRgb>& outputImage) const
 {
 	PixelFormat const pixelFormat = PixelFormat::NV12;
 

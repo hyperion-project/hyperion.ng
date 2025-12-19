@@ -1,16 +1,13 @@
 
 #pragma once
 
-// STL includes
-#include <ctime>
-#include <vector>
+// QT includes
+#include <QString>
+#include <QVector>
+#include <QJsonArray>
 
 // Local includes
 #include <utils/ColorRgb.h>
-
-// QT includes
-#include <QString>
-#include <QJsonArray>
 
 // Forward class declarations
 namespace Json { class Value; }
@@ -115,41 +112,41 @@ public:
 	///
 	/// @return The list with led specifications
 	///
-	std::vector<Led>& leds();
+	QVector<Led>& leds();
 
 	///
 	/// Returns the LED specifications
 	///
 	/// @return The list with led specifications
 	///
-	const std::vector<Led>& leds() const;
+	const QVector<Led>& leds() const;
 
 	///
 	/// Returns the IDs of blacklisted LEDs
 	///
 	/// @return ID List of blacklisted LEDs
 	///
-	std::vector<int>& blacklistedLedIds();
+	QVector<int>& blacklistedLedIds();
 
 	///
 	/// Returns the IDs of blacklisted LEDs
 	///
 	/// @return ID List of blacklisted LEDs
 	///
-	const std::vector<int>& blacklistedLedIds() const;
+	const QVector<int>& blacklistedLedIds() const;
 
 	///
 	/// Check, if teh layout has blacklisted LEDs configured
 	///
 	/// @return True, if blacklisted LEDs are configured
 	///
-	bool hasBlackListedLeds ();
+	bool hasBlackListedLeds () const;
 
 	static LedString createLedString(const QJsonArray& ledConfigArray, const ColorOrder deviceOrder, int maxLedCount);
 
 	private:
 		/// The list with LED specifications
-		std::vector<Led> _leds;
+		QVector<Led> _leds;
 		/// The list containing IDs of blacklisted LED
-		std::vector<int> _blacklistedLedIds;
+		QVector<int> _blacklistedLedIds;
 	};

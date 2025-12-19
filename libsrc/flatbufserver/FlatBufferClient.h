@@ -1,7 +1,11 @@
 #ifndef FLATBUFFERCLIENT_H
 #define FLATBUFFERCLIENT_H
 
-// util
+#include <QScopedPointer>
+#include <QTcpSocket>
+#include <QTimer>
+#include <QLoggingCategory>
+
 #include <utils/Logger.h>
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
@@ -11,9 +15,8 @@
 // flatbuffer FBS
 #include "hyperion_request_generated.h"
 
-#include <QScopedPointer>
-#include <QTcpSocket>
-#include <QTimer>
+Q_DECLARE_LOGGING_CATEGORY(flatbuffer_server_client_flow);
+Q_DECLARE_LOGGING_CATEGORY(flatbuffer_server_client_cmd);
 
 namespace flatbuf {
 	class HyperionRequest;
@@ -36,6 +39,10 @@ public:
 
 	void setPixelDecimation(int decimator);
 
+	int getPriority() const { return _priority; }
+	QString getOrigin() const { return _origin; }
+	QString getAddress() const { return _clientAddress; }
+
 signals:
 	///
 	/// @brief forward register data to HyperionDaemon
@@ -55,7 +62,7 @@ signals:
 	///
 	/// @brief Forward requested color
 	///
-	void setGlobalInputColor(int priority, const std::vector<ColorRgb> &ledColor, int timeout_ms, const QString& origin = "FlatBuffer" ,bool clearEffects = true);
+	void setGlobalInputColor(int priority, const QVector<ColorRgb> &ledColor, int timeout_ms, const QString& origin = "FlatBuffer" ,bool clearEffects = true);
 
 	///
 	/// @brief Emit the final processed image
@@ -68,7 +75,11 @@ signals:
 	void clientDisconnected();
 
 public slots:
-
+	///
+	/// @brief Requests a registration from the client
+	///
+	void registationRequired(int priority);
+	
 	///
 	/// @brief close the socket and call disconnected()
 	///
@@ -143,8 +154,8 @@ private:
 	///
 	void sendErrorReply(const QString& error);
 
-	void processRawImage(const uint8_t* buffer, int32_t width, int32_t height, int bytesPerPixel, const ImageResampler& resampler, Image<ColorRgb>& outputImage);
-	void processNV12Image(const uint8_t* nv12_data, int32_t width, int32_t height, int32_t stride_y, const ImageResampler& resampler, Image<ColorRgb>& outputImage);
+	void processRawImage(const uint8_t* buffer, int32_t width, int32_t height, int bytesPerPixel, const ImageResampler& resampler, Image<ColorRgb>& outputImage) const;
+	void processNV12Image(const uint8_t* nv12_data, int32_t width, int32_t height, int32_t stride_y, const ImageResampler& resampler, Image<ColorRgb>& outputImage) const;
 
 private:
 	QSharedPointer<Logger> _log;

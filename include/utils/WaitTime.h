@@ -14,7 +14,7 @@ inline void wait(std::chrono::milliseconds millisecondsWait)
 		QTimer timer;
 		timer.setTimerType(Qt::PreciseTimer);
 		QTimer::connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
-		timer.start(millisecondsWait.count());
+		timer.start(static_cast<int>(millisecondsWait.count()));
 		loop.exec();
 	}
 }

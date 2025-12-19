@@ -16,11 +16,6 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 
-// Constants
-namespace {
-const bool verbose = false;
-} //End of constants
-
 #if defined(SDK_15_AVAILABLE)
 	static CGImageRef capture15(CGDirectDisplayID id, CGRect diIntersectDisplayLocal)
 	{
@@ -114,45 +109,59 @@ bool OsxFrameGrabber::setupDisplay()
 
 int OsxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 {
-	int rc = 0;
-	if (_isEnabled && !_isDeviceInError)
+	if (_isDeviceInError)
+    {
+        Error(_log, "Cannot grab frame, device is in error state");
+        return -1;
+    }
+
+    if (!_isEnabled)
+    {
+        return -1;
+    }
+
+	if (image.isNull())
 	{
-		CGImageRef dispImage;
-
-		#if defined(SDK_15_AVAILABLE)
-			dispImage = capture15(_display, CGDisplayBounds(_display));
-		#else
-			dispImage = CGDisplayCreateImageForRect(_display, CGDisplayBounds(_display));
-		#endif
-
-		// display lost, use main
-		if (dispImage == nullptr && _display != 0)
-		{
-			#if defined(SDK_15_AVAILABLE)
-				dispImage = capture15(kCGDirectMainDisplay, CGDisplayBounds(kCGDirectMainDisplay));
-			#else
-				dispImage = CGDisplayCreateImageForRect(kCGDirectMainDisplay, CGDisplayBounds(kCGDirectMainDisplay));
-			#endif
-		}
-
-		// no displays connected, return
-		if (dispImage == nullptr)
-		{
-			Error(_log, "No display connected...");
-			return -1;
-		}
-
-		CFDataRef imgData = CGDataProviderCopyData(CGImageGetDataProvider(dispImage));
-		if (imgData != nullptr)
-		{
-			_imageResampler.processImage((uint8_t *)CFDataGetBytePtr(imgData), static_cast<int>(CGImageGetWidth(dispImage)), static_cast<int>(CGImageGetHeight(dispImage)), static_cast<int>(CGImageGetBytesPerRow(dispImage)), PixelFormat::BGR32, image);
-			CFRelease(imgData);
-		}
-
-		CGImageRelease(dispImage);
-
+		// cannot grab into a null image
+		return -1;
 	}
-	return rc;
+
+	CGImageRef dispImage;
+
+	#if defined(SDK_15_AVAILABLE)
+		dispImage = capture15(_display, CGDisplayBounds(_display));
+	#else
+		dispImage = CGDisplayCreateImageForRect(_display, CGDisplayBounds(_display));
+	#endif
+
+	// display lost, use main
+	if (dispImage == nullptr && _display != 0)
+	{
+		#if defined(SDK_15_AVAILABLE)
+			dispImage = capture15(kCGDirectMainDisplay, CGDisplayBounds(kCGDirectMainDisplay));
+		#else
+			dispImage = CGDisplayCreateImageForRect(kCGDirectMainDisplay, CGDisplayBounds(kCGDirectMainDisplay));
+		#endif
+	}
+
+	// no displays connected, return
+	if (dispImage == nullptr)
+	{
+		Error(_log, "No display connected...");
+		return -1;
+	}
+
+	CFDataRef imgData = CGDataProviderCopyData(CGImageGetDataProvider(dispImage));
+	if (imgData != nullptr)
+	{
+		_imageResampler.processImage((uint8_t *)CFDataGetBytePtr(imgData), static_cast<int>(CGImageGetWidth(dispImage)), static_cast<int>(CGImageGetHeight(dispImage)), static_cast<int>(CGImageGetBytesPerRow(dispImage)), PixelFormat::BGR32, image);
+		CFRelease(imgData);
+	}
+
+	CGImageRelease(dispImage);
+
+
+	return 0;
 }
 
 bool OsxFrameGrabber::setDisplayIndex(int index)
@@ -216,8 +225,6 @@ bool OsxFrameGrabber::setDisplayIndex(int index)
 
 QJsonObject OsxFrameGrabber::discover(const QJsonObject& params)
 {
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	QJsonObject inputsDiscovered;
 
 	// get list of displays
@@ -287,10 +294,8 @@ QJsonObject OsxFrameGrabber::discover(const QJsonObject& params)
 
 	if (inputsDiscovered.isEmpty())
 	{
-		DebugIf(verbose, _log, "No displays found to capture from!");
+		qCDebug(grabber_screen_properties) << "No displays found to capture from!";
 	}
-	DebugIf(verbose, _log, "device: [%s]", QString(QJsonDocument(inputsDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return inputsDiscovered;
-
 }

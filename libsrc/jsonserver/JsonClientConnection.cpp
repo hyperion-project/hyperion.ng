@@ -19,7 +19,7 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket, bool localConnect
 	_jsonAPI = new JsonAPI(socket->peerAddress().toString(), _log, localConnection, this);
 	// get the callback messages from JsonAPI and send it to the client
 	connect(_jsonAPI, &JsonAPI::callbackReady, this , &JsonClientConnection::sendMessage);
-	connect(_jsonAPI, &JsonAPI::forceClose, this , [&](){ _socket->close(); } );
+	connect(_jsonAPI, &JsonAPI::forceClose, this , [this](){ _socket->close(); } );
 	connect(_jsonAPI->getCallBack().get(), &JsonCallbacks::callbackReady, this, &JsonClientConnection::sendMessage);
 
 	_jsonAPI->initialize();
@@ -40,7 +40,7 @@ void JsonClientConnection::readRequest()
 {
 	_receiveBuffer += _socket->readAll();
 	// raw socket data, handling as usual
-	int bytes = _receiveBuffer.indexOf('\n') + 1;
+	auto bytes = _receiveBuffer.indexOf('\n') + 1;
 	while(bytes > 0)
 	{
 		// create message string
@@ -76,7 +76,7 @@ void JsonClientConnection::disconnected()
 	emit connectionClosed();
 }
 
-QHostAddress JsonClientConnection::getClientAddress()
+QHostAddress JsonClientConnection::getClientAddress() const
 {
 	return _socket->peerAddress();
 }

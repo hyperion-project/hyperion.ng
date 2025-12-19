@@ -12,8 +12,6 @@
 
 // Constants
 namespace {
-	const bool verbose = false;
-
 	// Pi-Blaster discovery service
 	const char DISCOVERY_DIRECTORY[] = "/dev/";
 	const char DISCOVERY_FILEPATTERN[] = "pi-blaster";
@@ -48,38 +46,38 @@ LedDevicePiBlaster::~LedDevicePiBlaster()
 
 bool LedDevicePiBlaster::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = LedDevice::init(deviceConfig);
+	if (!LedDevice::init(deviceConfig))
+	{
+		return false;
+	}
 
 	_deviceName    = deviceConfig["output"].toString("/dev/pi-blaster");
 
-	if ( isInitOK )
+	QJsonArray gpioMapping = deviceConfig["gpiomap"].toArray();
+	if (gpioMapping.isEmpty())
 	{
-		QJsonArray gpioMapping = deviceConfig["gpiomap"].toArray();
+		this->setInError("PiBlaster: no gpiomap defined.");
+		return false;
+	}
 
-		if (gpioMapping.isEmpty())
-		{
-			this->setInError("PiBlaster: no gpiomap defined.");
-			return false;
-		}
+	// walk through the JSON configuration and populate the mapping tables
+	for (const QJsonValue& gpioArrayValue : gpioMapping)
+	{
+		const QJsonObject value = gpioArrayValue.toObject();
+		const int gpio = value["gpio"].toInt(-1);
+		const int ledindex = value["ledindex"].toInt(-1);
+		const std::string ledcolor = value["ledcolor"].toString("z").toStdString();
 
-		// walk through the JSON configuration and populate the mapping tables
-		for(QJsonArray::const_iterator gpioArray = gpioMapping.begin(); gpioArray != gpioMapping.end(); ++gpioArray)
-		{
-			const QJsonObject value = (*gpioArray).toObject();
-			const int gpio = value["gpio"].toInt(-1);
-			const int ledindex = value["ledindex"].toInt(-1);
-			const std::string ledcolor = value["ledcolor"].toString("z").toStdString();
-
-			// ignore missing/invalid settings
-			if ( (gpio >= 0) && (gpio < signed(TABLE_SZ)) && (ledindex >= 0) ){
-				_gpio_to_led[gpio] = ledindex;
-				_gpio_to_color[gpio] = ledcolor[0]; // 1st char of string
-			} else {
-				Warning( _log, "IGNORING gpio %d ledindex %d color %c", gpio,ledindex, ledcolor[0]);
-			}
+		// ignore missing/invalid settings
+		if ( (gpio >= 0) && (gpio < signed(TABLE_SZ)) && (ledindex >= 0) ){
+			_gpio_to_led[gpio] = ledindex;
+			_gpio_to_color[gpio] = ledcolor[0]; // 1st char of string
+		} else {
+			Warning( _log, "IGNORING gpio %d ledindex %d color %c", gpio,ledindex, ledcolor[0]);
 		}
 	}
-	return isInitOK;
+
+	return true;
 }
 
 LedDevice* LedDevicePiBlaster::construct(const QJsonObject &deviceConfig)
@@ -89,50 +87,41 @@ LedDevice* LedDevicePiBlaster::construct(const QJsonObject &deviceConfig)
 
 int LedDevicePiBlaster::open()
 {
-	int retval = -1;
 	QString errortext;
 	_isDeviceReady = false;
 
 	if (_fid != nullptr)
 	{
 		// The file pointer is already open
-		errortext = QString ("Device (%1) is already open.").arg(_deviceName);
-	}
-	else
-	{
-		if (!QFile::exists(_deviceName))
-		{
-			errortext = QString ("The device (%1) does not yet exist.").arg(_deviceName);
-		}
-		else
-		{
-			_fid = fopen(QSTRING_CSTR(_deviceName), "w");
-			if (_fid == nullptr)
-			{
-				errortext = QString ("Failed to open device (%1). Error message: %2").arg(_deviceName, strerror(errno));
-			}
-			else
-			{
-				Info( _log, "Connected to device(%s)", QSTRING_CSTR(_deviceName));
-
-				// Everything is OK, device is ready
-				_isDeviceReady = true;
-				retval = 0;
-			}
-		}
+		Info( _log, "Device (%s) is already open.", QSTRING_CSTR(_deviceName));
+		return 0;
 	}
 
-	// On error/exceptions, set LedDevice in error
-	if ( retval < 0 )
+	if (!QFile::exists(_deviceName))
 	{
-		this->setInError( errortext );
+		errortext = QString ("The device (%1) does not yet exist.").arg(_deviceName);
+		setInError( errortext );
+		return -1;
 	}
-	return retval;
+
+	_fid = fopen(QSTRING_CSTR(_deviceName), "w");
+	if (_fid == nullptr)
+	{
+		errortext = QString ("Failed to open device (%1). Error message: %2").arg(_deviceName, strerror(errno));
+	setInError( errortext );
+	return -1;				
+	}
+
+	Info( _log, "Connected to device(%s)", QSTRING_CSTR(_deviceName));
+
+	// Everything is OK, device is ready
+	_isDeviceReady = true;
+
+	return 0;
 }
 
 int LedDevicePiBlaster::close()
 {
-	int retval = 0;
 	_isDeviceReady = false;
 
 	// Test, if device requires closing
@@ -141,10 +130,10 @@ int LedDevicePiBlaster::close()
 		fclose(_fid);
 		_fid = nullptr;
 	}
-	return retval;
+	return 0;
 }
 
-int LedDevicePiBlaster::write(const std::vector<ColorRgb> & ledValues)
+int LedDevicePiBlaster::write(const QVector <ColorRgb> & ledValues)
 {
 	// Attempt to open if not yet opened
 	if (_fid == nullptr && open() < 0)
@@ -207,8 +196,7 @@ QJsonObject LedDevicePiBlaster::discover(const QJsonObject& /*params*/)
 	deviceDirectory.setSorting(QDir::Name);
 	QFileInfoList deviceFiles = deviceDirectory.entryInfoList(QDir::System);
 
-	QFileInfoList::const_iterator deviceFileIterator;
-	for (deviceFileIterator = deviceFiles.constBegin(); deviceFileIterator != deviceFiles.constEnd(); ++deviceFileIterator)
+	for (QFileInfoList::const_iterator deviceFileIterator = deviceFiles.constBegin(); deviceFileIterator != deviceFiles.constEnd(); ++deviceFileIterator)
 	{
 		QJsonObject deviceInfo;
 		deviceInfo.insert("deviceName", (*deviceFileIterator).fileName());
@@ -216,8 +204,6 @@ QJsonObject LedDevicePiBlaster::discover(const QJsonObject& /*params*/)
 		deviceList.append(deviceInfo);
 	}
 	devicesDiscovered.insert("devices", deviceList);
-
-	DebugIf(verbose,_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return devicesDiscovered;
 }

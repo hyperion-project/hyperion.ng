@@ -33,7 +33,7 @@ int main()
 	Image<ColorRgb> const image(64, 64, testColor);
 	hyperion::ImageToLedsMap const map(log, 64, 64, 0, 0, ledString.leds());
 
-	std::vector<ColorRgb> ledColors(ledString.leds().size());
+	QVector<ColorRgb> ledColors(ledString.leds().size());
 	map.getMeanLedColor(image, ledColors);
 
 	std::cout << "[";

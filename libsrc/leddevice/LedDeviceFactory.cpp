@@ -1,15 +1,14 @@
-// Stl includes
+#include <leddevice/LedDeviceFactory.h>
+
 #include <exception>
 #include <map>
 
-// Build configuration
 #include <HyperionConfig.h>
 
-// Leddevice includes
-#include <leddevice/LedDeviceFactory.h>
 #include <leddevice/LedDeviceWrapper.h>
-#include <utils/Logger.h>
 #include <leddevice/LedDevice.h>
+
+#include <utils/Logger.h>
 
 // autogen
 #include "LedDevice_headers.h"
@@ -21,33 +20,21 @@ LedDevice * LedDeviceFactory::construct(const QJsonObject & deviceConfig)
 
 	QString type = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 
-	const LedDeviceRegistry& devList = LedDeviceWrapper::getDeviceMap();
+	const LedDeviceRegistry& deviceList = LedDeviceWrapper::getDeviceMap();
 	LedDevice* device = nullptr;
-	try
-	{
-		for ( auto dev: devList)
-		{
-			if (dev.first == type)
-			{
-				device = dev.second(deviceConfig);
-				break;
-			}
-		}
 
-		if (device == nullptr)
-		{
-			throw std::runtime_error("unknown device");
-		}
-	}
-	catch(std::exception& e)
+	if (!deviceList.contains(type))
 	{
 		QString dummyDeviceType = "file";
-		Error(log, "Dummy device type (%s) used, because configured device '%s' throws error '%s'", QSTRING_CSTR(dummyDeviceType), QSTRING_CSTR(type), e.what());
+		Error(log, "Configured device '%s' is not supported. Dummy device type (%s) will be used instead", QSTRING_CSTR(type), QSTRING_CSTR(dummyDeviceType));
 
 		QJsonObject dummyDeviceConfig;
 		dummyDeviceConfig.insert("type",dummyDeviceType);
 		device = LedDeviceFile::construct(dummyDeviceConfig);
 	}
-
+	else
+	{
+		device = deviceList.value(type)(deviceConfig);
+	}
 	return device;
 }

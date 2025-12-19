@@ -10,6 +10,7 @@
 
 // Hyperion includes
 #include <leddevice/LedDevice.h>
+#include <QVector>
 
 ///
 /// LedDevice implementation for a USBasp programmer with modified firmware (https://github.com/poljvd/hyperion-usbasp)
@@ -52,7 +53,7 @@ public slots:
 	///
 	int close() override;
 
-protected:
+private:
 	///
 	/// Opens and configures the output device
 	///
@@ -67,7 +68,7 @@ protected:
 	///
 	/// @return Zero on success else negative
 	///
-	int write(const std::vector<ColorRgb>& ledValues) override;
+	int write(const QVector<ColorRgb>& ledValues) override;
 
 	///
 	/// Test if the device is a Hyperion Usbasp device
@@ -78,7 +79,7 @@ protected:
 
 	static libusb_device_handle * openDevice(libusb_device * device);
 
-	static QString getString(libusb_device * device, int stringDescriptorIndex);
+	static QString getString(libusb_device * device, uint8_t stringDescriptorIndex);
 
 	/// command to write the leds
 	uint8_t _writeLedsCommand;

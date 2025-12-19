@@ -9,6 +9,7 @@
 #include <QVector>
 #include <QScopedPointer>
 #include <QSharedPointer>
+#include <QLoggingCategory>
 
 // hyperion includes
 #include <leddevice/LedDevice.h>
@@ -17,6 +18,8 @@
 
 // settings
 #include <utils/settings.h>
+
+Q_DECLARE_LOGGING_CATEGORY(smoothing);
 
 // The type of float
 #define floatT float // Select double, float or __fp16
@@ -90,7 +93,7 @@ public:
 	/// @param ledValues The color-value per led
 	/// @return Zero on success else negative
 	///
-	virtual int updateLedValues(const std::vector<ColorRgb> &ledValues);
+	virtual int updateLedValues(const QVector<ColorRgb> &ledValues);
 
 	void setEnable(bool enable);
 	void setPause(bool pause);
@@ -169,7 +172,7 @@ private:
 	 *
 	 * @param ledColors The colors to queue
 	 */
-	void queueColors(const std::vector<ColorRgb> &ledColors);
+	void queueColors(const QVector<ColorRgb> &ledColors);
 	void clearQueuedColors();
 
 	/// write updated values as input for the smoothing filter
@@ -177,7 +180,7 @@ private:
 	/// @param ledValues The color-value per led
 	/// @return Zero on success else negative
 	///
-	virtual int write(const std::vector<ColorRgb> &ledValues);
+	virtual int write(const QVector<ColorRgb> &ledValues);
 
 	QString getConfig(int cfgID);
 
@@ -206,7 +209,7 @@ private:
 	int64_t _targetTime;
 
 	/// The target led data
-	std::vector<ColorRgb> _targetValues;
+	QVector<ColorRgb> _targetValues;
 
 	/// The timestamp of the previously written led data
 	int64_t _previousWriteTime;
@@ -215,13 +218,13 @@ private:
 	int64_t _previousInterpolationTime;
 
 	/// The previously written led data
-	std::vector<ColorRgb> _previousValues;
+	QVector<ColorRgb> _previousValues;
 
 	/// The number of updates to keep in the output queue (delayed) before being output
 	unsigned _outputDelay;
 
 	/// The output queue
-	std::deque<std::vector<ColorRgb>> _outputQueue;
+	std::deque<QVector<ColorRgb>> _outputQueue;
 
 	/// A frame of led colors used for temporal smoothing
 	class REMEMBERED_FRAME
@@ -231,13 +234,13 @@ private:
 		int64_t time;
 
 		/// The led colors
-		std::vector<ColorRgb> colors;
+		QVector<ColorRgb> colors;
 
 		REMEMBERED_FRAME ( REMEMBERED_FRAME && ) = default;
 		REMEMBERED_FRAME ( const REMEMBERED_FRAME & ) = default;
 		REMEMBERED_FRAME & operator= ( const REMEMBERED_FRAME & ) = default;
 
-		REMEMBERED_FRAME(int64_t time, const std::vector<ColorRgb> colors)
+		REMEMBERED_FRAME(int64_t time, const QVector<ColorRgb> colors)
 		: time(time)
 		, colors(colors)
 		{}
@@ -318,7 +321,7 @@ private:
 	/// Pushes the colors into the frame queue and cleans outdated frames from memory.
 	///
 	/// @param ledColors The next colors to queue
-	void rememberFrame(const std::vector<ColorRgb> &ledColors);
+	void rememberFrame(const QVector<ColorRgb> &ledColors);
 
 	/// Frees the LED frames that were queued for calculating the moving average.
 	void clearRememberedFrames();
@@ -374,7 +377,7 @@ private:
 	/// @param colors The LED colors to aggregate.
 	/// @param weighted The target vector, that accumulates the terms.
 	/// @param weight The weight to use.
-	static inline void aggregateComponents(const std::vector<ColorRgb>& colors, std::vector<uint64_t>& weighted, const floatT weight);
+	static inline void aggregateComponents(const QVector<ColorRgb>& colors, std::vector<uint64_t>& weighted, const floatT weight);
 
 	/// Gets the current time in microseconds from high precision system clock.
 	static inline int64_t micros() ;

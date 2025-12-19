@@ -108,11 +108,20 @@ namespace JsonUtils {
 	///
 	bool resolveRefs(const QJsonObject& schema, QJsonObject& obj, QSharedPointer<Logger> log);
 
-
 	///
 	/// @brief Function to convert QJsonValue to QString using QJsonDocument
 	///
 	QString jsonValueToQString(const QJsonValue &value, QJsonDocument::JsonFormat format = QJsonDocument::Compact);
+
+	///
+	/// @brief Function to convert QJsonValue to QByteArray using QJsonDocument
+	///
+	QByteArray jsonValueToQByteArray(const QJsonValue &value, QJsonDocument::JsonFormat format = QJsonDocument::Compact);
+
+	///
+	/// @brief Function to convert QJsonValue to QByteArray in compact form using QJsonDocument
+	///
+	QByteArray toCompact(const QJsonValue &value);
 
 	///
 	/// @brief Function to merge two QJsonObjects

@@ -14,9 +14,16 @@ private:
 	EffectFileHandler(const QString& rootPath, const QJsonDocument& effectConfig, QObject* parent = nullptr);
 
 public:
-	static EffectFileHandler* efhInstance;
-	static EffectFileHandler* getInstance() { return efhInstance; }
+	static void createInstance(const QString& rootPath, const QJsonDocument& effectConfig, QObject* parent = nullptr);
+	static QSharedPointer<EffectFileHandler> getInstance();
+	static QWeakPointer<EffectFileHandler> getInstanceWeak() { return _instance.toWeakRef(); }
+	static void destroyInstance();
+	static bool isValid();
 
+private:
+	static QSharedPointer<EffectFileHandler> _instance;
+
+public:
 	QJsonObject getEffectConfig() const { return _effectConfig; };
 
 	QString getRootPath() const { return _rootPath; }
@@ -24,12 +31,12 @@ public:
 	///
 	/// @brief Get all available effects
 	///
-	std::list<EffectDefinition> getEffects() const { return _availableEffects; }
+	QList<EffectDefinition> getEffects() const { return _availableEffects; }
 
 	///
 	/// @brief Get all available schemas
 	///
-	std::list<EffectSchema> getEffectSchemas() const { return _effectSchemas; }
+	QList<EffectSchema> getEffectSchemas() const { return _effectSchemas; }
 
 	///
 	/// @brief Save an effect
@@ -76,13 +83,13 @@ private:
 	bool loadEffectSchema(const QString& path, const QString& effectSchemaFile, EffectSchema& effectSchema);
 
 private:
-	QJsonObject _effectConfig;
+ 	QJsonObject _effectConfig;
 	QSharedPointer<Logger> _log;
 	const QString _rootPath;
 
 	// available effects
-	std::list<EffectDefinition> _availableEffects;
+	QList<EffectDefinition> _availableEffects;
 
 	// all schemas
-	std::list<EffectSchema> _effectSchemas;
+	QList<EffectSchema> _effectSchemas;
 };

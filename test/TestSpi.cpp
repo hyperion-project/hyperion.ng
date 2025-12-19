@@ -58,7 +58,7 @@ void setColor(char* colorStr)
 	std::cout << std::endl;
 
 	unsigned ledCnt = 50;
-	std::vector<ColorRgb> buff(ledCnt, color);
+	QVector<ColorRgb> buff(ledCnt, color);
 
 
 	LedDeviceWs2801 ledDevice(deviceConfig);
@@ -73,7 +73,7 @@ void doCircle()
 	ColorRgb color_2 = ColorRgb::YELLOW;
 
 	unsigned ledCnt = 50;
-	std::vector<ColorRgb> data(ledCnt, ColorRgb::BLACK);
+	QVector<ColorRgb> data(ledCnt, ColorRgb::BLACK);
 
 	LedDeviceWs2801 ledDevice(deviceConfig);
 	ledDevice.open();

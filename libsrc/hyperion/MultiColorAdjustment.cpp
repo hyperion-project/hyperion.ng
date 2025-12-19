@@ -9,12 +9,12 @@ MultiColorAdjustment::MultiColorAdjustment(int ledCnt)
 	: _ledAdjustments(static_cast<size_t>(ledCnt), nullptr)
 	, _log(Logger::getInstance("ADJUSTMENT"))
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 }
 
 MultiColorAdjustment::~MultiColorAdjustment()
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 	for (ColorAdjustment* adjustment : _adjustment)
 	{
 		delete adjustment;
@@ -94,7 +94,7 @@ void MultiColorAdjustment::setBacklightEnabled(bool enable)
 	}
 }
 
-void MultiColorAdjustment::applyAdjustment(std::vector<ColorRgb>& ledColors)
+void MultiColorAdjustment::applyAdjustment(QVector<ColorRgb>& ledColors)
 {
 	const size_t itCnt = qMin(_ledAdjustments.size(), ledColors.size());
 	for (size_t i=0; i<itCnt; ++i)

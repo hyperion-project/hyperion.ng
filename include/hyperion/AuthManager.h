@@ -22,7 +22,6 @@ class AuthManager : public QObject
 	Q_OBJECT
 private:
 	friend class HyperionDaemon;
-	/// constructor is private, can be called from HyperionDaemon
 	AuthManager(QObject *parent = nullptr);
 
 public:
@@ -67,10 +66,15 @@ public:
 	///
 	bool isTokenAuthBlocked() const { return (_tokenAuthAttempts.length() >= 25); }
 
-	/// Pointer of this instance
-	static AuthManager *manager;
-	/// Get Pointer of this instance
-	static AuthManager *getInstance() { return manager; }
+    // Singleton accessors
+	static void createInstance(QObject *parent = nullptr);
+	static QSharedPointer<AuthManager> getInstance();
+	static QWeakPointer<AuthManager> getInstanceWeak() { return _instance.toWeakRef(); }
+	static void destroyInstance();
+	static bool isValid();
+
+private:
+	static QSharedPointer<AuthManager> _instance;
 
 public slots:
 
@@ -142,7 +146,7 @@ public slots:
 	/// @param  caller  The QObject of the caller to deliver the reply
 	/// @param  id      The id created by the caller
 	///
-	void cancelNewTokenRequest(QObject *caller, const QString &, const QString &id);
+	void cancelNewTokenRequest(const QObject *caller, const QString &, const QString &id);
 
 	///
 	/// @brief Handle a token request by id, generate token and inform token caller or deny
@@ -175,6 +179,7 @@ public slots:
 	/// @param config configuration object
 	///
 	void handleSettingsUpdate(settings::type type, const QJsonDocument &config);
+
 
 signals:
 	///

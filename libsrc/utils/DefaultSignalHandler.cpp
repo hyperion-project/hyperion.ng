@@ -23,6 +23,84 @@
 namespace DefaultSignalHandler {
 
 #ifdef _WIN32
+	std::string GetExceptionCodeString(DWORD code) {
+		switch (code) {
+		case EXCEPTION_ACCESS_VIOLATION: return "EXCEPTION_ACCESS_VIOLATION";
+		case EXCEPTION_ARRAY_BOUNDS_EXCEEDED: return "EXCEPTION_ARRAY_BOUNDS_EXCEEDED";
+		case EXCEPTION_BREAKPOINT: return "EXCEPTION_BREAKPOINT";
+		case EXCEPTION_DATATYPE_MISALIGNMENT: return "EXCEPTION_DATATYPE_MISALIGNMENT";
+		case EXCEPTION_FLT_DIVIDE_BY_ZERO: return "EXCEPTION_FLT_DIVIDE_BY_ZERO";
+		case EXCEPTION_INT_DIVIDE_BY_ZERO: return "EXCEPTION_INT_DIVIDE_BY_ZERO";
+		case EXCEPTION_ILLEGAL_INSTRUCTION: return "EXCEPTION_ILLEGAL_INSTRUCTION";
+		case EXCEPTION_STACK_OVERFLOW: return "EXCEPTION_STACK_OVERFLOW";
+		default:
+			char buf[64];
+			sprintf(buf, "UNKNOWN_EXCEPTION (0x%08X)", code);
+			return buf;
+		}
+	}
+
+	void PrintStackTrace(CONTEXT* context) {
+		HANDLE process = GetCurrentProcess();
+		HANDLE thread = GetCurrentThread();
+
+		SymInitialize(process, NULL, TRUE);
+
+		STACKFRAME64 stack = {};
+#if defined(_M_X64)
+		DWORD machineType = IMAGE_FILE_MACHINE_AMD64;
+		stack.AddrPC.Offset = context->Rip;
+		stack.AddrFrame.Offset = context->Rbp;
+		stack.AddrStack.Offset = context->Rsp;
+#elif defined(_M_IX86)
+		DWORD machineType = IMAGE_FILE_MACHINE_I386;
+		stack.AddrPC.Offset = context->Eip;
+		stack.AddrFrame.Offset = context->Ebp;
+		stack.AddrStack.Offset = context->Esp;
+#elif defined(_M_ARM64)
+		DWORD machineType = IMAGE_FILE_MACHINE_ARM64;
+		stack.AddrPC.Offset = context->Pc;
+		stack.AddrFrame.Offset = context->Fp;
+		stack.AddrStack.Offset = context->Sp;
+#else
+#error Unsupported architecture
+#endif
+
+		stack.AddrPC.Mode = AddrModeFlat;
+		stack.AddrFrame.Mode = AddrModeFlat;
+		stack.AddrStack.Mode = AddrModeFlat;
+
+		SYMBOL_INFO* symbol = (SYMBOL_INFO*)malloc(sizeof(SYMBOL_INFO) + 256);
+		symbol->MaxNameLen = 255;
+		symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+
+		int frame = 0;
+		while (StackWalk64(machineType, process, thread, &stack, context, NULL,
+			SymFunctionTableAccess64, SymGetModuleBase64, NULL)) {
+
+			if (symbol && SymFromAddr(process, (DWORD64)(stack.AddrPC.Offset), 0, symbol)) {
+				printf("#%02d: %s\n", frame++, symbol->Name);
+			}
+		}
+
+		free(symbol);
+	}
+
+	LONG WINAPI WindowsExceptionHandler(EXCEPTION_POINTERS* exceptionInfo) {
+		DWORD code = exceptionInfo->ExceptionRecord->ExceptionCode;
+		std::string reason = GetExceptionCodeString(code);
+
+		printf("\n=== Unhandled Exception Caught ===\n");
+		printf("Exception Code: 0x%08X (%s)\n", code, reason.c_str());
+
+		printf("Stack Trace:\n");
+		PrintStackTrace(exceptionInfo->ContextRecord);
+
+		return EXCEPTION_EXECUTE_HANDLER;
+	}
+#endif
+
+#ifdef _WIN32
 	void write_to_stderr(const char* data) {
 		DWORD written;
 		WriteFile(GetStdHandle(STD_ERROR_HANDLE), data, strlen(data), &written, NULL);
@@ -66,7 +144,7 @@ namespace DefaultSignalHandler {
 #endif
 
 	void print_trace() {
-		QSharedPointer<Logger> log = Logger::getInstance("CORE");
+		QSharedPointer<Logger> log = Logger::getInstance("SIGNAL-HANDLER");
 
 #ifdef _WIN32
 		void* stack[50];
@@ -181,7 +259,7 @@ namespace DefaultSignalHandler {
 #endif
 
 	void install() {
-		QSharedPointer<Logger> log = Logger::getInstance("CORE");
+		QSharedPointer<Logger> log = Logger::getInstance("SIGNAL-HANDLER");
 
 #ifdef _WIN32
 		signal(SIGABRT, signal_handler);
@@ -189,6 +267,8 @@ namespace DefaultSignalHandler {
 		signal(SIGSEGV, signal_handler);
 		signal(SIGINT, signal_handler);
 		signal(SIGTERM, signal_handler);
+
+		SetUnhandledExceptionFilter(WindowsExceptionHandler);
 #else
 		struct sigaction action {};
 		sigemptyset(&action.sa_mask);

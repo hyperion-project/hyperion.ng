@@ -54,6 +54,11 @@ signals:
 	///
 	void publishService(const QString& serviceType, quint16 servicePort, const QByteArray& serviceName = "");
 
+	///
+	/// @emits when the WebServer has completed its stop/cleanup
+	///
+	void isStopped();
+
 public slots:
 	///
 	/// @brief Init server after thread start

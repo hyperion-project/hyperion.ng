@@ -1,4 +1,5 @@
 #include <hyperion/AuthManager.h>
+#include <utils/MemoryTracker.h>
 
 // db
 #include <db/AuthTable.h>
@@ -10,7 +11,7 @@
 #include <QDateTime>
 #include <QUuid>
 
-AuthManager *AuthManager::manager = nullptr;
+QSharedPointer<AuthManager> AuthManager::_instance;
 
 AuthManager::AuthManager(QObject *parent)
 	: QObject(parent)
@@ -19,7 +20,6 @@ AuthManager::AuthManager(QObject *parent)
 	, _timer(new QTimer(this))
 	, _authBlockTimer(new QTimer(this))
 {
-	AuthManager::manager = this;
 
 	// get uuid
 	_uuid = _metaTable->getUUID();
@@ -43,6 +43,26 @@ AuthManager::AuthManager(QObject *parent)
 
 	// update Hyperion user token on startup
 	_authTable->setUserToken(hyperion::DEFAULT_USER);
+}
+
+void AuthManager::createInstance(QObject *parent)
+{
+	CREATE_INSTANCE_WITH_TRACKING(_instance, AuthManager, parent, nullptr);
+}
+
+QSharedPointer<AuthManager> AuthManager::getInstance()
+{
+	return _instance;
+}
+
+bool AuthManager::isValid()
+{
+	return !_instance.isNull();
+}
+
+void AuthManager::destroyInstance()
+{
+	_instance.reset();
 }
 
 AuthManager::AuthDefinition AuthManager::createToken(const QString &comment)
@@ -161,7 +181,7 @@ void AuthManager::setNewTokenRequest(QObject *caller, const QString &comment, co
 	}
 }
 
-void AuthManager::cancelNewTokenRequest(QObject *caller, const QString &, const QString &id)
+void AuthManager::cancelNewTokenRequest(const QObject *caller, const QString &, const QString &id)
 {
 	if (_pendingRequests.contains(id))
 	{
@@ -247,7 +267,7 @@ void AuthManager::checkTimeout()
 {
 	const uint64_t now = QDateTime::currentMSecsSinceEpoch();
 
-	QMapIterator<QString, AuthDefinition> i(_pendingRequests);
+	QMapIterator i(_pendingRequests);
 	while (i.hasNext())
 	{
 		i.next();

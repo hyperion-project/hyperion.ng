@@ -22,7 +22,7 @@ public:
 	/// @param[in] updateRate_Hz  The image grab rate [Hz]
 	/// @param[in] pixelDecimation   Decimation factor for image [pixels]
 	///
-	X11Wrapper(	int updateRate_Hz=GrabberWrapper::DEFAULT_RATE_HZ,
+	explicit X11Wrapper(	int updateRate_Hz=GrabberWrapper::DEFAULT_RATE_HZ,
 				int pixelDecimation=GrabberWrapper::DEFAULT_PIXELDECIMATION,
 				int cropLeft=0, int cropRight=0,
 				int cropTop=0, int cropBottom=0
@@ -31,19 +31,12 @@ public:
 	///
 	/// Constructs the X11 frame grabber from configuration settings
 	///
-	X11Wrapper(const QJsonDocument& grabberConfig = QJsonDocument());
+	explicit X11Wrapper(const QJsonDocument& grabberConfig = QJsonDocument());
 
 	///
 	/// Destructor of this frame grabber. Releases any claimed resources.
 	///
 	~X11Wrapper() override;
-
-	///
-	/// @brief Determine if the grabber is available for usage on the platform
-	///
-	/// @return true, on success, else false
-	///
-	bool isAvailable() override;
 
 	///
 	/// Starts the grabber, if available
