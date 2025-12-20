@@ -47,7 +47,7 @@ bool LedDeviceSK9822::init(const QJsonObject &deviceConfig)
 void LedDeviceSK9822::bufferWithMaxCurrent(QVector<uint8_t> &txBuf, const QVector<ColorRgb> & ledValues, const int maxLevel) const
 {
 
-	for (int iLed = 0; iLed < _ledCount; ++iLed)
+	for (int iLed = 0; iLed < static_cast<int>(_ledCount); ++iLed)
 	{
 		const ColorRgb &rgb = ledValues[iLed];
 		const uint8_t red = rgb.red;
@@ -76,7 +76,7 @@ inline __attribute__((always_inline)) unsigned LedDeviceSK9822::scale(const uint
 void LedDeviceSK9822::bufferWithAdjustedCurrent(QVector<uint8_t> &txBuf, const QVector<ColorRgb> & ledValues, const int threshold, const int maxLevel) const
 {
 
-	for (int iLed = 0; iLed < _ledCount; ++iLed)
+	for (int iLed = 0; iLed < static_cast<int>(_ledCount); ++iLed)
 	{
 		const ColorRgb &rgb = ledValues[iLed];
 		uint8_t red = rgb.red;
