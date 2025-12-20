@@ -184,10 +184,10 @@ QSharedPointer<T> makeTrackedSingleton(QObject* parent)
     return makeTrackedShared<T>(parent, parent);
 }
 
-static void setTracingLogPattern()
+inline void setTracingLogPattern()
 {
     //Turn off Qt debug logging per default
-	QLoggingCategory::setFilterRules("*.debug = false");
+    QLoggingCategory::setFilterRules("*.debug = false");
 	qSetMessagePattern(
 		"%{time yyyy-MM-ddTHH:mm:ss.zzz} |--|                   : <TRACE> %{category}"
 		"%{if-debug} %{function}()[%{line}] TID:%{threadid}"

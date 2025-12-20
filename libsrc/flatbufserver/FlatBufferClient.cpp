@@ -193,7 +193,7 @@ void FlatBufferClient::handleImageCommand(const hyperionnet::Image *image)
 		int32_t const height = img->height();
 		const auto* data = img->data();
 
-		if (width <= 0 || height <= 0 || data == nullptr || data->empty())
+		if (width <= 0 || height <= 0 || data == nullptr || data->size() == 0) // NOSONAR - Not all flatbuffer versions support empty()
 		{
 			qCDebug(flatbuffer_server_client_flow) << "Received RAW image command with invalid width and/or size or empty image by client" << QString("%1@%2").arg(_origin, _clientAddress);
 			sendErrorReply("Invalid width and/or height or no raw image data provided");
@@ -228,7 +228,7 @@ void FlatBufferClient::handleImageCommand(const hyperionnet::Image *image)
 			const auto* data_uv = img->data_uv();
 
 			if (width <= 0 || height <= 0 || data_y == nullptr || data_uv == nullptr ||
-				data_y->empty() || data_uv->empty())
+				data_y->size() == 0 || data_uv->size() == 0) // NOSONAR - Not all flatbuffer versions support empty()
 			{
 				qCDebug(flatbuffer_server_client_flow) << "Received NV12 image command with invalid width and/or size or empty image by client" << QString("%1@%2").arg(_origin, _clientAddress);
 				sendErrorReply("Invalid width and/or height or no complete NV12 image data provided");
