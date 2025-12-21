@@ -41,7 +41,7 @@ public:
 	///
 	/// @returns IP-address as QString
 	///
-	QString getClientAddress() { return _clientAddress; }
+	QString getClientAddress() const { return _clientAddress; }
 
 signals:
 	///
