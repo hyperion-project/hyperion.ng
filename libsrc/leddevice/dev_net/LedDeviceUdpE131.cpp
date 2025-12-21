@@ -39,9 +39,9 @@ const int DMX_MAX = 512; // 512 usable slots
 
 LedDeviceUdpE131::LedDeviceUdpE131(const QJsonObject &deviceConfig)
 	: ProviderUdp(deviceConfig)
+	, _e131_dmx_max(DMX_MAX)	
 	, _whiteAlgorithm(RGBW::WhiteAlgorithm::INVALID)
 	, _dmxChannelCount(0)
-	, _e131_dmx_max(DMX_MAX)
 {
 }
 
@@ -110,7 +110,7 @@ int LedDeviceUdpE131::open()
 }
 
 // populates the headers
-void LedDeviceUdpE131::prepare(unsigned this_universe, unsigned this_dmxChannelCount)
+void LedDeviceUdpE131::prepare(uint16_t this_universe, uint16_t this_dmxChannelCount)
 {
 	memset(e131_packet.raw, 0, sizeof(e131_packet.raw));
 
@@ -147,7 +147,7 @@ void LedDeviceUdpE131::prepare(unsigned this_universe, unsigned this_dmxChannelC
 int LedDeviceUdpE131::write(const QVector<ColorRgb> &ledValues)
 {
 	int retVal = 0;
-	int thisChannelCount = 0;
+	uint16_t thisChannelCount = 0;
 
 	uint8_t* rawDataPtr = _ledBuffer.data();
 
@@ -172,11 +172,11 @@ int LedDeviceUdpE131::write(const QVector<ColorRgb> &ledValues)
 
 	_e131_seq++;
 
-	for (int rawIdx = 0; rawIdx < _dmxChannelCount; rawIdx++)
+	for (uint16_t rawIdx = 0; rawIdx < _dmxChannelCount; rawIdx++)
 	{
 		if (rawIdx % _e131_dmx_max == 0) // start of new packet
 		{
-			thisChannelCount = (_dmxChannelCount - rawIdx < _e131_dmx_max) ? _dmxChannelCount % _e131_dmx_max : _e131_dmx_max;
+			thisChannelCount = static_cast<uint16_t>((_dmxChannelCount - rawIdx < _e131_dmx_max) ? _dmxChannelCount - rawIdx : _e131_dmx_max);
 			// is this the last packet? ? ^^ last packet : ^^ earlier packets
 
 			prepare(_e131_universe + rawIdx / _e131_dmx_max, thisChannelCount);
@@ -188,15 +188,12 @@ int LedDeviceUdpE131::write(const QVector<ColorRgb> &ledValues)
 		// is this the last byte of last packet || last byte of other packets
 		if ((rawIdx == _dmxChannelCount - 1) || (rawIdx % _e131_dmx_max == _e131_dmx_max - 1))
 		{
-#undef e131debug
-#if e131debug
-			Debug (_log, "send packet: rawidx %d dmxchannelcount %d universe: %d, packetsz %d"
-				, rawIdx
+			qCDebug(leddevice_write) << QString("send packet: rawidx %1 dmxchannelcount %2 universe: %3, packetsz %4").arg(
+				rawIdx
 				, _dmxChannelCount
 				, _e131_universe + rawIdx / _e131_dmx_max
 				, E131_DMP_DATA + 1 + thisChannelCount
 				);
-#endif
 			retVal &= writeBytes(E131_DMP_DATA + 1 + thisChannelCount, e131_packet.raw);
 		}
 	}
