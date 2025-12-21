@@ -51,7 +51,7 @@ public:
 	/// @brief Setup a new capture screen, will free the previous one
 	/// @return True on success, false if no screen is found
 	///
-	bool setupScreen();
+	bool setupScreen() override;
 
 	///
 	/// Captures a single snapshot of the display and writes the data to the given image. The
@@ -67,8 +67,9 @@ public:
 	///@brief Set new width and height for dispmanx, overwrite Grabber.h impl
 	bool setWidthHeight(int width, int height) override;
 
-	QSize getScreenSize(int display=0) const override;
-
+	QSize getScreenSize() const override;	
+	QSize getScreenSize(int display) const;
+		
 	///
 	/// @brief Discover DispmanX screens available (for configuration).
 	///

@@ -278,6 +278,11 @@ int DispmanxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 	return rc;
 }
 
+QSize FramebufferFrameGrabber::getScreenSize() const
+{
+	return getScreenSize(DEFAULT_DEVICE);
+}
+
 QSize DispmanxFrameGrabber::getScreenSize(int device) const
 {
 	int width (0);
