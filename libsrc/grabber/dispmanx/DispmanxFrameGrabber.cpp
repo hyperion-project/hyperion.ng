@@ -1,5 +1,5 @@
+#include "grabber/dispmanx/DispmanxFrameGrabber.h"
 
-// STL includes
 #include <cassert>
 #include <iostream>
 
@@ -14,14 +14,11 @@ namespace {
 	const int DEFAULT_DEVICE = 0;
 } //End of constants
 
-// Local includes
-#include "grabber/dispmanx/DispmanxFrameGrabber.h"
-
 DispmanxFrameGrabber::DispmanxFrameGrabber()
 	: Grabber("GRABBER-DISPMANX")
 	, _lib(nullptr)
 	, _vc_display(0)
-	, _vc_resource(0)
+	, _vc_resource(nullptr)
 	, _vc_flags(DISPMANX_TRANSFORM_T(0))
 	, _captureBuffer(new ColorRgba[0])
 	, _captureBufferSize(0)
@@ -135,7 +132,7 @@ bool DispmanxFrameGrabber::setWidthHeight(int width, int height)
 	bool rc = false;
 	if(open() && Grabber::setWidthHeight(width, height))
 	{
-		if(_vc_resource != 0)
+		if(_vc_resource != nullptr)
 		{
 			wr_vc_dispmanx_resource_delete(_vc_resource);
 		}
@@ -149,7 +146,7 @@ bool DispmanxFrameGrabber::setWidthHeight(int width, int height)
 			&vc_nativeImageHandle);
 		assert(_vc_resource);
 
-		if (_vc_resource != 0)
+		if (_vc_resource != nullptr)
 		{
 			Debug(_log,"Define the capture rectangle with the same size");
 			wr_vc_dispmanx_rect_set(&_rectangle, 0, 0, width, height);
@@ -278,7 +275,7 @@ int DispmanxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 	return rc;
 }
 
-QSize FramebufferFrameGrabber::getScreenSize() const
+QSize DispmanxFrameGrabber::getScreenSize() const
 {
 	return getScreenSize(DEFAULT_DEVICE);
 }
@@ -310,7 +307,7 @@ QSize DispmanxFrameGrabber::getScreenSize(int device) const
 	return QSize(width, height);
 }
 
-QJsonObject DispmanxFrameGrabber::discover(const QJsonObject& params)
+QJsonObject DispmanxFrameGrabber::discover(const QJsonObject& /*params*/)
 {
 	QJsonObject inputsDiscovered;
 	if (open())
@@ -358,7 +355,9 @@ QJsonObject DispmanxFrameGrabber::discover(const QJsonObject& params)
 			inputsDiscovered["type"] = "screen";
 			inputsDiscovered["video_inputs"] = video_inputs;
 
-			QJsonObject defaults, video_inputs_default, resolution_default;
+			QJsonObject defaults;
+			QJsonObject video_inputs_default;
+			QJsonObject resolution_default;
 			resolution_default["fps"] = _fps;
 			video_inputs_default["resolution"] = resolution_default;
 			video_inputs_default["inputIdx"] = 0;
