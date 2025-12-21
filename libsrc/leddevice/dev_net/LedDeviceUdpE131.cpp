@@ -172,14 +172,14 @@ int LedDeviceUdpE131::write(const QVector<ColorRgb> &ledValues)
 
 	_e131_seq++;
 
-	for (uint16_t rawIdx = 0; rawIdx < _dmxChannelCount; rawIdx++)
+	for (auto rawIdx = 0; rawIdx < _dmxChannelCount; rawIdx++)
 	{
 		if (rawIdx % _e131_dmx_max == 0) // start of new packet
 		{
 			thisChannelCount = static_cast<uint16_t>((_dmxChannelCount - rawIdx < _e131_dmx_max) ? _dmxChannelCount - rawIdx : _e131_dmx_max);
 			// is this the last packet? ? ^^ last packet : ^^ earlier packets
 
-			prepare(_e131_universe + rawIdx / _e131_dmx_max, thisChannelCount);
+			prepare(static_cast<uint16_t>(_e131_universe + rawIdx / _e131_dmx_max), thisChannelCount);
 			_e131_packet.frame.sequence_number = _e131_seq;
 		}
 

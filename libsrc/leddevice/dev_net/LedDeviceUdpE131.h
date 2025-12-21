@@ -160,7 +160,7 @@ private:
 	// RGBW specific members
 	RGBW::WhiteAlgorithm _whiteAlgorithm;
 	ColorRgbw _temp_rgbw;
-	int _dmxChannelCount;
+	uint16_t _dmxChannelCount;
 };
 
 #endif // LEDEVICEUDPE131_H
