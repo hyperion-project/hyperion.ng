@@ -18,7 +18,7 @@ DispmanxFrameGrabber::DispmanxFrameGrabber()
 	: Grabber("GRABBER-DISPMANX")
 	, _lib(nullptr)
 	, _vc_display(0)
-	, _vc_resource(nullptr)
+	, _vc_resource(0)
 	, _vc_flags(DISPMANX_TRANSFORM_T(0))
 	, _captureBuffer(new ColorRgba[0])
 	, _captureBufferSize(0)
@@ -132,7 +132,7 @@ bool DispmanxFrameGrabber::setWidthHeight(int width, int height)
 	bool rc = false;
 	if(open() && Grabber::setWidthHeight(width, height))
 	{
-		if(_vc_resource != nullptr)
+		if(_vc_resource != 0)
 		{
 			wr_vc_dispmanx_resource_delete(_vc_resource);
 		}
@@ -146,7 +146,7 @@ bool DispmanxFrameGrabber::setWidthHeight(int width, int height)
 			&vc_nativeImageHandle);
 		assert(_vc_resource);
 
-		if (_vc_resource != nullptr)
+		if (_vc_resource != 0)
 		{
 			Debug(_log,"Define the capture rectangle with the same size");
 			wr_vc_dispmanx_rect_set(&_rectangle, 0, 0, width, height);
