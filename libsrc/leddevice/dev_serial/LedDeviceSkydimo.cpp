@@ -22,21 +22,21 @@ LedDevice* LedDeviceSkydimo::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceSkydimo::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = false;
-
 	// Initialise sub-class
-	if ( ProviderRs232::init(deviceConfig) )
+	if ( !ProviderRs232::init(deviceConfig) )
 	{
-		prepareHeader();
-		isInitOK = true;
+		return false;
 	}
-	return isInitOK;
+
+	prepareHeader();
+
+	return true;
 }
 
 void LedDeviceSkydimo::prepareHeader()
 {
 	_bufferLength = static_cast<qint64>(HEADER_SIZE + _ledRGBCount);
-	_ledBuffer.resize(static_cast<size_t>(_bufferLength), 0x00);
+	_ledBuffer.fill(0x00, _bufferLength);
 	_ledBuffer[0] = 'A';
 	_ledBuffer[1] = 'd';
 	_ledBuffer[2] = 'a';
@@ -48,17 +48,18 @@ void LedDeviceSkydimo::prepareHeader()
 		   _ledBuffer[0], _ledBuffer[1], _ledBuffer[2], _ledBuffer[3], _ledBuffer[4], _ledBuffer[5] );
 }
 
-int LedDeviceSkydimo::write(const std::vector<ColorRgb> & ledValues)
+int LedDeviceSkydimo::write(const QVector<ColorRgb> & ledValues)
 {
-	if (_ledCount != ledValues.size())
+	auto ledCount = static_cast<uint>(ledValues.size());
+	if (_ledCount != ledCount)
 	{
-		Warning(_log, "Skydimo LED count has changed (old: %d, new: %d). Rebuilding header.", _ledCount, ledValues.size());
-		_ledCount = static_cast<uint>(ledValues.size());
-		_ledRGBCount = _ledCount * 3;
+		Warning(_log, "Skydimo LED count has changed (old: %d, new: %d). Rebuilding header.", _ledCount, ledCount);
+
+		_ledRGBCount = ledCount * 3;
 		prepareHeader();
 	}
 
-	if (_bufferLength >  static_cast<qint64>(_ledBuffer.size()))
+	if (_bufferLength >  _ledBuffer.size())
 	{
 		Warning(_log, "Skydimo buffer's size has changed. Skipping refresh.");
 		return 0;

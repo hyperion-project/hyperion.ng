@@ -1,3 +1,5 @@
+#include "LedDeviceUdpE131.h"
+
 #ifdef _WIN32
 #include <winsock.h>
 #else
@@ -6,8 +8,6 @@
 
 #include <QHostInfo>
 
-// hyperion local includes
-#include "LedDeviceUdpE131.h"
 #include <utils/NetUtils.h>
 
 // Constants
@@ -52,76 +52,61 @@ LedDevice* LedDeviceUdpE131::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceUdpE131::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK {false};
-
 	// Initialise sub-class
-	if ( ProviderUdp::init(deviceConfig) )
+	if ( !ProviderUdp::init(deviceConfig) )
 	{
-		_hostName = _devConfig[ CONFIG_HOST ].toString();
-		_port = deviceConfig[CONFIG_PORT].toInt(E131_DEFAULT_PORT);
-
-		_e131_universe = deviceConfig["universe"].toInt(1);
-		_e131_dmx_max = deviceConfig["dmx-max"].toInt(DMX_MAX);
-        if (_e131_dmx_max > DMX_MAX)
-        {
-            _e131_dmx_max = DMX_MAX;
-            Warning(_log, "Maximum channels configured [%d] cannot exceed maximum channels defined by the E1.31 protocol. Corrected to %d channels.", _e131_dmx_max, DMX_MAX);
-        }
-		_e131_source_name = deviceConfig["source-name"].toString("hyperion on "+QHostInfo::localHostName());
-		QString _json_cid = deviceConfig["cid"].toString("");
-
-		// Initialize white algorithm
-		QString whiteAlgorithmStr = deviceConfig["whiteAlgorithm"].toString("white_off");
-		_whiteAlgorithm = RGBW::stringToWhiteAlgorithm(whiteAlgorithmStr);
-		if (_whiteAlgorithm == RGBW::WhiteAlgorithm::INVALID)
-		{
-			QString errortext = QString("unknown whiteAlgorithm: %1").arg(whiteAlgorithmStr);
-			this->setInError(errortext);
-			return false;
-		}
-		Debug(_log, "whiteAlgorithm : %s", QSTRING_CSTR(whiteAlgorithmStr));
-
-		_dmxChannelCount = (_whiteAlgorithm == RGBW::WhiteAlgorithm::WHITE_OFF) ? _ledRGBCount : _ledRGBWCount;
-		_ledBuffer.resize(_dmxChannelCount);
-
-		if (_json_cid.isEmpty())
-		{
-			_e131_cid = QUuid::createUuid();
-			Debug( _log, "e131 no CID found, generated %s", QSTRING_CSTR(_e131_cid.toString()));
-			isInitOK = true;
-		}
-		else
-		{
-			_e131_cid = QUuid(_json_cid);
-			if ( !_e131_cid.isNull() )
-			{
-				Debug( _log, "e131  CID found, using %s", QSTRING_CSTR(_e131_cid.toString()));
-				isInitOK = true;
-			}
-			else
-			{
-				this->setInError("CID configured is not a valid UUID. Format expected is \"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx\"");
-			}
-		}
+		return false;
 	}
-	return isInitOK;
+
+	_hostName = _devConfig[ CONFIG_HOST ].toString();
+	_port = deviceConfig[CONFIG_PORT].toInt(E131_DEFAULT_PORT);
+
+	_e131_universe = static_cast<uint8_t>(deviceConfig["universe"].toInt(1));
+	_e131_source_name = deviceConfig["source-name"].toString("hyperion on "+QHostInfo::localHostName());
+	QString _json_cid = deviceConfig["cid"].toString("");
+
+	// Initialize white algorithm
+	QString whiteAlgorithmStr = deviceConfig["whiteAlgorithm"].toString("white_off");
+	_whiteAlgorithm = RGBW::stringToWhiteAlgorithm(whiteAlgorithmStr);
+	if (_whiteAlgorithm == RGBW::WhiteAlgorithm::INVALID)
+	{
+		QString errortext = QString("unknown whiteAlgorithm: %1").arg(whiteAlgorithmStr);
+		this->setInError(errortext);
+		return false;
+	}
+	Debug(_log, "whiteAlgorithm : %s", QSTRING_CSTR(whiteAlgorithmStr));
+
+	if (_json_cid.isEmpty())
+	{
+		_e131_cid = QUuid::createUuid();
+		Debug( _log, "e131 no CID found, generated %s", QSTRING_CSTR(_e131_cid.toString()));
+		return true;
+	}
+	
+	_e131_cid = QUuid(_json_cid);
+	if ( _e131_cid.isNull() )
+	{
+		this->setInError("CID configured is not a valid UUID. Format expected is \"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx\"");
+		return false;
+	}
+	Debug( _log, "e131  CID found, using %s", QSTRING_CSTR(_e131_cid.toString()));
+	
+	return true;
 }
 
 int LedDeviceUdpE131::open()
 {
-	int retval = -1;
 	_isDeviceReady = false;
-
-	if (NetUtils::resolveHostToAddress(_log, _hostName, _address))
+	this->setIsRecoverable(true);
+	
+	NetUtils::convertMdnsToIp(_log, _hostName);
+	if (ProviderUdp::open() == 0)
 	{
-		if (ProviderUdp::open() == 0)
-		{
-			// Everything is OK, device is ready
-			_isDeviceReady = true;
-			retval = 0;
-		}
+		// Everything is OK, device is ready
+		_isDeviceReady = true;
+
 	}
-	return retval;
+	return _isDeviceReady ? 0 : -1;
 }
 
 // populates the headers
@@ -159,7 +144,7 @@ void LedDeviceUdpE131::prepare(unsigned this_universe, unsigned this_dmxChannelC
 	e131_packet.property_values[0] = 0;	// start code
 }
 
-int LedDeviceUdpE131::write(const std::vector<ColorRgb> &ledValues)
+int LedDeviceUdpE131::write(const QVector<ColorRgb> &ledValues)
 {
 	int retVal = 0;
 	int thisChannelCount = 0;

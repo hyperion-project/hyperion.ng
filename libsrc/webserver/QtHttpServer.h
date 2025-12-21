@@ -24,7 +24,7 @@ class QtHttpServerWrapper : public QTcpServer
 
 public:
 	explicit QtHttpServerWrapper (QObject * parent = Q_NULLPTR);
-	~QtHttpServerWrapper() override;
+	~QtHttpServerWrapper (void) override;
 
 	void setUseSecure (const bool ssl = true);
 
@@ -84,7 +84,7 @@ private:
 	QSslKey                                    m_sslKey;
 	QList<QSslCertificate>                     m_sslCerts;
 	QString                                    m_serverName;
-	NetOrigin*                                 m_netOrigin;
+	QWeakPointer<NetOrigin>                    m_netOriginWeak;
 	QtHttpServerWrapper *                      m_sockServer;
 	QHash<QTcpSocket *, QtHttpClientWrapper *> m_socksClientsHash;
 };

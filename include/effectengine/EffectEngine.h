@@ -3,11 +3,13 @@
 // Qt includes
 #include <QObject>
 #include <QString>
+#include <QList>
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QEventLoop>
+#include <QSharedPointer>
 
 // Effect engine includes
 #include <effectengine/EffectDefinition.h>
@@ -30,9 +32,9 @@ public:
 	explicit EffectEngine(const QSharedPointer<Hyperion>& hyperionInstance);
 	~EffectEngine() override;
 
-	std::list<EffectDefinition> getEffects() const { return _availableEffects; }
+	QList<EffectDefinition> getEffects() const { return _availableEffects; }
 
-	std::list<ActiveEffectDefinition> getActiveEffects() const;
+	QList<ActiveEffectDefinition> getActiveEffects() const;
 
 	///
 	/// @brief Get all init data of the running effects and stop them
@@ -72,14 +74,13 @@ public slots:
 	);
 
 	/// Clear any effect running on the provided channel
-	void channelCleared(int priority);
+	void channelCleared(int priority) const;
 
 	/// Clear all effects
-	void allChannelsCleared();
+	void allChannelsCleared() const;
 
 private slots:
 	void effectFinished();
-	void onEffectFinished();
 
 	///
 	/// @brief is called whenever the EffectFileHandler emits updated effect list
@@ -104,16 +105,16 @@ private:
 	/// Hyperion instance pointer
 	QWeakPointer<Hyperion> _hyperionWeak;
 
-	std::list<EffectDefinition> _availableEffects;
+	QList<EffectDefinition> _availableEffects;
 
-	std::list<Effect *> _activeEffects;
+	QList<QSharedPointer<Effect>> _activeEffects;
 
-	std::list<ActiveEffectDefinition> _cachedActiveEffects;
+	QList<ActiveEffectDefinition> _cachedActiveEffects;
 
 	QSharedPointer<Logger> _log;
 
 	// The global effect file handler
-	EffectFileHandler * _effectFileHandler;
+	QWeakPointer<EffectFileHandler> _effectFileHandlerWeak;
 
 	QEventLoop _eventLoop;
 	int _remainingEffects;

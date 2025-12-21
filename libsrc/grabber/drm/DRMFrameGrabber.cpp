@@ -15,9 +15,6 @@
 #include <QSize>
 #include <QMap>
 
-Q_LOGGING_CATEGORY(grabber_drm, "grabber.screen.drm")
-
-
 // Add missing AMD format modifier definitions for downward compatibility
 #ifndef AMD_FMT_MOD_TILE_VER_GFX11
 #define AMD_FMT_MOD_TILE_VER_GFX11 4
@@ -119,6 +116,9 @@ static PixelFormat GetPixelFormatForDrmFormat(uint32_t format)
 {
     switch (format)
     {
+#ifdef DRM_FORMAT_RGB565
+    case DRM_FORMAT_RGB565: return PixelFormat::BGR16;
+#endif
     case DRM_FORMAT_XRGB8888: return PixelFormat::BGR32;
     case DRM_FORMAT_ARGB8888: return PixelFormat::BGR32;
     case DRM_FORMAT_XBGR8888: return PixelFormat::RGB32;
@@ -258,6 +258,11 @@ static bool processLinearFramebuffer(const LinearFramebufferParams& params)
         lineLength = params.w * 2; // 16bpp luma
     }
 #endif
+    else if (params.pixelFormat == PixelFormat::BGR16)
+    {
+        size = params.w * params.h * 2;
+        lineLength = params.w * 2;
+    }
     else if (params.pixelFormat == PixelFormat::RGB32 || params.pixelFormat == PixelFormat::BGR32)
     {
         size = params.w * params.h * 4;
@@ -588,13 +593,13 @@ int DRMFrameGrabber::grabFrame(Image<ColorRgb> &image)
         _pixelFormat = GetPixelFormatForDrmFormat(framebuffer->pixel_format);
         uint64_t modifier = framebuffer->modifier;
 
-        qCDebug(grabber_drm) << QString("Framebuffer ID: %1 - Width: %2 - Height: %3  - DRM Format: %4 - PixelFormat: %5, Modifier: %6")
+        qCDebug(grabber_screen_capture) << QString("Framebuffer ID: %1 - Width: %2 - Height: %3  - DRM Format: %4 - PixelFormat: %5, Modifier: %6")
                 .arg(id)
                 .arg(framebuffer->width)
                 .arg(framebuffer->height)
-                .arg(QSTRING_CSTR(getDrmFormat(framebuffer->pixel_format)))
-                .arg(QSTRING_CSTR(pixelFormatToString(_pixelFormat)))
-                .arg(QSTRING_CSTR(getDrmModifierName(modifier)));
+                .arg(getDrmFormat(framebuffer->pixel_format))
+                .arg(pixelFormatToString(_pixelFormat))
+                .arg(getDrmModifierName(modifier));
 
         int w = framebuffer->width;
         int h = framebuffer->height;
@@ -642,7 +647,7 @@ int DRMFrameGrabber::grabFrame(Image<ColorRgb> &image)
 
     if (!newImage)
     {
-        qCDebug(grabber_drm) << "No image captured from DRM framebuffer.";
+        qCDebug(grabber_screen_capture) << "No image captured from DRM framebuffer.";
         return -1;
     }
 
@@ -852,7 +857,7 @@ bool DRMFrameGrabber::isPrimaryPlaneForCrtc(uint32_t planeId, const drmModeObjec
             auto plane = drmModeGetPlane(_deviceFd, planeId);
             if (plane && _crtc && plane->crtc_id == _crtc->crtc_id)
             {
-                qCDebug(grabber_drm) << plane;
+                qCDebug(grabber_screen_flow) << plane;
                 _planes.insert({planeId, plane});
                 return true;
             }
@@ -915,7 +920,7 @@ void DRMFrameGrabber::getFramebuffers()
 	for (auto const &[id, plane] : _planes)
 	{
 		drmModeFB2Ptr fb = drmModeGetFB2(_deviceFd, plane->fb_id);
-		qCDebug(grabber_drm) << fb;
+		qCDebug(grabber_screen_flow) << fb;
 		if (fb == nullptr) continue;
 
 		if (fb->handles[0] == 0)
@@ -964,7 +969,7 @@ bool DRMFrameGrabber::getScreenInfo()
 
 	drmModeFreeResources(resources);
 
-	qCDebug(grabber_drm) << QString("Framebuffer count: %1").arg(_framebuffers.size());
+	qCDebug(grabber_screen_flow) << "Framebuffer count:" << _framebuffers.size();
 
 	return !_framebuffers.empty();
 }
@@ -984,7 +989,7 @@ QJsonArray DRMFrameGrabber::getInputDeviceDetails() const
 		QString const fileName = deviceFile.fileName();
 		int deviceIdx = fileName.right(1).toInt();
 		QString device = deviceFile.absoluteFilePath();
-		qCDebug(grabber_drm) << QString("DRM device [%1] found").arg(QSTRING_CSTR(device));
+		qCDebug(grabber_screen_properties) << "DRM device [" << device << "] found";
 
 		QSize screenSize = getScreenSize(device);
 		//Only add devices with a valid screen size, i.e. where a monitor is connected
@@ -1026,8 +1031,6 @@ QJsonArray DRMFrameGrabber::getInputDeviceDetails() const
 
 QJsonObject DRMFrameGrabber::discover(const QJsonObject &params)
 {
-	qCDebug(grabber_drm) << "params: " << QJsonDocument(params).toJson(QJsonDocument::Compact);
-
 	if (!isAvailable(false))
 	{
 		return {};
@@ -1038,7 +1041,7 @@ QJsonObject DRMFrameGrabber::discover(const QJsonObject &params)
 	QJsonArray const video_inputs = getInputDeviceDetails();
 	if (video_inputs.isEmpty())
 	{
-		qCDebug(grabber_drm) << "No displays found to capture from!";
+		qCDebug(grabber_screen_properties) << "No displays found to capture from!";
 		return {};
 	}
 
@@ -1056,8 +1059,6 @@ QJsonObject DRMFrameGrabber::discover(const QJsonObject &params)
 	video_inputs_default["inputIdx"] = 0;
 	defaults["video_input"] = video_inputs_default;
 	inputsDiscovered["default"] = defaults;
-
-	qCDebug(grabber_drm) << "Discovered input devices:" << QJsonDocument(inputsDiscovered).toJson(QJsonDocument::Compact).constData();
 
 	return inputsDiscovered;
 }

@@ -31,15 +31,21 @@ QThreadStorage<QSqlDatabase> DBManager::_databasePool;
 bool DBManager::_isReadOnly {false};
 
 DBManager::DBManager(QObject* parent)
+	: DBManager("", parent)
+{
+}
+
+DBManager::DBManager(const QString& tableName, QObject* parent)
 	: QObject(parent)
 	, _log(Logger::getInstance("DB"))
 {
-	TRACK_SCOPE;
+	setTable(tableName);
+	TRACK_SCOPE() << (!_table.isEmpty() ? "Table: " + _table : "");
 }
 
 DBManager::~DBManager()
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE() << (!_table.isEmpty() ? "Table: " + _table : "");
 }
 
 void DBManager::initializeDatabase(const QDir& dataDirectory, bool isReadOnly)

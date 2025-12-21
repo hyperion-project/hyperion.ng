@@ -12,18 +12,18 @@ LedDevice* LedDeviceP9813::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceP9813::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = false;
-
 	// Initialise sub-class
-	if ( ProviderSpi::init(deviceConfig) )
+	if ( !ProviderSpi::init(deviceConfig) )
 	{
-		_ledBuffer.resize(_ledCount * 4 + 8, 0x00);
-		isInitOK = true;
+		return false;
 	}
-	return isInitOK;
+
+	_ledBuffer.fill(0x00, _ledCount * 4 + 8);
+
+	return true;
 }
 
-int LedDeviceP9813::write(const std::vector<ColorRgb> &ledValues)
+int LedDeviceP9813::write(const QVector<ColorRgb> &ledValues)
 {
 	uint8_t * dataPtr = _ledBuffer.data();
 	for (const ColorRgb & color : ledValues)

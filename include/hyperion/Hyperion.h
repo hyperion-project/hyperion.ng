@@ -3,6 +3,7 @@
 // stl includes
 #include <list>
 #include <chrono>
+#include <atomic>
 
 // QT includes
 #include <QString>
@@ -11,11 +12,14 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QJsonArray>
+#include <QJsonDocument>
+#include <QVector>
 #include <QMap>
 #include <QScopedPointer>
 #include <QSharedPointer>
-#include <QElapsedTimer>
 #include <QThread>
+#include <QTimer>
+#include <QLoggingCategory>
 
 // hyperion-utils includes
 #include <utils/Image.h>
@@ -48,6 +52,9 @@
 #include <utils/settings.h>
 
 #include <utils/MemoryTracker.h>
+
+Q_DECLARE_LOGGING_CATEGORY(instance_flow);
+Q_DECLARE_LOGGING_CATEGORY(instance_update);
 
 // Forward class declaration
 class ImageProcessor;
@@ -105,11 +112,11 @@ public:
 public slots:
 
 	///
-	/// Updates the priority muxer with the current time and (re)writes the led color with applied
-	/// transforms.
+	/// Performs the main output processing.
+	/// Retrieves the current priority input and processes it to update the LEDs.
 	///
 	void update();
-
+	
 	///
 	/// Forces one update to the priority muxer with the current time and (re)writes the led color with applied
 	/// transforms.
@@ -141,7 +148,7 @@ public slots:
 	/// @param  clearEffect  Should be true when NOT called from an effect
 	/// @return              True on success, false when priority is not found
 	///
-	bool setInput(int priority, const std::vector<ColorRgb>& ledColors, int timeout_ms = PriorityMuxer::ENDLESS, bool clearEffect = true);
+	bool setInput(int priority, const QVector<ColorRgb>& ledColors, int timeout_ms = PriorityMuxer::ENDLESS, bool clearEffect = true);
 
 	///
 	/// @brief   Update the current image of a priority (prev registered with registerInput())
@@ -165,7 +172,7 @@ public slots:
 	/// @param[in] origin   The setter
 	/// @param     clearEffect  Should be true when NOT called from an effect
 	///
-	void setColor(int priority, const std::vector<ColorRgb> &ledColors, int timeout_ms = PriorityMuxer::ENDLESS, const QString& origin = "System" ,bool clearEffects = true);
+	void setColor(int priority, const QVector<ColorRgb> &ledColors, int timeout_ms = PriorityMuxer::ENDLESS, const QString& origin = "System" ,bool clearEffects = true);
 
 	///
 	/// @brief Set the given priority to inactive
@@ -231,7 +238,7 @@ public slots:
 
 	/// Get the list of active effects
 	/// @return The list of active effects
-	std::list<ActiveEffectDefinition> getActiveEffects() const;
+	QList<ActiveEffectDefinition> getActiveEffects() const;
 #endif
 
 	/// #############
@@ -304,10 +311,6 @@ public slots:
 	/// @return      Data Document
 	///
 	QJsonDocument getSetting(settings::type type) const;
-
-	/// gets the current json config object from SettingsManager
-	/// @return json config
-	QJsonObject getQJsonConfig(quint8 inst) const;
 
 	///
 	/// @brief Save a complete json config
@@ -468,12 +471,12 @@ signals:
 	///
 	/// @brief Emits whenever new data should be pushed to the LedDeviceWrapper which forwards it to the threaded LedDevice
 	///
-	void ledDeviceData(const std::vector<ColorRgb>& ledValues);
+	void ledDeviceData(const QVector<ColorRgb>& ledValues);
 
 	///
 	/// @brief Emits whenever new untransformed ledColos data is available, reflects the current visible device
 	///
-	void rawLedColors(const std::vector<ColorRgb>& ledValues);
+	void rawLedColors(const QVector<ColorRgb>& ledValues);
 
 	///
 	/// @brief Emits before thread quit is requested
@@ -512,12 +515,57 @@ private slots:
 	///
 	void handleSourceAvailability(int priority);
 
+	///
+	/// @brief Handle updates requested.
+	///
+	void handleUpdate();
+
+	///
+	/// @brief Handle a forced update
+	///
+	void handleForceUpdate();
+
+	///
+	/// Reset the statistics on image processing and restart the timer
+	///
+	void resetImagesProcessedStatistics();
+
+	///
+	/// Report image processing statistics
+	///
+	void reportImagesProcessedStatistics();
+	///
+	/// @brief Process images for output.
+	///
+	void processUpdate();	
+
 signals:
 	void isSetNewComponentState(hyperion::Components component, bool state);
 
 private:
+
 	void updateLedColorAdjustment(int ledCount, const QJsonObject& colors);
 	void updateLedLayout(const QJsonArray& ledLayout);
+
+	///
+	/// Applies the blacklist to a vector of LED colors, setting blacklisted LEDs to black.
+	///
+	/// @param ledColors The vector of LED colors to modify.
+	///
+	void applyBlacklist(QVector<ColorRgb>& ledColors);
+
+	///
+	/// Applies the configured color order to a vector of LED colors.
+	///
+	/// @param ledColors The vector of LED colors to modify.
+	///
+	void applyColorOrder(QVector<ColorRgb>& ledColors) const;
+
+	///
+	/// Writes the final LED colors to the LED device.
+	/// This involves smoothing and throttling.
+	///
+	void writeToLeds();
 
 	/// instance index
 	const quint8 _instIndex;
@@ -528,7 +576,7 @@ private:
 	/// The specifiation of the led frame construction and picture integration
 	LedString _ledString;
 
-	std::vector<ColorOrder> _ledStringColorOrder;
+	QVector<ColorOrder> _ledStringColorOrder;
 
 	/// Register that holds component states
 	QSharedPointer<ComponentRegister> _componentRegister;
@@ -572,19 +620,16 @@ private:
 	int _layoutLedCount;
 	QString _colorOrder;
 	QSize _layoutGridSize;
+	VideoMode _currVideoMode = VideoMode::VIDEO_2D;	
 
-	/// buffer for leds (with adjustment)
-	std::vector<ColorRgb> _ledBuffer;
+	std::atomic<bool> _isUpdatePending{ false };
+	std::atomic<bool> _isUpdateQueued{ false };
+	
+	// buffer for leds (with adjustment)
+	QVector<ColorRgb> _ledBuffer;
 
-	VideoMode _currVideoMode = VideoMode::VIDEO_2D;
-
-	QElapsedTimer _imageTimer;  // Timer for controlling image emission frequency
-	QElapsedTimer _rawLedDataTimer;  // Timer for controlling rawLedColors emission frequency
-	QElapsedTimer _ledDeviceDataTimer; // Timer for controlling LedDevice data emission frequency
-	qint64 _lastImageEmission;  // Last timestamp of image signal emission
-	qint64 _lastRawLedDataEmission;  // Last timestamp of rawLedColors signal emission
-	qint64 _lastLedDeviceDataEmission; // Last timestamp of ledDeviceData signal emission
-	std::chrono::milliseconds _imageEmissionInterval;
-	std::chrono::milliseconds _rawLedDataEmissionInterval;
-	std::chrono::milliseconds _ledDeviceDataEmissionInterval;
+	/// statistics timer
+	QScopedPointer<QTimer> _statisticsTimer;
+	std::atomic<int> _totalImagesProcessed{ 0 };
+	std::atomic<int> _imagesSkipped{ 0 };
 };

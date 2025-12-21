@@ -1,11 +1,5 @@
 #pragma once
 
-#define NOFRAME_BENCH
-
-#ifdef FRAME_BENCH
-	#include <QElapsedTimer>
-#endif
-
 // stl includes
 #include <vector>
 #include <map>
@@ -16,6 +10,7 @@
 #include <QRectF>
 #include <QMap>
 #include <QMultiMap>
+#include <QElapsedTimer>
 
 // util includes
 #include <utils/PixelFormat.h>
@@ -41,27 +36,28 @@ class V4L2Grabber : public Grabber
 	Q_OBJECT
 
 public:
+
 	struct DeviceProperties
 	{
-		QString name = QString();
+		QString name;
 		struct InputProperties
 		{
-			QString inputName = QString();
-			QList<VideoStandard> standards = QList<VideoStandard>();
+			QString inputName;
+			QList<VideoStandard> standards;
 			struct EncodingProperties
 			{
 				int width		= 0;
 				int height		= 0;
-				QList<int> framerates	= QList<int>();
+				QList<int> framerates;
 			};
-			QMultiMap<PixelFormat, EncodingProperties> encodingFormats = QMultiMap<PixelFormat, EncodingProperties>();
+			QMultiMap<PixelFormat, EncodingProperties> encodingFormats;
 		};
-		QMap<int, InputProperties> inputs = QMap<int, InputProperties>();
+		QMap<int, InputProperties> inputs;
 	};
 
 	struct DeviceControls
 	{
-		QString property = QString();
+		QString property;
 		int minValue = 0;
 		int maxValue = 0;
 		int step = 0;
@@ -95,7 +91,7 @@ public slots:
 	bool prepare();
 	bool start();
 	void stop();
-	void newThreadFrame(Image<ColorRgb> image);
+	void newThreadFrame(const Image<ColorRgb>& image);
 
 signals:
 	void newFrame(const Image<ColorRgb> & image);
@@ -130,7 +126,6 @@ private:
 		Error(_log, "Throws error nr: %s", QSTRING_CSTR(QString(error + " error code " + QString::number(errno) + ", " + strerror(errno))));
 	}
 
-private:
 	enum io_method
 	{
 			IO_METHOD_READ,
@@ -144,39 +139,45 @@ private:
 			size_t  length;
 	};
 
-private:
-	QString _currentDevicePath, _currentDeviceName;
+	QString _currentDevicePath;
+	QString _currentDeviceName;
 	EncoderThreadManager* _threadManager;
 	QMap<QString, V4L2Grabber::DeviceProperties> _deviceProperties;
 	QMap<QString, QList<DeviceControls>> _deviceControls;
 
-	io_method           _ioMethod;
-	int                 _fileDescriptor;
+	io_method _ioMethod;
+	int _fileDescriptor;
 	std::vector<buffer> _buffers;
 
-	PixelFormat _pixelFormat, _pixelFormatConfig;
-	int         _lineLength;
-	int         _frameByteSize;
+	PixelFormat _pixelFormat;
+	PixelFormat _pixelFormatConfig;
+	int _lineLength;
+	int _frameByteSize;
 
 	QAtomicInt _currentFrame;
 
 	// signal detection
 	int      _noSignalCounterThreshold;
 	ColorRgb _noSignalThresholdColor;
-	bool     _standbyActivated, _signalDetectionEnabled, _signalDetected;
+	bool _standbyActivated;
+	bool _signalDetectionEnabled;
+	bool _signalDetected;
 	int      _noSignalCounter;
-	int		_brightness, _contrast, _saturation, _hue;
-	double   _x_frac_min;
-	double   _y_frac_min;
-	double   _x_frac_max;
-	double   _y_frac_max;
+	int	_brightness;
+	int _contrast;
+	int _saturation;
+	int _hue;
+	double _x_frac_min;
+	double _y_frac_min;
+	double _x_frac_max;
+	double _y_frac_max;
 
-#ifdef FRAME_BENCH
-	QElapsedTimer _frameTimer;
-#endif
 	QSocketNotifier *_streamNotifier;
 
-	bool _initialized, _reload;
+	bool _initialized;
+	bool _reload;
+
+	QElapsedTimer _frameTimer;
 
 protected:
 	void enumVideoCaptureDevices();

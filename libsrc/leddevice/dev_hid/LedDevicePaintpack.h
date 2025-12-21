@@ -3,6 +3,7 @@
 
 // Hyperion includes
 #include "ProviderHID.h"
+#include <QVector>
 
 ///
 /// LedDevice implementation for a paintpack LED-device
@@ -42,7 +43,7 @@ private:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	int write(const std::vector<ColorRgb> & ledValues) override;
+	int write(const QVector<ColorRgb> & ledValues) override;
 };
 
 #endif // LEDEVICEPAINTTPACK_H

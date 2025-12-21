@@ -38,7 +38,7 @@ public:
 	///
 	/// @return true, on success (i.e. library is present), else false
 	///
-	bool isAvailable(bool logError = true) override;
+	bool isAvailable(bool logError = false) override;
 
 	///
 	/// @brief Opens the input device.
@@ -61,7 +61,7 @@ public:
 	/// @param[out] image  The snapped screenshot (should be initialized with correct width and
 	/// height)
 	///
-	int grabFrame(Image<ColorRgb> & image);
+	int grabFrame(Image<ColorRgb> & image) override;
 
 	///
 	///@brief Set new width and height for dispmanx, overwrite Grabber.h impl

@@ -408,7 +408,7 @@ function createClassicLedLayout(params) {
     params.ledsglength = ledArray.length - params.ledsglength - 1;
   }
 
-  if (params.ledsglength != 0) {
+  if (params.ledsglength > 0) {
     ledArray.splice(params.ledsgpos, params.ledsglength);
   }
 
@@ -792,7 +792,7 @@ $(document).ready(function () {
         $("#ip_cl_gpos").attr({ 'max': maxLEDs - 1 });
 
         var max = maxLEDs - gpos;
-        if (gpos == 0) {
+        if (gpos == 0 && max > 0) {
           --max;
         }
         $("#ip_cl_glength").attr({ 'max': max });

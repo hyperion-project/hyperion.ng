@@ -36,12 +36,12 @@ SSDPDiscover::SSDPDiscover(QObject* parent)
 	  ,_regExFilter(_filter)
 	  ,_skipDupKeys(false)
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 }
 
 SSDPDiscover::~SSDPDiscover()
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 }
 
 void SSDPDiscover::searchForService(const QString& st)

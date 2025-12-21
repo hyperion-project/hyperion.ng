@@ -1,6 +1,5 @@
 #include <utils/Logger.h>
 
-
 #include <iostream>
 
 #ifndef _WIN32
@@ -17,7 +16,9 @@
 #include <QJsonObject>
 
 #include <utils/FileUtils.h>
+#include <utils/MemoryTracker.h>
 
+Q_LOGGING_CATEGORY(hyperion_logger_track, "hyperion.logger.track");
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
 QRecursiveMutex        Logger::MapLock;
@@ -69,7 +70,7 @@ QSharedPointer<Logger> Logger::getInstance(const QString& name, const QString& s
     }
 
     // Not found or expired, create a new one.
-    QSharedPointer<Logger> newLog = MAKE_TRACKED_SHARED_STATIC(Logger, name, subName, minLevel);
+	QSharedPointer<Logger> newLog = makeTrackedShared<Logger>(nullptr, hyperion_logger_track(), name, subName, minLevel);
 
     LoggerMap.insert(key, newLog);
     connect(newLog.get(), &Logger::newLogMessage, LoggerManager::getInstance().data(), &LoggerManager::handleNewLogMessage);
@@ -86,6 +87,7 @@ void Logger::deleteInstance(const QString& name, const QString& subName)
         for (const auto& weakLogger : std::as_const(LoggerMap)) {
             if (auto strongLogger = weakLogger.lock())
             {
+				TRACK_SCOPE_CATEGORY(hyperion_logger_track) << QString("|%1| Delete logger %2").arg(strongLogger->getSubName(), strongLogger->getName());
                 strongLogger->deleteLater();
             }
         }
@@ -98,6 +100,7 @@ void Logger::deleteInstance(const QString& name, const QString& subName)
         // The logger will be deleted when the last shared_ptr is destroyed.
         LoggerMap.remove(name + subName);
     }
+
 }
 
 void Logger::setLogLevel(LogLevel level, const QString& name, const QString& subName)
@@ -131,6 +134,7 @@ Logger::Logger(const QString& name, const QString& subName, LogLevel minLevel)
 	, _loggerId(LoggerId++)
 	, _minLevel(static_cast<int>(minLevel))
 {
+	TRACK_SCOPE_CATEGORY(hyperion_logger_track) << QString("|%1| Create %2 logger").arg(_subName,_name);
 	qRegisterMetaType<Logger::T_LOG_MESSAGE>();
 
 #ifndef _WIN32
@@ -146,6 +150,7 @@ Logger::Logger(const QString& name, const QString& subName, LogLevel minLevel)
 
 Logger::~Logger()
 {
+	TRACK_SCOPE_CATEGORY(hyperion_logger_track) << QString("|%1| Destroy %2 logger").arg(_subName,_name);
 #ifndef _WIN32
 	if (LoggerCount.fetchAndSubOrdered(1) == 0 && _syslogEnabled)
 	{
@@ -275,11 +280,13 @@ QScopedPointer<LoggerManager> LoggerManager::instance;
 LoggerManager::LoggerManager()
 	: _loggerMaxMsgBufferSize(MAX_LOG_MSG_BUFFERED)
 {
+	TRACK_SCOPE_CATEGORY(hyperion_logger_track) << "Create LoggerManager";
 	_logMessageBuffer.reserve(_loggerMaxMsgBufferSize);
 }
 
 LoggerManager::~LoggerManager()
 {
+	TRACK_SCOPE_CATEGORY(hyperion_logger_track) << "Destroy LoggerManager";
 	// delete components
 	Logger::deleteInstance();
 

@@ -22,9 +22,14 @@
 // util includes
 #include <utils/JsonUtils.h>
 
-JsonConnection::JsonConnection(const QHostAddress& host, bool printJson , quint16 port)
+JsonConnection::JsonConnection(const QHostAddress& address, bool printJson , quint16 port)
+	: JsonConnection(address.toString(), printJson, port)
+{
+}
+
+JsonConnection::JsonConnection(const QString& hostname, bool printJson , quint16 port)
 	: _log(Logger::getInstance("JSONAPICONN"))
-	, _host(host)
+	, _hostname(hostname)
 	, _port(port)
 	, _printJson(printJson)
 {
@@ -46,14 +51,10 @@ JsonConnection::JsonConnection(const QHostAddress& host, bool printJson , quint1
 	connectToRemoteHost();
 }
 
-JsonConnection::~JsonConnection()
-{
-}
-
 void JsonConnection::connectToRemoteHost()
 {
-	Debug(_log, "Connecting to target host: %s, port [%u]", QSTRING_CSTR(_host.toString()), _port);
-	_socket->connectToHost(_host, _port);
+	Debug(_log, "Connecting to target host: %s, port [%u]", QSTRING_CSTR(_hostname), _port);
+	_socket->connectToHost(_hostname, _port);
 }
 
 void JsonConnection::close()
@@ -63,19 +64,19 @@ void JsonConnection::close()
 
 void JsonConnection::onErrorOccured()
 {
-	QString errorText = QString("Unable to connect to host: %1, port: %2, error: %3").arg(_host.toString()).arg(_port).arg(_socket->errorString());
+	QString errorText = QString("Unable to connect to host: %1, port: %2, error: %3").arg(_hostname).arg(_port).arg(_socket->errorString());
 	emit errorOccured(errorText);
 }
 
 void JsonConnection::onDisconnected()
 {
-	Debug(_log, "Disconnected from target host: %s, port [%u]", QSTRING_CSTR(_host.toString()), _port);
+	Debug(_log, "Disconnected from target host: %s, port [%u]", QSTRING_CSTR(_hostname), _port);
 	emit isDisconnected();
 }
 
 void JsonConnection::onConnected()
 {
-	Debug(_log, "Connected to target host: %s, port [%u]", QSTRING_CSTR(_host.toString()), _port);
+	Debug(_log, "Connected to target host: %s, port [%u]", QSTRING_CSTR(_hostname), _port);
 	emit isReadyToSend();
 }
 
@@ -116,7 +117,7 @@ void JsonConnection::setImage(const QImage& image, int priority, int duration, c
 						static_cast<qsizetype>(imageARGB32.height()) * 3);
 	for (int i = 0; i < imageARGB32.height(); ++i)
 	{
-		const QRgb * scanline = reinterpret_cast<const QRgb *>(imageARGB32.scanLine(i));
+		const auto* scanline = static_cast<const QRgb *>(static_cast<const void *>(imageARGB32.scanLine(i)));
 		for (int j = 0; j < imageARGB32.width(); ++j)
 		{
 			binaryImage.append((char) qRed(scanline[j]));
@@ -157,7 +158,7 @@ void JsonConnection::setEffect(const QString &effectName, const QString & effect
 	command["priority"] = priority;
 	effect["name"] = effectName;
 
-	if (effectArgs.size() > 0)
+	if (!effectArgs.isEmpty())
 	{
 		QJsonObject effObj;
 		if(!JsonUtils::parse("hyperion-remote-args", effectArgs, effObj, _log).first)
@@ -188,7 +189,7 @@ void JsonConnection::createEffect(const QString &effectName, const QString &effe
 	effectCmd["name"] = effectName;
 	effectCmd["script"] = effectScript;
 
-	if (effectArgs.size() > 0)
+	if (!effectArgs.isEmpty())
 	{
 		QJsonObject effObj;
 		if(!JsonUtils::parse("hyperion-remote-args", effectScript, effObj, _log).first)
@@ -424,13 +425,13 @@ void JsonConnection::setAdjustment(
 		const QColor & yellowAdjustment,
 		const QColor & whiteAdjustment,
 		const QColor & blackAdjustment,
-		double *gammaR,
-		double *gammaG,
-		double *gammaB,
-		int    *backlightThreshold,
-		int    *backlightColored,
-		int    *brightness,
-		int    *brightnessC)
+		const double *gammaR,
+		const double *gammaG,
+		const double *gammaB,
+		const int    *backlightThreshold,
+		const int    *backlightColored,
+		const int    *brightness,
+		const int    *brightnessC)
 {
 	Debug(_log, "Set color adjustments");
 
@@ -560,11 +561,11 @@ void JsonConnection::onReadyRead()
 		QJsonObject response;
 
 		const QString ident = "RemoteTarget@" + _socket->peerAddress().toString();
-		QPair<bool, QStringList> const parsingResult = JsonUtils::parse(ident, reply, response, _log);
-		if (!parsingResult.first)
+		auto const [success, messages] = JsonUtils::parse(ident, reply, response, _log);
+		if (!success)
 		{
 			isParsingError = true;
-			errorList.append(parsingResult.second);
+			errorList.append(messages);
 		}
 		else
 		{
@@ -578,7 +579,7 @@ void JsonConnection::onReadyRead()
 
 	if (isParsingError)
 	{
-		QString const errorText = errorList.join(";");;
+		QString const errorText = errorList.join(";");
 		emit errorOccured(errorText);
 	}
 }
@@ -601,7 +602,7 @@ QJsonObject JsonConnection::sendMessageSync(const QJsonObject &message, const QJ
 #endif
 
 	// Capture response when received
-	QObject::connect(this, &JsonConnection::isMessageReceived, this, [&](const QJsonObject &reply) {
+	QObject::connect(this, &JsonConnection::isMessageReceived, this, [&response,&received, &loop](const QJsonObject &reply) {
 		response = reply;
 		received = true;
 		loop.quit(); // Exit event loop when response arrives

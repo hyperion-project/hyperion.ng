@@ -45,6 +45,12 @@ public slots:
 
 	virtual void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
+signals:
+	///
+	/// @emits when the CECHandler has completed its stop/cleanup
+	///
+	void isStopped();
+
 private:
 
 signals:

@@ -77,7 +77,7 @@ public slots:
 	void stop();
 
 signals:
-	void setInput(int priority, const std::vector<ColorRgb>& ledColors, int timeout_ms, bool clearEffect);
+	void setInput(int priority, const QVector<ColorRgb>& ledColors, int timeout_ms, bool clearEffect);
 	void setInputImage(int priority, const Image<ColorRgb>& image, int timeout_ms, bool clearEffect);
 
 private:

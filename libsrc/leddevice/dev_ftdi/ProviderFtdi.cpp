@@ -43,25 +43,23 @@ int ProviderFtdi::checkFtdiResult(int rc, ftdi_context* ftdic, const QString& op
 
 bool ProviderFtdi::init(const QJsonObject& deviceConfig)
 {
-	bool isInitOK = false;
-
-	if (LedDevice::init(deviceConfig))
+	if (!LedDevice::init(deviceConfig))
 	{
-		_baudRate_Hz = deviceConfig["rate"].toInt(_baudRate_Hz);
-		_deviceName = deviceConfig["output"].toString(AUTO_SETTING);
-
-		Debug(_log, "_baudRate_Hz [%d]", _baudRate_Hz);
-		Debug(_log, "_deviceName [%s]", QSTRING_CSTR(_deviceName));
-
-		isInitOK = true;
+		return false;
 	}
-	return isInitOK;
+
+	_baudRate_Hz = deviceConfig["rate"].toInt(_baudRate_Hz);
+	_deviceName = deviceConfig["output"].toString(AUTO_SETTING);
+
+	Debug(_log, "_baudRate_Hz [%d]", _baudRate_Hz);
+	Debug(_log, "_deviceName [%s]", QSTRING_CSTR(_deviceName));
+
+	return true;
 }
 
 int ProviderFtdi::open()
 {
 	int rc = 0;
-
 
 	if (((_ftdic = ftdi_new()) == nullptr) || ftdi_init(_ftdic) < 0)
 	{

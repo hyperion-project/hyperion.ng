@@ -13,7 +13,7 @@ jobs:
     steps:
       # Dispatch event to build new HyperBian image
       - name: 📲 Dispatch HyperBian build
-        uses: peter-evans/repository-dispatch@v4.0.0
+        uses: peter-evans/repository-dispatch@v4.0.1
         if: ${{ github.repository_owner == 'hyperion-project'}}
         with:
           repository: hyperion-project/HyperBian

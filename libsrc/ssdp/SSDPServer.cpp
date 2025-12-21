@@ -79,12 +79,12 @@ SSDPServer::SSDPServer(QObject * parent)
 	, _udpSocket(nullptr)
 	, _running(false)
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 }
 
 SSDPServer::~SSDPServer()
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 }
 
 void SSDPServer::initServer()

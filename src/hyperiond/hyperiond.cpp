@@ -16,6 +16,7 @@
 #include <QMap>
 #include <QMetaType>
 
+#include "utils/Logger.h"
 #include "db/SettingsTable.h"
 #include "events/EventScheduler.h"
 #include "events/OsEventHandler.h"
@@ -24,10 +25,10 @@
 #include <utils/Image.h>
 #include <utils/settings.h>
 #include "utils/ColorRgb.h"
-#include "utils/Logger.h"
 #include "utils/VideoMode.h"
 #include "utils/global_defines.h"
 #include <utils/GlobalSignals.h>
+#include <utils/ThreadUtils.h>
 
 #include <HyperionConfig.h> // Required to determine the cmake options
 
@@ -64,16 +65,19 @@
 
 // AuthManager
 #include <hyperion/AuthManager.h>
+// EffectFileHandler singleton
+#if defined(ENABLE_EFFECTENGINE)
+#include <effectengine/EffectFileHandler.h>
+#endif
+// NetOrigin singleton
+#include <utils/NetOrigin.h>
 
 // InstanceManager Hyperion
 #include <hyperion/HyperionIManager.h>
-
+ 
 #if defined(ENABLE_EFFECTENGINE)
 // Init Python
 #include <python/PythonInit.h>
-
-// EffectFileHandler
-#include <effectengine/EffectFileHandler.h>
 #endif
 
 #ifdef ENABLE_CEC
@@ -81,21 +85,22 @@
 #endif
 
 namespace {
-	GlobalSignals* ensureGlobalSignalsInitialized = GlobalSignals::getInstance();
+	// The following line ensures that the GlobalSignals singleton is created when the library is loaded
+	[[maybe_unused]] const auto ensureGlobalSignalsInitialized = GlobalSignals::getInstance();
 }
 
 HyperionDaemon* HyperionDaemon::daemon = nullptr;
 
 HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool logLvlOverwrite)
-	: QObject(parent), _log(Logger::getInstance("DAEMON"))
-	, _instanceManager(new HyperionIManager(this))
+	: QObject(parent)
+	, _log(Logger::getInstance("DAEMON"))
 	, _settingsManager(new SettingsManager(NO_INSTANCE_ID, this)) // init settings, this settingsManager accesses global settings which are independent from instances
-	#if defined(ENABLE_EFFECTENGINE)
+#if defined(ENABLE_EFFECTENGINE)
 	, _pyInit(new PythonInit())
-	#endif
-	, _authManager(new AuthManager(this))
+#endif
 	, _currVideoMode(VideoMode::VIDEO_2D)
 {
+	TRACK_SCOPE();
 	HyperionDaemon::daemon = this;
 
 	// Register metas for thread queued connection
@@ -104,7 +109,7 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	qRegisterMetaType<settings::type>("settings::type");
 	qRegisterMetaType<VideoMode>("VideoMode");
 	qRegisterMetaType<QMap<quint8, QJsonObject>>("QMap<quint8,QJsonObject>");
-	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>");
+	qRegisterMetaType<QVector<ColorRgb>>("QVector<ColorRgb>");
 
 	// set inital log lvl if the loglvl wasn't overwritten by arg
 	if (!logLvlOverwrite)
@@ -112,45 +117,59 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 		handleSettingsUpdate(settings::LOGGER, getSetting(settings::LOGGER));
 	}
 
-#if defined(ENABLE_EFFECTENGINE)
-	// init EffectFileHandler
-	EffectFileHandler* efh = new EffectFileHandler(rootPath, getSetting(settings::EFFECTS), this);
-	connect(this, &HyperionDaemon::settingsChanged, efh, &EffectFileHandler::handleSettingsUpdate);
-#endif
+	AuthManager::createInstance(this);
+	if (auto auth = AuthManager::getInstanceWeak().toStrongRef())
+	{
+		connect(this, &HyperionDaemon::settingsChanged, auth.get(), &AuthManager::handleSettingsUpdate);
+		auth->handleSettingsUpdate(settings::NETWORK, _settingsManager->getSetting(settings::NETWORK));
+	}	
 
-	// spawn all Hyperion instances (non blocking)
-	_instanceManager->startAll();
+#if defined(ENABLE_EFFECTENGINE)
+	EffectFileHandler::createInstance(rootPath, getSetting(settings::EFFECTS), this);
+	if (auto eff = EffectFileHandler::getInstanceWeak().toStrongRef())
+	{
+		connect(this, &HyperionDaemon::settingsChanged, eff.get(), &EffectFileHandler::handleSettingsUpdate);
+	}
+#endif
 
 	//Cleaning up Hyperion before quit
 	connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit, this, &HyperionDaemon::stopServices);
 
-	//Handle services dependent on the on first instance's availability
-	connect(_instanceManager.get(), &HyperionIManager::instanceStateChanged, this, &HyperionDaemon::handleInstanceStateChange);
+	// Create instance manager singleton & spawn all Hyperion instances (non blocking)
+	HyperionIManager::createInstance(this);
+	_instanceManagerWeak = HyperionIManager::getInstanceWeak();
+	if (auto mgr = _instanceManagerWeak.toStrongRef())
+	{
+		mgr->startAll();
 
-	// pipe settings changes from HyperionIManager to Daemon
-	connect(_instanceManager.get(), &HyperionIManager::settingsChanged, this, &HyperionDaemon::settingsChanged);
+		//Handle services dependent on the first instance's availability
+		connect(mgr.get(), &HyperionIManager::instanceStateChanged, this, &HyperionDaemon::handleInstanceStateChange);
+		connect(mgr.get(), &HyperionIManager::settingsChanged, this, &HyperionDaemon::settingsChanged);
+
+		// forward videoModes from HyperionIManager to Daemon evaluation
+		connect(mgr.get(), &HyperionIManager::requestVideoMode, this, &HyperionDaemon::setVideoMode);
+		connect(this, &HyperionDaemon::videoMode, mgr.get(), &HyperionIManager::newVideoMode);
+	}
 
 	// listen for setting changes of framegrabber and v4l2
 	connect(this, &HyperionDaemon::settingsChanged, this, &HyperionDaemon::handleSettingsUpdate);
 
-	// forward videoModes from HyperionIManager to Daemon evaluation
-	connect(_instanceManager.get(), &HyperionIManager::requestVideoMode, this, &HyperionDaemon::setVideoMode);
-	// return videoMode changes from Daemon to HyperionIManager
-	connect(this, &HyperionDaemon::videoMode, _instanceManager.get(), &HyperionIManager::newVideoMode);
-
+	startEventServices();
+	
 	createNetworkServices();
 	createNetworkInputCaptureServices();
 	createNetworkOutputServices();
 
 	startNetworkServices();
-	startEventServices();
 	startGrabberServices();
+	startNetworkInputCaptureServices();
 
 	startNetworkOutputServices();
 }
 
 HyperionDaemon::~HyperionDaemon()
 {
+	TRACK_SCOPE();
 	Info(_log, "Hyperion daemon stopped");
 }
 
@@ -162,11 +181,24 @@ void HyperionDaemon::handleInstanceStateChange(InstanceState state, quint8 insta
 	break;
 	case InstanceState::H_STARTED:
 	{
-		startNetworkInputCaptureServices();
+		if (auto mgr = _instanceManagerWeak.toStrongRef())
+		{
+			TRACK_SCOPE() << "Instance" << static_cast<int>(instance) << "started. Currently" << mgr->getRunningInstanceIdx().size() << "instance(s) running.";
+
+			if (mgr->getRunningInstanceIdx().size() == 1)
+			{
+				openCurrentNetworkInputCaptureServices();
+			}
+			else
+			{
+				registerCurrentNetworkInputCaptureServices();
+			}
+		}
+
 #if defined(ENABLE_FORWARDER)
 		QMetaObject::invokeMethod(_messageForwarder.get(),
 			[this, instance]() {
-				if (_messageForwarder->connect(instance))
+				if (_messageForwarder->connectToInstance(instance))
 				{
 					_messageForwarder->start();
 				}
@@ -176,20 +208,28 @@ void HyperionDaemon::handleInstanceStateChange(InstanceState state, quint8 insta
 	}
 	break;
 	case InstanceState::H_STOPPED:
+
+		TRACK_SCOPE() << "Instance" << static_cast<int>(instance) << "stopped.";
+
 #if defined(ENABLE_FORWARDER)
 		QMetaObject::invokeMethod(_messageForwarder.get(),
-			[this, instance]() { _messageForwarder->disconnect(instance); },
+			[this, instance]() { _messageForwarder->disconnectFromInstance(instance); },
 			Qt::QueuedConnection);
 #endif
 
-		if(_instanceManager->getRunningInstanceIdx().empty())
+		if (auto mgr = _instanceManagerWeak.toStrongRef())
 		{
+			if(mgr->getRunningInstanceIdx().empty())
+			{
+				TRACK_SCOPE() << "Last instance stopped..";
+				closeCurrentNetworkInputCaptureServices();
+
 #if defined(ENABLE_FORWARDER)
-			QMetaObject::invokeMethod(_messageForwarder.get(), &MessageForwarder::stop, Qt::QueuedConnection);
+				QMetaObject::invokeMethod(_messageForwarder.get(), &MessageForwarder::stop, Qt::QueuedConnection);
 #endif
-			stopNetworkInputCaptureServices();
+			}
 		}
-	break;
+		break;
 	case InstanceState::H_CREATED:
 	break;
 	case InstanceState::H_ON_STOP:
@@ -201,7 +241,6 @@ void HyperionDaemon::handleInstanceStateChange(InstanceState state, quint8 insta
 		qWarning() << "HyperionDaemon::handleInstanceStateChange - Unhandled state:" << static_cast<int>(state);
 	break;
 	}
-
 }
 
 void HyperionDaemon::setVideoMode(VideoMode mode)
@@ -222,29 +261,42 @@ void HyperionDaemon::stopServices()
 {
 	Info(_log, "Stopping Hyperion services...");
 
+	// Stop event services first to inform clients about shutdown and prevent further communication via JSON API
 	stopEventServices();
+
 	stopGrabberServices();
+	stopNetworkOutputServices();
 
 	// Ensure that all Instances and their threads are stopped
-	QEventLoop loopLedDevice;
-	QObject::connect(_instanceManager.get(), &HyperionIManager::areAllInstancesStopped, &loopLedDevice, &QEventLoop::quit);
-	_instanceManager->stopAll();
-	loopLedDevice.exec();
+	QEventLoop loopInstances;
+	if (auto mgr = _instanceManagerWeak.toStrongRef())
+	{
+		QObject::connect(mgr.get(), &HyperionIManager::areAllInstancesStopped, &loopInstances, &QEventLoop::quit);
+		mgr->stopAll();
+	}
+	loopInstances.exec();
 
-	stopNetworkOutputServices();
+	stopNetworkInputCaptureServices();	
 	stopNetworkServices();
 
+	HyperionIManager::destroyInstance();
+
+	// Destroy service singletons
+
 #if defined(ENABLE_EFFECTENGINE)
-	// Finalize Python environment when all sub-interpreters were stopped, i.e. all must have been stopped before
+	EffectFileHandler::destroyInstance();
 	delete _pyInit;
 #endif
+	AuthManager::destroyInstance();
+	NetOrigin::destroyInstance();
 }
 
 void HyperionDaemon::createNetworkServices()
 {
-	// connect and apply settings for AuthManager
-	connect(this, &HyperionDaemon::settingsChanged, _authManager.get(), &AuthManager::handleSettingsUpdate);
-	_authManager->handleSettingsUpdate(settings::NETWORK, _settingsManager->getSetting(settings::NETWORK));
+	// Ensure NetOrigin singleton exists before servers use it
+	NetOrigin::createInstance(this);
+
+	// AuthManager already created in constructor; nothing further needed here
 
 #ifdef ENABLE_MDNS
 	// Create mDNS-Provider and mDNS-Browser in own thread
@@ -331,36 +383,54 @@ void HyperionDaemon::startNetworkServices()
 void HyperionDaemon::stopNetworkServices()
 {
 #if defined(ENABLE_MDNS)
-	QMetaObject::invokeMethod(MdnsBrowser::getInstance().get(), "stop", Qt::QueuedConnection);
-	QMetaObject::invokeMethod(_mDNSProvider.get(), &MdnsProvider::stop, Qt::QueuedConnection);
-	if (_mDnsThread->isRunning()) {
-		_mDnsThread->quit();
-		_mDnsThread->wait();
+	if (_mDnsThread->isRunning() && MdnsBrowser::getInstance().get() && _mDNSProvider.get())
+	{
+		QObject::connect(MdnsBrowser::getInstance().get(), &MdnsBrowser::isStopped,
+			_mDNSProvider.get(), &MdnsProvider::stop,
+			Qt::QueuedConnection);
+
+		QObject::connect(_mDNSProvider.get(), &MdnsProvider::isStopped,
+			_mDnsThread.get(), &QThread::quit,
+			Qt::DirectConnection);
+
+		QMetaObject::invokeMethod(MdnsBrowser::getInstance().get(), &MdnsBrowser::stop, Qt::QueuedConnection);
+
+		if (!_mDnsThread->wait(5000)) {
+			qWarning() << "mDNS thread failed to exit gracefully!";
+		}
 	}
+	MdnsBrowser::destroyInstance();
 #endif
 
-	if (_webServerThread->isRunning()) {
-		_webServerThread->quit();
-		_webServerThread->wait();
-	}
+	safeShutdownThread(
+		_webServer.get(),
+		_webServerThread.get(),
+		&WebServer::isStopped,
+		&WebServer::stop,
+		5000 // 5 second timeout
+	);
 
-	QMetaObject::invokeMethod(_sslWebServer.get(), &WebServer::stop, Qt::QueuedConnection);
-	if (_sslWebServerThread->isRunning()) {
-		_sslWebServerThread->quit();
-		_sslWebServerThread->wait();
-	}
+	safeShutdownThread(
+		_sslWebServer.get(),
+		_sslWebServerThread.get(),
+		&WebServer::isStopped,
+		&WebServer::stop
+	);
 
-	if (_jsonServerThread->isRunning()) {
-		_jsonServerThread->quit();
-		_jsonServerThread->wait();
-	}
-	_jsonServer.reset(nullptr);
+	safeShutdownThread(
+		_jsonServer.get(),
+		_jsonServerThread.get(),
+		&JsonServer::isStopped,
+		&JsonServer::stop,
+		5000 // 5 second timeout
+	);
 
-	QMetaObject::invokeMethod(_ssdpHandler.get(), &SSDPHandler::stop, Qt::QueuedConnection);
-	if (_ssdpHandlerThread->isRunning()) {
-		_ssdpHandlerThread->quit();
-		_ssdpHandlerThread->wait();
-	}
+	safeShutdownThread(
+		_ssdpHandler.get(),
+		_ssdpHandlerThread.get(),
+		&SSDPHandler::isStopped,
+		&SSDPHandler::stop
+	);
 }
 
 void HyperionDaemon::createNetworkInputCaptureServices()
@@ -414,22 +484,54 @@ void HyperionDaemon::startNetworkInputCaptureServices()
 #endif
 }
 
-void HyperionDaemon::stopNetworkInputCaptureServices()
+void HyperionDaemon::stopNetworkInputCaptureServices() const
 {
 #if defined(ENABLE_PROTOBUF_SERVER)
-	if (_protoServerThread->isRunning()) {
-		QMetaObject::invokeMethod(_protoServer.get(), &ProtoServer::stop, Qt::QueuedConnection);
-		_protoServerThread->quit();
-		_protoServerThread->wait();
-	}
+	safeShutdownThread(
+		_protoServer.get(),
+		_protoServerThread.get(),
+		&ProtoServer::isStopped,
+		&ProtoServer::stop
+	);
 #endif
 
 #if defined(ENABLE_FLATBUF_SERVER)
-	if (_flatBufferServerThread->isRunning()) {
-		QMetaObject::invokeMethod(_flatBufferServer.get(), &FlatBufferServer::stop, Qt::QueuedConnection);
-		_flatBufferServerThread->quit();
-		_flatBufferServerThread->wait();
-	}
+	safeShutdownThread(
+		_flatBufferServer.get(),
+		_flatBufferServerThread.get(),
+		&FlatBufferServer::isStopped,
+		&FlatBufferServer::stop
+	);
+#endif
+}
+
+void HyperionDaemon::openCurrentNetworkInputCaptureServices() const
+{
+#if defined(ENABLE_FLATBUF_SERVER)
+	QMetaObject::invokeMethod(_flatBufferServer.get(), &FlatBufferServer::open, Qt::QueuedConnection);
+#endif
+#if defined(ENABLE_PROTOBUF_SERVER)
+	QMetaObject::invokeMethod(_protoServer.get(), &ProtoServer::open, Qt::QueuedConnection);
+#endif
+}
+void HyperionDaemon::closeCurrentNetworkInputCaptureServices() const
+{
+#if defined(ENABLE_FLATBUF_SERVER)
+	QMetaObject::invokeMethod(_flatBufferServer.get(), &FlatBufferServer::close, Qt::QueuedConnection);
+#endif
+#if defined(ENABLE_PROTOBUF_SERVER)
+	QMetaObject::invokeMethod(_protoServer.get(), &ProtoServer::close, Qt::QueuedConnection);
+#endif
+}
+
+void HyperionDaemon::registerCurrentNetworkInputCaptureServices() const
+{
+#if defined(ENABLE_FLATBUF_SERVER)
+	QMetaObject::invokeMethod(_flatBufferServer.get(), &FlatBufferServer::registerClients, Qt::QueuedConnection);
+#endif
+
+#if defined(ENABLE_PROTOBUF_SERVER)
+	QMetaObject::invokeMethod(_protoServer.get(), &ProtoServer::registerClients, Qt::QueuedConnection);
 #endif
 }
 
@@ -457,21 +559,22 @@ void HyperionDaemon::startNetworkOutputServices()
 #endif
 }
 
-void HyperionDaemon::stopNetworkOutputServices()
+void HyperionDaemon::stopNetworkOutputServices() const
 {
 #if defined(ENABLE_FORWARDER)
-	if (_messageForwarderThread->isRunning())
-	{
-		QMetaObject::invokeMethod(_messageForwarder.get(), &MessageForwarder::stop, Qt::QueuedConnection);
-		_messageForwarderThread->quit();
-		_messageForwarderThread->wait();
-	}
+	safeShutdownThread(
+		_messageForwarder.get(),
+		_messageForwarderThread.get(),
+		&MessageForwarder::stopped,
+		&MessageForwarder::stop
+	);
 #endif
 }
 
 void HyperionDaemon::startEventServices()
 {
-	_eventHandler->getInstance();
+	// Ensure EventHandler singleton is created early
+	EventHandler::getInstance();
 
 	_eventScheduler.reset(new EventScheduler());
 	_eventScheduler->handleSettingsUpdate(settings::SCHEDEVENTS, getSetting(settings::SCHEDEVENTS));
@@ -498,16 +601,19 @@ void HyperionDaemon::startEventServices()
 void HyperionDaemon::stopEventServices()
 {
 #if defined(ENABLE_CEC)
-	QMetaObject::invokeMethod(_cecHandler.get(), &CECHandler::stop, Qt::QueuedConnection);
-	if (_cecHandlerThread->isRunning())
-	{
-		_cecHandlerThread->quit();
-		_cecHandlerThread->wait();
-	}
+	safeShutdownThread(
+		_cecHandler.get(),
+		_cecHandlerThread.get(),
+		&CECHandler::isStopped,
+		&CECHandler::stop
+	);
 #endif
 
 	_osEventHandler.reset(nullptr);
 	_eventScheduler.reset(nullptr);
+
+	// Destroy EventHandler singleton explicitly during shutdown
+	EventHandler::destroyInstance();
 }
 
 void HyperionDaemon::startGrabberServices()
@@ -522,11 +628,40 @@ void HyperionDaemon::startGrabberServices()
 	handleSettingsUpdate(settings::AUDIO, getSetting(settings::AUDIO));
 }
 
+void HyperionDaemon::restartGrabberServices()
+{
+	if (_screenGrabber)
+	{
+		_screenGrabber->start();
+	}
+
+	if (_videoGrabber)
+	{
+		_videoGrabber->start();
+	}
+
+	if (_audioGrabber)
+	{
+		_audioGrabber->start();
+	}
+}
+
 void HyperionDaemon::stopGrabberServices()
 {
-	_screenGrabber.reset();
-	_videoGrabber.reset();
-	_audioGrabber.reset();
+	if (_screenGrabber)
+	{
+		_screenGrabber->stop();
+	}
+
+	if (_videoGrabber)
+	{
+		_videoGrabber->stop();
+	}
+
+	if (_audioGrabber)
+	{
+		_audioGrabber->stop();
+	}
 }
 
 void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJsonDocument& config)
@@ -577,6 +712,7 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 void HyperionDaemon::updateScreenGrabbers(const QJsonDocument& grabberConfig)
 {
 #if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB) && !defined(ENABLE_X11) && !defined(ENABLE_XCB) && !defined(ENABLE_AMLOGIC) && !defined(ENABLE_QT) && !defined(ENABLE_DX) && !defined(ENABLE_DDA) && !defined(ENABLE_DRM)
+	_screenGrabber.reset();
 	Info(_log, "No screen capture supported on this platform");
 	return;
 #endif
@@ -666,6 +802,7 @@ void HyperionDaemon::updateScreenGrabbers(const QJsonDocument& grabberConfig)
 #endif
 		else
 		{
+			_screenGrabber.reset();
 			Warning(_log, "The %s grabber is not enabled on this platform", QSTRING_CSTR(type));
 			return;
 		}
@@ -685,11 +822,12 @@ void HyperionDaemon::updateVideoGrabbers(const QJsonObject& /*grabberConfig*/)
 	Debug(_log, "V4L2 grabber created");
 #endif
 	// connect to HyperionDaemon signal
-	connect(this, &HyperionDaemon::videoMode, _videoGrabber.get(), &VideoWrapper::setVideoMode);
-	connect(this, &HyperionDaemon::settingsChanged, _videoGrabber.get(), &VideoWrapper::handleSettingsUpdate);
+	connect(this, &HyperionDaemon::videoMode, _videoGrabber.get(), &GrabberWrapper::setVideoMode);
+	connect(this, &HyperionDaemon::settingsChanged, _videoGrabber.get(), &GrabberWrapper::handleSettingsUpdate);
 
 	Debug(_log, "Video grabber created");
 #else
+	_videoGrabber.reset();
 	Warning(_log, "No video capture supported on this platform");
 #endif
 }
@@ -701,10 +839,11 @@ void HyperionDaemon::updateAudioGrabbers(const QJsonObject& /*grabberConfig*/)
 	_audioGrabber.reset(new AudioWrapper());
 	_audioGrabber->handleSettingsUpdate(settings::AUDIO, getSetting(settings::AUDIO));
 
-	connect(this, &HyperionDaemon::settingsChanged, _audioGrabber.get(), &AudioWrapper::handleSettingsUpdate);
+	connect(this, &HyperionDaemon::settingsChanged, _audioGrabber.get(), &GrabberWrapper::handleSettingsUpdate);
 
 	Debug(_log, "Audio grabber created");
 #else
+	_audioGrabber.reset();
 	Warning(_log, "No audio capture supported on this platform");
 #endif
 }

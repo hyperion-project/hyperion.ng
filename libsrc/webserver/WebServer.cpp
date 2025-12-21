@@ -34,18 +34,18 @@ WebServer::WebServer(const QJsonDocument& config, bool useSsl, QObject* parent)
 	, _staticFileServing (nullptr)
 	, _server(nullptr)
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 }
 
 WebServer::~WebServer()
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 }
 
 void WebServer::initServer()
 {
 	Debug(_log, "Initialize %s-Webserver", _useSsl ? "https" : "http");
-	_server.reset(new QtHttpServer(this));
+	_server.reset(new QtHttpServer());
 	_server->setServerName(QStringLiteral("Hyperion %1-Webserver").arg(_useSsl ? "https" : "http"));
 
 	if (_useSsl)
@@ -87,6 +87,7 @@ void WebServer::onServerStopped()
 {
 	Info(_log, "%s stopped", _server->getServerName().toStdString().c_str());
 	emit stateChange(false);
+	emit isStopped();
 }
 
 void WebServer::onServerError(const QString& msg)
@@ -250,6 +251,11 @@ void WebServer::stop()
 	if (_server != nullptr)
 	{
 		_server->stop();
+	}
+	else
+	{
+		// server was never started
+		emit isStopped();
 	}
 }
 

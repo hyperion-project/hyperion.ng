@@ -5,8 +5,8 @@
 #include <utils/JsonUtils.h>
 #include <utils/NetOrigin.h>
 
-#define NO_TRACE_SEND
-#define NO_TRACE_RECEIVE
+Q_LOGGING_CATEGORY(comm_websocket_receive, "hyperion.comm.websocket.receive");
+Q_LOGGING_CATEGORY(comm_websocket_send, "hyperion.comm.websocket.send");
 
 WebSocketJsonHandler::WebSocketJsonHandler(QWebSocket* websocket, QObject* parent)
 	: QObject(parent)
@@ -21,10 +21,14 @@ WebSocketJsonHandler::WebSocketJsonHandler(QWebSocket* websocket, QObject* paren
 	_origin = websocket->origin();
 	Debug(_log, "New WebSocket connection from %s initiated via: %s", QSTRING_CSTR(_peerAddress), QSTRING_CSTR(_origin));
 
-	bool localConnection = NetOrigin::getInstance()->isLocalAddress(_websocket->peerAddress(), _websocket->localAddress());
+	bool localConnection = false;
+	if (auto origin = NetOrigin::getInstanceWeak().toStrongRef())
+	{
+		localConnection = origin->isLocalAddress(_websocket->peerAddress(), _websocket->localAddress());
+	}
 
 	// Json processor
-	_jsonAPI.reset(new JsonAPI(_peerAddress, _log, localConnection, this));
+	_jsonAPI.reset(new JsonAPI(_peerAddress, _log, localConnection));
 
 	connect(_jsonAPI.get(), &JsonAPI::callbackReady, this, &WebSocketJsonHandler::sendMessage);
 	connect(_jsonAPI->getCallBack().get(), &JsonCallbacks::callbackReady, this, &WebSocketJsonHandler::sendMessage);
@@ -35,25 +39,19 @@ WebSocketJsonHandler::WebSocketJsonHandler(QWebSocket* websocket, QObject* paren
 
 void WebSocketJsonHandler::onTextMessageReceived(const QString& message)
 {
-#ifdef RECEIVE_TRACE
-	qDebug() << "[" << _peerAddress << "] WebSocket message received:" << message;
-#endif
+	qCDebug(comm_websocket_receive) << "[" << _peerAddress << "] WebSocket message received:" << message;
 	_jsonAPI->handleMessage(message);
 }
 
 void WebSocketJsonHandler::onBinaryMessageReceived(const QByteArray& message)
 {
-#ifdef RECEIVE_TRACE
-	qDebug() << "[" << _peerAddress << "] WebSocket message received:" << message.toHex();
-#endif
+	qCDebug(comm_websocket_receive) << "[" << _peerAddress << "] WebSocket message received:" << message.toHex();
 	Warning(_log,"Unexpected binary message received");
 }
 
 qint64 WebSocketJsonHandler::sendMessage(QJsonObject obj)
 {
-#ifdef TRACE_SEND
-	qDebug() << "[" << _peerAddress << "] WebSocket send message: " << obj;
-#endif
+	qCDebug(comm_websocket_send) << "[" << _peerAddress << "] WebSocket send message: " << obj;
 	return _websocket->sendTextMessage(JsonUtils::jsonValueToQString(obj));
 }
 

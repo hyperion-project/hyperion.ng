@@ -14,7 +14,7 @@ FramebufferWrapper::FramebufferWrapper(const QJsonDocument &grabberConfig)
 						 grabberConfig["input"].toInt(0),
 						 GrabberWrapper::DEFAULT_PIXELDECIMATION)
 {
-	handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
+	GrabberWrapper::handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
 }
 
 void FramebufferWrapper::action()

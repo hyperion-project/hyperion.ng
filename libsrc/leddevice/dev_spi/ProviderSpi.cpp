@@ -19,8 +19,6 @@
 
 // Constants
 namespace {
-	const bool verbose = false;
-
 	// SPI discovery service
 	const char DISCOVERY_DIRECTORY[] = "/dev/";
 	const char DISCOVERY_FILEPATTERN[] = "spidev*";
@@ -137,7 +135,7 @@ int ProviderSpi::close()
 	return retval;
 }
 
-int ProviderSpi::writeBytes(unsigned size, const uint8_t * data)
+int ProviderSpi::writeBytes(qsizetype size, const uint8_t * data)
 {
 	if (_fid < 0)
 	{
@@ -188,8 +186,6 @@ QJsonObject ProviderSpi::discover(const QJsonObject& /*params*/)
 		deviceList.append(deviceInfo);
 	}
 	devicesDiscovered.insert("devices", deviceList);
-
-	DebugIf(verbose,_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return devicesDiscovered;
 }

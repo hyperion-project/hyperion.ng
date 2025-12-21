@@ -34,6 +34,7 @@ class DBManager : public QObject
 
 public:
 	explicit DBManager(QObject* parent = nullptr);
+	explicit DBManager(const QString& tableName, QObject* parent = nullptr);
 	~DBManager() override;
 
 	static void initializeDatabase(const QDir& dataDirectory, bool isReadOnly);

@@ -5,6 +5,9 @@
 #include <QUdpSocket>
 #include <QHostAddress>
 #include <QVector>
+#include <QMultiMap>
+#include <QMap>
+#include <QScopedPointer>
 
 // LedDevice includes
 #include <leddevice/LedDevice.h>
@@ -26,12 +29,7 @@ public:
 	/// @param deviceConfig Device's configuration as JSON-Object
 	///
 	explicit LedDeviceAtmoOrb(const QJsonObject &deviceConfig);
-
-	///
-	/// @brief Destructor of the LedDevice
-	///
-	~LedDeviceAtmoOrb() override;
-
+	
 	///
 	/// @brief Constructs the LED-device
 	///
@@ -61,7 +59,7 @@ public:
 	///
 	/// @param[in] params Parameters to address device
 	///
-	virtual void identify(const QJsonObject& params) override;
+	void identify(const QJsonObject& params) override;
 
 protected:
 
@@ -93,7 +91,7 @@ protected:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	int write(const std::vector<ColorRgb> & ledValues) override;
+	int write(const QVector<ColorRgb> & ledValues) override;
 
 private:
 
@@ -114,7 +112,7 @@ private:
 	void sendCommand(const QByteArray &bytes);
 
 	/// QUdpSocket object used to send data over
-	QUdpSocket * _udpSocket;
+	QScopedPointer<QUdpSocket> _udpSocket;
 
 	/// QHostAddress object of multicast group IP address
 	QHostAddress _groupAddress;

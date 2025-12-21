@@ -7,6 +7,7 @@
 #include <QObject>
 #include <QJsonObject>
 #include <QScopedPointer>
+#include <QWeakPointer>
 
 #include <hyperion/HyperionIManager.h>
 
@@ -14,74 +15,74 @@
 #ifdef ENABLE_AMLOGIC
 	#include <grabber/amlogic/AmlogicWrapper.h>
 #else
-	typedef QObject AmlogicWrapper;
+	using AmlogicWrapper = QObject;
 #endif
 
 #ifdef ENABLE_DISPMANX
 	#include <grabber/dispmanx/DispmanxWrapper.h>
 #else
-	typedef QObject DispmanxWrapper;
+	using DispmanxWrapper = QObject;
 #endif
 
 #ifdef ENABLE_DDA
 	#include <grabber/dda/DDAWrapper.h>
 #else
-	typedef QObject DDAWrapper;
+	using DDAWrapper = QObject;
 #endif
 
 #ifdef ENABLE_DRM
 	#include <grabber/drm/DRMWrapper.h>
 #else
-	typedef QObject DRMWrapper;
+	using FramebufferWrapper = QObject;
 #endif
 
 #ifdef ENABLE_DX
 	#include <grabber/directx/DirectXWrapper.h>
 #else
-	typedef QObject DirectXWrapper;
+	using DirectXWrapper = QObject;
 #endif
 
 #ifdef ENABLE_FB
 	#include <grabber/framebuffer/FramebufferWrapper.h>
 #else
-	typedef QObject FramebufferWrapper;
+	using FramebufferWrapper = QObject;
 #endif
 
 #ifdef ENABLE_OSX
 	#include <grabber/osx/OsxWrapper.h>
 #else
-	typedef QObject OsxWrapper;
+	using OsxWrapper = QObject;
 #endif
 
 #ifdef ENABLE_QT
 	#include <grabber/qt/QtWrapper.h>
 #else
-	typedef QObject QtWrapper;
+	using OsxWrapper = QObject;
 #endif
 
 #ifdef ENABLE_X11
 	#include <grabber/x11/X11Wrapper.h>
 #else
-	typedef QObject X11Wrapper;
+	using X11Wrapper = QObject;
 #endif
 
 #ifdef ENABLE_XCB
 	#include <grabber/xcb/XcbWrapper.h>
 #else
-	typedef QObject XcbWrapper;
+	using XcbWrapper = QObject;
 #endif
 
 #if defined(ENABLE_V4L2) || defined(ENABLE_MF)
 	#include <grabber/video/VideoWrapper.h>
 #else
-	typedef QObject VideoWrapper;
+	using VideoWrapper = QObject;
 #endif
 
 #include <hyperion/GrabberWrapper.h>
 #ifdef ENABLE_AUDIO
 	#include <grabber/audio/AudioWrapper.h>
 #else
-	typedef QObject AudioWrapper;
+	using AudioWrapper = QObject;
 #endif
 
 
@@ -95,6 +96,10 @@
 #include <events/EventHandler.h>
 #include <events/OsEventHandler.h>
 #include <events/EventScheduler.h>
+
+#if defined(ENABLE_EFFECTENGINE)
+#include <effectengine/EffectFileHandler.h>
+#endif
 
 class HyperionIManager;
 class SysTray;
@@ -202,13 +207,17 @@ private:
 
 	void createNetworkInputCaptureServices();
 	void startNetworkInputCaptureServices();
-	void stopNetworkInputCaptureServices();
+	void stopNetworkInputCaptureServices() const;
+	void openCurrentNetworkInputCaptureServices() const;
+	void closeCurrentNetworkInputCaptureServices() const;
+	void registerCurrentNetworkInputCaptureServices() const;
 
 	void createNetworkOutputServices();
 	void startNetworkOutputServices();
-	void stopNetworkOutputServices();
+	void stopNetworkOutputServices() const;
 
 	void startGrabberServices();
+	void restartGrabberServices();
 	void stopGrabberServices();
 
 	void updateScreenGrabbers(const QJsonDocument& grabberConfig);
@@ -236,7 +245,7 @@ private:
 		}
 		else
 		{
-			if (!grabber->isAvailable())
+			if (!grabber->getGrabber()->isAvailable())
 			{
 				Debug(_log, "The %s grabber is not available on this platform", QSTRING_CSTR(typeName));
 				return;
@@ -255,7 +264,6 @@ private:
 	QSharedPointer<Logger> _log;
 
 	/// Core services
-	QScopedPointer<HyperionIManager, QScopedPointerDeleteLater> _instanceManager;
 	QScopedPointer<SettingsManager> _settingsManager;
 
 #if defined(ENABLE_EFFECTENGINE)
@@ -263,48 +271,48 @@ private:
 #endif
 
 	/// Network services
-	QScopedPointer<AuthManager, QScopedPointerDeleteLater> _authManager;
-	QScopedPointer<JsonServer, QScopedPointerDeleteLater> _jsonServer;
+	QScopedPointer<JsonServer> _jsonServer;
 	QScopedPointer<QThread> _jsonServerThread;
-	QScopedPointer<WebServer, QScopedPointerDeleteLater> _webServer;
+	QScopedPointer<WebServer> _webServer;
 	QScopedPointer<QThread> _webServerThread;
-	QScopedPointer<WebServer, QScopedPointerDeleteLater> _sslWebServer;
+	QScopedPointer<WebServer> _sslWebServer;
 	QScopedPointer<QThread> _sslWebServerThread;
-	QScopedPointer<SSDPHandler, QScopedPointerDeleteLater> _ssdpHandler;
+	QScopedPointer<SSDPHandler> _ssdpHandler;
 	QScopedPointer<QThread> _ssdpHandlerThread;
+	
 #ifdef ENABLE_MDNS
-	QScopedPointer<MdnsProvider, QScopedPointerDeleteLater> _mDNSProvider;
+	QScopedPointer<MdnsProvider> _mDNSProvider;
 	QScopedPointer<QThread> _mDnsThread;
 #endif
 #if defined(ENABLE_FLATBUF_SERVER)
-	QScopedPointer<FlatBufferServer, QScopedPointerDeleteLater> _flatBufferServer;
+	QScopedPointer<FlatBufferServer> _flatBufferServer;
 	QScopedPointer<QThread> _flatBufferServerThread;
 #endif
 #if defined(ENABLE_PROTOBUF_SERVER)
-	QScopedPointer<ProtoServer, QScopedPointerDeleteLater> _protoServer;
+	QScopedPointer<ProtoServer> _protoServer;
 	QScopedPointer<QThread> _protoServerThread;
 #endif
 #if defined(ENABLE_FORWARDER)
-	QScopedPointer<MessageForwarder, QScopedPointerDeleteLater> _messageForwarder;
+	QScopedPointer<MessageForwarder> _messageForwarder;
 	QScopedPointer<QThread> _messageForwarderThread;
 #endif
 
 	/// Event services
-	QScopedPointer<EventHandler> _eventHandler;
 	QScopedPointer<OsEventHandler> _osEventHandler;
 	QScopedPointer<EventScheduler> _eventScheduler;
 #ifdef ENABLE_CEC
-	QScopedPointer<CECHandler, QScopedPointerDeleteLater> _cecHandler;
+	QScopedPointer<CECHandler> _cecHandler;
 	QScopedPointer<QThread> _cecHandlerThread;
 #endif
 
 	/// Grabber services
 	QScopedPointer<GrabberWrapper> _screenGrabber;
-	QScopedPointer<VideoWrapper> _videoGrabber;
-	QScopedPointer<AudioWrapper> _audioGrabber;
+	QScopedPointer<GrabberWrapper> _videoGrabber;
+	QScopedPointer<GrabberWrapper> _audioGrabber;
 
 	QString                    _prevType;
 	VideoMode                  _currVideoMode;
+	QWeakPointer<HyperionIManager> _instanceManagerWeak;
 };
 
 #endif // HYPERIOND_H

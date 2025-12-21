@@ -7,7 +7,8 @@
 #include "utils/RgbToRgbw.h"
 
 #include <QUuid>
-#include <vector>
+#include <QJsonObject>
+#include <QVector>
 
 /**
  *
@@ -132,7 +133,7 @@ private:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	int write(const std::vector<ColorRgb> & ledValues) override;
+	int write(const QVector<ColorRgb> & ledValues) override;
 
 	///
 	/// @brief Generate E1.31 communication header
@@ -151,7 +152,7 @@ private:
 	RGBW::WhiteAlgorithm _whiteAlgorithm;
 	ColorRgbw _temp_rgbw;
 	int _dmxChannelCount;
-	std::vector<uint8_t> _ledBuffer;
+	QVector<uint8_t> _ledBuffer;
 };
 
 #endif // LEDEVICEUDPE131_H

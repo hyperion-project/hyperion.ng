@@ -8,7 +8,6 @@
 #include <QSharedPointer>
 #include <QScopedPointer>
 
-
 class Logger;
 
 class EventHandler : public QObject
@@ -19,6 +18,7 @@ public:
 	~EventHandler() override;
 
 	static QScopedPointer<EventHandler>& getInstance();
+	static void destroyInstance();
 
 public slots:
 

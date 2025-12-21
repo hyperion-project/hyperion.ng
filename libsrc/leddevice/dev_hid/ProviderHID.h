@@ -21,7 +21,7 @@ public:
 	///
 	/// @param deviceConfig Device's configuration as JSON-Object
 	///
-	ProviderHID(const QJsonObject &deviceConfig);
+	explicit ProviderHID(const QJsonObject &deviceConfig);
 
 	///
 	/// @brief Destructor of the LedDevice
@@ -86,9 +86,6 @@ protected:
 private slots:
 	/// Unblock the device after a connection delay
 	void unblockAfterDelay();
-
-
-private:
 
 };
 

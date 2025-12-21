@@ -1,6 +1,22 @@
 #include <hyperion/Grabber.h>
 #include <hyperion/GrabberWrapper.h>
 
+Q_LOGGING_CATEGORY(grabber_screen_capture, "hyperion.grabber.screen.capture");
+Q_LOGGING_CATEGORY(grabber_screen_flow, "hyperion.grabber.screen.flow");
+Q_LOGGING_CATEGORY(grabber_screen_properties, "hyperion.grabber.screen.properties");
+Q_LOGGING_CATEGORY(grabber_screen_benchmark, "hyperion.grabber.screen.benchmark");
+
+Q_LOGGING_CATEGORY(grabber_video_capture, "hyperion.grabber.video.capture");
+Q_LOGGING_CATEGORY(grabber_video_flow, "hyperion.grabber.video.flow");
+Q_LOGGING_CATEGORY(grabber_video_properties, "hyperion.grabber.video.properties");
+Q_LOGGING_CATEGORY(grabber_video_benchmark, "hyperion.grabber.video.benchmark");
+
+Q_LOGGING_CATEGORY(grabber_audio_capture, "hyperion.grabber.audio.capture");
+Q_LOGGING_CATEGORY(grabber_audio_flow, "hyperion.grabber.audio.flow");
+Q_LOGGING_CATEGORY(grabber_audio_properties, "hyperion.grabber.audio.properties");
+Q_LOGGING_CATEGORY(grabber_audio_benchmark, "hyperion.grabber.audio.benchmark");
+
+
 Grabber::Grabber(const QString& grabberName, int cropLeft, int cropRight, int cropTop, int cropBottom)
 	: _grabberName(grabberName)
 	, _log(Logger::getInstance(_grabberName.toUpper()))
@@ -23,13 +39,13 @@ Grabber::Grabber(const QString& grabberName, int cropLeft, int cropRight, int cr
 	, _isEnabled(true)
 	, _isDeviceInError(false)
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 	Grabber::setCropping(cropLeft, cropRight, cropTop, cropBottom);
 }
 
 Grabber::~Grabber()
 {
-	TRACK_SCOPE;
+	TRACK_SCOPE();
 }
 
 void Grabber::setEnabled(bool enable)
@@ -93,13 +109,10 @@ void Grabber::setFlipMode(FlipMode mode)
 
 void Grabber::setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom)
 {
-	if (_width>0 && _height>0)
+	if ((_width>0) && (_height>0) && (cropLeft + cropRight >= _width || cropTop + cropBottom >= _height))
 	{
-		if (cropLeft + cropRight >= _width || cropTop + cropBottom >= _height)
-		{
-			Error(_log, "Rejecting invalid crop values: left: %d, right: %d, top: %d, bottom: %d, greater than or equal to width/height %d/%d", cropLeft, cropRight, cropTop, cropBottom, _width, _height);
-			return;
-		}
+		Error(_log, "Rejecting invalid crop values: left: %d, right: %d, top: %d, bottom: %d, greater than or equal to width/height %d/%d", cropLeft, cropRight, cropTop, cropBottom, _width, _height);
+		return;
 	}
 
 	_cropLeft   = cropLeft;

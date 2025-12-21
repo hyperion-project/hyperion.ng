@@ -15,6 +15,7 @@
 #include <QJsonDocument>
 #include <QSharedPointer>
 #include <QWeakPointer>
+#include <QLoggingCategory>
 
 // Utils includes
 #include <utils/ColorRgb.h>
@@ -22,6 +23,7 @@
 #include <utils/Logger.h>
 #include <utils/Components.h>
 #include <utils/Image.h>
+#include <utils/JsonUtils.h>
 
 // Hyperion includes
 #ifdef ENABLE_MDNS
@@ -29,6 +31,9 @@
 #endif
 #include <db/SettingsTable.h>
 #include <hyperion/PriorityMuxer.h>
+
+Q_DECLARE_LOGGING_CATEGORY(forwarder_flow);
+Q_DECLARE_LOGGING_CATEGORY(forwarder_write);
 
 // Forward declaration
 class Hyperion;
@@ -45,13 +50,31 @@ struct TargetHost {
 	{
 		return ((host == a.host) && (port == a.port));
 	}
+
+	QString toQString() const
+	{
+		return QString("[%1]:%2 - %3").arg(host.toString()).arg(port).arg(JsonUtils::jsonValueToQString(instanceIds));
+	}
 };
+
+inline QDebug operator<<(QDebug dbg, const TargetHost &target)
+{
+	QDebugStateSaver saver(dbg);
+	dbg.nospace() << target.toQString();
+	return dbg;
+}
+
+inline QDebug operator<<(QDebug dbg, const QList<TargetHost>& hosts)
+{
+	dbg.noquote() << "Target" << limitForDebug(hosts, -1);
+	return dbg.space();	
+}
 
 class MessageForwarder : public QObject
 {
 	Q_OBJECT
 public:
-	MessageForwarder(const QJsonDocument& config);
+	explicit MessageForwarder(const QJsonDocument& config);
 	~MessageForwarder() override;
 
 	void addJsonTarget(const QJsonObject& targetConfig);
@@ -66,10 +89,16 @@ public slots:
 	void handleSettingsUpdate(settings::type type, const QJsonDocument &config);
 
 	void init();
-	bool connect(quint8 instanceID);
-	void disconnect(quint8 instanceID);
+	bool connectToInstance(quint8 instanceID);
+	void disconnectFromInstance(quint8 instanceID);
 	void start();
 	void stop();
+
+Q_SIGNALS:
+	///
+	/// @emits when the MessageForwarder has completed its stop/cleanup
+	///
+	void stopped();
 
 private slots:
 	///
@@ -97,7 +126,7 @@ private slots:
 	/// @param image The flatbuffer image to send
 	///
 	///
-	void forwardFlatbufferMessage(const QString& name, const Image<ColorRgb> &image);
+	void forwardFlatbufferMessage(const QString& name, const Image<ColorRgb> &image) const;
 #endif
 
 	///
@@ -113,8 +142,8 @@ private:
 	void handleTargets(bool enable, const QJsonObject& config = {});
 	bool activateFlatbufferTargets(int priority = PriorityMuxer::LOWEST_PRIORITY);
 
-	bool isFlatbufferComponent(int priority);
-	void disconnectFlatBufferComponents(int priority = PriorityMuxer::LOWEST_PRIORITY);
+	bool isFlatbufferComponent(int priority) const;
+	void disconnectFlatBufferComponents(int priority = PriorityMuxer::LOWEST_PRIORITY) const;
 
 	int startJsonTargets(const QJsonObject& config);
 	void stopJsonTargets();
@@ -149,7 +178,7 @@ private:
 	QSharedPointer<MessageForwarderFlatbufferClientsHelper> _messageForwarderFlatBufHelper;
 
 #ifdef ENABLE_MDNS
-	QSharedPointer<MdnsBrowser> _mdnsBrowser = MdnsBrowser::getInstance();
+	QWeakPointer<MdnsBrowser> _mdnsBrowser = MdnsBrowser::getInstance();
 #endif
 };
 
@@ -160,7 +189,7 @@ class MessageForwarderFlatbufferClientsHelper : public QObject
 
 public:
 	MessageForwarderFlatbufferClientsHelper();
-	~MessageForwarderFlatbufferClientsHelper();
+	~MessageForwarderFlatbufferClientsHelper() override;
 
 signals:
 	void addClient(const QString& origin, const TargetHost& targetHost, int priority, bool skipReply);

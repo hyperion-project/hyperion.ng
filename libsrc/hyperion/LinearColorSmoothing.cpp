@@ -17,6 +17,8 @@
 
 #include <hyperion/Hyperion.h>
 
+Q_LOGGING_CATEGORY(smoothing, "hyperion.smoothing")
+
 /// Clamps the rounded values to the byte-interval of [0, 255].
 ALWAYS_INLINE long clampRounded(const floatT x) {
 	return std::min(255L, std::max(0L, std::lroundf(x)));
@@ -24,8 +26,6 @@ ALWAYS_INLINE long clampRounded(const floatT x) {
 
 // Constants
 namespace {
-
-const bool verbose = false;
 
 /// The number of microseconds per millisecond = 1000.
 const int64_t MS_PER_MICRO = 1000;
@@ -83,7 +83,7 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonObject &config, const QSha
 		_prioMuxerWeak = hyperion->getMuxerInstance();
 	}
 	_log= Logger::getInstance("SMOOTHING", subComponent);
-	TRACK_SCOPE_SUBCOMPONENT;
+	TRACK_SCOPE_SUBCOMPONENT();
 
 	// init cfg (default)
 	updateConfig(SmoothingConfigID::SYSTEM, DEFAULT_SETTLINGTIME, DEFAULT_UPDATEFREQUENCY, DEFAULT_OUTPUTDEPLAY);
@@ -93,14 +93,15 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonObject &config, const QSha
 }
 LinearColorSmoothing::~LinearColorSmoothing()
 {
-	TRACK_SCOPE_SUBCOMPONENT;
+	TRACK_SCOPE_SUBCOMPONENT();
 }
 
 void LinearColorSmoothing::start()
 {
 	Info(_log, "LinearColorSmoothing starting...");
 
-	_timer.reset(new QTimer(this));
+
+	_timer.reset(new QTimer());
 	_timer->setTimerType(Qt::PreciseTimer);
 
 	//Start in pause mode, a new priority will activate smoothing (either start-effect or grabber)
@@ -180,7 +181,7 @@ void LinearColorSmoothing::handlePriorityUpdate(int priority)
 	}
 }
 
-int LinearColorSmoothing::write(const std::vector<ColorRgb> &ledValues)
+int LinearColorSmoothing::write(const QVector<ColorRgb> &ledValues)
 {
 	_targetTime = micros() + (MS_PER_MICRO * _settlingTime);
 	_targetValues = ledValues;
@@ -204,7 +205,7 @@ int LinearColorSmoothing::write(const std::vector<ColorRgb> &ledValues)
 	return 0;
 }
 
-int LinearColorSmoothing::updateLedValues(const std::vector<ColorRgb> &ledValues)
+int LinearColorSmoothing::updateLedValues(const QVector<ColorRgb> &ledValues)
 {
 	int retval = 0;
 	if (!_enabled)
@@ -320,7 +321,7 @@ void LinearColorSmoothing::assembleFrame()
 	}
 }
 
-ALWAYS_INLINE void LinearColorSmoothing::aggregateComponents(const std::vector<ColorRgb>& colors, std::vector<uint64_t>& weighted, const floatT weight) {
+ALWAYS_INLINE void LinearColorSmoothing::aggregateComponents(const QVector<ColorRgb>& colors, std::vector<uint64_t>& weighted, const floatT weight) {
 	// Determine the integer-scale by converting the weight to fixed point
 	const uint64_t scale = (static_cast<uint64_t>(1L)<<FPShift) * static_cast<double>(weight);
 
@@ -508,7 +509,7 @@ void LinearColorSmoothing::updateLeds()
 	}
 }
 
-void LinearColorSmoothing::rememberFrame(const std::vector<ColorRgb> &ledColors)
+void LinearColorSmoothing::rememberFrame(const QVector<ColorRgb> &ledColors)
 {
 	const int64_t now = micros();
 
@@ -544,7 +545,7 @@ void LinearColorSmoothing::clearRememberedFrames()
 	tempValues.clear();
 }
 
-void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> &ledColors)
+void LinearColorSmoothing::queueColors(const QVector<ColorRgb> &ledColors)
 {
 	assert (!ledColors.empty());
 
@@ -636,10 +637,11 @@ unsigned LinearColorSmoothing::addConfig(int settlingTime_ms, double ledUpdateFr
 		updateDelay
 	};
 	_cfgList.append(std::move(cfg));
+	auto cfgID = static_cast<unsigned>(_cfgList.count() - 1);
 
-	DebugIf(verbose && _enabled, _log,"%s", QSTRING_CSTR(getConfig(_cfgList.count()-1)));
+	qCDebug(smoothing) << "Added new smoothing config id" << cfgID << ":" << getConfig(cfgID);
 
-	return _cfgList.count() - 1;
+	return cfgID;
 }
 
 unsigned LinearColorSmoothing::updateConfig(int cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, unsigned updateDelay)

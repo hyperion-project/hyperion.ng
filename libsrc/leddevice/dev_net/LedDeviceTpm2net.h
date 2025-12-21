@@ -4,6 +4,11 @@
 // hyperion includes
 #include "ProviderUdp.h"
 
+#include <QVector>
+#include <QJsonObject>
+
+#include <utils/ColorRgb.h>
+
 ///
 /// Implementation of the LedDevice interface for sending LED colors via udp tpm2.net packets
 ///
@@ -54,7 +59,7 @@ private:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	int write(const std::vector<ColorRgb> & ledValues) override;
+	int write(const QVector<ColorRgb> & ledValues) override;
 
 	int _tpm2_max;
 	int _tpm2ByteCount;

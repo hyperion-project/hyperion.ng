@@ -24,7 +24,7 @@ public:
 	/// @param[in] cropTop           Remove from top [pixels]
 	/// @param[in] cropBottom        Remove from bottom [pixels]
 	///
-	XcbWrapper(	int updateRate_Hz=GrabberWrapper::DEFAULT_RATE_HZ,
+	explicit XcbWrapper(	int updateRate_Hz=GrabberWrapper::DEFAULT_RATE_HZ,
 				int pixelDecimation=GrabberWrapper::DEFAULT_PIXELDECIMATION,
 				int cropLeft=0, int cropRight=0,
 				int cropTop=0, int cropBottom=0
@@ -33,16 +33,9 @@ public:
 	///
 	/// Constructs the XCB frame grabber from configuration settings
 	///
-	XcbWrapper(const QJsonDocument& grabberConfig = QJsonDocument());
+	explicit XcbWrapper(const QJsonDocument& grabberConfig = QJsonDocument());
 
 	~XcbWrapper() override;
-
-	///
-	/// @brief Determine if the grabber is available for usage on the platform
-	///
-	/// @return true, on success, else false
-	///
-	bool isAvailable() override;
 
 	///
 	/// Starts the grabber, if available
