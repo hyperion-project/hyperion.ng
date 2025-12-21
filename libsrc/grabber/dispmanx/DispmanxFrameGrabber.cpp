@@ -198,8 +198,8 @@ int DispmanxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 		cropLeft = cropRight = cropTop = cropBottom = 0;
 	}
 
-	unsigned imageWidth  = static_cast<unsigned>(_width - cropLeft - cropRight);
-	unsigned imageHeight = static_cast<unsigned>(_height - cropTop - cropBottom);
+	auto imageWidth  = _width - cropLeft - cropRight;
+	auto imageHeight = _height - cropTop - cropBottom;
 
 	// resize the given image if needed
 	if (image.width() != imageWidth || image.height() != imageHeight)

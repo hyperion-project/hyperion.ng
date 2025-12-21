@@ -701,7 +701,7 @@ QSize DRMFrameGrabber::getScreenSize() const
     return getScreenSize(getDeviceName());
 }
 
-static QSize findActiveCrtcSize(int drmfd, const drmModeConnector* connector)
+inline QSize findActiveCrtcSize(int drmfd, const drmModeConnector* connector)
 {
     if (!connector || !connector->encoder_id)
     {

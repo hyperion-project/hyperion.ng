@@ -13,7 +13,7 @@ namespace ColorTemperature {
 }
 //End of constants
 
-static ColorRgb getRgbFromTemperature(int temperature)
+inline ColorRgb getRgbFromTemperature(int temperature)
 {
 	//Temperature input in Kelvin valid in the range 1000 K to 40000 K. White light = 6600K
 	temperature = qBound(ColorTemperature::MINIMUM, temperature, ColorTemperature::MAXIMUM);

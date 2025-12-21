@@ -67,7 +67,7 @@ public:
 	///@brief Set new width and height for dispmanx, overwrite Grabber.h impl
 	bool setWidthHeight(int width, int height) override;
 
-	QSize getScreenSize(int display=0) const;
+	QSize getScreenSize(int display=0) const override;
 
 	///
 	/// @brief Discover DispmanX screens available (for configuration).
