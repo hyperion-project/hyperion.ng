@@ -14,7 +14,7 @@
 
 namespace JsonUtils {
 
-QPair<bool, QStringList> readFile(const QString& path, QJsonObject& obj, Logger* log, bool ignError)
+QPair<bool, QStringList> readFile(const QString& path, QJsonObject& obj, QSharedPointer<Logger> log, bool ignError)
 {
 	QJsonValue value(obj);
 
@@ -23,7 +23,7 @@ QPair<bool, QStringList> readFile(const QString& path, QJsonObject& obj, Logger*
 	return result;
 }
 
-QPair<bool, QStringList> readFile(const QString& path, QJsonValue& obj, Logger* log, bool ignError)
+QPair<bool, QStringList> readFile(const QString& path, QJsonValue& obj, QSharedPointer<Logger> log, bool ignError)
 {
 	QString data;
 	if(!FileUtils::readFile(path, data, log, ignError))
@@ -36,7 +36,7 @@ QPair<bool, QStringList> readFile(const QString& path, QJsonValue& obj, Logger* 
 }
 
 
-bool readSchema(const QString& path, QJsonObject& obj, Logger* log)
+bool readSchema(const QString& path, QJsonObject& obj, QSharedPointer<Logger> log)
 {
 	QJsonObject schema;
 	if(!readFile(path, schema, log).first)
@@ -52,7 +52,7 @@ bool readSchema(const QString& path, QJsonObject& obj, Logger* log)
 	return true;
 }
 
-QPair<bool, QStringList> parse(const QString& path, const QString& data, QJsonObject& obj, Logger* log)
+QPair<bool, QStringList> parse(const QString& path, const QString& data, QJsonObject& obj, QSharedPointer<Logger> log)
 {
 	QJsonValue value(obj);
 
@@ -61,7 +61,7 @@ QPair<bool, QStringList> parse(const QString& path, const QString& data, QJsonOb
 	return result;
 }
 
-QPair<bool, QStringList> parse(const QString& path, const QString& data, QJsonArray& arr, Logger* log)
+QPair<bool, QStringList> parse(const QString& path, const QString& data, QJsonArray& arr, QSharedPointer<Logger> log)
 {
 	QJsonValue value(arr);
 
@@ -70,7 +70,7 @@ QPair<bool, QStringList> parse(const QString& path, const QString& data, QJsonAr
 	return result;
 }
 
-QPair<bool, QStringList> parse(const QString& path, const QString& data, QJsonValue& value, Logger* log)
+QPair<bool, QStringList> parse(const QString& path, const QString& data, QJsonValue& value, QSharedPointer<Logger> log)
 {
 	QJsonDocument doc;
 	QPair<bool, QStringList> parsingResult = JsonUtils::parse(path, data, doc, log);
@@ -78,7 +78,7 @@ QPair<bool, QStringList> parse(const QString& path, const QString& data, QJsonVa
 	return parsingResult;
 }
 
-QPair<bool, QStringList> parse(const QString& path, const QString& data, QJsonDocument& doc, Logger* log)
+QPair<bool, QStringList> parse(const QString& path, const QString& data, QJsonDocument& doc, QSharedPointer<Logger> log)
 {
 	QStringList errorList;
 
@@ -110,7 +110,7 @@ QPair<bool, QStringList> parse(const QString& path, const QString& data, QJsonDo
 	return qMakePair(true, errorList);
 }
 
-QPair<bool, QStringList> validate(const QString& file, const QJsonValue& json, const QString& schemaPath, Logger* log)
+QPair<bool, QStringList> validate(const QString& file, const QJsonValue& json, const QString& schemaPath, QSharedPointer<Logger> log)
 {
 	// get the schema data
 	QJsonObject schema;
@@ -125,7 +125,7 @@ QPair<bool, QStringList> validate(const QString& file, const QJsonValue& json, c
 	return validationResult;
 }
 
-QPair<bool, QStringList> validate(const QString& file, const QJsonValue& json, const QJsonObject& schema, Logger* log)
+QPair<bool, QStringList> validate(const QString& file, const QJsonValue& json, const QJsonObject& schema, QSharedPointer<Logger> log)
 {
 	QStringList errorList;
 
@@ -146,7 +146,7 @@ QPair<bool, QStringList> validate(const QString& file, const QJsonValue& json, c
 	return qMakePair(true, errorList);
 }
 
-QPair<bool, QStringList> correct(const QString& file, QJsonValue& json, const QJsonObject& schema, Logger* log)
+QPair<bool, QStringList> correct(const QString& file, QJsonValue& json, const QJsonObject& schema, QSharedPointer<Logger> log)
 {
 	bool wasCorrected {false};
 	QStringList corrections;
@@ -171,7 +171,7 @@ QPair<bool, QStringList> correct(const QString& file, QJsonValue& json, const QJ
 	return qMakePair(wasCorrected, corrections);
 }
 
-bool write(const QString& filename, const QJsonObject& json, Logger* log)
+bool write(const QString& filename, const QJsonObject& json, QSharedPointer<Logger> log)
 {
 	QJsonDocument doc;
 
@@ -181,7 +181,7 @@ bool write(const QString& filename, const QJsonObject& json, Logger* log)
 	return FileUtils::writeFile(filename, data, log);
 }
 
-bool resolveRefs(const QJsonObject& schema, QJsonObject& obj, Logger* log)
+bool resolveRefs(const QJsonObject& schema, QJsonObject& obj, QSharedPointer<Logger> log)
 {
 	for (QJsonObject::const_iterator i = schema.begin(); i != schema.end(); ++i)
 	{
@@ -208,7 +208,7 @@ bool resolveRefs(const QJsonObject& schema, QJsonObject& obj, Logger* log)
 	return true;
 }
 
-QString jsonValueToQString(const QJsonValue &value, QJsonDocument::JsonFormat format)
+QByteArray jsonValueToQByteArray(const QJsonValue &value, QJsonDocument::JsonFormat format)
 {
 	switch (value.type()) {
 	case QJsonValue::Object:
@@ -221,11 +221,11 @@ QString jsonValueToQString(const QJsonValue &value, QJsonDocument::JsonFormat fo
 	}
 	case QJsonValue::String:
 	{
-		return value.toString();
+		return value.toString().toUtf8();
 	}
 	case QJsonValue::Double:
 	{
-		return QString::number(value.toDouble());
+		return QString::number(value.toDouble()).toUtf8();
 	}
 	case QJsonValue::Bool:
 	{
@@ -238,7 +238,17 @@ QString jsonValueToQString(const QJsonValue &value, QJsonDocument::JsonFormat fo
 	default:
 	break;
 	}
-	return QString();
+	return QByteArray();
+}
+
+QByteArray toCompact(const QJsonValue &value)
+{ 
+	return jsonValueToQByteArray(value, QJsonDocument::Compact);
+}
+
+QString jsonValueToQString(const QJsonValue &value, QJsonDocument::JsonFormat format)
+{
+	return jsonValueToQByteArray(value, format);
 }
 
 QJsonObject mergeJsonObjects(const QJsonObject &obj1, const QJsonObject &obj2, bool overrideObj1)

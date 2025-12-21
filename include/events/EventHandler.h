@@ -5,6 +5,8 @@
 #include <events/EventEnum.h>
 
 #include <QObject>
+#include <QSharedPointer>
+#include <QScopedPointer>
 
 class Logger;
 
@@ -16,6 +18,7 @@ public:
 	~EventHandler() override;
 
 	static QScopedPointer<EventHandler>& getInstance();
+	static void destroyInstance();
 
 public slots:
 
@@ -36,7 +39,7 @@ signals:
 	void signalEvent(Event event);
 
 protected:
-	Logger * _log {};
+	QSharedPointer<Logger> _log;
 
 private:
 	EventHandler();

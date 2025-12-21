@@ -2,6 +2,12 @@
 
 #include <mutex>
 
+#include <QtGlobal>
+#include <QThread>
+#include <QDir>
+#include <QEventLoop>
+#include <QDebug>
+
 #include <leddevice/LedDevice.h>
 #include <leddevice/LedDeviceFactory.h>
 
@@ -11,12 +17,7 @@
 // util
 #include <hyperion/Hyperion.h>
 #include <utils/JsonUtils.h>
-
-// qt
-#include <QtGlobal>
-#include <QThread>
-#include <QDir>
-#include <QEventLoop>
+#include <utils/ThreadUtils.h>
 
 LedDeviceRegistry LedDeviceWrapper::_ledDeviceMap {};
 static std::once_flag initFlag;
@@ -39,13 +40,12 @@ LedDeviceWrapper::LedDeviceWrapper(const QSharedPointer<Hyperion>& hyperionInsta
 		hyperion->setNewComponentState(hyperion::COMP_LEDDEVICE, false);
 	}
 	_log = Logger::getInstance("LEDDEVICE", subComponent);
-
-	
+	TRACK_SCOPE_SUBCOMPONENT();
 }
 
 LedDeviceWrapper::~LedDeviceWrapper()
 {
-	qDebug() << "LedDeviceWrapper::~LedDeviceWrapper()...";
+	TRACK_SCOPE_SUBCOMPONENT();
 }
 
 void LedDeviceWrapper::createLedDevice(const QJsonObject& config)
@@ -81,6 +81,7 @@ void LedDeviceWrapper::handleComponentState(hyperion::Components component, bool
 {
 	if (component == hyperion::COMP_LEDDEVICE)
 	{
+		TRACK_SCOPE_SUBCOMPONENT_CATEGORY(leddevice_flow) << "state" << state;
 		if (state)
 		{
 			emit enable();
@@ -94,6 +95,14 @@ void LedDeviceWrapper::handleComponentState(hyperion::Components component, bool
 
 void LedDeviceWrapper::onIsEnabledChanged(bool isEnabled)
 {
+	if (_isEnabled == isEnabled)
+	{
+		TRACK_SCOPE_SUBCOMPONENT_CATEGORY(leddevice_flow) << "Device is already in the correct state. It is" << (_isEnabled ? "enabled" : "disabled");
+		return;
+	}
+
+	TRACK_SCOPE_SUBCOMPONENT_CATEGORY(leddevice_flow) << "Device" << _ledDevice->getActiveDeviceType() << "changed to" << (isEnabled ? "enabled" : "disabled");
+
 	QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
 	if (hyperion)
 	{
@@ -104,7 +113,15 @@ void LedDeviceWrapper::onIsEnabledChanged(bool isEnabled)
 
 void LedDeviceWrapper::onIsOnChanged(bool isOn)
 {
+	if (_isOn == isOn)
+	{
+		TRACK_SCOPE_SUBCOMPONENT_CATEGORY(leddevice_flow) << "Device is already in the correct state. It is" << (_isOn ? "on" : "off");
+		return;
+	}
+
 	_isOn = isOn;
+	TRACK_SCOPE_SUBCOMPONENT_CATEGORY(leddevice_flow) << "Device" << _ledDevice->getActiveDeviceType() << "changed to" << (isOn ? "on" : "off");
+
 	if (_isOn)
 	{
 		QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
@@ -117,7 +134,7 @@ void LedDeviceWrapper::onIsOnChanged(bool isOn)
 
 void LedDeviceWrapper::stopDevice()
 {
-	Debug(_log, "Stop LED-Device thread");
+	Debug(_log, "Stop LED-Device service");
 
 	//Disable updates to the LedDevice
 	disconnect(this, &LedDeviceWrapper::updateLeds, _ledDevice.get(), &LedDevice::updateLeds);
@@ -126,26 +143,16 @@ void LedDeviceWrapper::stopDevice()
 	disconnect(this, &LedDeviceWrapper::enable, _ledDevice.get(), &LedDevice::enable);
 	disconnect(this, &LedDeviceWrapper::switchOn, _ledDevice.get(), &LedDevice::switchOn);
 
-	// Create a local event loop to wait for the LedDevice isStopped signal
-	QEventLoop loop;
-	connect(_ledDevice.get(), &LedDevice::isStopped, &loop, &QEventLoop::quit);
-	// Turn the LEDs off & stops refresh timers
-	emit stop();
-	loop.exec();
+	// Stop the LedDevice and wait for it to be done
+	safeShutdownThread(
+		_ledDevice.get(),
+		_ledDeviceThread.get(),
+		&LedDevice::isStopped,
+		&LedDevice::stop,
+		5000 // 5 second timeout
+	);
 
-	_ledDevice.reset();
-
-	if (!_ledDeviceThread.isNull())
-	{
-		if (_ledDeviceThread->isRunning())
-		{
-			_ledDeviceThread->quit();
-			_ledDeviceThread->wait();
-			_ledDeviceThread.reset();
-		}
-	}
-
-	Debug(_log, "LED-Device thread stopped");
+	Debug(_log, "LED-Device service stopped");
 	emit isStopped();
 }
 
@@ -189,9 +196,10 @@ bool LedDeviceWrapper::isOn() const
 
 void LedDeviceWrapper::initializeDeviceMap()
 {
-	std::call_once(initFlag, []() {
+	std::call_once(initFlag, []() 
+	{
 		// Initialize the map once
-#define REGISTER(className) _ledDeviceMap.emplace(QString(#className).toLower(), LedDevice##className::construct);
+#define REGISTER(className) _ledDeviceMap.insert(QString(#className).toLower(), LedDevice##className::construct);
 
 #include "LedDevice_register.cpp"
 
@@ -217,26 +225,28 @@ QJsonObject LedDeviceWrapper::getLedDeviceSchemas()
 
 	for(QString &item : dir.entryList())
 	{
-		QString const schemaPath(QString(":/leddevices/")+item);
+		QString const schemaFile = dir.filePath(item);
 		QString const devName = item.remove("schema-");
 
 		QString data;
-		if(!FileUtils::readFile(schemaPath, data, Logger::getInstance("LEDDEVICE")))
+		if(!FileUtils::readFile(schemaFile, data, Logger::getInstance("LEDDEVICE")))
 		{
-			throw std::runtime_error("ERROR: Schema not found: " + item.toStdString());
+			Error(Logger::getInstance("LEDDEVICE"), "Failed to read LED device schema: %s", QSTRING_CSTR(item));
+			qFatal("Failed to read LED device schema: %s", QSTRING_CSTR(item));
 		}
 
 		QJsonObject schema;
-		QPair<bool, QStringList> const parsingResult = JsonUtils::parse(schemaPath, data, schema, Logger::getInstance("LEDDEVICE"));
-		if (!parsingResult.first)
+		auto [parsingSuccess, errorList] = JsonUtils::parse(schemaFile, data, schema, Logger::getInstance("LEDDEVICE"));
+		if (!parsingSuccess)
 		{
-			QStringList const errorList = parsingResult.second;
-			for (const auto& errorMessage : errorList) {
-				Debug(Logger::getInstance("LEDDEVICE"), "JSON parse error: %s ", QSTRING_CSTR(errorMessage));
+			Error(Logger::getInstance("LEDDEVICE"), "LED device schema '%s' is invalid", QSTRING_CSTR(item));
+			for (const auto &errorMessage : errorList)
+			{
+				Error(Logger::getInstance("LEDDEVICE"), "JSON parse error: %s ", QSTRING_CSTR(errorMessage));
 			}
-			throw std::runtime_error("ERROR: JSON schema is wrong for file: " + item.toStdString());
+			qWarning() << "LED device schema" << item << "is invalid";
+			qFatal("JSON parse error: %s", QSTRING_CSTR(errorList.join(' ')));
 		}
-
 
 		schemaJson = schema;
 		schemaJson["title"] = QString("edt_dev_spec_header_title");

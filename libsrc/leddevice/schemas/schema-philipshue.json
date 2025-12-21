@@ -223,14 +223,6 @@
       },
       "propertyOrder": 18
     },
-    "verbose": {
-      "type": "boolean",
-      "format": "checkbox",
-      "title": "edt_dev_spec_verbose_title",
-      "default": false,
-      "access": "expert",
-      "propertyOrder": 19
-    },
     "transitiontime": {
       "type": "number",
       "title": "edt_dev_spec_transistionTime_title",

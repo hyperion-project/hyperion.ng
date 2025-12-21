@@ -56,22 +56,20 @@ bool LedDeviceWs2812SPI::init(const QJsonObject &deviceConfig)
 {
 	_baudRate_Hz = 2600000;
 
-	bool isInitOK = false;
-
 	// Initialise sub-class
-	if ( ProviderSpi::init(deviceConfig) )
+	if ( !ProviderSpi::init(deviceConfig) )
 	{
-		WarningIf(( _baudRate_Hz < 2106000 || _baudRate_Hz > 3075000 ), _log, "SPI rate %d outside recommended range (2106000 -> 3075000)", _baudRate_Hz);
-
-		_ledBuffer.resize(_ledRGBCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
-
-		isInitOK = true;
+		return false;
 	}
+	
+	WarningIf(( _baudRate_Hz < 2106000 || _baudRate_Hz > 3075000 ), _log, "SPI rate %d outside recommended range (2106000 -> 3075000)", _baudRate_Hz);
 
-	return isInitOK;
+	_ledBuffer.fill(0x00, _ledRGBCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES);
+
+	return true;
 }
 
-int LedDeviceWs2812SPI::write(const std::vector<ColorRgb> &ledValues)
+int LedDeviceWs2812SPI::write(const QVector<ColorRgb> &ledValues)
 {
 	unsigned spi_ptr = 0;
 	const int SPI_BYTES_PER_LED = sizeof(ColorRgb) * SPI_BYTES_PER_COLOUR;
@@ -92,7 +90,8 @@ int LedDeviceWs2812SPI::write(const std::vector<ColorRgb> &ledValues)
 
 	for (int j=0; j < SPI_FRAME_END_LATCH_BYTES; j++)
 	{
-		_ledBuffer[spi_ptr++] = 0;
+		_ledBuffer[spi_ptr] = 0;
+		++spi_ptr;
 	}
 
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());

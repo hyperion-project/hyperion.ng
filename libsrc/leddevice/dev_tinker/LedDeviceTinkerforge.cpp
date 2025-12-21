@@ -38,86 +38,79 @@ LedDevice* LedDeviceTinkerforge::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceTinkerforge::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = false;
-
 	// Initialise sub-class
-	if ( LedDevice::init(deviceConfig) )
+	if (!LedDevice::init(deviceConfig))
 	{
-		_host     = deviceConfig["output"].toString("127.0.0.1");
-		_port     = deviceConfig["port"].toInt(DEFAULT_PORT);
-		_uid      = deviceConfig["uid"].toString();
-		_interval = deviceConfig["rate"].toInt();
+		return false;
+	}
 
-		if ((unsigned)_ledCount > MAX_NUM_LEDS)
-		{
-			QString errortext = QString ("Initialization error. Not more than %1 LEDs are allowed.").arg(MAX_NUM_LEDS);
-			this->setInError(errortext);
-			isInitOK = false;
+	_host     = deviceConfig["output"].toString("127.0.0.1");
+	_port     = static_cast<uint16_t>(deviceConfig["port"].toInt(DEFAULT_PORT));
+	_uid      = deviceConfig["uid"].toString();
+	_interval = deviceConfig["rate"].toInt();
+
+	if (_ledCount > MAX_NUM_LEDS)
+	{
+		QString errortext = QString ("Initialization error. Not more than %1 LEDs are allowed.").arg(MAX_NUM_LEDS);
+		this->setInError(errortext);
+		return false;
 	}
-		else
-		{
-			if (_colorChannelSize < (unsigned)_ledCount)
-			{
-				_redChannel.resize(_ledCount, uint8_t(0));
-				_greenChannel.resize(_ledCount, uint8_t(0));
-				_blueChannel.resize(_ledCount, uint8_t(0));
-			}
-			_colorChannelSize = _ledCount;
-			isInitOK = true;
-		}
+
+	if (_colorChannelSize < _ledCount)
+	{
+		_redChannel.fill(0x00, _ledCount);
+		_greenChannel.fill(0x00, _ledCount);
+		_blueChannel.fill(0x00, _ledCount);
 	}
-	return isInitOK;
+	_colorChannelSize = _ledCount;
+
+	return true;
 }
 
 int LedDeviceTinkerforge::open()
 {
-	int retval = -1;
 	_isDeviceReady = false;
 
 	// Check if connection is already created
 	if (_ipConnection != nullptr)
 	{
 		Error(_log, "Attempt to open existing connection; close before opening");
-	}
-	else
-	{
-		// Initialise a new connection
-		_ipConnection = new IPConnection;
-		ipcon_create(_ipConnection);
-
-		int connectionStatus = ipcon_connect(_ipConnection, QSTRING_CSTR(_host), _port);
-		if (connectionStatus < 0)
-		{
-			Error(_log, "Attempt to connect to master brick (%s:%d) failed with status %d", QSTRING_CSTR(_host), _port, connectionStatus);
-		}
-		else
-		{
-			// Create the 'LedStrip'
-			_ledStrip = new LEDStrip;
-			led_strip_create(_ledStrip, QSTRING_CSTR(_uid), _ipConnection);
-
-			int frameStatus = led_strip_set_frame_duration(_ledStrip, _interval);
-			if (frameStatus < 0)
-			{
-				Error(_log,"Attempt to connect to led strip bricklet (led_strip_set_frame_duration()) failed with status %d", frameStatus);
-			}
-			else
-			{
-				// Everything is OK, device is ready
-				_isDeviceReady = true;
-				retval = 0;
-			}
-		}
-	}
-	// On error/exceptions, set LedDevice in error
-	if ( retval < 0 )
-	{
 		this->setInError( "Error opening device!" );
+		return -1;
 	}
-	return retval;
+
+	// Initialise a new connection
+	_ipConnection = new IPConnection;
+	ipcon_create(_ipConnection);
+
+	int connectionStatus = ipcon_connect(_ipConnection, QSTRING_CSTR(_host), _port);
+	if (connectionStatus < 0)
+	{
+		Error(_log, "Attempt to connect to master brick (%s:%d) failed with status %d", QSTRING_CSTR(_host), _port, connectionStatus);
+		this->setInError( "Error opening device!" );
+		return -1;
+
+	}
+
+	// Create the 'LedStrip'
+	_ledStrip = new LEDStrip;
+	led_strip_create(_ledStrip, QSTRING_CSTR(_uid), _ipConnection);
+
+	int frameStatus = led_strip_set_frame_duration(_ledStrip, static_cast<uint16_t>(_interval));
+	if (frameStatus < 0)
+	{
+		Error(_log,"Attempt to connect to led strip bricklet (led_strip_set_frame_duration()) failed with status %d", frameStatus);
+		this->setInError( "Error opening device!" );
+		return -1;
+	}
+
+	// Everything is OK, device is ready
+	_isDeviceReady = true;
+
+	return 0;
 }
 
-int LedDeviceTinkerforge::write(const std::vector<ColorRgb> &ledValues)
+int LedDeviceTinkerforge::write(const QVector<ColorRgb> &ledValues)
 {
 	auto redIt   = _redChannel.begin();
 	auto greenIt = _greenChannel.begin();

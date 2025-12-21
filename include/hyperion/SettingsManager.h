@@ -23,7 +23,8 @@ public:
 	/// @params  instance   Instance index of HyperionInstanceManager
 	/// @params  parent    The parent hyperion instance
 	///
-	SettingsManager(quint8 instance = NO_INSTANCE_ID, QObject* parent = nullptr);
+	explicit SettingsManager(quint8 instance = NO_INSTANCE_ID, QObject* parent = nullptr);
+	~SettingsManager() override;
 
 	///
 	/// @brief Save a complete JSON configuration
@@ -78,7 +79,7 @@ private:
 
 
 	/// Logger instance
-	Logger* _log;
+	QSharedPointer<Logger> _log;
 
 	/// Instance number
 	quint8 _instance;

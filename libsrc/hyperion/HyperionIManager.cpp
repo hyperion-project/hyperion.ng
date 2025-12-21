@@ -3,20 +3,20 @@
 // hyperion
 #include <hyperion/Hyperion.h>
 #include <db/InstanceTable.h>
-#include <db/SettingsTable.h>
-#include <utils/TrackedMemory.h>
+#include <utils/MemoryTracker.h>
 
 // qt
 #include <QThread>
 
-HyperionIManager* HyperionIManager::HIMinstance;
+QSharedPointer<HyperionIManager> HyperionIManager::_instance;
 
 HyperionIManager::HyperionIManager(QObject* parent)
 	: QObject(parent)
 	, _log(Logger::getInstance("HYPERION-INSTMGR"))
 	, _instanceTable(new InstanceTable(this))
 {
-	HIMinstance = this;
+	TRACK_SCOPE();
+	// (No raw global assignment; managed through s_instance)
 	qRegisterMetaType<InstanceState>("InstanceState");
 
 	_instanceTable->createInitialInstance();
@@ -24,6 +24,37 @@ HyperionIManager::HyperionIManager(QObject* parent)
 
 HyperionIManager::~HyperionIManager()
 {
+	TRACK_SCOPE();
+}
+
+void HyperionIManager::createInstance(QObject* parent)
+{
+	CREATE_INSTANCE_WITH_TRACKING(_instance, HyperionIManager, parent, nullptr);
+}
+
+HyperionIManager* HyperionIManager::getInstance()
+{
+	return _instance.data();
+}
+
+QSharedPointer<HyperionIManager>& HyperionIManager::instanceRef()
+{
+	return _instance;
+}
+
+void HyperionIManager::destroyInstance()
+{
+	if (_instance)
+	{
+		// Ensure all instances stopped before destruction
+		_instance->stopAll();
+		_instance.clear();
+	}
+}
+
+bool HyperionIManager::isValid()
+{
+	return !_instance.isNull();
 }
 
 QSharedPointer<Hyperion> HyperionIManager::getHyperionInstance(quint8 instanceId)
@@ -188,54 +219,55 @@ void HyperionIManager::toggleStateAllInstances(bool enable)
 
 bool HyperionIManager::startInstance(quint8 instanceId, bool block, QObject* caller, int tan)
 {
-	if(_instanceTable->doesInstanceExist(instanceId))
+	if(!_instanceTable->doesInstanceExist(instanceId))
 	{
-		if(!_runningInstances.contains(instanceId) && !_startingInstances.contains(instanceId))
-		{
-			QSharedPointer<Hyperion> const hyperion = MAKE_TRACKED_SHARED(Hyperion, instanceId);
-
-			QThread* hyperionThread = new QThread(this);
-			hyperionThread->setObjectName("HyperionThread");
-
-			hyperion->moveToThread(hyperionThread);
-			// setup thread management
-			connect(hyperionThread, &QThread::started, hyperion.get(), &Hyperion::start);
-			connect(hyperion.get(), &Hyperion::started, this, &HyperionIManager::handleStarted);
-			connect(hyperion.get(), &Hyperion::finished, this, &HyperionIManager::handleFinished);
-
-			// setup further connections
-			// from Hyperion
-			connect(hyperion.get(), &Hyperion::settingsChanged, this, &HyperionIManager::settingsChanged);
-			connect(hyperion.get(), &Hyperion::videoMode, this, &HyperionIManager::requestVideoMode);
-			// to Hyperion
-			connect(this, &HyperionIManager::newVideoMode, hyperion.get(), &Hyperion::newVideoMode);
-
-			// add to queue and start
-			_startingInstances.insert(instanceId, hyperion);
-			hyperionThread->start();
-
-			// update db
-			_instanceTable->setLastUse(instanceId);
-			_instanceTable->setEnable(instanceId, true);
-
-			if(block)
-			{
-				while(!hyperionThread->isRunning()){}
-			}
-
-			if (!_pendingRequests.contains(instanceId) && caller != nullptr)
-			{
-				PendingRequests const newDef{caller, tan};
-				_pendingRequests[instanceId] = newDef;
-			}
-
-			return true;
-		}
-		Debug(_log,"Cannot start Hyperion instance (%u) - '%s'. It is already running or queued for start.",instanceId,QSTRING_CSTR(_instanceTable->getNamebyIndex(instanceId)));
+		Debug(_log,"Cannot start Hyperion instance (%u). It is not configured.", instanceId);
 		return false;
 	}
-	Debug(_log,"Cannot start Hyperion instance (%u).It is not configured.", instanceId);
-	return false;
+	
+	if(_runningInstances.contains(instanceId) || _startingInstances.contains(instanceId))
+	{
+		return false;
+	}
+
+	QSharedPointer<Hyperion> const hyperion = MAKE_TRACKED_SHARED(Hyperion, instanceId);
+
+	auto* hyperionThread = new QThread(this);
+	hyperionThread->setObjectName("HyperionThread");
+
+	hyperion->moveToThread(hyperionThread);
+	// setup thread management
+	connect(hyperionThread, &QThread::started, hyperion.get(), &Hyperion::start);
+	connect(hyperion.get(), &Hyperion::started, this, &HyperionIManager::handleStarted);
+	connect(hyperion.get(), &Hyperion::finished, this, &HyperionIManager::handleFinished);
+
+	// setup further connections
+	// from Hyperion
+	connect(hyperion.get(), &Hyperion::settingsChanged, this, &HyperionIManager::settingsChanged);
+	connect(hyperion.get(), &Hyperion::videoMode, this, &HyperionIManager::requestVideoMode);
+	// to Hyperion
+	connect(this, &HyperionIManager::newVideoMode, hyperion.get(), &Hyperion::newVideoMode);
+
+	// add to queue and start
+	_startingInstances.insert(instanceId, hyperion);
+	hyperionThread->start();
+
+	// update db
+	_instanceTable->setLastUse(instanceId);
+	_instanceTable->setEnable(instanceId, true);
+
+	if(block)
+	{
+		while(!hyperionThread->isRunning()){}
+	}
+
+	if (!_pendingRequests.contains(instanceId) && caller != nullptr)
+	{
+		PendingRequests const newDef{caller, tan};
+		_pendingRequests[instanceId] = newDef;
+	}
+
+	return true;
 }
 
 bool HyperionIManager::stopInstance(quint8 instanceId)
@@ -261,7 +293,7 @@ bool HyperionIManager::stopInstance(quint8 instanceId)
 	Debug(_log,"Cannot stop Hyperion instance [%u]. It is not configured.", instanceId);
 	return false;
 }
-
+	
 bool HyperionIManager::createInstance(const QString& name, bool start)
 {
 	quint8 instanceId = 0;
@@ -269,6 +301,9 @@ bool HyperionIManager::createInstance(const QString& name, bool start)
 	{
 		SettingsTable settingsTable(instanceId);
 		settingsTable.addMissingDefaults();
+
+		alignInstanceSourceSettings(settingsTable);
+
 		Info(_log,"New Hyperion instance [%u] created with name '%s'", instanceId, QSTRING_CSTR(name));
 		emit instanceStateChanged(InstanceState::H_CREATED, instanceId, name);
 		emit change();
@@ -312,12 +347,14 @@ bool HyperionIManager::saveName(quint8 instanceId, const QString& name)
 void HyperionIManager::handleFinished(const QString& name)
 {
 	Hyperion* rawHyperion = qobject_cast<Hyperion*>(sender());
-
 	if (rawHyperion)
 	{
+		// Acquire shared pointer and thread *before* altering maps
 		QSharedPointer<Hyperion> hyperion = rawHyperion->sharedFromThis();
-
+		QThread* thread = hyperion->thread();
 		quint8 const instanceId = hyperion->getInstanceIndex();
+
+		// Remove from tracking maps first (drops one reference)
 		if (_startingInstances.contains(instanceId))
 		{
 			_startingInstances.remove(instanceId);
@@ -327,21 +364,25 @@ void HyperionIManager::handleFinished(const QString& name)
 			_runningInstances.remove(instanceId);
 		}
 
+		// Emit state change while object still valid
 		emit instanceStateChanged(InstanceState::H_STOPPED, instanceId);
 		emit change();
 
-		qDebug() << "Hyperion instance [" << instanceId << "] - '" << name << "' finished.";
+		// Release last shared reference BEFORE stopping thread so custom deleter can schedule deleteLater
+		// (objectDeleter checks if owning thread is running; we want it to be running at that time)
+		// Note: hyperion may already be at refcount 1 here.
+		hyperion.clear();
 
-		// Manually stop the thread and cleanup
-		QThread* thread = hyperion->thread();
+		// Now gracefully stop the thread; pending deleteLater will be processed during quit
 		if (thread != nullptr)
 		{
+			// Ensure thread object itself is cleaned up afterwards
+			QObject::connect(thread, &QThread::finished, thread, &QObject::deleteLater);
 			thread->quit();
 			thread->wait();
 		}
 
 		Info(_log, "Hyperion instance [%u] - '%s' stopped.", instanceId, QSTRING_CSTR(name));
-
 	}
 	else
 	{
@@ -357,7 +398,7 @@ void HyperionIManager::handleFinished(const QString& name)
 
 void HyperionIManager::handleStarted()
 {
-	Hyperion* const hyperion = qobject_cast<Hyperion*>(sender());
+	Hyperion const* hyperion = qobject_cast<Hyperion*>(sender());
 	quint8 const instanceId = hyperion->getInstanceIndex();
 
 	if (_startingInstances.contains(instanceId))
@@ -383,4 +424,22 @@ void HyperionIManager::handleStarted()
 		Error(_log, "Cannot find instance [%u] - '%s' in the starting list.",
 			  instanceId, QSTRING_CSTR(_instanceTable->getNamebyIndex(instanceId)));
 	}
+}
+
+bool HyperionIManager::alignInstanceSourceSettings(SettingsTable &settingsTable) const
+{
+	//Get grabber settings
+	SettingsTable globalSettings(NO_INSTANCE_ID);
+	QJsonObject systemCaptureSettings = globalSettings.getSettingsRecordJson(typeToString(settings::SYSTEMCAPTURE)).object();
+	QJsonObject videoCaptureSettings = globalSettings.getSettingsRecordJson(typeToString(settings::V4L2)).object();
+	QJsonObject audioCaptureSettings = globalSettings.getSettingsRecordJson(typeToString(settings::AUDIO)).object();
+
+	//Update instance source settings in line with grabber enable states
+	QJsonObject instCaptureSettings = settingsTable.getSettingsRecordJson(typeToString(settings::INSTCAPTURE)).object();
+	instCaptureSettings["systemEnable"] = systemCaptureSettings.value("enable").toBool(false);
+	instCaptureSettings["v4lEnable"] = videoCaptureSettings.value("enable").toBool(false);
+	instCaptureSettings["audioEnable"] = audioCaptureSettings.value("enable").toBool(false);
+
+	//Update settings table
+	return settingsTable.createSettingsRecord(typeToString(settings::INSTCAPTURE), JsonUtils::jsonValueToQString(instCaptureSettings));
 }

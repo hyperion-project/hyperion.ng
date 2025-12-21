@@ -5,6 +5,7 @@ endif()
 add_library(hyperion-utils
 	# Global defines/signal sharing
 	${CMAKE_SOURCE_DIR}/include/utils/global_defines.h
+	${CMAKE_SOURCE_DIR}/include/utils/Packed.h
 	${CMAKE_SOURCE_DIR}/include/utils/GlobalSignals.h
 	# Error signal handler
 	${CMAKE_SOURCE_DIR}/include/utils/ErrorManager.h
@@ -27,7 +28,9 @@ add_library(hyperion-utils
 	${CMAKE_SOURCE_DIR}/libsrc/utils/ColorRgbw.cpp
 	# Image declaration
 	${CMAKE_SOURCE_DIR}/include/utils/Image.h
+	${CMAKE_SOURCE_DIR}/libsrc/utils/Image.cpp
 	${CMAKE_SOURCE_DIR}/include/utils/ImageData.h
+	${CMAKE_SOURCE_DIR}/libsrc/utils/ImageData.cpp
 	# Image resampler
 	${CMAKE_SOURCE_DIR}/include/utils/ImageResampler.h
 	${CMAKE_SOURCE_DIR}/libsrc/utils/ImageResampler.cpp
@@ -83,9 +86,12 @@ add_library(hyperion-utils
 	# Wait event loop function
 	${CMAKE_SOURCE_DIR}/include/utils/WaitTime.h
 	# Tracking Shared objects' memory
-	${CMAKE_SOURCE_DIR}/include/utils/TrackedMemory.h
-	# Weak connection
+	${CMAKE_SOURCE_DIR}/include/utils/MemoryTracker.h
+	${CMAKE_SOURCE_DIR}/libsrc/utils/MemoryTracker.cpp
+	# Weak Ptrs utilities
 	${CMAKE_SOURCE_DIR}/include/utils/WeakConnect.h
+	# Thread utilities
+	${CMAKE_SOURCE_DIR}/include/utils/ThreadUtils.h
 	# Semver namespace
 	${CMAKE_SOURCE_DIR}/include/utils/version.hpp
 	# Utility methods for Hyperion class
@@ -105,6 +111,10 @@ target_link_libraries(hyperion-utils
 
 if(WIN32)
 	target_link_libraries(hyperion-utils dbghelp)
+endif()
+
+if(UNIX AND NOT APPLE)
+	target_link_libraries(hyperion-utils atomic)
 endif()
 
 if(ENABLE_EFFECTENGINE)

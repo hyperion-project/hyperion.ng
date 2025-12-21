@@ -207,7 +207,7 @@ $(document).ready(function () {
       var deviceSelected = conf_editor_screen.getEditor("root.framegrabber.available_devices").getValue();
       var videoInputSelected = conf_editor_screen.getEditor("root.framegrabber.device_inputs").getValue();
 
-      //Update hidden input element
+     //Update hidden input element
       conf_editor_screen.getEditor("root.framegrabber.input").setValue(parseInt(videoInputSelected));
 
       var addSchemaElements = {};
@@ -216,8 +216,9 @@ $(document).ready(function () {
       var enumDefaultVal = "";
 
       var deviceProperties = getPropertiesOfDevice("screen", deviceSelected);
-
-      var formats = deviceProperties.video_inputs[videoInputSelected].formats;
+      
+      const videoInput = deviceProperties.video_inputs.find(input => input.inputIdx === parseInt(videoInputSelected));
+      const formats = videoInput.formats;
       var formatIdx = 0;
 
       var resolutions = formats[formatIdx].resolutions;
@@ -262,7 +263,8 @@ $(document).ready(function () {
 
       var deviceProperties = getPropertiesOfDevice("screen", deviceSelected);
 
-      var formats = deviceProperties.video_inputs[videoInputSelected].formats;
+      const videoInput = deviceProperties.video_inputs.find(input => input.inputIdx == videoInputSelected);
+      const formats = videoInput.formats;
       var formatIdx = 0;
 
       //Update hidden resolution related elements
@@ -442,7 +444,7 @@ $(document).ready(function () {
       };
 
       for (const prop in propMappings) {
-        if (hasDefaults) {
+        if (hasDefaults && currentProps[prop] && Object.hasOwn(defaultProperties, prop)) {
           currentProps[prop].default = defaultProperties[prop];
         }
         // Ensure min,max and step values are set inline with the selected grabber to ensure valid input
@@ -451,8 +453,8 @@ $(document).ready(function () {
         let currentValue = 0;
         if (isConfiguredDevice) {
           currentValue = window.serverConfig.grabberV4L2[propMappings[prop]];
-        } else if (hasDefaults) {
-          currentValue = currentProps.default;
+        } else if (hasDefaults && currentProps[prop]?.hasOwnProperty('default')) {
+          currentValue = currentProps[prop].default;
         }
 
         if (currentValue !== undefined) {

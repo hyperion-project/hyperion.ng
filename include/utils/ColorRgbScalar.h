@@ -10,10 +10,14 @@
 #include <QRgb>
 #include <utils/ColorRgb.h>
 
+#include <utils/Packed.h>
+
 ///
 /// Plain-Old-Data structure containing the red-green-blue color specification. Size of the
 /// structure is exactly 3 times int for easy writing to led-device
 ///
+
+PACKED_STRUCT_BEGIN
 struct ColorRgbScalar
 {
 	/// The red color channel
@@ -81,7 +85,9 @@ struct ColorRgbScalar
 	{
 		return QString("(%1,%2,%3)").arg(red).arg(green).arg(blue);
 	}
-};
+}
+PACKED_STRUCT_END;
+
 /// Assert to ensure that the size of the structure is 'only' 3 times int
 static_assert(sizeof(ColorRgbScalar) == 3 * sizeof(int), "Incorrect size of ColorRgbInt");
 

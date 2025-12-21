@@ -2,6 +2,7 @@
 #define LEDEVICEWS2812_ftdi_H
 
 #include "ProviderFtdi.h"
+#include <QVector>
 
 
 class LedDeviceWs2812_ftdi : public ProviderFtdi
@@ -38,7 +39,7 @@ private:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	int write(const std::vector<ColorRgb>& ledValues) override;
+	int write(const QVector<ColorRgb>& ledValues) override;
 
 	const int SPI_BYTES_PER_COLOUR;
 	const int SPI_FRAME_END_LATCH_BYTES;

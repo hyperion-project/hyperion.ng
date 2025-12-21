@@ -12,8 +12,8 @@
 class LedDevice;
 class Hyperion;
 
-typedef LedDevice* ( *LedDeviceCreateFuncType ) ( const QJsonObject& );
-typedef std::map<QString,LedDeviceCreateFuncType> LedDeviceRegistry;
+using LedDeviceCreateFuncType = LedDevice* (*)( const QJsonObject& );
+using LedDeviceRegistry = QMap<QString,LedDeviceCreateFuncType>;
 
 ///
 /// @brief Creates and destroys LedDevice instances with LedDeviceFactory and moves the device to an own thread. Pipes all signal/slots and methods to an Led-device instance
@@ -34,9 +34,11 @@ public:
 	/// @brief Get all available device schemas
 	/// @return device schemas
 	///
-	static QJsonObject getLedDeviceSchemas();
+    static QJsonObject getLedDeviceSchemas();
 
-	///
+    void NewFunction(const QString &schemaFile, QString &data, QJsonObject &schema, QString &item);
+
+    ///
 	/// @brief add all device constructors to the map
 	///
 	static int addToDeviceMap(QString name, LedDeviceCreateFuncType funcPtr);
@@ -104,7 +106,7 @@ signals:
 	///
 	/// @return Zero on success else negative
 	///
-	int updateLeds(const std::vector<ColorRgb>& ledValues);
+	int updateLeds(const QVector<ColorRgb>& ledValues);
 
 	///
 	/// @brief Switch the LEDs on.
@@ -157,7 +159,7 @@ protected:
 
 private:
 	/// The common Logger instance for all LED-devices
-	Logger * _log;
+	QSharedPointer<Logger> _log;
 
 	/// Hyperion instance pointer
 	QWeakPointer<Hyperion> _hyperionWeak;

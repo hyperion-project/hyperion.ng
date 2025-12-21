@@ -14,6 +14,7 @@ target_link_libraries(${PROJECT_NAME}
 	amlogic-grabber
 	framebuffer-grabber
 	Qt${QT_VERSION_MAJOR}::Widgets
+	dl
 )
 
 if(ENABLE_MDNS)

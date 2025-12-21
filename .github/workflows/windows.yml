@@ -40,10 +40,10 @@ jobs:
 
     steps:
       - name: ⬇ Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           submodules: recursive
-          fetch-depth: 0  # Ensures all tags are fetched          
+          fetch-depth: 0  # Ensures all tags are fetched
 
       - name: 🔧 Prepare
         shell: bash
@@ -55,21 +55,31 @@ jobs:
             echo -n "+nightly$(date '+%Y%m%d')" >> .version
           fi
 
+      - name: 💾 Download Pre-Build Dependencies
+        id: dependencies
+        uses: ./.github/actions/download-pre-built-deps
+        with:
+          os: 'windows'
+          architecture: ${{ matrix.os.architecture }}
+          build_type: ${{ inputs.event_name == 'pull_request' && 'relwithdebinfo' || 'release' }}
+
       - name: 📥 Install Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.13.7'
+          python-version: '3.13'
           architecture: ${{ matrix.os.architecture }}
 
-      - name: 📥 Install Qt
+      - name: 📥 Install Qt ${{ env.QT_VERSION }}
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.8.*'
+          version: ${{ env.QT_VERSION }}
           target: 'desktop'
           modules: 'qtserialport qtwebsockets'
           cache: 'true'
           cache-key-prefix: 'cache-qt-windows'
           setup-python: 'false'
+        env:
+          QT_VERSION: ${{ steps.dependencies.outputs.qtVersion != '' && steps.dependencies.outputs.qtVersion || '' }}
 
       - name: 📥 Install latest CMake and Ninja
         uses: lukka/get-cmake@latest
@@ -85,39 +95,31 @@ jobs:
       - name: Download/Install Inno Setup
         run: |
           echo "Checking pre-installation..."
-          
+
           set "ISCC_PATH=%programfiles(x86)%\Inno Setup 6\ISCC.exe"
-          
+
           if exist "%ISCC_PATH%" (
             echo ::warning::Inno Setup is already installed
             exit /b 0
           )
-          
+
           echo "Downloading Inno Setup..."
-  
+
           set "_url_=https://jrsoftware.org/download.php/is.exe?site=1"
           set "_file_=innosetup.exe"
-  
+
           curl -L -o "%tmp%\%_file_%" "%_url_%"
-          
+
           echo "Installing Inno Setup..."
           "%tmp%\%_file_%" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-
-          
+
           if not exist "%ISCC_PATH%" (
             echo "::error::Inno Setup installation failed"
             exit 1
           )
-          
+
           echo "Inno Setup installed successfully!"
         shell: cmd
-          
-      - name: 💾 Download Pre-Build Dependencies
-        id: dependencies
-        uses: ./.github/actions/download-pre-built-deps
-        with:
-          os: 'windows'
-          architecture: ${{ matrix.os.architecture }}
-          build_type: ${{ inputs.event_name == 'pull_request' && 'relwithdebinfo' || 'release' }}
 
       - name: 👷 Build ${{ env.HINT }}
         shell: cmd
@@ -130,7 +132,7 @@ jobs:
 
       - name: 📦 Upload
         if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ inputs.event_name == 'pull_request' && env.NAME || format('artifact-{0}', env.NAME) }}
           path: |

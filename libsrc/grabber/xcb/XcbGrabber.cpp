@@ -10,11 +10,6 @@
 
 #include <memory>
 
-// Constants
-namespace {
-	const bool verbose = false;
-} //End of constants
-
 #define DOUBLE_TO_FIXED(d) ((xcb_render_fixed_t) ((d) * 65536))
 
 XcbGrabber::XcbGrabber(int cropLeft, int cropRight, int cropTop, int cropBottom)
@@ -65,7 +60,7 @@ void XcbGrabber::freeResources()
 	{
 		query<ShmDetach>(_connection, _shminfo);
 		shmdt(_shmData);
-		shmctl(_shminfo, IPC_RMID, 0);
+		shmctl(_shminfo, IPC_RMID, nullptr);
 
 	}
 
@@ -220,14 +215,18 @@ bool XcbGrabber::open()
 
 bool XcbGrabber::setupDisplay()
 {
-	if (!_isAvailable)
+	if (_isDeviceInError)
+	{
+		Error(_log, "Cannot setup display, device is in error state");
+		return false;
+	}
+
+	if (!isAvailable(true))
 	{
 		return false;
 	}
 
-	bool result {false};
-
-	if ( ! open() )
+	if (!open())
 	{
 		if (getenv("DISPLAY") != nullptr)
 		{
@@ -238,6 +237,7 @@ bool XcbGrabber::setupDisplay()
 			Error(_log, "DISPLAY environment variable not set");
 		}
 		freeResources();
+		return false;
 	}
 	else
 	{
@@ -252,11 +252,16 @@ bool XcbGrabber::setupDisplay()
 			 _XcbShmPixmapAvailable  ? "available" : "unavailable"))
 			 );
 
-		result = (updateScreenDimensions(true) >= 0);
-		ErrorIf(!result, _log, "XCB Grabber start failed");
-		setEnabled(result);
+		bool isOK = (updateScreenDimensions(true) >= 0);
+		if (!isOK)
+		{
+			setInError(QString("%1 start failed").arg(_grabberName));
+			return false;
+		}
+
+		setEnabled(true);
 	}
-	return result;
+	return true;
 }
 
 int XcbGrabber::grabFrame(Image<ColorRgb> & image, bool forceUpdate)
@@ -356,15 +361,18 @@ int XcbGrabber::updateScreenDimensions(bool force)
 		_screenHeight == unsigned(geometry->height))
 		return 0;
 
-	if (_screenWidth || _screenHeight)
+	if ((_screenWidth != 0) || (_screenHeight != 0))
+	{
 		freeResources();
+	}
 
 	Info(_log, "Update of screen resolution: [%dx%d]  to [%dx%d]", _screenWidth, _screenHeight, geometry->width, geometry->height);
 
 	_screenWidth  = geometry->width;
 	_screenHeight = geometry->height;
 
-	int width = 0, height = 0;
+	int width = 0;
+	int height = 0;
 
 	// Image scaling is performed by XRender when available, otherwise by ImageResampler
 	if (_XcbRenderAvailable)
@@ -462,7 +470,7 @@ bool XcbGrabber::nativeEventFilter(const QByteArray & eventType, void * message,
 	if (!_XcbRandRAvailable || eventType != "xcb_generic_event_t" || _XcbRandREventBase == -1)
 		return false;
 
-	xcb_generic_event_t *e = static_cast<xcb_generic_event_t*>(message);
+	auto e = static_cast<xcb_generic_event_t*>(message);
 	const uint8_t xEventType = XCB_EVENT_RESPONSE_TYPE(e);
 
 	if (xEventType == _XcbRandREventBase + XCB_RANDR_SCREEN_CHANGE_NOTIFY)
@@ -509,8 +517,6 @@ xcb_render_pictformat_t XcbGrabber::findFormatForVisual(xcb_visualid_t visual) c
 
 QJsonObject XcbGrabber::discover(const QJsonObject& params)
 {
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	QJsonObject inputsDiscovered;
 	if ( isAvailable(false) && open() )
 	{
@@ -586,7 +592,9 @@ QJsonObject XcbGrabber::discover(const QJsonObject& params)
 			{
 				inputsDiscovered["video_inputs"] = video_inputs;
 
-				QJsonObject defaults, video_inputs_default, resolution_default;
+				QJsonObject defaults;
+				QJsonObject video_inputs_default;
+				QJsonObject resolution_default;
 				resolution_default["fps"] = _fps;
 				video_inputs_default["resolution"] = resolution_default;
 				video_inputs_default["inputIdx"] = 0;
@@ -595,7 +603,6 @@ QJsonObject XcbGrabber::discover(const QJsonObject& params)
 			}
 		}
 	}
-	DebugIf(verbose, _log, "device: [%s]", QString(QJsonDocument(inputsDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return inputsDiscovered;
 }

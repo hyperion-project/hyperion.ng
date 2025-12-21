@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QVector>
 #include <QMap>
+#include <QSharedPointer>
 
 #include <iostream>
 
@@ -32,7 +33,8 @@ class CECHandler : public QObject
 {
 	Q_OBJECT
 public:
-	CECHandler(const QJsonDocument& config, QObject * parent = nullptr);
+	explicit CECHandler(const QJsonDocument& config, QObject * parent = nullptr);
+	~CECHandler() override;
 
 	QString scan() const;
 
@@ -42,6 +44,12 @@ public slots:
 	void stop();
 
 	virtual void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
+
+signals:
+	///
+	/// @emits when the CECHandler has completed its stop/cleanup
+	///
+	void isStopped();
 
 private:
 
@@ -90,5 +98,5 @@ private:
 
 	QMap<QString,Event> _cecEventActionMap;
 
-	Logger * _logger {};
+	QSharedPointer<Logger> _logger;
 };

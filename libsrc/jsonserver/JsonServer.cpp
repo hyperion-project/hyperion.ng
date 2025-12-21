@@ -23,26 +23,30 @@ const char SERVICE_TYPE[] = "jsonapi";
 
 JsonServer::JsonServer(const QJsonDocument& config)
 	: QObject()
-	, _server(new QTcpServer(this))
+	, _server(nullptr)
 	, _openConnections()
 	, _log(Logger::getInstance("JSONSERVER"))
-	, _netOrigin(NetOrigin::getInstance())
+	, _netOriginWeak(NetOrigin::getInstance())
 	, _config(config)
 {
-	Debug(_log, "JSON API  server created");
+	TRACK_SCOPE();
 }
 
 JsonServer::~JsonServer()
 {
-	stop();
-	qDeleteAll(_openConnections);
-	_openConnections.clear();
+	TRACK_SCOPE();
 }
 
 void JsonServer::initServer()
 {
+	Debug(_log, "Initialize JSON API server");
+	if (_server.isNull())
+	{
+		_server.reset(new QTcpServer());
+	}
+
 	// Set trigger for incoming connections
-	connect(_server, &QTcpServer::newConnection, this, &JsonServer::newConnection);
+	connect(_server.get(), &QTcpServer::newConnection, this, &JsonServer::newConnection);
 
 	// init
 	handleSettingsUpdate(settings::JSONSERVER, _config);
@@ -66,13 +70,22 @@ void JsonServer::start()
 
 void JsonServer::stop()
 {
-	if(!_server->isListening())
+	// Close the server if available
+	if (!_server.isNull())
 	{
-		return;
+		if (_server->isListening())
+		{
+			_server->close();
+		}
 	}
 
-	_server->close();
+	// Ensure all open connections are deleted from the owning thread
+	qDeleteAll(_openConnections);
+	_openConnections.clear();
+
 	Info(_log, "JSON-Server stopped");
+
+	emit isStopped();
 }
 
 void JsonServer::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
@@ -80,9 +93,10 @@ void JsonServer::handleSettingsUpdate(settings::type type, const QJsonDocument& 
 	if(type == settings::JSONSERVER)
 	{
 		QJsonObject obj = config.object();
-		if(_port != obj["port"].toInt())
+		auto port = static_cast<uint16_t>(obj["port"].toInt());
+		if(_port != port)
 		{
-			_port = obj["port"].toInt();
+			_port = port;
 			stop();
 			start();
 		}
@@ -98,10 +112,15 @@ void JsonServer::newConnection()
 {
 	while(_server->hasPendingConnections())
 	{
-		if (QTcpSocket * socket = _server->nextPendingConnection())
+		if (auto* socket = _server->nextPendingConnection())
 		{
 			Debug(_log, "New connection from: %s",QSTRING_CSTR(socket->peerAddress().toString()));
-			JsonClientConnection * connection = new JsonClientConnection(socket, _netOrigin->isLocalAddress(socket->peerAddress(), socket->localAddress()));
+			bool isLocal = false;
+			if (auto origin = _netOriginWeak.toStrongRef())
+			{
+				isLocal = origin->isLocalAddress(socket->peerAddress(), socket->localAddress());
+			}
+			auto * connection = new JsonClientConnection(socket, isLocal);
 			_openConnections.insert(connection);
 
 			// register slot for cleaning up after the connection closed

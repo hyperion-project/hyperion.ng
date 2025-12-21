@@ -26,6 +26,7 @@ CECHandler::CECHandler(const QJsonDocument& config, QObject * parent)
 	, _doubleTapTimeoutMs(CEC_DOUBLE_TAP_TIMEOUT_MS)
 	, _cecEventActionMap()
 {
+	TRACK_SCOPE();
 	qRegisterMetaType<Event>("Event");
 
 	_logger = Logger::getInstance("EVENTS-CEC");
@@ -34,6 +35,11 @@ CECHandler::CECHandler(const QJsonDocument& config, QObject * parent)
 	_cecConfig               = getConfig();
 	_cecConfig.callbacks     = &_cecCallbacks;
 	_cecConfig.callbackParam = this;
+}
+
+CECHandler::~CECHandler()
+{
+	TRACK_SCOPE();
 }
 
 void CECHandler::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
@@ -120,6 +126,8 @@ void CECHandler::stop()
 		UnloadLibCec(_cecAdapter);
 	}
 	Info(_logger, "CEC handler stopped");
+
+	emit isStopped();
 }
 
 bool CECHandler::enable()

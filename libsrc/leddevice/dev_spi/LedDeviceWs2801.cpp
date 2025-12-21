@@ -12,14 +12,13 @@ LedDevice* LedDeviceWs2801::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceWs2801::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = ProviderSpi::init(deviceConfig);
-	return isInitOK;
+	return ProviderSpi::init(deviceConfig);
 }
 
-int LedDeviceWs2801::write(const std::vector<ColorRgb> &ledValues)
+int LedDeviceWs2801::write(const QVector<ColorRgb> &ledValues)
 {
 	const unsigned dataLen = _ledCount * sizeof(ColorRgb);
-	const uint8_t * dataPtr = reinterpret_cast<const uint8_t *>(ledValues.data());
+	auto* dataPtr = reinterpret_cast<const uint8_t *>(ledValues.data());
 
 	return writeBytes(dataLen, dataPtr);
 }

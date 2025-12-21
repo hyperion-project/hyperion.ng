@@ -4,10 +4,13 @@
 #include <cstdint>
 #include <iostream>
 
+#include <utils/Packed.h>
+
 ///
 /// Plain-Old-Data structure containing the red-green-blue color specification. Size of the
 /// structure is exactly 3-bytes for easy writing to led-device
 ///
+PACKED_STRUCT_BEGIN
 struct ColorBgr
 {
 	/// The blue color channel
@@ -30,10 +33,10 @@ struct ColorBgr
 	static const ColorBgr YELLOW;
 	/// 'White' RgbColor (255, 255, 255)
 	static const ColorBgr WHITE;
-};
+}
+PACKED_STRUCT_END;
 
-/// Assert to ensure that the size of the structure is 'only' 3 bytes
-static_assert(sizeof(ColorBgr) == 3, "Incorrect size of ColorBgr");
+static_assert(sizeof(ColorBgr) == 3, "ColorBgr must be exactly 3 bytes");
 
 ///
 /// Stream operator to write ColorRgb to an outputstream (format "'{'[red]','[green]','[blue]'}'")

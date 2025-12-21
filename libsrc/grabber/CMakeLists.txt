@@ -6,9 +6,25 @@ if(ENABLE_DISPMANX)
 	add_subdirectory(dispmanx)
 endif (ENABLE_DISPMANX)
 
-if(ENABLE_FB)
+if(ENABLE_DDA)
+	add_subdirectory(dda)
+endif(ENABLE_DDA)
+
+if(ENABLE_DRM)
+	add_subdirectory(drm)
+endif(ENABLE_DRM)
+
+if(ENABLE_DX)
+	add_subdirectory(directx)
+endif(ENABLE_DX)
+
+if (ENABLE_FB)
 	add_subdirectory(framebuffer)
 endif (ENABLE_FB)
+
+if(ENABLE_QT)
+	add_subdirectory(qt)
+endif(ENABLE_QT)
 
 if(ENABLE_OSX)
 	add_subdirectory(osx)
@@ -25,18 +41,6 @@ endif(ENABLE_X11)
 if(ENABLE_XCB)
 	add_subdirectory(xcb)
 endif(ENABLE_XCB)
-
-if(ENABLE_QT)
-	add_subdirectory(qt)
-endif(ENABLE_QT)
-
-if(ENABLE_DX)
-	add_subdirectory(directx)
-endif(ENABLE_DX)
-
-if(ENABLE_DDA)
-	add_subdirectory(dda)
-endif(ENABLE_DDA)
 
 if(ENABLE_AUDIO)
 	add_subdirectory(audio)

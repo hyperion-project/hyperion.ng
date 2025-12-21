@@ -38,7 +38,7 @@ const int IMAGE_WIDTH_MAX = 2000;
 const int IMAGE_SCALE = 2000;
 }
 
-API::API(Logger *log, bool localConnection, QObject *parent)
+API::API(QSharedPointer<Logger> log, bool localConnection, QObject *parent)
 	: QObject(parent),
 	_currInstanceIndex (NO_INSTANCE_ID)
 	, _hyperionWeak(nullptr)
@@ -52,25 +52,31 @@ API::API(Logger *log, bool localConnection, QObject *parent)
 
 	// Init
 	_log = log;
-	_authManager = AuthManager::getInstance();
-	_instanceManager = HyperionIManager::getInstance();
+	_authManagerWeak = AuthManager::getInstance();
+	_instanceManagerWeak = HyperionIManager::getInstanceWeak();
 
 	// connect to possible token responses that has been requested
-	connect(_authManager, &AuthManager::tokenResponse, this, [=] (bool success, const QObject *caller, const QString &token, const QString &comment, const QString &tokenId, const int &tan)
+	if (auto auth = _authManagerWeak.toStrongRef())
 	{
-		if (this == caller)
+		connect(auth.get(), &AuthManager::tokenResponse, this, [this] (bool success, const QObject *caller, const QString &token, const QString &comment, const QString &tokenId, const int &tan)
 		{
-			emit onTokenResponse(success, token, comment, tokenId, tan);
-		}
-	});
+			if (this == caller)
+			{
+				emit onTokenResponse(success, token, comment, tokenId, tan);
+			}
+		});
+	}
 
-	connect(_instanceManager, &HyperionIManager::startInstanceResponse, this, [=] (const QObject *caller, const int &tan)
+	if (auto im = _instanceManagerWeak.toStrongRef())
 	{
-		if (this == caller)
+		connect(im.get(), &HyperionIManager::startInstanceResponse, this, [this] (const QObject *caller, const int &tan)
 		{
-			emit onStartInstanceResponse(tan);
-		}
-	});
+			if (this == caller)
+			{
+				emit onStartInstanceResponse(tan);
+			}
+		});
+	}
 }
 
 void API::init()
@@ -85,34 +91,36 @@ void API::init()
 	}
 
 	// if this is localConnection and network allows unauth locals
-	if ( _localConnection && !_authManager->isLocalAuthRequired())
+	if (_localConnection)
 	{
-		_authorized = true;
+		if (auto auth = _authManagerWeak.toStrongRef(); auth && !auth->isLocalAuthRequired())
+		{
+			_authorized = true;
+		}
 	}
 
 	// // admin access is only allowed after login via user & password or via authorization via token.
 	_adminAuthorized = false;
 }
 
-void API::setColor(int priority, const std::vector<uint8_t> &ledColors, int timeout_ms, const QString &origin, hyperion::Components /*callerComp*/)
+void API::setColor(int priority, const QVector<uint8_t> &ledColors, int timeout_ms, const QString &origin, hyperion::Components /*callerComp*/) const
 {
 	if (ledColors.size() % 3 == 0)
 	{
-		std::vector<ColorRgb> fledColors;
+		QVector<ColorRgb> fledColors;
 		for (unsigned i = 0; i < ledColors.size(); i += 3)
 		{
-			fledColors.emplace_back(ColorRgb{ledColors[i], ledColors[i + 1], ledColors[i + 2]});
+			fledColors.append(ColorRgb{ledColors[i], ledColors[i + 1], ledColors[i + 2]});
 		}
 
-		QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-		if (hyperion)
+		if (auto hyperion = _hyperionWeak.toStrongRef())
 		{
-			QMetaObject::invokeMethod(hyperion.get(), "setColor", Qt::QueuedConnection, Q_ARG(int, priority), Q_ARG(std::vector<ColorRgb>, fledColors), Q_ARG(int, timeout_ms), Q_ARG(QString, origin));
+			QMetaObject::invokeMethod(hyperion.get(), "setColor", Qt::QueuedConnection, Q_ARG(int, priority), Q_ARG(QVector<ColorRgb>, fledColors), Q_ARG(int, timeout_ms), Q_ARG(QString, origin));
 		}
 	}
 }
 
-bool API::setImage(ImageCmdData &data, hyperion::Components comp, QString &replyMsg, hyperion::Components /*callerComp*/)
+bool API::setImage(ImageCmdData &data, hyperion::Components comp, QString &replyMsg, hyperion::Components /*callerComp*/) const
 {
 	// truncate name length
 	data.imgName.truncate(16);
@@ -172,10 +180,10 @@ bool API::setImage(ImageCmdData &data, hyperion::Components comp, QString &reply
 		// extract image
 		img = img.convertToFormat(QImage::Format_ARGB32_Premultiplied);
 		data.data.clear();
-		data.data.reserve(static_cast<int>(img.width() * img.height() * 3));
+		data.data.reserve(static_cast<qsizetype>(img.width()) * img.height() * 3);
 		for (int i = 0; i < img.height(); ++i)
 		{
-			const QRgb *scanline = reinterpret_cast<const QRgb *>(img.scanLine(i));
+			const auto* scanline = reinterpret_cast<const QRgb *>(img.scanLine(i));
 			for (int j = 0; j < img.width(); ++j)
 			{
 				data.data.append(static_cast<char>(qRed(scanline[j])));
@@ -198,8 +206,7 @@ bool API::setImage(ImageCmdData &data, hyperion::Components comp, QString &reply
 	Image<ColorRgb> image(data.width, data.height);
 	memcpy(image.memptr(), data.data.data(), static_cast<size_t>(data.data.size()));
 
-	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-	if (hyperion)
+	if (auto hyperion = _hyperionWeak.toStrongRef())
 	{
 		QMetaObject::invokeMethod(hyperion.get(), "registerInput", Qt::QueuedConnection, Q_ARG(int, data.priority), Q_ARG(hyperion::Components, comp), Q_ARG(QString, data.origin), Q_ARG(QString, data.imgName));
 		QMetaObject::invokeMethod(hyperion.get(), "setInputImage", Qt::QueuedConnection, Q_ARG(int, data.priority), Q_ARG(Image<ColorRgb>, image), Q_ARG(int64_t, data.duration));
@@ -208,12 +215,11 @@ bool API::setImage(ImageCmdData &data, hyperion::Components comp, QString &reply
 	return true;
 }
 
-bool API::clearPriority(int priority, QString &replyMsg, hyperion::Components /*callerComp*/)
+bool API::clearPriority(int priority, QString &replyMsg, hyperion::Components /*callerComp*/) const
 {
 	if (priority < 0 || (priority > 0 && priority < PriorityMuxer::BG_PRIORITY))
 	{
-		QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-		if (hyperion)
+		if (auto hyperion = _hyperionWeak.toStrongRef())
 		{
 			QMetaObject::invokeMethod(hyperion.get(), "clear", Qt::QueuedConnection, Q_ARG(int, priority));
 		}
@@ -226,14 +232,13 @@ bool API::clearPriority(int priority, QString &replyMsg, hyperion::Components /*
 	return true;
 }
 
-bool API::setComponentState(const QString &comp, bool &compState, QString &replyMsg, hyperion::Components /*callerComp*/)
+bool API::setComponentState(const QString &comp, const bool &compState, QString &replyMsg, hyperion::Components /*callerComp*/) const
 {
 	Components component = stringToComponent(comp);
 
 	if (component != COMP_INVALID)
 	{
-		QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-		if (hyperion)
+		if (auto hyperion = _hyperionWeak.toStrongRef())
 		{
 			QMetaObject::invokeMethod(hyperion.get(), "compStateChangeRequest", Qt::QueuedConnection, Q_ARG(hyperion::Components, component), Q_ARG(bool, compState));
 		}
@@ -243,30 +248,27 @@ bool API::setComponentState(const QString &comp, bool &compState, QString &reply
 	return false;
 }
 
-void API::setLedMappingType(int type, hyperion::Components /*callerComp*/)
+void API::setLedMappingType(int type, hyperion::Components /*callerComp*/) const
 {
-	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-	if (hyperion)
+	if (auto hyperion = _hyperionWeak.toStrongRef())
 	{
 		QMetaObject::invokeMethod(hyperion.get(), "setLedMappingType", Qt::QueuedConnection, Q_ARG(int, type));
 	}
 }
 
-void API::setVideoMode(VideoMode mode, hyperion::Components /*callerComp*/)
+void API::setVideoMode(VideoMode mode, hyperion::Components /*callerComp*/) const
 {
-	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-	if (hyperion)
+	if (auto hyperion = _hyperionWeak.toStrongRef())
 	{
 		QMetaObject::invokeMethod(hyperion.get(), "setVideoMode", Qt::QueuedConnection, Q_ARG(VideoMode, mode));
 	}
 }
 
 #if defined(ENABLE_EFFECTENGINE)
-bool API::setEffect(const EffectCmdData &dat, hyperion::Components /*callerComp*/)
+bool API::setEffect(const EffectCmdData &dat, hyperion::Components /*callerComp*/) const
 {
-	int isStarted;
-	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-	if (hyperion)
+	int isStarted {-1};
+	if (auto hyperion = _hyperionWeak.toStrongRef())
 	{
 		if (!dat.args.isEmpty())
 		{
@@ -282,19 +284,17 @@ bool API::setEffect(const EffectCmdData &dat, hyperion::Components /*callerComp*
 }
 #endif
 
-void API::setSourceAutoSelect(bool state, hyperion::Components /*callerComp*/)
+void API::setSourceAutoSelect(bool state, hyperion::Components /*callerComp*/) const
 {
-	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-	if (hyperion)
+	if (auto hyperion = _hyperionWeak.toStrongRef())
 	{
 		QMetaObject::invokeMethod(hyperion.get(), "setSourceAutoSelect", Qt::QueuedConnection, Q_ARG(bool, state));
 	}
 }
 
-void API::setVisiblePriority(int priority, hyperion::Components /*callerComp*/)
+void API::setVisiblePriority(int priority, hyperion::Components /*callerComp*/) const
 {
-	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-	if (hyperion)
+	if (auto hyperion = _hyperionWeak.toStrongRef())
 	{
 		QMetaObject::invokeMethod(hyperion.get(), "setVisiblePriority", Qt::QueuedConnection, Q_ARG(int, priority));
 	}
@@ -304,13 +304,12 @@ void API::registerInput(int priority, hyperion::Components component, const QStr
 {
 	if (_activeRegisters.count(priority) != 0)
 	{
-		_activeRegisters.erase(priority);
+		_activeRegisters.remove(priority);
 	}
 
-	_activeRegisters.insert({priority, registerData{component, origin, owner, callerComp}});
+	_activeRegisters.insert(priority, registerData{component, origin, owner, callerComp});
 
-	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-	if (hyperion)
+	if (auto hyperion = _hyperionWeak.toStrongRef())
 	{
 		QMetaObject::invokeMethod(hyperion.get(), "registerInput", Qt::QueuedConnection, Q_ARG(int, priority), Q_ARG(hyperion::Components, component), Q_ARG(QString, origin), Q_ARG(QString, owner));
 	}
@@ -320,7 +319,7 @@ void API::unregisterInput(int priority)
 {
 	if (_activeRegisters.count(priority) != 0)
 	{
-		_activeRegisters.erase(priority);
+		_activeRegisters.remove(priority);
 	}
 }
 
@@ -337,18 +336,31 @@ bool API::setHyperionInstance(quint8 inst)
 		disconnect(hyperion.get(), nullptr, this, nullptr);
 	}
 
-	QMetaObject::invokeMethod(_instanceManager, "getHyperionInstance", Qt::DirectConnection, Q_RETURN_ARG(QSharedPointer<Hyperion>, hyperion), Q_ARG(quint8, inst));
-	_hyperionWeak = hyperion;
-	_currInstanceIndex = inst;
+	if (auto im = _instanceManagerWeak.toStrongRef())
+	{
+		QMetaObject::invokeMethod(im.get(), "getHyperionInstance", Qt::DirectConnection, Q_RETURN_ARG(QSharedPointer<Hyperion>, hyperion), Q_ARG(quint8, inst));
+		_hyperionWeak = hyperion;
+		if (hyperion.isNull())
+		{
+			_currInstanceIndex = NO_INSTANCE_ID;
+		}
+		else
+		{
+			_currInstanceIndex = inst;
+		}
+	}
+	else
+	{
+		return false;
+	}
 
 	return true;
 }
 
-bool API::isHyperionEnabled()
+bool API::isHyperionEnabled() const
 {
-	int isEnabled;
-	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-	if (hyperion)
+	int isEnabled {-1};
+	if (auto hyperion = _hyperionWeak.toStrongRef())
 	{
 		QMetaObject::invokeMethod(hyperion.get(), "isComponentEnabled", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, isEnabled), Q_ARG(hyperion::Components, hyperion::COMP_ALL));
 	}
@@ -358,31 +370,44 @@ bool API::isHyperionEnabled()
 QVector<QVariantMap> API::getAllInstanceData() const
 {
 	QVector<QVariantMap> vec;
-	QMetaObject::invokeMethod(_instanceManager, "getInstanceData", Qt::DirectConnection, Q_RETURN_ARG(QVector<QVariantMap>, vec));
+	if (auto im = _instanceManagerWeak.toStrongRef())
+	{
+		QMetaObject::invokeMethod(im.get(), "getInstanceData", Qt::DirectConnection, Q_RETURN_ARG(QVector<QVariantMap>, vec));
+	}
 	return vec;
 }
 
 bool API::startInstance(quint8 index, int tan)
 {
-	bool isStarted;
-	(_instanceManager->thread() != this->thread())
-			? QMetaObject::invokeMethod(_instanceManager, "startInstance", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isStarted), Q_ARG(quint8, index), Q_ARG(bool, false), Q_ARG(QObject*, this), Q_ARG(int, tan))
-			: isStarted = _instanceManager->startInstance(index, false, this, tan);
-
+	bool isStarted {false};
+	if (auto im = _instanceManagerWeak.toStrongRef())
+	{
+		(im->thread() != this->thread())
+			? QMetaObject::invokeMethod(im.get(), "startInstance", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isStarted), Q_ARG(quint8, index), Q_ARG(bool, false), Q_ARG(QObject*, this), Q_ARG(int, tan))
+			: isStarted = im->startInstance(index, false, this, tan);
+	}
 	return isStarted;
 }
 
 void API::stopInstance(quint8 index)
 {
-	QMetaObject::invokeMethod(_instanceManager, "stopInstance", Qt::QueuedConnection, Q_ARG(quint8, index));
+	if (auto im = _instanceManagerWeak.toStrongRef())
+	{
+		QMetaObject::invokeMethod(im.get(), "stopInstance", Qt::QueuedConnection, Q_ARG(quint8, index));
+	}
 }
 
 bool API::deleteInstance(quint8 index, QString &replyMsg)
 {
 	if (_adminAuthorized)
 	{
-		QMetaObject::invokeMethod(_instanceManager, "deleteInstance", Qt::QueuedConnection, Q_ARG(quint8, index));
-		return true;
+		if (auto im = _instanceManagerWeak.toStrongRef())
+		{
+			QMetaObject::invokeMethod(im.get(), "deleteInstance", Qt::QueuedConnection, Q_ARG(quint8, index));
+			return true;
+		}
+		replyMsg = "Instance manager unavailable";
+		return false;
 	}
 	replyMsg = NO_AUTHORIZATION;
 	return false;
@@ -392,13 +417,17 @@ QString API::createInstance(const QString &name)
 {
 	if (_adminAuthorized)
 	{
-		bool success;
-		QMetaObject::invokeMethod(_instanceManager, "createInstance", Qt::DirectConnection, Q_RETURN_ARG(bool, success), Q_ARG(QString, name));
-		if (!success)
+		bool success {false};
+		if (auto im = _instanceManagerWeak.toStrongRef())
 		{
-			return QString("Instance name '%1' is already in use").arg(name);
+			QMetaObject::invokeMethod(im.get(), "createInstance", Qt::DirectConnection, Q_RETURN_ARG(bool, success), Q_ARG(QString, name));
+			if (!success)
+			{
+				return QString("Instance name '%1' is already in use").arg(name);
+			}
+			return "";
 		}
-		return "";
+		return "Instance manager unavailable";
 	}
 	return NO_AUTHORIZATION;
 }
@@ -407,20 +436,23 @@ QString API::setInstanceName(quint8 index, const QString &name)
 {
 	if (_adminAuthorized)
 	{
-		QMetaObject::invokeMethod(_instanceManager, "saveName", Qt::QueuedConnection, Q_ARG(quint8, index), Q_ARG(QString, name));
-		return "";
+		if (auto im = _instanceManagerWeak.toStrongRef())
+		{
+			QMetaObject::invokeMethod(im.get(), "saveName", Qt::QueuedConnection, Q_ARG(quint8, index), Q_ARG(QString, name));
+			return "";
+		}
+		return "Instance manager unavailable";
 	}
 	return NO_AUTHORIZATION;
 }
 
 #if defined(ENABLE_EFFECTENGINE)
-QString API::deleteEffect(const QString &name)
+QString API::deleteEffect(const QString &name) const
 {
 	if (_adminAuthorized)
 	{
 		QString res;
-		QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-		if (hyperion)
+		if (auto hyperion = _hyperionWeak.toStrongRef())
 		{
 			QMetaObject::invokeMethod(hyperion.get(), "deleteEffect", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QString, res), Q_ARG(QString, name));
 		}
@@ -429,13 +461,12 @@ QString API::deleteEffect(const QString &name)
 	return NO_AUTHORIZATION;
 }
 
-QString API::saveEffect(const QJsonObject &data)
+QString API::saveEffect(const QJsonObject &data) const
 {
 	if (_adminAuthorized)
 	{
 		QString res;
-		QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-		if (hyperion)
+		if (auto hyperion = _hyperionWeak.toStrongRef())
 		{
 			QMetaObject::invokeMethod(hyperion.get(), "saveEffect", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QString, res), Q_ARG(QJsonObject, data));
 		}
@@ -454,7 +485,10 @@ bool API::updateHyperionPassword(const QString &password, const QString &newPass
 	}
 	else
 	{
-		QMetaObject::invokeMethod(_authManager, "updateUserPassword", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isPwUpdated), Q_ARG(QString, DEFAULT_USER), Q_ARG(QString, password), Q_ARG(QString, newPassword));
+		if (auto auth = _authManagerWeak.toStrongRef())
+		{
+			QMetaObject::invokeMethod(auth.get(), "updateUserPassword", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isPwUpdated), Q_ARG(QString, DEFAULT_USER), Q_ARG(QString, password), Q_ARG(QString, newPassword));
+		}
 	}
 	return isPwUpdated;
 }
@@ -470,7 +504,10 @@ QString API::createToken(const QString &comment, AuthManager::AuthDefinition &de
 	{
 		return "Missing token comment";
 	}
-	QMetaObject::invokeMethod(_authManager, "createToken", Qt::BlockingQueuedConnection, Q_RETURN_ARG(AuthManager::AuthDefinition, def), Q_ARG(QString, comment));
+	if (auto auth = _authManagerWeak.toStrongRef())
+	{
+		QMetaObject::invokeMethod(auth.get(), "createToken", Qt::BlockingQueuedConnection, Q_RETURN_ARG(AuthManager::AuthDefinition, def), Q_ARG(QString, comment));
+	}
 	return "";
 }
 
@@ -491,7 +528,10 @@ QString API::renameToken(const QString &tokenId, const QString &comment)
 	}
 
 	bool isTokenRenamed {false};
-	QMetaObject::invokeMethod(_authManager, "renameToken", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isTokenRenamed), Q_ARG(QString, tokenId),  Q_ARG(QString, comment));
+	if (auto auth = _authManagerWeak.toStrongRef())
+	{
+		QMetaObject::invokeMethod(auth.get(), "renameToken", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isTokenRenamed), Q_ARG(QString, tokenId),  Q_ARG(QString, comment));
+	}
 
 	return (!isTokenRenamed) ? "Token does not exist" : "";
 }
@@ -509,19 +549,28 @@ QString API::deleteToken(const QString &tokenId)
 	}
 
 	bool isTokenDeleted {false};
-	QMetaObject::invokeMethod(_authManager, "deleteToken", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isTokenDeleted), Q_ARG(QString, tokenId));
+	if (auto auth = _authManagerWeak.toStrongRef())
+	{
+		QMetaObject::invokeMethod(auth.get(), "deleteToken", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isTokenDeleted), Q_ARG(QString, tokenId));
+	}
 
 	return (!isTokenDeleted) ? "Token does not exist" : "";
 }
 
 void API::setNewTokenRequest(const QString &comment, const QString &tokenId, const int &tan)
 {
-	QMetaObject::invokeMethod(_authManager, "setNewTokenRequest", Qt::QueuedConnection, Q_ARG(QObject *, this), Q_ARG(QString, comment), Q_ARG(QString, tokenId), Q_ARG(int, tan));
+	if (auto auth = _authManagerWeak.toStrongRef())
+	{
+		QMetaObject::invokeMethod(auth.get(), "setNewTokenRequest", Qt::QueuedConnection, Q_ARG(QObject *, this), Q_ARG(QString, comment), Q_ARG(QString, tokenId), Q_ARG(int, tan));
+	}
 }
 
 void API::cancelNewTokenRequest(const QString &comment, const QString &tokenId)
 {
-	QMetaObject::invokeMethod(_authManager, "cancelNewTokenRequest", Qt::QueuedConnection, Q_ARG(QObject *, this), Q_ARG(QString, comment), Q_ARG(QString, tokenId));
+	if (auto auth = _authManagerWeak.toStrongRef())
+	{
+		QMetaObject::invokeMethod(auth.get(), "cancelNewTokenRequest", Qt::QueuedConnection, Q_ARG(QObject *, this), Q_ARG(QString, comment), Q_ARG(QString, tokenId));
+	}
 }
 
 bool API::handlePendingTokenRequest(const QString &tokenId, bool accept)
@@ -530,7 +579,10 @@ bool API::handlePendingTokenRequest(const QString &tokenId, bool accept)
 	{
 		return false;
 	}
-	QMetaObject::invokeMethod(_authManager, "handlePendingTokenRequest", Qt::QueuedConnection, Q_ARG(QString, tokenId), Q_ARG(bool, accept));
+	if (auto auth = _authManagerWeak.toStrongRef())
+	{
+		QMetaObject::invokeMethod(auth.get(), "handlePendingTokenRequest", Qt::QueuedConnection, Q_ARG(QString, tokenId), Q_ARG(bool, accept));
+	}
 	return true;
 }
 
@@ -540,7 +592,10 @@ bool API::getTokenList(QVector<AuthManager::AuthDefinition> &def)
 	{
 		return false;
 	}
-	QMetaObject::invokeMethod(_authManager, "getTokenList", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QVector<AuthManager::AuthDefinition>, def));
+	if (auto auth = _authManagerWeak.toStrongRef())
+	{
+		QMetaObject::invokeMethod(auth.get(), "getTokenList", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QVector<AuthManager::AuthDefinition>, def));
+	}
 	return true;
 }
 
@@ -550,23 +605,35 @@ bool API::getPendingTokenRequests(QVector<AuthManager::AuthDefinition> &map)
 	{
 		return false;
 	}
-	QMetaObject::invokeMethod(_authManager, "getPendingRequests", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QVector<AuthManager::AuthDefinition>, map));
+	if (auto auth = _authManagerWeak.toStrongRef())
+	{
+		QMetaObject::invokeMethod(auth.get(), "getPendingRequests", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QVector<AuthManager::AuthDefinition>, map));
+	}
 	return true;
 }
 
 bool API::isUserTokenAuthorized(const QString &userToken)
 {
-	QMetaObject::invokeMethod(_authManager, "isUserTokenAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, _authorized), Q_ARG(QString, DEFAULT_USER), Q_ARG(QString, userToken));
+	if (auto auth = _authManagerWeak.toStrongRef())
+	{
+		QMetaObject::invokeMethod(auth.get(), "isUserTokenAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, _authorized), Q_ARG(QString, DEFAULT_USER), Q_ARG(QString, userToken));
+	}
 	_adminAuthorized = _authorized;
 
 	if (_authorized)
 	{
 		// Listen for ADMIN ACCESS protected signals
-		connect(_authManager, &AuthManager::newPendingTokenRequest, this, &API::onPendingTokenRequest);
+		if (auto auth = _authManagerWeak.toStrongRef())
+		{
+			connect(auth.get(), &AuthManager::newPendingTokenRequest, this, &API::onPendingTokenRequest);
+		}
 	}
 	else
 	{
-		disconnect(_authManager, &AuthManager::newPendingTokenRequest, this, &API::onPendingTokenRequest);
+		if (auto auth = _authManagerWeak.toStrongRef())
+		{
+			disconnect(auth.get(), &AuthManager::newPendingTokenRequest, this, &API::onPendingTokenRequest);
+		}
 	}
 	return _authorized;
 }
@@ -577,15 +644,21 @@ bool API::getUserToken(QString &userToken)
 	{
 		return false;
 	}
-	QMetaObject::invokeMethod(_authManager, "getUserToken", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QString, userToken));
+	if (auto auth = _authManagerWeak.toStrongRef())
+	{
+		QMetaObject::invokeMethod(auth.get(), "getUserToken", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QString, userToken));
+	}
 	return true;
 }
 
 bool API::isTokenAuthorized(const QString &token)
 {
-	(_authManager->thread() != this->thread())
-			? QMetaObject::invokeMethod(_authManager, "isTokenAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, _authorized), Q_ARG(QString, token))
-			: _authorized = _authManager->isTokenAuthorized(token);
+	if (auto auth = _authManagerWeak.toStrongRef())
+	{
+		(auth->thread() != this->thread())
+			? QMetaObject::invokeMethod(auth.get(), "isTokenAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, _authorized), Q_ARG(QString, token))
+			: _authorized = auth->isTokenAuthorized(token);
+	}
 	_adminAuthorized = _authorized;
 
 	return _authorized;
@@ -593,28 +666,40 @@ bool API::isTokenAuthorized(const QString &token)
 
 bool API::isUserAuthorized(const QString &password)
 {
-	bool isUserAuthorized;
-	QMetaObject::invokeMethod(_authManager, "isUserAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isUserAuthorized), Q_ARG(QString, DEFAULT_USER), Q_ARG(QString, password));
+	bool isUserAuthorized {false};
+	if (auto auth = _authManagerWeak.toStrongRef())
+	{
+		QMetaObject::invokeMethod(auth.get(), "isUserAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isUserAuthorized), Q_ARG(QString, DEFAULT_USER), Q_ARG(QString, password));
+	}
 	if (isUserAuthorized)
 	{
 		_authorized = true;
 		_adminAuthorized = true;
 
 		// Listen for ADMIN ACCESS protected signals
-		connect(_authManager, &AuthManager::newPendingTokenRequest, this, &API::onPendingTokenRequest);
+		if (auto auth = _authManagerWeak.toStrongRef())
+		{
+			connect(auth.get(), &AuthManager::newPendingTokenRequest, this, &API::onPendingTokenRequest);
+		}
 	}
 	else
 	{
-		disconnect(_authManager, &AuthManager::newPendingTokenRequest, this, &API::onPendingTokenRequest);
+		if (auto auth = _authManagerWeak.toStrongRef())
+		{
+			disconnect(auth.get(), &AuthManager::newPendingTokenRequest, this, &API::onPendingTokenRequest);
+		}
 	}
 	return isUserAuthorized;
 }
 
 bool API::hasHyperionDefaultPw()
 {
-	bool isDefaultPassort;
-	QMetaObject::invokeMethod(_authManager, "isUserAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isDefaultPassort), Q_ARG(QString, DEFAULT_USER), Q_ARG(QString, DEFAULT_PASSWORD));
-	return isDefaultPassort;
+	bool isDefaultPassword {false};
+	if (auto auth = _authManagerWeak.toStrongRef())
+	{
+		QMetaObject::invokeMethod(auth.get(), "isUserAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isDefaultPassword), Q_ARG(QString, DEFAULT_USER), Q_ARG(QString, DEFAULT_PASSWORD));
+	}
+	return isDefaultPassword;
 }
 
 void API::logout()
@@ -622,6 +707,9 @@ void API::logout()
 	_authorized = false;
 	_adminAuthorized = false;
 	// Stop listenig for ADMIN ACCESS protected signals
-	disconnect(_authManager, &AuthManager::newPendingTokenRequest, this, &API::onPendingTokenRequest);
+	if (auto auth = _authManagerWeak.toStrongRef())
+	{
+		disconnect(auth.get(), &AuthManager::newPendingTokenRequest, this, &API::onPendingTokenRequest);
+	}
 	stopDataConnections();
 }

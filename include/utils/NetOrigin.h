@@ -16,7 +16,7 @@ class NetOrigin : public QObject
 	Q_OBJECT
 private:
 	friend class HyperionDaemon;
-	NetOrigin(QObject* parent = nullptr, Logger* log = Logger::getInstance("NETWORK"));
+	NetOrigin(QObject* parent = nullptr, QSharedPointer<Logger> log = Logger::getInstance("NETWORK"));
 
 public:
 	///
@@ -25,9 +25,15 @@ public:
 	///
 	bool isLocalAddress(const QHostAddress& address, const QHostAddress& local) const;
 
-	static NetOrigin *getInstance() { return instance; }
-	static NetOrigin *instance;
+	static void createInstance(QObject* parent = nullptr);
+	static QSharedPointer<NetOrigin> getInstance();
+	static QWeakPointer<NetOrigin> getInstanceWeak() { return _instance.toWeakRef(); }
+	static void destroyInstance();
+	static bool isValid();
 
 private:
-	Logger* _log;
+	static QSharedPointer<NetOrigin> _instance;
+
+private:
+	QSharedPointer<Logger> _log;
 };

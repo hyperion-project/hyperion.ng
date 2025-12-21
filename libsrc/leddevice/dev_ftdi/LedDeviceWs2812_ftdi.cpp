@@ -54,20 +54,19 @@ LedDevice *LedDeviceWs2812_ftdi::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceWs2812_ftdi::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = false;
-
 	// Initialise sub-class
-	if (ProviderFtdi::init(deviceConfig))
+	if (!ProviderFtdi::init(deviceConfig))
 	{
-		WarningIf((_baudRate_Hz < 2106000 || _baudRate_Hz > 3075000), _log, "Baud rate %d outside recommended range (2106000 -> 3075000)", _baudRate_Hz);
-		_ledBuffer.resize(_ledRGBCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
-		isInitOK = true;
+		return false;
 	}
+	
+	WarningIf((_baudRate_Hz < 2106000 || _baudRate_Hz > 3075000), _log, "Baud rate %d outside recommended range (2106000 -> 3075000)", _baudRate_Hz);
+	_ledBuffer.fill(0x00, _ledRGBCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES);
 
-	return isInitOK;
+	return true;
 }
 
-int LedDeviceWs2812_ftdi::write(const std::vector<ColorRgb> &ledValues)
+int LedDeviceWs2812_ftdi::write(const QVector<ColorRgb> &ledValues)
 {
 	unsigned spi_ptr = 0;
 	const int SPI_BYTES_PER_LED = sizeof(ColorRgb) * SPI_BYTES_PER_COLOUR;

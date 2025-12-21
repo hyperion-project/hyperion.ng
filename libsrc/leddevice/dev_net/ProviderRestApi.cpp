@@ -1,7 +1,8 @@
 // Local-Hyperion includes
 #include "ProviderRestApi.h"
 
-// Qt includes
+#include <chrono>
+
 #include <QObject>
 #include <QEventLoop>
 #include <QNetworkReply>
@@ -16,9 +17,6 @@
 
 #include <QSslSocket>
 
-//std includes
-#include <chrono>
-
 // Constants
 namespace {
 
@@ -32,14 +30,19 @@ ProviderRestApi::ProviderRestApi(const QString& scheme, const QString& host, int
 	, _requestTimeout(DEFAULT_REST_TIMEOUT)
 	, _isSelfSignedCertificateAccpeted(false)
 {
-	_networkManager.reset(new QNetworkAccessManager());
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
-	_networkManager->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
-#endif
+	TRACK_SCOPE();
+
 	_apiUrl.setScheme(scheme);
 	_apiUrl.setHost(host);
 	_apiUrl.setPort(port);
 	_basePath = basePath;
+
+	_networkManager.reset(new QNetworkAccessManager());
+	_networkManager->moveToThread(this->thread());
+
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
+	_networkManager->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
+#endif
 }
 
 ProviderRestApi::ProviderRestApi(const QString& scheme, const QString& host, int port)
@@ -56,7 +59,7 @@ ProviderRestApi::ProviderRestApi()
 
 ProviderRestApi::~ProviderRestApi()
 {
-	qDebug() << "ProviderRestApi::~ProviderRestApi()";
+	TRACK_SCOPE();
 }
 
 void ProviderRestApi::setScheme(const QString& scheme)
@@ -270,12 +273,21 @@ httpResponse ProviderRestApi::executeOperation(QNetworkAccessManager::Operation 
 }
 
 namespace {
-QString getHttpErrorReason(QNetworkReply* const& reply, const httpResponse& response, HttpStatusCode httpStatusCode)
+QString getReplyErrorReason(QNetworkReply* const& reply, const httpResponse& response)
 {
-	if (reply->error() == QNetworkReply::OperationCanceledError)
+	auto const httpStatusCode = response.getHttpStatusCode();
+
+	//Handle non HTTP network errors
+	if (reply->error() != QNetworkReply::NoError && httpStatusCode == HttpStatusCode::Undefined)
 	{
-		return "Network request timeout error";
+		if (reply->error() == QNetworkReply::OperationCanceledError || reply->error() == QNetworkReply::TimeoutError)
+		{
+			return "Network request timeout error";
+		}
+
+		return reply->errorString();
 	}
+
 	if (httpStatusCode != HttpStatusCode::NoContent) {
 		QString const httpReason = reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toString();
 		QString advise;
@@ -322,7 +334,13 @@ httpResponse ProviderRestApi::getResponse(QNetworkReply* const& reply) const
 		return response;
 	}
 
-	auto const httpStatusCode = static_cast<HttpStatusCode>(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt());
+	auto httpStatusCode {HttpStatusCode::Undefined};
+	auto const statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+	if ( statusCode.isValid() )
+	{
+		httpStatusCode = static_cast<HttpStatusCode>(statusCode.toInt());
+	}
+
 	response.setHttpStatusCode(httpStatusCode);
 	response.setNetworkReplyError(reply->error());
 	response.setHeaders(reply->rawHeaderPairs());
@@ -353,7 +371,7 @@ httpResponse ProviderRestApi::getResponse(QNetworkReply* const& reply) const
 	}
 	else
 	{
-		QString errorReason = getHttpErrorReason(reply, response, httpStatusCode);
+		QString errorReason = getReplyErrorReason(reply, response);
 		response.setError(true);
 		response.setErrorReason(errorReason);
 	}

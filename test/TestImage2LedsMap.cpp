@@ -10,8 +10,8 @@
 
 int main()
 {
-	Logger* log = Logger::getInstance("TestImageLedsMap");
-	Logger::setLogLevel(Logger::DEBUG);
+	QSharedPointer<Logger> log = Logger::getInstance("TestImageLedsMap");
+	Logger::setLogLevel(Logger::LogLevel::Debug);
 
 	const QString schemaFile = ":/hyperion-schema";
 	const QString configFile = ":/hyperion_default.config";
@@ -33,7 +33,7 @@ int main()
 	Image<ColorRgb> const image(64, 64, testColor);
 	hyperion::ImageToLedsMap const map(log, 64, 64, 0, 0, ledString.leds());
 
-	std::vector<ColorRgb> ledColors(ledString.leds().size());
+	QVector<ColorRgb> ledColors(ledString.leds().size());
 	map.getMeanLedColor(image, ledColors);
 
 	std::cout << "[";

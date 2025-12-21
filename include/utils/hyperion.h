@@ -43,7 +43,7 @@ namespace hyperion {
 			}
 			if ( fgTypeConfig.contains("color") )
 			{
-				std::vector<ColorRgb> fg_color = {
+				QVector<ColorRgb> fg_color = {
 					ColorRgb {
 						static_cast<uint8_t>(FGCONFIG_ARRAY.at(0).toInt(0)),
 						static_cast<uint8_t>(FGCONFIG_ARRAY.at(1).toInt(0)),

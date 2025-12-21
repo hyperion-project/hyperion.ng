@@ -120,7 +120,13 @@ PyObject* EffectModule::json2python(const QJsonValue& jsonData)
 					Py_XDECREF(list);
 					return nullptr; // Error occurred, return null
 				}
-				PyList_SetItem(list, index, obj);
+				// PyList_SetItem steals reference to obj and returns 0 on success
+				if (PyList_SetItem(list, index, obj) != 0)
+				{
+					Py_DECREF(obj);
+					Py_DECREF(list);
+					return nullptr; // Failed to insert item
+				}
 			}
 			return list;
 		}
@@ -147,20 +153,24 @@ PyObject* EffectModule::json2python(const QJsonValue& jsonData)
 					Py_XDECREF(pyDict);
 					return nullptr;  // Error occurred, return null
 				}
-				// Add to dictionary
-				PyDict_SetItem(pyDict, pyKey, pyValue);
-			}
+				// Add to dictionary with error check
+				if (PyDict_SetItem(pyDict, pyKey, pyValue) < 0)
+				{
+					Py_DECREF(pyKey);
+					Py_DECREF(pyValue);
+					Py_DECREF(pyDict);
+					return nullptr; // insertion failed
+				}
+				Py_DECREF(pyKey);
+				Py_DECREF(pyValue);
+				}
 			return pyDict;
 		}
 
-		default:
-			// Unsupported type
-			PyErr_SetString(PyExc_TypeError, "Unsupported QJsonValue type.");
-			return nullptr;
+	default:
+		PyErr_SetString(PyExc_TypeError, "Unsupported QJsonValue type.");
+		return nullptr;
 	}
-
-	assert(false);
-	Py_RETURN_NONE;
 }
 
 // Python method table
@@ -190,6 +200,7 @@ PyMethodDef EffectModule::effectMethods[] = {
 	{"imageCShear"           , EffectModule::wrapImageCShear           , METH_VARARGS, "Shear of coordinate system by the given horizontal/vertical axis"},
 	{"imageResetT"           , EffectModule::wrapImageResetT           , METH_NOARGS,  "Resets all coords modifications (rotate,offset,shear)"},
 	{"lowestUpdateInterval"  , EffectModule::wrapLowestUpdateInterval  , METH_NOARGS,  "Gets the lowest permissible interval time in seconds"},
+	{"imageStackClear"       , EffectModule::wrapImageStackClear       , METH_NOARGS,  "Clears the internal saved image stack"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -205,7 +216,7 @@ PyObject* EffectModule::wrapSetColor(PyObject* self, PyObject* args)
 		{
 			getEffect()->_colors.fill(color);
 			QVector<ColorRgb> _cQV = getEffect()->_colors;
-			emit getEffect()->setInput(getEffect()->_priority, std::vector<ColorRgb>(_cQV.begin(), _cQV.end()), getEffect()->getRemaining(), false);
+			emit getEffect()->setInput(getEffect()->_priority, QVector<ColorRgb>(_cQV.begin(), _cQV.end()), getEffect()->getRemaining(), false);
 			Py_RETURN_NONE;
 		}
 		return nullptr;
@@ -224,7 +235,7 @@ PyObject* EffectModule::wrapSetColor(PyObject* self, PyObject* args)
 					char* data = PyByteArray_AS_STRING(bytearray);
 					memcpy(getEffect()->_colors.data(), data, length);
 					QVector<ColorRgb> _cQV = getEffect()->_colors;
-					emit getEffect()->setInput(getEffect()->_priority, std::vector<ColorRgb>(_cQV.begin(), _cQV.end()), getEffect()->getRemaining(), false);
+					emit getEffect()->setInput(getEffect()->_priority, QVector<ColorRgb>(_cQV.begin(), _cQV.end()), getEffect()->getRemaining(), false);
 					Py_RETURN_NONE;
 				}
 				else
@@ -402,8 +413,8 @@ PyObject* EffectModule::wrapGetImage(PyObject* self, PyObject* args)
 					return nullptr;
 				}
 
-				PyObject* dict = Py_BuildValue("{s:i,s:i,s:O}", "imageWidth", width, "imageHeight", height, "imageData", pyBytes);
-				Py_DECREF(pyBytes);
+				// Use format unit 'N' to pass ownership of pyBytes to the dict without needing DECREF here
+				PyObject* dict = Py_BuildValue("{s:i,s:i,s:N}", "imageWidth", width, "imageHeight", height, pyBytes);
 
 				if (!dict)
 				{
@@ -411,7 +422,13 @@ PyObject* EffectModule::wrapGetImage(PyObject* self, PyObject* args)
 					return nullptr;
 				}
 
-				PyList_SET_ITEM(result, i, dict);
+				// Replace macro with function to allow error check
+				if (PyList_SetItem(result, i, dict) != 0)
+				{
+					Py_DECREF(dict);
+					Py_DECREF(result);
+					return nullptr; // failed to insert
+				}
 			}
 			else
 			{
@@ -1138,4 +1155,10 @@ PyObject* EffectModule::wrapImageResetT(PyObject* self, PyObject* args)
 PyObject* EffectModule::wrapLowestUpdateInterval(PyObject* self, PyObject* args)
 {
 	return Py_BuildValue("d", getEffect()->_lowestUpdateIntervalInSeconds);
+}
+
+PyObject* EffectModule::wrapImageStackClear(PyObject* self, PyObject* args)
+{
+	getEffect()->_imageStack.clear();
+	Py_RETURN_NONE;
 }

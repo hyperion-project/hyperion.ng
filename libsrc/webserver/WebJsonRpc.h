@@ -19,7 +19,7 @@ public:
 private:
 	QtHttpServer* _server;
 	QtHttpClientWrapper* _wrapper;
-	Logger* _log;
+	QSharedPointer<Logger> _log;
 	JsonAPI* _jsonAPI;
 
 	bool _stopHandle = false;

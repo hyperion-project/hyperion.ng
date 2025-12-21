@@ -7,13 +7,20 @@
 #include <QObject>
 #include <QWebSocket>
 #include <QScopedPointer>
+#include <QWeakPointer>
+#include <QLoggingCategory>
+
+#include <utils/NetOrigin.h>
+
+Q_DECLARE_LOGGING_CATEGORY(comm_websocket_receive);
+Q_DECLARE_LOGGING_CATEGORY(comm_websocket_send);
 
 class WebSocketJsonHandler : public QObject
 {
 	Q_OBJECT
 
 public:
-	WebSocketJsonHandler(QWebSocket* websocket, QObject* parent = nullptr);
+	explicit WebSocketJsonHandler(QWebSocket* websocket, QObject* parent = nullptr);
 
 private slots:
 	void onTextMessageReceived(const QString& message);
@@ -24,8 +31,9 @@ private slots:
 private:
 	QWebSocket* _websocket;
 
-	Logger* _log;
+	QSharedPointer<Logger> _log;
 	QScopedPointer<JsonAPI> _jsonAPI;
+	QWeakPointer<NetOrigin> _netOriginWeak;
 	QString _peerAddress;
 	QString _origin;
 };

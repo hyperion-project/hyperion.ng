@@ -103,7 +103,7 @@ protected:
 
 	virtual QString getInfo() const { return {}; };
 
-	Logger *_log;
+	QSharedPointer<Logger> _log;
 
 private:
 

@@ -1,6 +1,7 @@
 #ifndef LEDEVICET_APA102_H
 #define LEDEVICET_APA102_H
 #include "ProviderFtdi.h"
+#include <QVector>
 
 class LedDeviceAPA102_ftdi : public ProviderFtdi
 {
@@ -40,7 +41,7 @@ private:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	int write(const std::vector<ColorRgb>& ledValues) override;
+	int write(const QVector<ColorRgb>& ledValues) override;
 
 	/// The brighness level. Possibile values 1 .. 31.
 	int _brightnessControlMaxLevel;

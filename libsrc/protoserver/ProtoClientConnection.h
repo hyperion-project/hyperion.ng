@@ -1,5 +1,10 @@
 #pragma once
 
+#include <QScopedPointer>
+#include <QTcpSocket>
+#include <QTimer>
+#include <QLoggingCategory>
+
 // protobuffer PROTO
 // protobuf defines an Error() function itself, so undef it here
 #undef Error
@@ -11,6 +16,9 @@
 #include <utils/ColorRgb.h>
 #include <utils/ColorRgba.h>
 #include <utils/Components.h>
+
+Q_DECLARE_LOGGING_CATEGORY(proto_server_client_flow);
+Q_DECLARE_LOGGING_CATEGORY(proto_server_client_cmd);
 
 class QTcpSocket;
 class QTimer;
@@ -33,7 +41,10 @@ public:
 	/// @param timeout  The timeout when a client is automatically disconnected and the priority unregistered
 	/// @param parent   The parent
 	///
-	explicit ProtoClientConnection(QTcpSocket* socket, int timeout, QObject *parent);
+	explicit ProtoClientConnection(QTcpSocket* socket, int timeout, QObject *parent = nullptr);
+
+	int getPriority() const { return _priority; }
+	QString getAddress() const { return _clientAddress; }
 
 signals:
 	///
@@ -54,7 +65,7 @@ signals:
 	///
 	/// @brief Forward requested color
 	///
-	void setGlobalInputColor(int priority, const std::vector<ColorRgb> &ledColor, int timeout_ms, const QString& origin = "ProtoBuffer" ,bool clearEffects = true);
+	void setGlobalInputColor(int priority, const QVector<ColorRgb> &ledColor, int timeout_ms, const QString& origin = "ProtoBuffer" ,bool clearEffects = true);
 
 	///
 	/// @brief Emit the final processed image
@@ -147,15 +158,10 @@ private:
 	void sendErrorReply(const std::string & error);
 
 private:
-	Logger*_log;
-
-	/// The TCP-Socket that is connected tot the Proto-client
+	QSharedPointer<Logger> _log;
 	QTcpSocket* _socket;
-
-	/// address of client
 	const QString _clientAddress;
-
-	QTimer*_timeoutTimer;
+	QScopedPointer<QTimer, QScopedPointerDeleteLater> _timeoutTimer;
 	int _timeout;
 	int _priority;
 

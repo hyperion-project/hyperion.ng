@@ -31,6 +31,7 @@ OsEventHandlerBase::OsEventHandlerBase()
 	, _isLockRegistered(false)
 	, _isService(false)
 {
+	TRACK_SCOPE();
 	qRegisterMetaType<Event>("Event");
 	_log = Logger::getInstance("EVENTS-OS");
 
@@ -46,6 +47,7 @@ OsEventHandlerBase::OsEventHandlerBase()
 
 OsEventHandlerBase::~OsEventHandlerBase()
 {
+	TRACK_SCOPE();
 	quit();
 	QObject::disconnect(this, &OsEventHandlerBase::signalEvent, EventHandler::getInstance().data(), &EventHandler::handleEvent);
 
@@ -331,7 +333,7 @@ struct dBusSignals
 	QString name;
 };
 
-typedef QMultiMap<QString, dBusSignals> DbusSignalsMap;
+using DbusSignalsMap = QMultiMap<QString, dBusSignals>;
 
 // Constants
 namespace {
@@ -416,36 +418,37 @@ bool OsEventHandlerLinux::registerLockHandler()
 {
 	bool isRegistered{ _isLockRegistered };
 
-	if (!_isLockRegistered)
+	if (_isLockRegistered)
 	{
-		QDBusConnection sessionBus = QDBusConnection::sessionBus();
-		if (!sessionBus.isConnected())
+		return true;
+	}
+
+	QDBusConnection sessionBus = QDBusConnection::sessionBus();
+	if (!sessionBus.isConnected())
+	{
+		Info(_log, "The lock/unlock feature is not supported by your system configuration");
+		_isLockRegistered = false;
+		return false;
+	}
+
+	DbusSignalsMap::const_iterator iter = dbusSignals.find("ScreenSaver");
+	while (iter != dbusSignals.end() && iter.key() == "ScreenSaver") {
+		QString service = iter.value().service;
+		if (sessionBus.connect(service,
+			iter.value().path,
+			iter.value().interface,
+			iter.value().name,
+			this, SLOT(lock(bool))))
 		{
-			Info(_log, "The lock/unlock feature is not supported by your system configuration");
+			Debug(_log, "Registered for lock/unlock events via service: %s", QSTRING_CSTR(service));
+			isRegistered = true;
 		}
 		else
 		{
-			DbusSignalsMap::const_iterator iter = dbusSignals.find("ScreenSaver");
-			while (iter != dbusSignals.end() && iter.key() == "ScreenSaver") {
-				QString service = iter.value().service;
-				if (sessionBus.connect(service,
-					iter.value().path,
-					iter.value().interface,
-					iter.value().name,
-					this, SLOT(lock(bool))))
-				{
-					Debug(_log, "Registered for lock/unlock events via service: %s", QSTRING_CSTR(service));
-					isRegistered = true;
-				}
-				else
-				{
-					Error(_log, "Could not register for lock/unlock events via service: %s", QSTRING_CSTR(service));
-
-				}
-				++iter;
-			}
+			Error(_log, "Could not register for lock/unlock events via service: %s", QSTRING_CSTR(service));
 
 		}
+		++iter;
 	}
 
 	if (isRegistered)
@@ -460,40 +463,41 @@ void OsEventHandlerLinux::unregisterLockHandler()
 {
 	bool isUnregistered{ false };
 
-	if (_isLockRegistered)
+	if (!_isLockRegistered)
 	{
-		QDBusConnection sessionBus = QDBusConnection::sessionBus();
-		if (!sessionBus.isConnected())
+		return;
+	}
+
+	QDBusConnection sessionBus = QDBusConnection::sessionBus();
+	if (!sessionBus.isConnected())
+	{
+		Info(_log, "The lock/unlock feature is not supported by your system configuration");
+		return;
+	}
+
+	DbusSignalsMap::const_iterator iter = dbusSignals.find("ScreenSaver");
+	while (iter != dbusSignals.end() && iter.key() == "ScreenSaver") {
+		QString service = iter.value().service;
+		if (sessionBus.disconnect(service,
+			iter.value().path,
+			iter.value().interface,
+			iter.value().name,
+			this, SLOT(lock(bool))))
 		{
-			Info(_log, "The lock/unlock feature is not supported by your system configuration");
+			Debug(_log, "Unregistered for lock/unlock events via service: %s", QSTRING_CSTR(service));
+			isUnregistered = true;
 		}
 		else
 		{
-			DbusSignalsMap::const_iterator iter = dbusSignals.find("ScreenSaver");
-			while (iter != dbusSignals.end() && iter.key() == "ScreenSaver") {
-				QString service = iter.value().service;
-				if (sessionBus.disconnect(service,
-					iter.value().path,
-					iter.value().interface,
-					iter.value().name,
-					this, SLOT(lock(bool))))
-				{
-					Debug(_log, "Unregistered for lock/unlock events via service: %s", QSTRING_CSTR(service));
-					isUnregistered = true;
-				}
-				else
-				{
-					Error(_log, "Could not unregister for lock/unlock events via service: %s", QSTRING_CSTR(service));
+			Error(_log, "Could not unregister for lock/unlock events via service: %s", QSTRING_CSTR(service));
 
-				}
-				++iter;
-			}
-
-			if (isUnregistered)
-			{
-				_isLockRegistered = false;
-			}
 		}
+		++iter;
+	}
+
+	if (isUnregistered)
+	{
+		_isLockRegistered = false;
 	}
 }
 #endif // HYPERION_HAS_DBUS

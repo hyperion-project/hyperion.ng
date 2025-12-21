@@ -13,16 +13,23 @@ EventHandler::EventHandler()
 	: _isSuspended(false)
 	, _isIdle(false)
 {
+	TRACK_SCOPE();
 	qRegisterMetaType<Event>("Event");
 	_log = Logger::getInstance("EVENTS");
-
-	QObject::connect(this, &EventHandler::signalEvent, HyperionIManager::getInstance(), &HyperionIManager::handleEvent);
+	if (auto mgrStrong = HyperionIManager::getInstanceWeak().toStrongRef())
+	{
+		QObject::connect(this, &EventHandler::signalEvent, mgrStrong.get(), &HyperionIManager::handleEvent);
+	}
 	Debug(_log, "Hyperion event handler created");
 }
 
 EventHandler::~EventHandler()
 {
-	QObject::disconnect(this, &EventHandler::signalEvent, HyperionIManager::getInstance(), &HyperionIManager::handleEvent);
+	TRACK_SCOPE();
+	if (auto mgrStrong = HyperionIManager::getInstanceWeak().toStrongRef())
+	{
+		QObject::disconnect(this, &EventHandler::signalEvent, mgrStrong.get(), &HyperionIManager::handleEvent);
+	}
 }
 
 QScopedPointer<EventHandler>& EventHandler::getInstance()
@@ -33,6 +40,14 @@ QScopedPointer<EventHandler>& EventHandler::getInstance()
 	}
 
 	return instance;
+}
+
+void EventHandler::destroyInstance()
+{
+	if (instance)
+	{
+		instance.reset();
+	}
 }
 
 void EventHandler::suspend()

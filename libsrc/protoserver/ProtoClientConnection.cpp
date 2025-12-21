@@ -7,6 +7,8 @@
 // project includes
 #include "ProtoClientConnection.h"
 
+Q_LOGGING_CATEGORY(proto_server_client_flow, "hyperion.proto.server.flow");
+Q_LOGGING_CATEGORY(proto_server_client_cmd, "hyperion.proto.server.cmd");
 
 // TODO Remove this class if third-party apps have been migrated (eg. Hyperion Android Grabber, Windows Screen grabber etc.)
 
@@ -19,10 +21,12 @@ ProtoClientConnection::ProtoClientConnection(QTcpSocket* socket, int timeout, QO
 	, _timeout(timeout * 1000)
 	, _priority()
 {
+	TRACK_SCOPE();
 	// timer setup
+	_timeoutTimer.reset(new QTimer());	
 	_timeoutTimer->setSingleShot(true);
 	_timeoutTimer->setInterval(_timeout);
-	connect(_timeoutTimer, &QTimer::timeout, this, &ProtoClientConnection::forceClose);
+	connect(_timeoutTimer.get(), &QTimer::timeout, this, &ProtoClientConnection::forceClose);
 
 	// connect socket signals
 	connect(_socket, &QTcpSocket::readyRead, this, &ProtoClientConnection::readyRead);
@@ -68,6 +72,8 @@ void ProtoClientConnection::readyRead()
 
 void ProtoClientConnection::forceClose()
 {
+	qCDebug(proto_server_client_flow) << "Forcing close of client" << QString("PROTO1@%2").arg( _clientAddress);
+	_timeoutTimer->stop();
 	_socket->close();
 }
 
@@ -86,6 +92,7 @@ void ProtoClientConnection::handleMessage(const proto::HyperionRequest & message
 	case proto::HyperionRequest::COLOR:
 		if (!message.HasExtension(proto::ColorRequest::colorRequest))
 		{
+			qCDebug(proto_server_client_flow) << "Received COLOR command without ColorRequest from client" << QString("PROTO1@%2").arg( _clientAddress);
 			sendErrorReply("Received COLOR command without ColorRequest");
 			break;
 		}
@@ -94,6 +101,7 @@ void ProtoClientConnection::handleMessage(const proto::HyperionRequest & message
 	case proto::HyperionRequest::IMAGE:
 		if (!message.HasExtension(proto::ImageRequest::imageRequest))
 		{
+			qCDebug(proto_server_client_flow) << "Received IMAGE command without ImageRequest from client" << QString("PROTO1@%2").arg( _clientAddress);
 			sendErrorReply("Received IMAGE command without ImageRequest");
 			break;
 		}
@@ -102,6 +110,7 @@ void ProtoClientConnection::handleMessage(const proto::HyperionRequest & message
 	case proto::HyperionRequest::CLEAR:
 		if (!message.HasExtension(proto::ClearRequest::clearRequest))
 		{
+			qCDebug(proto_server_client_flow) << "Received CLEAR command without ClearRequest from client" << QString("PROTO1@%2").arg( _clientAddress);
 			sendErrorReply("Received CLEAR command without ClearRequest");
 			break;
 		}
@@ -120,7 +129,7 @@ void ProtoClientConnection::handleColorCommand(const proto::ColorRequest &messag
 	// extract parameters
 	int priority = message.priority();
 	int duration = message.has_duration() ? message.duration() : -1;
-	std::vector<ColorRgb> color{ ColorRgb{ uint8_t(qRed(message.rgbcolor())), uint8_t(qGreen(message.rgbcolor())), uint8_t(qBlue(message.rgbcolor())) } };
+	QVector<ColorRgb> color{ ColorRgb{ uint8_t(qRed(message.rgbcolor())), uint8_t(qGreen(message.rgbcolor())), uint8_t(qBlue(message.rgbcolor())) } };
 
 	if (priority < 100 || priority >= 200)
 	{
@@ -128,6 +137,8 @@ void ProtoClientConnection::handleColorCommand(const proto::ColorRequest &messag
 		Error(_log, "The priority %d is not in the proto-connection range between 100 and 199.", priority);
 		return;
 	}
+
+	qCDebug(proto_server_client_cmd) << "Received color command from client" << QString("PROTO1@%2").arg( _clientAddress) << "with priority" << priority;
 
 	// make sure the prio is registered before setColor()
 	if(priority != _priority)
@@ -146,6 +157,7 @@ void ProtoClientConnection::handleColorCommand(const proto::ColorRequest &messag
 
 void ProtoClientConnection::handleImageCommand(const proto::ImageRequest &message)
 {
+
 	// extract parameters
 	int priority = message.priority();
 	int duration = message.has_duration() ? message.duration() : -1;
@@ -170,6 +182,7 @@ void ProtoClientConnection::handleImageCommand(const proto::ImageRequest &messag
 
 	if (width <= 0 || height <= 0)
 	{
+		qCDebug(proto_server_client_flow) << "Received image command with invalid width and/or height from client" << QString("PROTO1@%2").arg( _clientAddress);
 		sendErrorReply("Size of image data does not match with the width and height");
 		return;
 	}
@@ -178,6 +191,7 @@ void ProtoClientConnection::handleImageCommand(const proto::ImageRequest &messag
 	int channelCount = (int)imageData.size()/(width*height);
 	if (channelCount != 3 && channelCount != 4)
 	{
+		qCDebug(proto_server_client_flow) << "Received image command with invalid size of image data from client" << QString("PROTO1@%2").arg( _clientAddress);
 		sendErrorReply("Size of image data does not match with the width and height");
 		return;
 	}
@@ -197,6 +211,11 @@ void ProtoClientConnection::handleImageCommand(const proto::ImageRequest &messag
 		}
 	}
 
+	qCDebug(proto_server_client_cmd) << "Received image from client" << QString("PROTO1@%2").arg(_clientAddress)
+									  << "with priority" << _priority
+									  << "with size" << imageRGB.width() << "x" << imageRGB.height()
+									  << "and duration" << duration << "ms";
+
 	emit setGlobalInputImage(_priority, imageRGB, duration);
 	emit setBufferImage("ProtoBuffer", imageRGB);
 
@@ -210,6 +229,8 @@ void ProtoClientConnection::handleClearCommand(const proto::ClearRequest &messag
 	// extract parameters
 	int priority = message.priority();
 
+	qCDebug(proto_server_client_cmd) << "Received clear command from client" << QString("PROTO1@%2").arg( _clientAddress) << "with priority" << priority;
+
 	// clear priority
 	emit clearGlobalInput(priority);
 	// send reply
@@ -218,6 +239,7 @@ void ProtoClientConnection::handleClearCommand(const proto::ClearRequest &messag
 
 void ProtoClientConnection::handleClearallCommand()
 {
+	qCDebug(proto_server_client_cmd) << "Received clearall command from client" << QString("PROTO1@%2").arg( _clientAddress);
 	// clear all priority
 	emit clearGlobalInput(-1);
 
@@ -228,13 +250,14 @@ void ProtoClientConnection::handleClearallCommand()
 
 void ProtoClientConnection::handleNotImplemented()
 {
+	qCDebug(proto_server_client_flow) << "Received not implemented command from client" << QString("PROTO1@%2").arg( _clientAddress);
 	sendErrorReply("Command not implemented");
 }
 
 void ProtoClientConnection::sendMessage(const google::protobuf::Message &message)
 {
 	std::string serializedReply = message.SerializeAsString();
-	uint32_t size = static_cast<uint32_t>(serializedReply.size());
+	auto size = static_cast<uint32_t>(serializedReply.size());
 	uint8_t sizeData[] = {uint8_t(size >> 24), uint8_t(size >> 16), uint8_t(size >> 8), uint8_t(size)};
 	_socket->write((const char *) sizeData, sizeof(sizeData));
 	_socket->write(serializedReply.data(), serializedReply.length());

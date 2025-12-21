@@ -1,8 +1,6 @@
 #include "MFSourceReaderCB.h"
 #include "grabber/video/mediafoundation/MFGrabber.h"
 
-// Constants
-namespace { const bool verbose = false; }
 
 // Need more video properties? Visit https://docs.microsoft.com/en-us/windows/win32/api/strmif/ne-strmif-videoprocampproperty
 using VideoProcAmpPropertyMap = QMap<VideoProcAmpProperty, QString>;
@@ -99,7 +97,7 @@ bool MFGrabber::start()
 		{
 			connect(_threadManager, &EncoderThreadManager::newFrame, this, &MFGrabber::newThreadFrame);
 			_threadManager->start();
-			DebugIf(verbose, _log, "Decoding threads: %d", _threadManager->_threadCount);
+			qCDebug(grabber_video_flow) << "Decoding threads:" << _threadManager->_threadCount;
 
 			start_capturing();
 			Info(_log, "Started");
@@ -196,7 +194,7 @@ HRESULT MFGrabber::init_device(QString deviceName, DeviceProperties props)
 	IAMVideoProcAmp* pProcAmp = nullptr;
 
 	Debug(_log, "Init %s, %d x %d @ %d fps (%s)", QSTRING_CSTR(deviceName), props.width, props.height, props.fps, QSTRING_CSTR(pixelFormatToString(pixelformat)));
-	DebugIf (verbose, _log, "Symbolic link: %s", QSTRING_CSTR(props.symlink));
+	qCDebug(grabber_video_flow) << "Symbolic link: " << props.symlink;
 
 	hr = MFCreateAttributes(&deviceAttributes, 2);
 	if (FAILED(hr))
@@ -401,7 +399,7 @@ void MFGrabber::enumVideoCaptureDevices()
 			IMFActivate** devices;
 			if (SUCCEEDED(MFEnumDeviceSources(attr, &devices, &count)))
 			{
-				DebugIf (verbose, _log, "Detected devices: %u", count);
+				qCDebug(grabber_video_flow) << "Detected devices: " << count;
 				for (UINT32 i = 0; i < count; i++)
 				{
 					UINT32 length;
@@ -418,7 +416,7 @@ void MFGrabber::enumVideoCaptureDevices()
 							IMFMediaSource *pSource = nullptr;
 							if (SUCCEEDED(devices[i]->ActivateObject(IID_PPV_ARGS(&pSource))))
 							{
-								DebugIf (verbose, _log, "Found capture device: %s", QSTRING_CSTR(dev));
+								qCDebug(grabber_video_flow) << "Found capture device: " << dev;
 
 								IMFMediaType *pType = nullptr;
 								IMFSourceReader* reader;
@@ -454,11 +452,13 @@ void MFGrabber::enumVideoCaptureDevices()
 												{
 													hr = MFGetStrideForBitmapInfoHeader(format.Data1, width, &properties.defstride);
 													if (FAILED(hr))
-														DebugIf (verbose, _log, "failed to get default stride");
+													{
+														qCDebug(grabber_video_flow) << "failed to get default stride";
+													}
 												}
 												devicePropertyList.append(properties);
 
-												DebugIf (verbose, _log, "%s %d x %d @ %d fps (%s)", QSTRING_CSTR(dev), properties.width, properties.height, properties.fps, QSTRING_CSTR(pixelFormatToString(properties.pf)));
+												qCDebug(grabber_video_properties) << "" << dev << properties.width << "x" << properties.height << "@" << properties.fps << "fps (" << pixelFormatToString(properties.pf) << ")";
 											}
 										}
 
@@ -487,7 +487,7 @@ void MFGrabber::enumVideoCaptureDevices()
 													if (SUCCEEDED(videoProcAmp->Get(it.key(), &currentVal,  &flag)))
 													{
 														control.currentValue = currentVal;
-														DebugIf(verbose, _log, "%s: min=%i, max=%i, step=%i, default=%i, current=%i", QSTRING_CSTR(it.value()), minVal, maxVal, stepVal, defaultVal, currentVal);
+														qCDebug(grabber_video_properties) << "" << it.value() << ": min=" << minVal << ", max=" << maxVal << ", step=" << stepVal << ", default=" << defaultVal << ", current=" << currentVal;
 													}
 													else
 														break;
@@ -736,8 +736,6 @@ bool MFGrabber::reload(bool force)
 
 QJsonArray MFGrabber::discover(const QJsonObject& params)
 {
-	DebugIf (verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	enumVideoCaptureDevices();
 
 	QJsonArray inputsDiscovered;
@@ -832,7 +830,6 @@ QJsonArray MFGrabber::discover(const QJsonObject& params)
 
 	_deviceProperties.clear();
 	_deviceControls.clear();
-	DebugIf (verbose, _log, "device: [%s]", QString(QJsonDocument(inputsDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return inputsDiscovered;
 }

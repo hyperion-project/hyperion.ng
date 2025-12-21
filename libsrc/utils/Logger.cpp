@@ -1,5 +1,4 @@
 #include <utils/Logger.h>
-#include <utils/FileUtils.h>
 
 #include <iostream>
 
@@ -16,6 +15,10 @@
 #include <QThreadStorage>
 #include <QJsonObject>
 
+#include <utils/FileUtils.h>
+#include <utils/MemoryTracker.h>
+
+Q_LOGGING_CATEGORY(hyperion_logger_track, "hyperion.logger.track");
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
 QRecursiveMutex        Logger::MapLock;
@@ -23,17 +26,25 @@ QRecursiveMutex        Logger::MapLock;
 QMutex                 Logger::MapLock{ QMutex::Recursive };
 #endif
 
-QMap<QString, Logger*>  Logger::LoggerMap{ };
-QAtomicInteger<int>    Logger::GLOBAL_MIN_LOG_LEVEL{ static_cast<int>(Logger::LogLevel::LOG_UNSET) };
+QMap<QString, QWeakPointer<Logger>> Logger::LoggerMap{};
+QAtomicInteger<int> Logger::GLOBAL_MIN_LOG_LEVEL{ static_cast<int>(Logger::LogLevel::Unset) };
 
 namespace
 {
-	const char* LogLevelStrings[] = { "", "DEBUG", "INFO", "WARNING", "ERROR", "OFF" };
+    const std::array<const char*, 6> LogLevelStrings = {{ "", "DEBUG", "INFO", "WARNING", "ERROR", "OFF" }};
 #ifndef _WIN32
-	const int    LogLevelSysLog[] = { LOG_DEBUG, LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERR };
+    const auto LogLevelSysLog = [] {
+        std::array<int, 5> arr{};
+        arr[static_cast<int>(Logger::LogLevel::Unset)] = LOG_DEBUG;
+        arr[static_cast<int>(Logger::LogLevel::Debug)] = LOG_DEBUG;
+        arr[static_cast<int>(Logger::LogLevel::Info)] = LOG_INFO;
+        arr[static_cast<int>(Logger::LogLevel::Warning)] = LOG_WARNING;
+        arr[static_cast<int>(Logger::LogLevel::Error)] = LOG_ERR;
+        return arr;
+    }();
 #endif
 
-	const size_t MAX_IDENTIFICATION_LENGTH = 22;
+    const size_t MAX_IDENTIFICATION_LENGTH = 22;
 
 	QAtomicInteger<unsigned int> LoggerCount = 0;
 	QAtomicInteger<unsigned int> LoggerId = 0;
@@ -44,38 +55,52 @@ namespace
 	QThreadStorage<Logger::T_LOG_MESSAGE> RepeatMessage;
 } // namespace
 
-Logger* Logger::getInstance(const QString& name, const QString& subName, Logger::LogLevel minLevel)
+QSharedPointer<Logger> Logger::getInstance(const QString& name, const QString& subName, Logger::LogLevel minLevel)
 {
-	QMutexLocker lock(&MapLock);
+    QMutexLocker lock(&MapLock);
+    QString key = name + subName;
 
-	Logger* log = LoggerMap.value(name + subName, nullptr);
-	if (log == nullptr)
-	{
-		log = new Logger(name, subName, minLevel);
-		LoggerMap.insert(name + subName, log);
-		connect(log, &Logger::newLogMessage, LoggerManager::getInstance().data(), &LoggerManager::handleNewLogMessage);
-	}
+    // Try to resurrect logger from weak_ptr
+    if (LoggerMap.contains(key))
+    {
+        if (auto sp = LoggerMap.value(key).lock())
+        {
+            return sp;
+        }
+    }
 
-	return log;
+    // Not found or expired, create a new one.
+	QSharedPointer<Logger> newLog = makeTrackedShared<Logger>(nullptr, hyperion_logger_track(), name, subName, minLevel);
+
+    LoggerMap.insert(key, newLog);
+    connect(newLog.get(), &Logger::newLogMessage, LoggerManager::getInstance().data(), &LoggerManager::handleNewLogMessage);
+
+    return newLog;
 }
 
 void Logger::deleteInstance(const QString& name, const QString& subName)
 {
-	QMutexLocker lock(&MapLock);
+    QMutexLocker lock(&MapLock);
 
-	if (name.isEmpty())
-	{
-		for (auto* logger : std::as_const(LoggerMap)) {
-			logger->deleteLater();
-		}
+    if (name.isEmpty())
+    {
+        for (const auto& weakLogger : std::as_const(LoggerMap)) {
+            if (auto strongLogger = weakLogger.lock())
+            {
+				TRACK_SCOPE_CATEGORY(hyperion_logger_track) << QString("|%1| Delete logger %2").arg(strongLogger->getSubName(), strongLogger->getName());
+                strongLogger->deleteLater();
+            }
+        }
 
-		LoggerMap.clear();
-	}
-	else
-	{
-		LoggerMap.value(name + subName, nullptr)->deleteLater();
-		LoggerMap.remove(name + subName);
-	}
+        LoggerMap.clear();
+    }
+    else
+    {
+        // This will cause the weak_ptr in the map to expire.
+        // The logger will be deleted when the last shared_ptr is destroyed.
+        LoggerMap.remove(name + subName);
+    }
+
 }
 
 void Logger::setLogLevel(LogLevel level, const QString& name, const QString& subName)
@@ -86,7 +111,7 @@ void Logger::setLogLevel(LogLevel level, const QString& name, const QString& sub
 	}
 	else
 	{
-		Logger* log = Logger::getInstance(name, subName, level);
+		auto log = Logger::getInstance(name, subName, level);
 		log->setMinLevel(level);
 	}
 }
@@ -98,8 +123,8 @@ Logger::LogLevel Logger::getLogLevel(const QString& name, const QString& subName
 		return static_cast<Logger::LogLevel>(int(GLOBAL_MIN_LOG_LEVEL));
 	}
 
-	const Logger* log = Logger::getInstance(name + subName);
-	return log->getMinLevel();
+    const auto log = Logger::getInstance(name + subName);
+    return log->getMinLevel();
 }
 
 Logger::Logger(const QString& name, const QString& subName, LogLevel minLevel)
@@ -109,49 +134,51 @@ Logger::Logger(const QString& name, const QString& subName, LogLevel minLevel)
 	, _loggerId(LoggerId++)
 	, _minLevel(static_cast<int>(minLevel))
 {
+	TRACK_SCOPE_CATEGORY(hyperion_logger_track) << QString("|%1| Create %2 logger").arg(_subName,_name);
 	qRegisterMetaType<Logger::T_LOG_MESSAGE>();
 
-	if (LoggerCount.fetchAndAddOrdered(1) == 1)
-	{
 #ifndef _WIN32
-		if (_syslogEnabled)
-		{
-			openlog(nullptr, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL0);
-		}
-#endif
+	if (LoggerCount.fetchAndAddOrdered(1) == 1 && _syslogEnabled)
+	{
+		openlog(nullptr, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL0);
 	}
+#else
+	// To keep LoggerCount behaviour consistent across platforms
+	LoggerCount.fetchAndAddOrdered(1);
+#endif
 }
 
 Logger::~Logger()
 {
-	if (LoggerCount.fetchAndSubOrdered(1) == 0)
-	{
+	TRACK_SCOPE_CATEGORY(hyperion_logger_track) << QString("|%1| Destroy %2 logger").arg(_subName,_name);
 #ifndef _WIN32
-		if (_syslogEnabled)
-		{
-			closelog();
-		}
-#endif
+	if (LoggerCount.fetchAndSubOrdered(1) == 0 && _syslogEnabled)
+	{
+		closelog();
 	}
+#else
+	// To keep LoggerCount behaviour consistent across platforms
+	LoggerCount.fetchAndSubOrdered(1);
+#endif
 }
 
 void Logger::write(const Logger::T_LOG_MESSAGE& message)
 {
-	QString location;
-	if (message.level == LOG_DEBUG)
-	{
-		location = QString("%1:%2:%3() | ")
-			.arg(message.fileName)
-			.arg(message.line)
-			.arg(message.function);
-	}
+    QString location;
+    if (message.level == Logger::LogLevel::Debug)
+    {
+        location = QString("%1:%2:%3() | ")
+            .arg(message.fileName)
+            .arg(message.line)
+            .arg(message.function);
+    }
 
 	QString name = "|" + message.loggerSubName + "| " + message.loggerName;
 	name.resize(MAX_IDENTIFICATION_LENGTH, ' ');
 
 	const QDateTime timestamp = QDateTime::fromMSecsSinceEpoch(message.utime);
 	QString const msg = QString("%1 %2 : <%3> %4%5\n")
-		.arg(timestamp.toString(Qt::ISODateWithMs), name, LogLevelStrings[message.level], location, message.message);
+		.arg(timestamp.toString(Qt::ISODateWithMs), name, message.levelString, location, message.message);
 
 #ifdef _WIN32
 	if (IsDebuggerPresent())
@@ -167,10 +194,14 @@ void Logger::write(const Logger::T_LOG_MESSAGE& message)
 
 void Logger::Message(LogLevel level, const char* sourceFile, const char* func, unsigned int line, const char* fmt, ...)
 {
-	LogLevel const globalLevel = LogLevel(int(GLOBAL_MIN_LOG_LEVEL));
+    auto const globalLevel = static_cast<LogLevel>(int(GLOBAL_MIN_LOG_LEVEL));
 
-	if ((globalLevel == Logger::LogLevel::LOG_UNSET && level < _minLevel) // no global level, use level from logger
-		|| (globalLevel > LogLevel::LOG_UNSET && level < globalLevel)) // global level set, use global level
+	// Determine the effective minimum level: prefer global if set, otherwise this logger's level
+	const auto effectiveMinLevel = (globalLevel == Logger::LogLevel::Unset)
+		? getMinLevel()
+		: globalLevel;
+
+	if (level < effectiveMinLevel)
 	{
 		return;
 	}
@@ -190,9 +221,9 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 
 			write(repMsg);
 #ifndef _WIN32
-			if (_syslogEnabled && repMsg.level >= LOG_WARNING)
+			if (_syslogEnabled && repMsg.level >= Logger::LogLevel::Warning)
 			{
-				syslog(LogLevelSysLog[repMsg.level], "Previous line repeats %d times", RepeatCount.localData());
+				syslog(LogLevelSysLog[static_cast<int>(repMsg.level)], "Previous line repeats %d times", RepeatCount.localData());
 			}
 #endif
 
@@ -231,16 +262,16 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 		logMsg.utime = QDateTime::currentMSecsSinceEpoch();
 		logMsg.message = QString(msg);
 		logMsg.level = level;
-		logMsg.levelString = LogLevelStrings[level];
+		logMsg.levelString = LogLevelStrings[static_cast<int>(level)];
 
 		write(logMsg);
 #ifndef _WIN32
-		if (_syslogEnabled && level >= LOG_WARNING)
-		{
-			syslog(LogLevelSysLog[level], "%s", msg);
-		}
+        if (_syslogEnabled && level >= Logger::LogLevel::Warning)
+        {
+            syslog(LogLevelSysLog[static_cast<int>(level)], "%s", msg);
+        }
 #endif
-		RepeatMessage.setLocalData(logMsg);
+        RepeatMessage.setLocalData(logMsg);
 	}
 }
 
@@ -249,11 +280,13 @@ QScopedPointer<LoggerManager> LoggerManager::instance;
 LoggerManager::LoggerManager()
 	: _loggerMaxMsgBufferSize(MAX_LOG_MSG_BUFFERED)
 {
+	TRACK_SCOPE_CATEGORY(hyperion_logger_track) << "Create LoggerManager";
 	_logMessageBuffer.reserve(_loggerMaxMsgBufferSize);
 }
 
 LoggerManager::~LoggerManager()
 {
+	TRACK_SCOPE_CATEGORY(hyperion_logger_track) << "Destroy LoggerManager";
 	// delete components
 	Logger::deleteInstance();
 

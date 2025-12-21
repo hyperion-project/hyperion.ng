@@ -13,6 +13,7 @@
 #include <QSharedPointer>
 
 #include <hyperion/HyperionIManager.h>
+#include <QWeakPointer>
 #include <events/EventHandler.h>
 
 class HyperionDaemon;
@@ -44,13 +45,13 @@ private:
 	void settings() const;
 	void setAutorunState();
 
-	void showColorDialog(int instance);
+	void showColorDialog(quint8 instance);
 
-	void setColor(int instance, const QColor &color);
-	void clearSource(int instance);
+	void setColor(quint8 instance, const QColor &color) const;
+	void clearSource(quint8 instance) const;
 
 #if defined(ENABLE_EFFECTENGINE)
-	void setEffect(int instance, const QString& effectName);
+	void setEffect(quint8 instance, const QString& effectName) const;
 #endif
 
 	void handleInstanceStarted(quint8 instance);
@@ -73,7 +74,7 @@ private:
 
 	// Members
 	HyperionDaemon* _hyperiond;
-	HyperionIManager* _instanceManager;
+	QWeakPointer<HyperionIManager> _instanceManagerWeak;
 	int _webPort = 8090;
 
 	// UI Elements

@@ -1,5 +1,8 @@
-#include <QtCore/qmath.h>
 #include <utils/RgbTransform.h>
+
+#include <QtMath>
+#include <QtGlobal>
+
 #include <utils/KelvinToRgb.h>
 
 RgbTransform::RgbTransform()
@@ -7,14 +10,14 @@ RgbTransform::RgbTransform()
 {
 }
 
-RgbTransform::RgbTransform(double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation, int temperature)
+RgbTransform::RgbTransform(double gammaR, double gammaG, double gammaB, int backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation, int temperature)
 	: _brightness(brightness)
 	, _brightnessCompensation(brightnessCompensation)
 {
 	init(gammaR, gammaG, gammaB, backlightThreshold, backlightColored, _brightness, _brightnessCompensation, temperature);
 }
 
-void RgbTransform::init(double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation, int temperature)
+void RgbTransform::init(double gammaR, double gammaG, double gammaB, int backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation, int temperature)
 {
 	_backLightEnabled = true;
 	setGamma(gammaR,gammaG,gammaB);
@@ -64,9 +67,9 @@ void RgbTransform::initializeMapping()
 		double gammaCorrectedValueB = qPow(normalizedValueB, _gammaB) * UINT8_MAX;
 
 		// Clamp values to valid range [0, UINT8_MAX]
-		quint8 clampedValueR = static_cast<quint8>(qBound(0.0, gammaCorrectedValueR, static_cast<double>(UINT8_MAX)));
-		quint8 clampedValueG = static_cast<quint8>(qBound(0.0, gammaCorrectedValueG, static_cast<double>(UINT8_MAX)));
-		quint8 clampedValueB = static_cast<quint8>(qBound(0.0, gammaCorrectedValueB, static_cast<double>(UINT8_MAX)));
+		auto clampedValueR = static_cast<quint8>(qBound(0.0, gammaCorrectedValueR, static_cast<double>(UINT8_MAX)));
+		auto clampedValueG = static_cast<quint8>(qBound(0.0, gammaCorrectedValueG, static_cast<double>(UINT8_MAX)));
+		auto clampedValueB = static_cast<quint8>(qBound(0.0, gammaCorrectedValueB, static_cast<double>(UINT8_MAX)));
 
 		// Assign clamped values to _mapping arrays
 		_mappingR[i] = clampedValueR;
@@ -78,13 +81,24 @@ void RgbTransform::initializeMapping()
 
 int RgbTransform::getBacklightThreshold() const
 {
-	return static_cast<int>(_backlightThreshold);
+	return _backlightThreshold;
 }
 
-void RgbTransform::setBacklightThreshold(double backlightThreshold)
+void RgbTransform::setBacklightThreshold(int backlightThreshold)
 {
 	_backlightThreshold = backlightThreshold;
-	_sumBrightnessLow   = 765.0 * ((qPow(2.0,(_backlightThreshold/100)*2)-1) / 3.0);
+
+	// Normalize to [0,1]
+	double t = qBound(0.0, _backlightThreshold, 100.0) / 100.0;
+
+	// Exponential shaping (k=2). Curve: f(t)= (2^(k*t)-1)/(2^k-1)
+	// Ensures full dynamic use of 0..100 -> 0..255
+	const double k = 2.0;
+	double shaped = (qPow(2.0, k * t) - 1.0) / (qPow(2.0, k) - 1.0);
+
+	double floorVal = static_cast<double>(UINT8_MAX) * shaped;
+
+	_brightnessLow = static_cast<uint8_t>(qBound(0.0, floorVal, static_cast<double>(UINT8_MAX)));
 }
 
 bool RgbTransform::getBacklightColored() const
@@ -153,10 +167,10 @@ void RgbTransform::getBrightnessComponents(uint8_t & rgb, uint8_t & cmy, uint8_t
 {
 	rgb = _brightness_rgb;
 	cmy = _brightness_cmy;
-	white   = _brightness_w;
+	white = _brightness_w;
 }
 
-void RgbTransform::applyGamma(uint8_t & red, uint8_t & green, uint8_t & blue)
+void RgbTransform::applyGamma(uint8_t & red, uint8_t & green, uint8_t & blue) const
 {
 	// apply gamma
 	red   = _mappingR[red];
@@ -166,31 +180,20 @@ void RgbTransform::applyGamma(uint8_t & red, uint8_t & green, uint8_t & blue)
 
 void RgbTransform::applyBacklight(uint8_t & red, uint8_t & green, uint8_t & blue) const
 {
-	// apply brightnesss
 	int rgbSum = red+green+blue;
-
-	if ( _backLightEnabled && _sumBrightnessLow > 0 && rgbSum < _sumBrightnessLow)
+	if (_backLightEnabled && rgbSum < _brightnessLow * 3)
 	{
 		if (_backlightColored)
 		{
-			if (rgbSum == 0)
-			{
-				if (red  ==0) { red   = 1; }
-				if (green==0) { green = 1; }
-				if (blue ==0) { blue  = 1; }
-				rgbSum = red+green+blue;
-			}
-
-			uint8_t cLow = static_cast<uint8_t>(qMin(static_cast<double>(_sumBrightnessLow/rgbSum), static_cast<double>(UINT8_MAX)));
-			red   *= cLow;
-			green *= cLow;
-			blue  *= cLow;
+			red = qMax(red, _brightnessLow);
+			green = qMax(green, _brightnessLow);
+			blue = qMax(blue, _brightnessLow);
 		}
 		else
 		{
-			red   = static_cast<uint8_t>(qMin(static_cast<double>(_sumBrightnessLow/3.0), static_cast<double>(UINT8_MAX)));
-			green = red;
-			blue  = red;
+			red = _brightnessLow;
+			green = _brightnessLow;
+			blue = _brightnessLow;
 		}
 	}
 }

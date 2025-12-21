@@ -10,7 +10,7 @@
 	{
 		void restartHyperion(int exitCode)
 		{
-			Logger* log = Logger::getInstance("Process");
+			QSharedPointer<Logger> log = Logger::getInstance("Process");
 			Info(log, "Restarting hyperion ...");
 
 			auto arguments = QCoreApplication::arguments();
@@ -53,7 +53,7 @@
 	{
 		void restartHyperion(int exitCode)
 		{
-			Logger* log = Logger::getInstance("Process");
+			QSharedPointer<Logger> log = Logger::getInstance("Process");
 			Info(log, "Restarting hyperion ...");
 
 			std::cout << std::endl

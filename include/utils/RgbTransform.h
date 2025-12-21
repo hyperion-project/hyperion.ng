@@ -27,7 +27,7 @@ public:
 	/// @param brightnessHigh The used higher brightness
 	/// @param temeprature The given color temperature (in Kelvin)
 	///
-	RgbTransform(double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation, int temperature);
+	RgbTransform(double gammaR, double gammaG, double gammaB, int backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation, int temperature);
 
 	/// @return The current red gamma value
 	double getGammaR() const;
@@ -47,7 +47,7 @@ public:
 	int getBacklightThreshold() const;
 
 	/// @param backlightThreshold New lower brightness
-	void setBacklightThreshold(double backlightThreshold);
+	void setBacklightThreshold(int backlightThreshold);
 
 	/// @return The current state
 	bool getBacklightColored() const;
@@ -93,7 +93,7 @@ public:
 	///
 	/// @note The values are updated in place.
 	///
-	void applyGamma(uint8_t & red, uint8_t & green, uint8_t & blue);
+	void applyGamma(uint8_t & red, uint8_t & green, uint8_t & blue) const;
 
 	///
 	/// Apply Backlight the the given RGB values.
@@ -123,7 +123,7 @@ private:
 	/// @param brightnessCompensation The used brightness compensation
 	/// @param temeprature apply the given color temperature (in Kelvin)
 	///
-	void init(double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation, int temperature);
+	void init(double gammaR, double gammaG, double gammaB, int backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation, int temperature);
 
 	/// (re)-initilize the color mapping
 	void initializeMapping();	/// The saturation gain
@@ -134,7 +134,7 @@ private:
 	bool _backLightEnabled;
 	bool _backlightColored;
 	double  _backlightThreshold;
-	double _sumBrightnessLow;
+	uint8_t  _brightnessLow;
 
 	/// gamma variables
 	double _gammaR;

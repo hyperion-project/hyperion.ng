@@ -26,7 +26,7 @@ public:
 	/// @param[in] cropTop           Remove from top [pixels]
 	/// @param[in] cropBottom        Remove from bottom [pixels]
 	///
-	QtWrapper( int updateRate_Hz=GrabberWrapper::DEFAULT_RATE_HZ,
+	explicit QtWrapper( int updateRate_Hz=GrabberWrapper::DEFAULT_RATE_HZ,
 			   int display=0,
 			   int pixelDecimation=GrabberWrapper::DEFAULT_PIXELDECIMATION,
 			   int cropLeft=0, int cropRight=0,
@@ -36,24 +36,12 @@ public:
 	///
 	/// Constructs the QT frame grabber from configuration settings
 	///
-	QtWrapper(const QJsonDocument& grabberConfig = QJsonDocument());
-
-	///
-	/// @brief Determine if the grabber is available for usage on the platform
-	///
-	/// @return true, on success, else false
-	///
-	bool isAvailable() override;
+	explicit QtWrapper(const QJsonDocument& grabberConfig = QJsonDocument());
 
 	///
 	/// Starts the grabber, if available
 	///
 	bool start() override;
-
-	///
-	/// Starts the grabber which produces led values with the specified update rate
-	///
-	bool open() override;
 
 public slots:
 	///

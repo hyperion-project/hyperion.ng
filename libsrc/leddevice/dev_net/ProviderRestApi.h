@@ -76,6 +76,7 @@ private:
 };
 
 enum class HttpStatusCode {
+	Undefined	 = 0,
 	NoContent    = 204,
 	BadRequest   = 400,
 	UnAuthorized = 401,
@@ -436,7 +437,7 @@ public:
 	///
 	/// @param[in] log The logger to be used
 	///
-	void setLogger(Logger* log) { _log = log; }
+	void setLogger(QSharedPointer<Logger> log) { _log = log; }
 
 protected slots:
 	/// Handle the SSLErrors
@@ -461,7 +462,7 @@ private:
 
 	bool matchesPinnedCertificate(const QSslCertificate& certificate);
 
-	Logger* _log;
+	QSharedPointer<Logger> _log;
 
 	/// QNetworkAccessManager object for sending REST-requests.
 	QScopedPointer<QNetworkAccessManager, QScopedPointerDeleteLater> _networkManager;

@@ -22,19 +22,15 @@ class JsonConnection : public QObject
 	Q_OBJECT
 
 public:
-	///
+	/// 
 	/// Constructor
 	///
 	/// @param address The hostname or IP-address of the Hyperion JSON-server (for example "192.168.0.32")
 	/// @param address The port of the Hyperion JSON-server (default port = 19444)
 	/// @param printJson Boolean indicating if the sent and received json is written to stdout
 	///
-	JsonConnection(const QHostAddress& host, bool printJson, quint16 port = JSONAPI_DEFAULT_PORT);
-
-	///
-	/// Destructor
-	///
-	~JsonConnection();
+	JsonConnection(const QHostAddress& address, bool printJson, quint16 port = JSONAPI_DEFAULT_PORT);
+	JsonConnection(const QString& hostname, bool printJson, quint16 port = JSONAPI_DEFAULT_PORT);
 
 	///
 	/// Set all leds to the specified color
@@ -202,13 +198,13 @@ public:
 			const QColor & yellowAdjustment,
 			const QColor & blackAdjustment,
 			const QColor & whiteAdjustment,
-			double *gammaR,
-			double *gammaG,
-			double *gammaB,
-			int    *backlightThreshold,
-			int    *backlightColored,
-			int    *brightness,
-			int    *brightnessC);
+			const double *gammaR,
+			const double *gammaG,
+			const double *gammaB,
+			const int    *backlightThreshold,
+			const int    *backlightColored,
+			const int    *brightness,
+			const int    *brightnessC);
 
 	///
 	/// sets the image to leds mapping type
@@ -281,14 +277,13 @@ private:
 	bool parseReply(const QJsonObject & reply);
 
 	// Logger class
-	Logger* _log;
+	QSharedPointer<Logger> _log;
 
 	/// The TCP-Socket with the connection to the server
-	//QTcpSocket _socket;
 	QScopedPointer<QTcpSocket,QScopedPointerDeleteLater> _socket;
 
 	/// Host address
-	QHostAddress _host;
+	QString _hostname;
 
 	/// Host port
 	uint16_t _port;

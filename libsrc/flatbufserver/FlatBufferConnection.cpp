@@ -10,16 +10,24 @@
 #include "hyperion_reply_generated.h"
 #include "hyperion_request_generated.h"
 
-FlatBufferConnection::FlatBufferConnection(const QString& origin, const QHostAddress& host, int priority, bool skipReply, quint16 port)
+Q_LOGGING_CATEGORY(flatbuffer_client_cmd, "hyperion.flatbuffer.client.cmd");
+
+FlatBufferConnection::FlatBufferConnection(const QString& origin, const QHostAddress& address, int priority, bool skipReply, quint16 port)
+	: FlatBufferConnection(origin, address.toString(), priority, skipReply, port)
+{
+}
+
+FlatBufferConnection::FlatBufferConnection(const QString& origin, const QString& hostname, int priority, bool skipReply, quint16 port)
 	: _socket()
 	, _origin(origin)
 	, _priority(priority)
-	, _host(host)
+	, _hostname(hostname)
 	, _port(port)
 	, _log(Logger::getInstance("FLATBUFCONN"))
 	, _builder(1024)
 	, _isRegistered(false)
 {
+	TRACK_SCOPE();
 	connect(&_socket, &QTcpSocket::connected, this, &FlatBufferConnection::onConnected);
 	connect(&_socket, &QTcpSocket::disconnected, this, &FlatBufferConnection::onDisconnected);
 	if(!skipReply)
@@ -40,12 +48,13 @@ FlatBufferConnection::FlatBufferConnection(const QString& origin, const QHostAdd
 
 FlatBufferConnection::~FlatBufferConnection()
 {
+	TRACK_SCOPE();
 	_timer.stop();
 
 	//Stop retrying on disconnect
 	disconnect(this, &FlatBufferConnection::isDisconnected, &_timer, static_cast<void (QTimer::*)()>(&QTimer::start));
 
-	Debug(_log, "Closing connection with host: %s, port [%u]", QSTRING_CSTR(_host.toString()), _port);
+	Debug(_log, "Closing connection with host: %s, port [%u]", QSTRING_CSTR(_hostname), _port);
 	_socket.close();
 }
 
@@ -53,22 +62,22 @@ void FlatBufferConnection::connectToRemoteHost()
 {
 	if (_socket.state() == QAbstractSocket::UnconnectedState)
 	{
-		Info(_log, "Connecting to target host: %s, port [%u]", QSTRING_CSTR(_host.toString()), _port);
-		_socket.connectToHost(_host, _port);
+		Info(_log, "Connecting to target host: %s, port [%u]", QSTRING_CSTR(_hostname), _port);
+		_socket.connectToHost(_hostname, _port);
 	}
 }
 
 void FlatBufferConnection::onDisconnected()
 {
-	_isRegistered = false,
-	Info(_log, "Disconnected from target host: %s, port [%u]", QSTRING_CSTR(_host.toString()), _port);
+	_isRegistered = false;
+	Info(_log, "Disconnected from target host: %s, port [%u]", QSTRING_CSTR(_hostname), _port);
 	emit isDisconnected();
 }
 
 
 void FlatBufferConnection::onConnected()
 {
-	Info(_log, "Connected to target host: %s, port [%u]", QSTRING_CSTR(_host.toString()), _port);
+	Info(_log, "Connected to target host: %s, port [%u]", QSTRING_CSTR(_hostname), _port);
 	if (!isClientRegistered())
 	{
 		registerClient(_origin, _priority);
@@ -81,7 +90,7 @@ void FlatBufferConnection::sendMessage(const uint8_t* data, size_t size)
 		uint8_t((size >> 24) & 0xFF),
 		uint8_t((size >> 16) & 0xFF),
 		uint8_t((size >>  8) & 0xFF),
-		uint8_t((size	   ) & 0xFF)};
+		uint8_t( size	     & 0xFF)};
 
 	// write message
 	_socket.write(reinterpret_cast<const char*>(header), sizeof(header));
@@ -91,7 +100,7 @@ void FlatBufferConnection::sendMessage(const uint8_t* data, size_t size)
 
 void FlatBufferConnection::registerClient(const QString& origin, int priority)
 {
-	Debug(_log, "Register client \"%s\" with to host: %s, port [%u]", QSTRING_CSTR(_origin), QSTRING_CSTR(_host.toString()), _port);
+	Debug(_log, "Register client \"%s\" with to host: %s, port [%u]", QSTRING_CSTR(_origin), QSTRING_CSTR(_hostname), _port);
 
 	_builder.Clear();
 	auto registerReq = hyperionnet::CreateRegister(_builder, _builder.CreateString(QSTRING_CSTR(origin)), priority);
@@ -103,13 +112,15 @@ void FlatBufferConnection::registerClient(const QString& origin, int priority)
 
 bool FlatBufferConnection::isClientRegistered()
 {
-	DebugIf(!_isRegistered,_log,"Client \"%s\" is not registered with target host: %s, port [%u]", QSTRING_CSTR(_origin), QSTRING_CSTR(_host.toString()), _port);
+	DebugIf(!_isRegistered,_log,"Client \"%s\" is not registered with target host: %s, port [%u]", QSTRING_CSTR(_origin), QSTRING_CSTR(_hostname), _port);
 	return _isRegistered;
 }
 
 void FlatBufferConnection::setColor(const ColorRgb& color, int duration)
 {
 	if (!isClientRegistered()) return;
+
+	qCDebug(flatbuffer_client_cmd) << "Set color to" << color.toQString() << "with duration" << duration;	
 
 	_builder.Clear();
 	auto colorReq = hyperionnet::CreateColor(_builder, (color.red << 16) | (color.green << 8) | color.blue, duration);
@@ -123,17 +134,21 @@ void FlatBufferConnection::setImage(const Image<ColorRgb> &image)
 {
 	if (!isClientRegistered()) return;
 
-	const uint8_t* buffer = reinterpret_cast<const uint8_t*>(image.memptr());
+	qCDebug(image_track) << "Set Image [" << image.id() << "]";
+
+	const auto* buffer = reinterpret_cast<const uint8_t*>(image.memptr());
 	qsizetype bufferSize = image.size();
 
 	// Convert the buffer into QByteArray
-	QByteArray imageData = QByteArray::fromRawData(reinterpret_cast<const char*>(buffer), bufferSize);
+	QByteArray const imageData = QByteArray::fromRawData(reinterpret_cast<const char*>(buffer), bufferSize);
 	setImage(imageData, image.width(), image.height());
 }
 
 void FlatBufferConnection::setImage(const QByteArray& imageData, int width, int height, int duration)
 {
 	if (!isClientRegistered()) return;
+
+	qCDebug(flatbuffer_client_cmd) << "Set Image Data Size [" << imageData.size() << "] Width [" << width << "] Height [" << height << "] Duration [" << duration << "]";
 
 	_builder.Clear();
 	auto imageDataVector = _builder.CreateVector(reinterpret_cast<const uint8_t*>(imageData.constData()), imageData.size());
@@ -149,6 +164,8 @@ void FlatBufferConnection::clearPriority(int priority)
 {
 	if (!isClientRegistered()) return;
 
+	qCDebug(flatbuffer_client_cmd) << "Clear priority" << priority;	
+
 	_builder.Clear();
 	auto clearReq = hyperionnet::CreateClear(_builder, priority);
 	auto req = hyperionnet::CreateRequest(_builder,hyperionnet::Command_Clear, clearReq.Union());
@@ -159,6 +176,8 @@ void FlatBufferConnection::clearPriority(int priority)
 
 void FlatBufferConnection::clearAllPriorities()
 {
+	qCDebug(flatbuffer_client_cmd) << "Clear all priorities";
+
 	clearPriority(-1);
 }
 
@@ -181,7 +200,7 @@ void FlatBufferConnection::readData()
 		// extract message only and remove header + msg from buffer :: QByteArray::remove() does not return the removed data
 		const QByteArray msg = _receiveBuffer.mid(4, messageSize);
 		_receiveBuffer.remove(0, messageSize + 4);
-		const uint8_t* msgData = reinterpret_cast<const uint8_t*>(msg.constData());
+		const auto* msgData = reinterpret_cast<const uint8_t*>(msg.constData());
 		flatbuffers::Verifier verifier(msgData, messageSize);
 
 		if (hyperionnet::VerifyReplyBuffer(verifier))
@@ -193,11 +212,11 @@ void FlatBufferConnection::readData()
 	}
 }
 
-void FlatBufferConnection::setSkipReply(bool skip)
+void FlatBufferConnection::setSkipReply(bool skip) const
 {
 	if(skip)
 	{
-		disconnect(&_socket, &QTcpSocket::readyRead, 0, 0);
+		disconnect(&_socket, &QTcpSocket::readyRead, nullptr, nullptr);
 	}
 	else
 	{
@@ -231,7 +250,7 @@ bool FlatBufferConnection::parseReply(const hyperionnet::Reply *reply)
 			{
 				_isRegistered = true;
 				_timer.stop();
-				Debug(_log,"Client \"%s\" registered successfully with target host: %s, port [%u]", QSTRING_CSTR(_origin), QSTRING_CSTR(_host.toString()), _port);
+				Debug(_log,"Client \"%s\" registered successfully with target host: %s, port [%u]", QSTRING_CSTR(_origin), QSTRING_CSTR(_hostname), _port);
 				emit isReadyToSend();
 			}
 		}
