@@ -96,6 +96,7 @@ struct e131_packet_t
 ///
 class LedDeviceUdpE131 : public ProviderUdp
 {
+	Q_OBJECT
 public:
 
 	///
@@ -129,6 +130,14 @@ private:
 	/// @return Zero on success (i.e. device is ready), else negative
 	///
 	int open() override;
+
+	///
+	/// @brief Writes the RGB-Color values to the LEDs.
+	///
+	/// @param[in] ledValues The RGB-color per LED
+	/// @return Zero on success, else negative
+	///
+	int write(const QVector<ColorRgb> & ledValues) override;	
 
 	///
 	/// @brief Writes the RGB-Color values to the LEDs.
