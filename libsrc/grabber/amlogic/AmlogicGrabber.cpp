@@ -44,12 +44,18 @@ AmlogicGrabber::AmlogicGrabber(int deviceIdx)
 	  , _lastError(0)
 	  , _grabbingModeNotification(0)
 {
+	TRACK_SCOPE();
 	_image_ptr = _image_bgr.memptr();
 	_useImageResampler = true;
+	// Scaling will be done during grabbing
+	_imageResampler.setPixelDecimation(1);
+	//Disable Cropping
+	_imageResampler.setCropping(0, 0, 0, 0);
 }
 
 AmlogicGrabber::~AmlogicGrabber()
 {
+	TRACK_SCOPE();
 	closeDevice(_captureDev);
 	closeDevice(_videoDev);
 }
