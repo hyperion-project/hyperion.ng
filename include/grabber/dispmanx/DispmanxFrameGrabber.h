@@ -13,8 +13,7 @@
 	#include <bcm_host.h>
 #else
 using DISPMANX_DISPLAY_HANDLE_T = int;
-using DISPMANX_RESOURCE = Image<ColorRgba>;
-using DISPMANX_RESOURCE_HANDLE_T = DISPMANX_RESOURCE *;
+using DISPMANX_RESOURCE_HANDLE_T = uint32_t;
 using VC_IMAGE_TYPE_T = int;
 using DISPMANX_TRANSFORM_T = VC_IMAGE_TYPE_T;
 const int VC_IMAGE_RGBA32 = 1;
