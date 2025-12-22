@@ -21,16 +21,10 @@ public:
 	/// @param[in] updateRate_Hz     The image grab rate [Hz]
 	/// @param[in] deviceIdx Framebuffer device index	
 	/// @param[in] pixelDecimation   Decimation factor for image [pixels]
-	/// @param[in] cropLeft          Remove from left [pixels]
-	/// @param[in] cropRight 	     Remove from right [pixels]
-	/// @param[in] cropTop           Remove from top [pixels]
-	/// @param[in] cropBottom        Remove from bottom [pixels]
 	///
-	explicit AmlogicWrapper(int updateRate_Hz = GrabberWrapper::DEFAULT_RATE_HZ,
-							int deviceIdx = 0,
-							int pixelDecimation = GrabberWrapper::DEFAULT_PIXELDECIMATION,
-							int cropLeft = 0, int cropRight = 0,
-							int cropTop = 0, int cropBottom = 0);
+	explicit AmlogicWrapper(int updateRate_Hz=GrabberWrapper::DEFAULT_RATE_HZ,
+				   int deviceIdx=0,
+				   int pixelDecimation=GrabberWrapper::DEFAULT_PIXELDECIMATION);
 
 	///
 	/// Constructs the Amlogic frame grabber from configuration settings

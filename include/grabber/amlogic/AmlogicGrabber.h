@@ -16,7 +16,7 @@ public:
 	/// Construct a AmlogicGrabber that will capture snapshots with specified dimensions.
 	///
 	///
-	explicit AmlogicGrabber(int deviceIdx = 0, int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0);
+	explicit AmlogicGrabber(int deviceIdx = 0);
 	~AmlogicGrabber() override;
 
 	///
