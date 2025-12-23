@@ -3,6 +3,8 @@
 
 // hyperion includes
 #include "ProviderUdp.h"
+#include "utils/ColorRgbw.h"
+#include "utils/RgbToRgbw.h"
 
 #include <QUuid>
 #include <QJsonObject>
@@ -49,48 +51,52 @@
 const unsigned int E131_DMP_DATA=125;
 
 /* E1.31 Packet Structure */
-typedef union
+struct e131_packet_t
 {
-#pragma pack(push, 1)
-	struct
+	union
 	{
-		/* Root Layer */
-		uint16_t preamble_size;
-		uint16_t postamble_size;
-		uint8_t  acn_id[12];
-		uint16_t root_flength;
-		uint32_t root_vector;
-		char     cid[16];
+#pragma pack(push, 1)
+		struct
+		{
+			/* Root Layer */
+			uint16_t preamble_size;
+			uint16_t postamble_size;
+			uint8_t  acn_id[12];
+			uint16_t root_flength;
+			uint32_t root_vector;
+			char     cid[16];
 
-		/* Frame Layer */
-		uint16_t frame_flength;
-		uint32_t frame_vector;
-		char     source_name[64];
-		uint8_t  priority;
-		uint16_t reserved;
-		uint8_t  sequence_number;
-		uint8_t  options;
-		uint16_t universe;
+			/* Frame Layer */
+			uint16_t frame_flength;
+			uint32_t frame_vector;
+			char     source_name[64];
+			uint8_t  priority;
+			uint16_t reserved;
+			uint8_t  sequence_number;
+			uint8_t  options;
+			uint16_t universe;
 
-		/* DMP Layer */
-		uint16_t dmp_flength;
-		uint8_t  dmp_vector;
-		uint8_t  type;
-		uint16_t first_address;
-		uint16_t address_increment;
-		uint16_t property_value_count;
-		uint8_t  property_values[513];
-	};
+			/* DMP Layer */
+			uint16_t dmp_flength;
+			uint8_t  dmp_vector;
+			uint8_t  type;
+			uint16_t first_address;
+			uint16_t address_increment;
+			uint16_t property_value_count;
+			uint8_t  property_values[513];
+		} frame;
 #pragma pack(pop)
 
-	uint8_t raw[638];
-} e131_packet_t;
+		uint8_t raw[638];
+	};
+};
 
 ///
 /// Implementation of the LedDevice interface for sending led colors via udp/E1.31 packets
 ///
 class LedDeviceUdpE131 : public ProviderUdp
 {
+	Q_OBJECT
 public:
 
 	///
@@ -131,19 +137,30 @@ private:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	int write(const QVector<ColorRgb> & ledValues) override;
+	int write(const QVector<ColorRgb> & ledValues) override;	
 
+	///
+	/// @brief Writes the RGB-Color values to the LEDs.
+	///
+	/// @param[in] ledValues The RGB-color per LED
+	/// @return Zero on success, else negative
 	///
 	/// @brief Generate E1.31 communication header
 	///
-	void prepare(unsigned this_universe, unsigned this_dmxChannelCount);
+	void prepare(uint16_t this_universe, uint16_t this_dmxChannelCount);
 
-	e131_packet_t e131_packet;
+	e131_packet_t _e131_packet;
 	uint8_t _e131_seq = 0;
-	uint8_t _e131_universe = 1;
+	uint16_t _e131_universe = 1;
+	uint16_t _e131_dmx_max;
 	uint8_t _acn_id[12] = {0x41, 0x53, 0x43, 0x2d, 0x45, 0x31, 0x2e, 0x31, 0x37, 0x00, 0x00, 0x00 };
 	QString _e131_source_name;
 	QUuid _e131_cid;
+
+	// RGBW specific members
+	RGBW::WhiteAlgorithm _whiteAlgorithm;
+	ColorRgbw _temp_rgbw;
+	uint16_t _dmxChannelCount;
 };
 
 #endif // LEDEVICEUDPE131_H

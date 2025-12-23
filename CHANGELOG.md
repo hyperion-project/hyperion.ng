@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### ✨ Added
 
+- Support of RGBW in **e1.31** LED devices.
 - HTTPS support for homeassistant LED devices (#1886)
 - Hue Bridge - Use https and certificates for all API calls, support Bridge Pro (V3)
 - Hue Bridge - Alternate certificate support
@@ -22,8 +23,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add DRM_FORMAT_RGB565 format to DRM frame grabber
 - Add standalone DRM grabber
 - Avoid queuing on image processing for output
-
----
 
 ### 🔧 Changed
 
