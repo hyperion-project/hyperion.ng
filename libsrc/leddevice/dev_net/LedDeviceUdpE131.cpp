@@ -39,7 +39,7 @@ const int DMX_MAX = 512; // 512 usable slots
 
 LedDeviceUdpE131::LedDeviceUdpE131(const QJsonObject &deviceConfig)
 	: ProviderUdp(deviceConfig)
-	, _e131_dmx_max(DMX_MAX)	
+	, _e131_dmx_max(DMX_MAX)
 	, _whiteAlgorithm(RGBW::WhiteAlgorithm::INVALID)
 	, _dmxChannelCount(0)
 {
@@ -62,6 +62,12 @@ bool LedDeviceUdpE131::init(const QJsonObject &deviceConfig)
 	_port = deviceConfig[CONFIG_PORT].toInt(E131_DEFAULT_PORT);
 
 	_e131_universe = static_cast<uint8_t>(deviceConfig["universe"].toInt(1));
+	_e131_dmx_max = static_cast<uint16_t>(deviceConfig["dmx-max"].toInt(DMX_MAX));
+	if (_e131_dmx_max > DMX_MAX)
+	{
+		_e131_dmx_max = DMX_MAX;
+		Warning(_log, "Maximum channels configured [%d] cannot exceed maximum channels defined by the E1.31 protocol. Corrected to %d channels.", _e131_dmx_max, DMX_MAX);
+	}
 	_e131_source_name = deviceConfig["source-name"].toString("hyperion on "+QHostInfo::localHostName());
 	QString _json_cid = deviceConfig["cid"].toString("");
 
@@ -75,6 +81,8 @@ bool LedDeviceUdpE131::init(const QJsonObject &deviceConfig)
 		return false;
 	}
 	Debug(_log, "whiteAlgorithm : %s", QSTRING_CSTR(whiteAlgorithmStr));
+	_dmxChannelCount = (_whiteAlgorithm == RGBW::WhiteAlgorithm::WHITE_OFF) ? _ledRGBCount : _ledRGBWCount;
+	_ledBuffer.resize(_dmxChannelCount);
 
 	if (_json_cid.isEmpty())
 	{
@@ -82,7 +90,7 @@ bool LedDeviceUdpE131::init(const QJsonObject &deviceConfig)
 		Debug( _log, "e131 no CID found, generated %s", QSTRING_CSTR(_e131_cid.toString()));
 		return true;
 	}
-	
+
 	_e131_cid = QUuid(_json_cid);
 	if ( _e131_cid.isNull() )
 	{
@@ -90,7 +98,7 @@ bool LedDeviceUdpE131::init(const QJsonObject &deviceConfig)
 		return false;
 	}
 	Debug( _log, "e131  CID found, using %s", QSTRING_CSTR(_e131_cid.toString()));
-	
+
 	return true;
 }
 
@@ -98,7 +106,7 @@ int LedDeviceUdpE131::open()
 {
 	_isDeviceReady = false;
 	this->setIsRecoverable(true);
-	
+
 	NetUtils::convertMdnsToIp(_log, _hostName);
 	if (ProviderUdp::open() == 0)
 	{
