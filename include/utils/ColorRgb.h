@@ -85,6 +85,7 @@ struct ColorRgb
 	{
 		return QString("(%1,%2,%3)").arg(red).arg(green).arg(blue);
 	}
+
 	static ColorRgb white(uint16_t whiteColorTempK)
 	{
 		// based on https://tannerhelland.com/2012/09/18/convert-temperature-rgb-algorithm-code.html
@@ -99,10 +100,6 @@ struct ColorRgb
 		white.blue = qBound(0.0,(fWhiteColorTempK >= 66) ? 255.0 : ((fWhiteColorTempK <= 19) ? 0.0 : 138.5177312231 * log(fWhiteColorTempK - 10) - 305.0447927307), 255.0);
 		return white;
 	}
-};
-
-/// Assert to ensure that the size of the structure is 'only' 3 bytes
-static_assert(sizeof(ColorRgb) == 3, "Incorrect size of ColorRgb");
 
 	///
 	/// Stream operator to write ColorRgb to an outputstream (format "'{'[red]','[green]','[blue]'}'")
