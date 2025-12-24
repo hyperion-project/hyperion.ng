@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Forwarder: Clear remote priority 1 when the forwarding instance is stopped
 
 - **Fixes:**
+  - UI - Menu is not opened on small (mobile) screens
   - UI - Language is not selectable (#1877)
   - UI - Release were not shown on Update page
   - UI - Fixes for input/format selection

@@ -496,24 +496,7 @@ function bindUiHandlers() {
 
     logo.style.display = window.scrollY > 65 ? "none" : "";
   }, { passive: true });
-
-  // Toggle top menu for mobile
-  $(".navbar-toggle").off().on("click", function () {
-    const target = $(this).data("target");
-    $(target).toggleClass("collapse");
-  });
-
-  // Scroll to top button
-  $("#btn_top").off().on("click", function () {
-    $("html, body").animate({ scrollTop: 0 }, "slow");
-  });
-
-  // Prevent form submissions with Enter in specific cases (optional UX improvement)
-  $("form input").on("keypress", function (e) {
-    if (e.which === 13 && $(this).attr("type") !== "textarea") {
-      e.preventDefault();
-    }
-  });
+  
 }
 
 function suppressDefaultPwWarning() {
