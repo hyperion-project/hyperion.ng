@@ -443,10 +443,9 @@ $(window.hyperion).on("cmd-config-setconfig", function (event) {
 function bindUiHandlers() {
 
   // Handle language selection
-
-  // Prevent dropdown from closing when selecting language
-  $('#btn_setlang').on('click', function (e) {
+  $(".bootstrap-select").on("click", function (e) {
     e.stopPropagation();
+    $(this).toggleClass("open");
   });
 
   $('#language-select').on('changed.bs.select', function () {
@@ -457,13 +456,7 @@ function bindUiHandlers() {
     }
   });
 
-  //Close selector, if open (and no change in language happend)
-  $(document).on("click", function () {
-    $(".bootstrap-select.open").removeClass("open");
-  });
-  //End language selection
-
-  // Side smenu link click activation
+  // Side menu link click activation
   $('#side-menu li a, #side-menu li ul li a').on("click", function () {
     $('#side-menu').find('.active').removeClass('active');
     $(this).addClass('active');
