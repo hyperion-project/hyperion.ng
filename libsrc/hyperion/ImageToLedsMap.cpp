@@ -1,6 +1,7 @@
 #include <hyperion/ImageToLedsMap.h>
 
 Q_LOGGING_CATEGORY(imageToLedsMap_track, "hyperion.imageToLedsMap.track");
+Q_LOGGING_CATEGORY(imageToLedsMap_calc, "hyperion.imageToLedsMap.calc");
 
 using namespace hyperion;
 
@@ -23,7 +24,7 @@ ImageToLedsMap::ImageToLedsMap(
 	, _colorsMap()
 {
 	TRACK_SCOPE();
-	_nextPixelCount = reducedPixelSetFactor + 1;
+
 	setAccuracyLevel(accuracyLevel);
 
 	// Sanity check of the size of the borders (and width and height)
@@ -42,6 +43,7 @@ ImageToLedsMap::ImageToLedsMap(
 
 	size_t	totalCount = 0;
 	int     ledCounter = 0;
+	QList<int> ledsWithForcedSkippedPixels;
 
 	for (const Led& led : leds)
 	{
@@ -76,41 +78,42 @@ ImageToLedsMap::ImageToLedsMap(
 
 		const int realYLedCount = qAbs(maxYLedCount - minY_idx);
 		const int realXLedCount = qAbs(maxXLedCount - minX_idx);
-
-		bool skipPixelProcessing {false};
-		if (_nextPixelCount > 1)
-		{
-			skipPixelProcessing = true;
-		}
-
 		auto totalSize =realYLedCount * realXLedCount;
 
-		if (!skipPixelProcessing && totalSize > 1600)
+		_nextPixelCount = reducedPixelSetFactor + 1;
+		if (_nextPixelCount == 1 && totalSize > 1600)
 		{
-			skipPixelProcessing = true; // TO DO Review, variable is never read
 			_nextPixelCount = 2;
-			Warning(_log, "Mapping LED/light [%d]. The current mapping area contains %d pixels which is huge. Therefore every %d pixels will be skipped. You can enable reduced processing to hide that warning.", ledCounter, totalSize, _nextPixelCount);
+			ledsWithForcedSkippedPixels.append(ledCounter);
 		}
 
-		QVector<int> ledColors (totalSize);
-
+		QVector<int> ledColors;
+		ledColors.reserve(totalSize);
 		for (int y = minY_idx; y < maxYLedCount; y += _nextPixelCount)
 		{
 			for (int x = minX_idx; x < maxXLedCount; x += _nextPixelCount)
 			{
-				ledColors.push_back( y * width + x);
+				ledColors.append( y * actualWidth + x);
 			}
 		}
 
-		// Add the constructed vector to the map
-		_colorsMap.push_back(ledColors);
+		_colorsMap.append(ledColors);
+		qCDebug(imageToLedsMap_track) << "-> LED/light [" << ledCounter << "] pixels:" << totalSize << ", Skipping every" << _nextPixelCount << "pixels =>" << _colorsMap.last().size() << "pixels mapped";	
 
 		totalCount += ledColors.size();
 
 		ledCounter++;
 	}
-	Debug(_log, "LED areas: %d, #indicies: %d . Reduced pixel factor: %d, Accuracy: %d, Image size: %d x %d, ",
-		  leds.size(), totalCount, reducedPixelSetFactor, accuracyLevel, width, height);
+
+	WarningIf(!ledsWithForcedSkippedPixels.isEmpty(), _log,
+			  "[%d] LED mapping area(s) have a huge number of pixels to be processed. "
+			  "Every %d pixels will be skipped to improve performance. Enable reduced processing to hide this warning.",
+			  ledsWithForcedSkippedPixels.size(), _nextPixelCount);
+
+	qCDebug(imageToLedsMap_track) << "LED areas:" << leds.size() << ", #indicies:" << totalCount
+					 			 << ", H-border:" << horizontalBorder << ", V-border:" << verticalBorder
+								  << ", Reduced pixel factor:" << reducedPixelSetFactor << ", Accuracy:" << accuracyLevel
+								  << ", Image size:" << width << "x" << height;
 }
 
 ImageToLedsMap::~ImageToLedsMap()
