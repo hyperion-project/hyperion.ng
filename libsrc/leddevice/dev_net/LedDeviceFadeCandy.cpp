@@ -43,8 +43,6 @@ LedDevice* LedDeviceFadeCandy::construct(const QJsonObject& deviceConfig)
 
 bool LedDeviceFadeCandy::init(const QJsonObject& deviceConfig)
 {
-	bool isInitOK {false};
-
 	if (!LedDevice::init(deviceConfig))
 	{
 		return false;

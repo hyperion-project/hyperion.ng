@@ -12,13 +12,25 @@
 #ifdef BCM_FOUND
 	#include <bcm_host.h>
 #else
-	typedef int DISPMANX_DISPLAY_HANDLE_T;
-	typedef Image<ColorRgba> DISPMANX_RESOURCE;
-	typedef DISPMANX_RESOURCE* DISPMANX_RESOURCE_HANDLE_T;
-	typedef int VC_IMAGE_TYPE_T, DISPMANX_TRANSFORM_T;
-	const int VC_IMAGE_RGBA32 = 1, DISPMANX_SNAPSHOT_FILL = 1;
-	struct VC_RECT_T { int left, top, width, height; };
-	struct DISPMANX_MODEINFO_T { int width, height; uint32_t display_num; };
+using DISPMANX_DISPLAY_HANDLE_T = int;
+using DISPMANX_RESOURCE_HANDLE_T = uint32_t;
+using VC_IMAGE_TYPE_T = int;
+using DISPMANX_TRANSFORM_T = VC_IMAGE_TYPE_T;
+const int VC_IMAGE_RGBA32 = 1;
+const int DISPMANX_SNAPSHOT_FILL = 1;
+struct VC_RECT_T
+{
+	int left;
+	int top;
+	int width;
+	int height;
+};
+struct DISPMANX_MODEINFO_T
+{
+	int width;
+	int height;
+	uint32_t display_num;
+};
 #endif
 
 ///
@@ -51,7 +63,7 @@ public:
 	/// @brief Setup a new capture screen, will free the previous one
 	/// @return True on success, false if no screen is found
 	///
-	bool setupScreen();
+	bool setupScreen() override;
 
 	///
 	/// Captures a single snapshot of the display and writes the data to the given image. The
@@ -67,8 +79,9 @@ public:
 	///@brief Set new width and height for dispmanx, overwrite Grabber.h impl
 	bool setWidthHeight(int width, int height) override;
 
-	QSize getScreenSize(int display=0) const;
-
+	QSize getScreenSize() const override;	
+	QSize getScreenSize(int display) const;
+		
 	///
 	/// @brief Discover DispmanX screens available (for configuration).
 	///
@@ -115,7 +128,6 @@ private:
 	// rgba output buffer
 	Image<ColorRgba>  _image_rgba;
 
-private:
 	void (*wr_bcm_host_init)(void);
 	void (*wr_bcm_host_deinit)(void);
 	DISPMANX_DISPLAY_HANDLE_T (*wr_vc_dispmanx_display_open)(uint32_t device);

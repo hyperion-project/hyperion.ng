@@ -33,6 +33,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+if(CMAKE_COMPILER_IS_GNUCXX)
+	add_compile_options(-Wno-psabi)
+endif()
+
 #=============================================================================
 # Instruct CMake to run moc automatically when needed and auto prepare .qrc files
 #=============================================================================

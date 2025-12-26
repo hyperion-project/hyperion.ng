@@ -299,7 +299,7 @@ void ImageProcessor::setHardLedMappingType(int mapType)
 bool ImageProcessor::getScanParameters(size_t led, double &hscanBegin, double &hscanEnd, double &vscanBegin, double &vscanEnd) const
 {
 	qCDebug(imageProcessor_track) << "Get scan parameters for LED" << led;
-	if (led < _ledString.leds().size())
+	if (led < static_cast<size_t>(_ledString.leds().size()))
 	{
 		const Led & l = _ledString.leds()[led];
 		hscanBegin = l.minX_frac;

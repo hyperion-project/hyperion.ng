@@ -20,7 +20,8 @@
 // hyperion includes
 #include <hyperion/LedString.h>
 
-Q_DECLARE_LOGGING_CATEGORY(imageToLedsMap_track);
+Q_DECLARE_LOGGING_CATEGORY(imageToLedsMap_calc);
+Q_DECLARE_LOGGING_CATEGORY(imageToLedsMap_calc);
 
 namespace hyperion
 {
@@ -96,7 +97,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		QVector<ColorRgb> getMeanLedColor(const Image<Pixel_T> &image) const
 		{
-			qCDebug(imageToLedsMap_track) << "Get Mean Color for image sized" << image.width() << "x" << image.height();
+			qCDebug(imageToLedsMap_calc) << "Get Mean Color for image sized" << image.width() << "x" << image.height();
 			QVector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0, 0, 0});
 			getMeanLedColor(image, colors);
 			return colors;
@@ -112,7 +113,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		void getMeanLedColor(const Image<Pixel_T> &image, QVector<ColorRgb> &ledColors) const
 		{
-			qCDebug(imageToLedsMap_track) << "Get Mean Color for image sized" << image.width() << "x" << image.height() << "and #ledColors" << ledColors.size();
+			qCDebug(imageToLedsMap_calc) << "Get Mean Color for image sized" << image.width() << "x" << image.height() << "and #ledColors" << ledColors.size();
 			if (_colorsMap.size() != ledColors.size())
 			{
 				Debug(_log, "ImageToLedsMap: colorsMap.size != ledColors.size -> %d != %d", _colorsMap.size(), ledColors.size());
@@ -127,7 +128,7 @@ namespace hyperion
 				*led = color;
 			}
 
-			qCDebug(imageToLedsMap_track) << "Get Mean Color completed" << ledColors;
+			qCDebug(imageToLedsMap_calc) << "Get Mean Color completed" << ledColors;
 		}
 
 		///
@@ -141,7 +142,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		QVector<ColorRgb> getMeanSqrtLedColor(const Image<Pixel_T> &image) const
 		{
-			qCDebug(imageToLedsMap_track) << "Get Mean Sqrt Color for image sized" << image.width() << "x" << image.height();
+			qCDebug(imageToLedsMap_calc) << "Get Mean Sqrt Color for image sized" << image.width() << "x" << image.height();
 			QVector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0, 0, 0});
 			getMeanSqrtLedColor(image, colors);
 			return colors;
@@ -157,7 +158,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		void getMeanSqrtLedColor(const Image<Pixel_T> &image, QVector<ColorRgb> &ledColors) const
 		{
-			qCDebug(imageToLedsMap_track) << "Get Mean Sqrt Color for image sized" << image.width() << "x" << image.height() << "and #ledColors" << ledColors.size();
+			qCDebug(imageToLedsMap_calc) << "Get Mean Sqrt Color for image sized" << image.width() << "x" << image.height() << "and #ledColors" << ledColors.size();
 			if (_colorsMap.size() != ledColors.size())
 			{
 				Debug(_log, "Get Mean Sqrt Color failed. colorsMap.size != ledColors.size -> %d != %d", _colorsMap.size(), ledColors.size());
@@ -183,7 +184,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		QVector<ColorRgb> getUniLedColor(const Image<Pixel_T> &image) const
 		{
-			qCDebug(imageToLedsMap_track) << "Get Uniform Color for image sized" << image.width() << "x" << image.height();
+			qCDebug(imageToLedsMap_calc) << "Get Uniform Color for image sized" << image.width() << "x" << image.height();
 			QVector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0, 0, 0});
 			getUniLedColor(image, colors);
 			return colors;
@@ -198,7 +199,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		void getUniLedColor(const Image<Pixel_T> &image, QVector<ColorRgb> &ledColors) const
 		{
-			qCDebug(imageToLedsMap_track) << "Get Uniform Color for image sized" << image.width() << "x" << image.height() << "and #ledColors" << ledColors.size();
+			qCDebug(imageToLedsMap_calc) << "Get Uniform Color for image sized" << image.width() << "x" << image.height() << "and #ledColors" << ledColors.size();
 			if (_colorsMap.size() != ledColors.size())
 			{
 				Debug(_log, "Get Uniform Color failed. colorsMap.size != ledColors.size -> %d != %d", _colorsMap.size(), ledColors.size());
@@ -222,7 +223,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		QVector<ColorRgb> getDominantLedColor(const Image<Pixel_T> &image) const
 		{
-			qCDebug(imageToLedsMap_track) << "Get Dominant Color for image sized" << image.width() << "x" << image.height();
+			qCDebug(imageToLedsMap_calc) << "Get Dominant Color for image sized" << image.width() << "x" << image.height();
 			QVector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0, 0, 0});
 			getDominantLedColor(image, colors);
 			return colors;
@@ -238,7 +239,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		void getDominantLedColor(const Image<Pixel_T> &image, QVector<ColorRgb> &ledColors) const
 		{
-			qCDebug(imageToLedsMap_track) << "Get Dominant Color for image sized" << image.width() << "x" << image.height() << "and #ledColors" << ledColors.size();
+			qCDebug(imageToLedsMap_calc) << "Get Dominant Color for image sized" << image.width() << "x" << image.height() << "and #ledColors" << ledColors.size();
 			// Sanity check for the number of LEDs
 			if (_colorsMap.size() != ledColors.size())
 			{
@@ -265,7 +266,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		QVector<ColorRgb> getDominantUniLedColor(const Image<Pixel_T> &image) const
 		{
-			qCDebug(imageToLedsMap_track) << "Get Dominant Color Uniform for image sized" << image.width() << "x" << image.height();
+			qCDebug(imageToLedsMap_calc) << "Get Dominant Color Uniform for image sized" << image.width() << "x" << image.height();
 			QVector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0, 0, 0});
 			getDominantUniLedColor(image, colors);
 			return colors;
@@ -280,7 +281,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		void getDominantUniLedColor(const Image<Pixel_T> &image, QVector<ColorRgb> &ledColors) const
 		{
-			qCDebug(imageToLedsMap_track) << "Get Dominant Color Uniform for image sized" << image.width() << "x" << image.height() << "and #ledColors" << ledColors.size();
+			qCDebug(imageToLedsMap_calc) << "Get Dominant Color Uniform for image sized" << image.width() << "x" << image.height() << "and #ledColors" << ledColors.size();
 			if (_colorsMap.size() != ledColors.size())
 			{
 				Debug(_log, "Get Dominant Color Uniform failed. colorsMap.size != ledColors.size -> %d != %d", _colorsMap.size(), ledColors.size());
@@ -304,7 +305,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		QVector<ColorRgb> getDominantAdvLedColor(const Image<Pixel_T> &image) const
 		{
-			qCDebug(imageToLedsMap_track) << "Get Dominant Color Advanced for image size" << image.width() << "x" << image.height();
+			qCDebug(imageToLedsMap_calc) << "Get Dominant Color Advanced for image size" << image.width() << "x" << image.height();
 			QVector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0, 0, 0});
 			getDominantAdvLedColor(image, colors);
 			return colors;
@@ -320,7 +321,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		void getDominantAdvLedColor(const Image<Pixel_T> &image, QVector<ColorRgb> &ledColors) const
 		{
-			qCDebug(imageToLedsMap_track) << "Get Dominant Color Advanced for image sized" << image.width() << "x" << image.height() << "and #ledColors" << ledColors.size();
+			qCDebug(imageToLedsMap_calc) << "Get Dominant Color Advanced for image sized" << image.width() << "x" << image.height() << "and #ledColors" << ledColors.size();
 			// Sanity check for the number of LEDs
 			if (_colorsMap.size() != ledColors.size())
 			{
@@ -347,7 +348,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		QVector<ColorRgb> getDominantAdvUniLedColor(const Image<Pixel_T> &image) const
 		{
-			qCDebug(imageToLedsMap_track) << "Get Dominant Color Advanced Uniform for image size" << image.width() << "x" << image.height();
+			qCDebug(imageToLedsMap_calc) << "Get Dominant Color Advanced Uniform for image size" << image.width() << "x" << image.height();
 			QVector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0, 0, 0});
 			getDominantAdvUniLedColor(image, colors);
 			return colors;
@@ -362,7 +363,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		void getDominantAdvUniLedColor(const Image<Pixel_T> &image, QVector<ColorRgb> &ledColors) const
 		{
-			qCDebug(imageToLedsMap_track) << "Get Dominant Color Advanced Uniform for image sized" << image.width() << "x" << image.height() << "and #ledColors" << ledColors.size();
+			qCDebug(imageToLedsMap_calc) << "Get Dominant Color Advanced Uniform for image sized" << image.width() << "x" << image.height() << "and #ledColors" << ledColors.size();
 			if (_colorsMap.size() != ledColors.size())
 			{
 				Debug(_log, "Get Dominant Color Advanced Uniform failed. colorsMap.size != ledColors.size -> %d != %d", _colorsMap.size(), ledColors.size());
@@ -407,7 +408,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		ColorRgb calcMeanColor(const Image<Pixel_T> &image, const QVector<int32_t> &pixels) const
 		{
-			qCDebug(imageToLedsMap_track) << "Calculate Mean Color on image sized" << image.width() << "x" << image.height() << "and #pixels" << pixels.size();
+			qCDebug(imageToLedsMap_calc) << "Calculate Mean Color on image sized" << image.width() << "x" << image.height() << "and #pixels" << pixels.size();
 			const auto pixelNum = pixels.size();
 			if (pixelNum == 0)
 			{
@@ -448,7 +449,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		ColorRgb calcMeanColor(const Image<Pixel_T> &image) const
 		{
-			qCDebug(imageToLedsMap_track) << "Calculate Mean Color on image sized" << image.width() << "x" << image.height();
+			qCDebug(imageToLedsMap_calc) << "Calculate Mean Color on image sized" << image.width() << "x" << image.height();
 			// Accumulate the sum of each separate color channel
 			uint_fast32_t cummRed = 0;
 			uint_fast32_t cummGreen = 0;
@@ -486,7 +487,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		ColorRgb calcMeanColorSqrt(const Image<Pixel_T> &image, const QVector<int32_t> &pixels) const
 		{
-			qCDebug(imageToLedsMap_track) << "Calculate Mean Color Squared on image sized" << image.width() << "x" << image.height() << "and #pixels" << pixels.size();
+			qCDebug(imageToLedsMap_calc) << "Calculate Mean Color Squared on image sized" << image.width() << "x" << image.height() << "and #pixels" << pixels.size();
 			const auto pixelNum = pixels.size();
 			if (pixelNum == 0)
 			{
@@ -533,7 +534,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		ColorRgb calcMeanColorSqrt(const Image<Pixel_T> &image) const
 		{
-			qCDebug(imageToLedsMap_track) << "Calculate Mean Color Squared on image sized" << image.width() << "x" << image.height();
+			qCDebug(imageToLedsMap_calc) << "Calculate Mean Color Squared on image sized" << image.width() << "x" << image.height();
 			// Accumulate the squared sum of each separate color channel
 			uint_fast32_t cummRed = 0;
 			uint_fast32_t cummGreen = 0;
@@ -570,7 +571,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		ColorRgb calculateDominantColor(const Image<Pixel_T> &image, const QVector<int> &pixels) const
 		{
-			qCDebug(imageToLedsMap_track) << "Calculate Dominant Color on image sized" << image.width() << "x" << image.height() << "and #pixels" << pixels.size();
+			qCDebug(imageToLedsMap_calc) << "Calculate Dominant Color on image sized" << image.width() << "x" << image.height() << "and #pixels" << pixels.size();
 			ColorRgb dominantColor{ColorRgb::BLACK};
 
 			const auto pixelNum = pixels.size();
@@ -613,7 +614,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		ColorRgb calculateDominantColor(const Image<Pixel_T> &image) const
 		{
-			qCDebug(imageToLedsMap_track) << "Calculate Dominant Color on image sized" << image.width() << "x" << image.height();
+			qCDebug(imageToLedsMap_calc) << "Calculate Dominant Color on image sized" << image.width() << "x" << image.height();
 			const unsigned pixelNum = image.width() * image.height();
 
 			QVector<int> pixels(pixelNum);
@@ -651,7 +652,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		ColorRgb calculateDominantColorAdv(const Image<Pixel_T> &image, const QVector<int> &pixels) const
 		{
-			qCDebug(imageToLedsMap_track) << "Calculate Dominant Color Advanced on image sized" << image.width() << "x" << image.height() << "and #pixels" << pixels.size();
+			qCDebug(imageToLedsMap_calc) << "Calculate Dominant Color Advanced on image sized" << image.width() << "x" << image.height() << "and #pixels" << pixels.size();
 			ColorRgb dominantColor{ColorRgb::BLACK};
 			const auto pixelNum = pixels.size();
 			if (pixelNum > 0)
@@ -753,7 +754,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		ColorRgb calculateDominantColorAdv(const Image<Pixel_T> &image) const
 		{
-			qCDebug(imageToLedsMap_track) << "Calculate Dominant Color Advanced on image sized" << image.width() << "x" << image.height();
+			qCDebug(imageToLedsMap_calc) << "Calculate Dominant Color Advanced on image sized" << image.width() << "x" << image.height();
 			const unsigned pixelNum = image.width() * image.height();
 
 			QVector<int> pixels(pixelNum);

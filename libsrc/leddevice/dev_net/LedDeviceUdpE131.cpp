@@ -39,6 +39,9 @@ const int DMX_MAX = 512; // 512 usable slots
 
 LedDeviceUdpE131::LedDeviceUdpE131(const QJsonObject &deviceConfig)
 	: ProviderUdp(deviceConfig)
+	, _e131_dmx_max(DMX_MAX)
+	, _whiteAlgorithm(RGBW::WhiteAlgorithm::INVALID)
+	, _dmxChannelCount(0)
 {
 }
 
@@ -59,8 +62,27 @@ bool LedDeviceUdpE131::init(const QJsonObject &deviceConfig)
 	_port = deviceConfig[CONFIG_PORT].toInt(E131_DEFAULT_PORT);
 
 	_e131_universe = static_cast<uint8_t>(deviceConfig["universe"].toInt(1));
+	_e131_dmx_max = static_cast<uint16_t>(deviceConfig["dmx-max"].toInt(DMX_MAX));
+	if (_e131_dmx_max > DMX_MAX)
+	{
+		_e131_dmx_max = DMX_MAX;
+		Warning(_log, "Maximum channels configured [%d] cannot exceed maximum channels defined by the E1.31 protocol. Corrected to %d channels.", _e131_dmx_max, DMX_MAX);
+	}
 	_e131_source_name = deviceConfig["source-name"].toString("hyperion on "+QHostInfo::localHostName());
 	QString _json_cid = deviceConfig["cid"].toString("");
+
+	// Initialize white algorithm
+	QString whiteAlgorithmStr = deviceConfig["whiteAlgorithm"].toString("white_off");
+	_whiteAlgorithm = RGBW::stringToWhiteAlgorithm(whiteAlgorithmStr);
+	if (_whiteAlgorithm == RGBW::WhiteAlgorithm::INVALID)
+	{
+		QString errortext = QString("unknown whiteAlgorithm: %1").arg(whiteAlgorithmStr);
+		this->setInError(errortext);
+		return false;
+	}
+	Debug(_log, "whiteAlgorithm : %s", QSTRING_CSTR(whiteAlgorithmStr));
+	_dmxChannelCount = (_whiteAlgorithm == RGBW::WhiteAlgorithm::WHITE_OFF) ? _ledRGBCount : _ledRGBWCount;
+	_ledBuffer.resize(_dmxChannelCount);
 
 	if (_json_cid.isEmpty())
 	{
@@ -68,6 +90,7 @@ bool LedDeviceUdpE131::init(const QJsonObject &deviceConfig)
 		Debug( _log, "e131 no CID found, generated %s", QSTRING_CSTR(_e131_cid.toString()));
 		return true;
 	}
+
 	_e131_cid = QUuid(_json_cid);
 	if ( _e131_cid.isNull() )
 	{
@@ -75,7 +98,7 @@ bool LedDeviceUdpE131::init(const QJsonObject &deviceConfig)
 		return false;
 	}
 	Debug( _log, "e131  CID found, using %s", QSTRING_CSTR(_e131_cid.toString()));
-	
+
 	return true;
 }
 
@@ -83,7 +106,7 @@ int LedDeviceUdpE131::open()
 {
 	_isDeviceReady = false;
 	this->setIsRecoverable(true);
-	
+
 	NetUtils::convertMdnsToIp(_log, _hostName);
 	if (ProviderUdp::open() == 0)
 	{
@@ -95,75 +118,90 @@ int LedDeviceUdpE131::open()
 }
 
 // populates the headers
-void LedDeviceUdpE131::prepare(unsigned this_universe, unsigned this_dmxChannelCount)
+void LedDeviceUdpE131::prepare(uint16_t this_universe, uint16_t this_dmxChannelCount)
 {
-	memset(e131_packet.raw, 0, sizeof(e131_packet.raw));
+	memset(_e131_packet.raw, 0, sizeof(_e131_packet.raw));
 
 	/* Root Layer */
-	e131_packet.preamble_size = htons(16);
-	e131_packet.postamble_size = 0;
-	memcpy (e131_packet.acn_id, _acn_id, 12);
-	e131_packet.root_flength = htons(0x7000 | (110+this_dmxChannelCount) );
-	e131_packet.root_vector = htonl(VECTOR_ROOT_E131_DATA);
-	memcpy (e131_packet.cid, _e131_cid.toRfc4122().constData() , sizeof(e131_packet.cid) );
-
+	_e131_packet.frame.preamble_size = htons(16);
+	_e131_packet.frame.postamble_size = 0;
+	memcpy (_e131_packet.frame.acn_id, _acn_id, 12);
+	_e131_packet.frame.root_flength = htons(0x7000 | (110+this_dmxChannelCount) );
+	_e131_packet.frame.root_vector = htonl(VECTOR_ROOT_E131_DATA);
+	memcpy (_e131_packet.frame.cid, _e131_cid.toRfc4122().constData() , sizeof(_e131_packet.frame.cid) );
 	/* Frame Layer */
-	e131_packet.frame_flength = htons(0x7000 | (88+this_dmxChannelCount));
-	e131_packet.frame_vector = htonl(VECTOR_E131_DATA_PACKET);
-	snprintf (e131_packet.source_name, sizeof(e131_packet.source_name), "%s", QSTRING_CSTR(_e131_source_name) );
-	e131_packet.priority = 100;
-	e131_packet.reserved = htons(0);
-	e131_packet.options = 0;	// Bit 7 =  Preview_Data
+	_e131_packet.frame.frame_flength = htons(0x7000 | (88+this_dmxChannelCount));
+	_e131_packet.frame.frame_vector = htonl(VECTOR_E131_DATA_PACKET);
+	snprintf (_e131_packet.frame.source_name, sizeof(_e131_packet.frame.source_name), "%s", QSTRING_CSTR(_e131_source_name) );
+	_e131_packet.frame.priority = 100;
+	_e131_packet.frame.reserved = htons(0);
+	_e131_packet.frame.sequence_number = 0;
+	_e131_packet.frame.options = 0;	// Bit 7 =  Preview_Data
 					// Bit 6 =  Stream_Terminated
 					// Bit 5 = Force_Synchronization
-	e131_packet.universe = htons(this_universe);
+	_e131_packet.frame.universe = htons(this_universe);
 
 	/* DMX Layer */
-	e131_packet.dmp_flength = htons(0x7000 | (11+this_dmxChannelCount));
-	e131_packet.dmp_vector = VECTOR_DMP_SET_PROPERTY;
-	e131_packet.type = 0xa1;
-	e131_packet.first_address = htons(0);
-	e131_packet.address_increment = htons(1);
-	e131_packet.property_value_count = htons(1+this_dmxChannelCount);
+	_e131_packet.frame.dmp_flength = htons(0x7000 | (11+this_dmxChannelCount));
+	_e131_packet.frame.dmp_vector = VECTOR_DMP_SET_PROPERTY;
+	_e131_packet.frame.type = 0xa1;
+	_e131_packet.frame.first_address = htons(0);
+	_e131_packet.frame.address_increment = htons(1);
+	_e131_packet.frame.property_value_count = htons(1+this_dmxChannelCount);
 
-	e131_packet.property_values[0] = 0;	// start code
+	_e131_packet.frame.property_values[0] = 0;	// start code
 }
 
 int LedDeviceUdpE131::write(const QVector<ColorRgb> &ledValues)
 {
-	int retVal            = 0;
-	int thisChannelCount = 0;
-	int dmxChannelCount  = _ledRGBCount;
-	auto rawdata = reinterpret_cast<const uint8_t *>(ledValues.data());
+	int retVal = 0;
+	uint16_t thisChannelCount = 0;
+
+	uint8_t* rawDataPtr = _ledBuffer.data();
+
+	int currentChannel = 0;
+	for (const ColorRgb& color : ledValues)
+	{
+		if (_whiteAlgorithm == RGBW::WhiteAlgorithm::WHITE_OFF)
+		{
+			rawDataPtr[currentChannel++] = color.red;
+			rawDataPtr[currentChannel++] = color.green;
+			rawDataPtr[currentChannel++] = color.blue;
+		}
+		else
+		{
+			RGBW::Rgb_to_Rgbw(color, &_temp_rgbw, _whiteAlgorithm);
+			rawDataPtr[currentChannel++] = _temp_rgbw.red;
+			rawDataPtr[currentChannel++] = _temp_rgbw.green;
+			rawDataPtr[currentChannel++] = _temp_rgbw.blue;
+			rawDataPtr[currentChannel++] = _temp_rgbw.white;
+		}
+	}
 
 	_e131_seq++;
 
-	for (int rawIdx = 0; rawIdx < dmxChannelCount; rawIdx++)
+	for (auto rawIdx = 0; rawIdx < _dmxChannelCount; rawIdx++)
 	{
-		if (rawIdx % DMX_MAX == 0) // start of new packet
+		if (rawIdx % _e131_dmx_max == 0) // start of new packet
 		{
-			thisChannelCount = (dmxChannelCount - rawIdx < DMX_MAX) ? dmxChannelCount % DMX_MAX : DMX_MAX;
-//			                       is this the last packet?         ?       ^^ last packet      : ^^ earlier packets
+			thisChannelCount = static_cast<uint16_t>((_dmxChannelCount - rawIdx < _e131_dmx_max) ? _dmxChannelCount - rawIdx : _e131_dmx_max);
+			// is this the last packet? ? ^^ last packet : ^^ earlier packets
 
-			prepare(_e131_universe + rawIdx / DMX_MAX, thisChannelCount);
-			e131_packet.sequence_number = _e131_seq;
+			prepare(static_cast<uint16_t>(_e131_universe + rawIdx / _e131_dmx_max), thisChannelCount);
+			_e131_packet.frame.sequence_number = _e131_seq;
 		}
 
-		e131_packet.property_values[1 + rawIdx%DMX_MAX] = rawdata[rawIdx];
+		_e131_packet.frame.property_values[1 + rawIdx % _e131_dmx_max] = rawDataPtr[rawIdx];
 
-//    is this the last byte of last packet || last byte of other packets
-		if ( (rawIdx == dmxChannelCount-1) || (rawIdx %DMX_MAX == DMX_MAX-1) )
+		// is this the last byte of last packet || last byte of other packets
+		if ((rawIdx == _dmxChannelCount - 1) || (rawIdx % _e131_dmx_max == _e131_dmx_max - 1))
 		{
-#undef e131debug
-#if e131debug
-			Debug (_log, "send packet: rawidx %d dmxchannelcount %d universe: %d, packetsz %d"
-				, rawIdx
-				, dmxChannelCount
-				, _e131_universe + rawIdx / DMX_MAX
-				, E131_DMP_DATA + 1 + thisChannelCount
-				);
-#endif
-			retVal &= writeBytes(E131_DMP_DATA + 1 + thisChannelCount, e131_packet.raw);
+			qCDebug(leddevice_write) << QString("send packet: rawidx %1 dmxchannelcount %2 universe: %3, packetsz %4")
+											.arg(rawIdx)
+											.arg(_dmxChannelCount)
+											.arg(_e131_universe + rawIdx / _e131_dmx_max)
+											.arg(thisChannelCount);
+			retVal &= writeBytes(E131_DMP_DATA + 1 + thisChannelCount, _e131_packet.raw);
 		}
 	}
 
