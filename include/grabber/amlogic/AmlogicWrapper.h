@@ -25,7 +25,6 @@ public:
 	explicit AmlogicWrapper(int updateRate_Hz=GrabberWrapper::DEFAULT_RATE_HZ,
 				   int deviceIdx=0,
 				   int pixelDecimation=GrabberWrapper::DEFAULT_PIXELDECIMATION);
-
 	///
 	/// Constructs the Amlogic frame grabber from configuration settings
 	///

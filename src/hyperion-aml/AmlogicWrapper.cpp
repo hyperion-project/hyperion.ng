@@ -5,15 +5,12 @@
 #include <unistd.h>
 
 AmlogicWrapper::AmlogicWrapper( int updateRate_Hz,
-								int pixelDecimation,
-								int cropLeft, int cropRight,
-								int cropTop, int cropBottom
-								) :
-	  _timer(this),
-	  _grabber()
+							    int pixelDecimation
+							  ) :
+	_timer(this),
+	_grabber()
 {
 	_grabber.setFramerate(updateRate_Hz);
-	_grabber.setCropping(cropLeft, cropRight, cropTop, cropBottom);
 	_grabber.setPixelDecimation(pixelDecimation);
 
 	_timer.setTimerType(Qt::PreciseTimer);
