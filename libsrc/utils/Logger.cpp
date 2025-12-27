@@ -1,6 +1,7 @@
 #include <utils/Logger.h>
 
 #include <iostream>
+#include <array>
 
 #ifndef _WIN32
 #include <syslog.h>
