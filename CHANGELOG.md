@@ -23,12 +23,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add DRM_FORMAT_RGB565 format to DRM frame grabber
 - Add standalone DRM grabber
 - Avoid queuing on image processing for output
+- Validation of RFC 4122 UUID (Universally Unique Identifier) elements and apply it e1.31 devices config screen
 
 ### 🔧 Changed
 
   - Hue Bridge - Wizard updates to support bridge-ids, overall code refactoring
   - USB Grabber - Default hardware control properties are now applied when a new USB grabber is selected (avoids black images)
   - USB Grabber - Correct garbage default control values to avoid save issues (#1928)
+  - Windows DDA Grabber - Rewritten grabber internals for better performance & stability and fixed various issues, e.g. screen locking, -orientation handling (#1872)
   - Amlogic grabber - Support to switch between DRM & FB-DEV for CoreElec New Order version
   - Web UI: Update panel title uses "Hyperion - <version>"; skip showing the "nightly" tag in releases list
   - Screen grabbers: Commonized base with getDeviceName/getInputDeviceDetails; explicit constructors; improved error handling
@@ -38,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Forwarder: Clear remote priority 1 when the forwarding instance is stopped
 
 - **Fixes:**
+  - UI - Menu is not opened on small (mobile) screens
   - UI - Language is not selectable (#1877)
   - UI - Release were not shown on Update page
   - UI - Fixes for input/format selection

@@ -50,7 +50,6 @@ protected:
 	///
 	int open() override;
 
-
 	///
 	/// @brief Writes the RGB-Color values to the LEDs.
 	///

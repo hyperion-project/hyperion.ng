@@ -135,7 +135,8 @@ void SysTray::setColor(quint8 instance, const QColor &color) const
 	}
 	if (!hyperion.isNull())
 	{
-		QVector<ColorRgb> rgbColor {color.rgb()};
+		QVector<ColorRgb> rgbColor{ ColorRgb(color.rgb()) };
+
 		emit hyperion->setColor(PriorityMuxer::FG_PRIORITY,rgbColor, PriorityMuxer::ENDLESS);
 	}
 }

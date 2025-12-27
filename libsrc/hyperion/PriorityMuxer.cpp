@@ -140,7 +140,7 @@ void PriorityMuxer::updateLedColorsLength(int ledCount)
 		++infoIt;
 	}
 
-	if (_lowestPriorityInfo.ledColors.size() != static_cast<size_t>(ledCount))
+	if (_lowestPriorityInfo.ledColors.size() != static_cast<qsizetype>(ledCount))
 	{
 		_lowestPriorityInfo.ledColors.fill(ColorRgb::BLACK, ledCount);
 		_activeInputs[PriorityMuxer::LOWEST_PRIORITY].ledColors = _lowestPriorityInfo.ledColors;

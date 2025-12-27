@@ -443,10 +443,9 @@ $(window.hyperion).on("cmd-config-setconfig", function (event) {
 function bindUiHandlers() {
 
   // Handle language selection
-
-  // Prevent dropdown from closing when selecting language
-  $('#btn_setlang').on('click', function (e) {
+  $(".bootstrap-select").on("click", function (e) {
     e.stopPropagation();
+    $(this).toggleClass("open");
   });
 
   $('#language-select').on('changed.bs.select', function () {
@@ -457,13 +456,7 @@ function bindUiHandlers() {
     }
   });
 
-  //Close selector, if open (and no change in language happend)
-  $(document).on("click", function () {
-    $(".bootstrap-select.open").removeClass("open");
-  });
-  //End language selection
-
-  // Side smenu link click activation
+  // Side menu link click activation
   $('#side-menu li a, #side-menu li ul li a').on("click", function () {
     $('#side-menu').find('.active').removeClass('active');
     $(this).addClass('active');
@@ -496,24 +489,7 @@ function bindUiHandlers() {
 
     logo.style.display = window.scrollY > 65 ? "none" : "";
   }, { passive: true });
-
-  // Toggle top menu for mobile
-  $(".navbar-toggle").off().on("click", function () {
-    const target = $(this).data("target");
-    $(target).toggleClass("collapse");
-  });
-
-  // Scroll to top button
-  $("#btn_top").off().on("click", function () {
-    $("html, body").animate({ scrollTop: 0 }, "slow");
-  });
-
-  // Prevent form submissions with Enter in specific cases (optional UX improvement)
-  $("form input").on("keypress", function (e) {
-    if (e.which === 13 && $(this).attr("type") !== "textarea") {
-      e.preventDefault();
-    }
-  });
+  
 }
 
 function suppressDefaultPwWarning() {

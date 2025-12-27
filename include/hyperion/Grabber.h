@@ -150,6 +150,8 @@ public slots:
 
 	virtual void handleEvent(Event event) { /* to be overridden by subclasses */ }
 
+	void resetInError() { _isDeviceInError = false; }
+
 protected slots:
 	///
 	/// @brief Set device in error state
