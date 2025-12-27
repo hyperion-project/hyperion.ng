@@ -95,7 +95,7 @@ void showAnalogRGB(const CRGB& led) {
 // set color to all leds
 void showColor(const CRGB& led) {
   #if MAX_LEDS > 1 || ANALOG_OUTPUT_ENABLED == false
-  LEDS.showColor(led);
+  FastLED.showColor(led);
   #endif
   showAnalogRGB(led);
 }

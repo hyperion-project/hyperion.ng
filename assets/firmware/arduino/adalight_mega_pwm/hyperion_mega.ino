@@ -106,7 +106,7 @@ void showAnalogRGB(const CRGB& led, const short stripeId=-1) {
 // set color to all leds
 void showColor(const CRGB& led) {
  #if NUM_LEDS > ANALOG_RGB_STRIPES
-  LEDS.showColor(led);
+  FastLED.showColor(led);
   #endif
   showAnalogRGB(led);
 }
