@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add DRM_FORMAT_RGB565 format to DRM frame grabber
 - Add standalone DRM grabber
 - Avoid queuing on image processing for output
+- Validation of RFC 4122 UUID (Universally Unique Identifier) elements and apply it e1.31 devices config screen
 
 ### 🔧 Changed
 

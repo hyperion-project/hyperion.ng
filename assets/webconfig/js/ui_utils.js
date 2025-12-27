@@ -905,6 +905,9 @@ function addJsonEditorHostValidation() {
             errors.push({ path, property: 'format', message: $.i18n('edt_msg_error_hostname') });
           }
           break;
+        case "uuid":
+          errors.push(...validateUUIDSchema(schema, value, path));      
+          break;
         default:
           break;
       }
@@ -1558,6 +1561,17 @@ function isValidHostnameOrIP4(value) {
 
 function isValidHostnameOrIP(value) {
   return (isValidHostnameOrIP4(value) || isValidIPv6(value) || isValidServicename(value));
+}
+
+function validateUUIDSchema(schema, value, path) {
+  if (!(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value))) {
+    return [{
+      path,
+      property: 'format',
+      message: $.i18n('edt_msg_error_uuid')
+    }]
+  }
+  return []
 }
 
 const loadedScripts = [];
