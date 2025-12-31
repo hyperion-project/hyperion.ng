@@ -9,6 +9,7 @@
 #include <QJsonObject>
 
 #include <utils/ColorRgb.h>
+#include "utils/RgbToRgbw.h"
 
 ///
 /// Implementation of the LedDevice interface for sending LED colors via UDP
@@ -64,6 +65,8 @@ protected:
 	/// @return Zero on success, else negative
 	///
 	int write(const QVector<ColorRgb> & ledValues) override;
+
+	RGBW::WhiteAlgorithm _whiteAlgorithm;
 };
 
 #endif // LEDEVICEUDPRAW_H

@@ -29,7 +29,7 @@ const char DEFAULT_STREAM_PROTOCOL[] = "DDP";
 
 // UDP-RAW
 const int UDP_STREAM_DEFAULT_PORT = 19446;
-const int UDP_MAX_LED_NUM = 490;
+const int UDP_MAX_LED_NUM_RGB = 490;
 
 // Version constraints
 const char WLED_VERSION_DDP[] = "0.11.0";
@@ -312,7 +312,7 @@ bool LedDeviceWled::isReadyForDDPStreaming(const semver::version& version) const
 		semver::version ddpVersion{WLED_VERSION_DDP};
 		if (version < ddpVersion)
 		{
-			Warning(_log, "DDP streaming not supported by your WLED device version [%s], minimum version expected [%s]. Fall back to UDP-Streaming (%d LEDs max)", _currentVersion.getVersion().c_str(), ddpVersion.getVersion().c_str(), UDP_MAX_LED_NUM);
+			Warning(_log, "DDP streaming not supported by your WLED device version [%s], minimum version expected [%s]. Fall back to UDP-Streaming (%d LEDs max)", _currentVersion.getVersion().c_str(), ddpVersion.getVersion().c_str(), UDP_MAX_LED_NUM_RGB);
 		}
 		else
 		{
@@ -589,7 +589,7 @@ QJsonObject LedDeviceWled::getProperties(const QJsonObject& params)
 		_currentVersion.setVersion(_wledInfo.value(INFO_VER).toString().toStdString());
 		if (!isReadyForDDPStreaming(_currentVersion) && !propertiesDetails.isEmpty())
 		{
-			propertiesDetails.insert("maxLedCount", UDP_MAX_LED_NUM);
+			propertiesDetails.insert("maxLedCount", UDP_MAX_LED_NUM_RGB);
 		}
 		properties.insert("properties", propertiesDetails);
 	}
