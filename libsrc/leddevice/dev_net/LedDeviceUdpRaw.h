@@ -11,6 +11,11 @@
 #include <utils/ColorRgb.h>
 #include "utils/RgbToRgbw.h"
 
+namespace UdpRaw {
+	const int MAX_LED_NUM_RGB = 490;
+	const int MAX_LED_NUM_RGBW = 368;
+}
+
 ///
 /// Implementation of the LedDevice interface for sending LED colors via UDP
 ///

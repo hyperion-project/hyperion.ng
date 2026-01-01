@@ -8,8 +8,6 @@ namespace {
 const char CONFIG_HOST[] = "host";
 const char CONFIG_PORT[] = "port";
 const ushort RAW_DEFAULT_PORT=5568;
-const int UDP_MAX_LED_NUM_RGB = 490;
-const int UDP_MAX_LED_NUM_RGBW = 368;
 } //End of constants
 
 LedDeviceUdpRaw::LedDeviceUdpRaw(const QJsonObject &deviceConfig)
@@ -47,7 +45,7 @@ bool LedDeviceUdpRaw::init(const QJsonObject &deviceConfig)
 	}
 	Debug(_log, "White-Algorithm   : %s", QSTRING_CSTR(whiteAlgorithmStr));
 
-	int maxLedCount = (_whiteAlgorithm == RGBW::WhiteAlgorithm::WHITE_OFF) ? UDP_MAX_LED_NUM_RGB : UDP_MAX_LED_NUM_RGBW;
+	int maxLedCount = (_whiteAlgorithm == RGBW::WhiteAlgorithm::WHITE_OFF) ? UdpRaw::MAX_LED_NUM_RGB : UdpRaw::MAX_LED_NUM_RGBW;
 	if (this->getLedCount() > maxLedCount)
 	{
 		QString errorReason = QString("Device type %1 can only be run with maximum %2 LEDs for streaming protocol = UDP-RAW and LED type = %3!").arg(this->getActiveDeviceType()).arg(maxLedCount).arg((_whiteAlgorithm == RGBW::WhiteAlgorithm::WHITE_OFF) ? "RGB" : "RGBW");
@@ -112,7 +110,10 @@ QJsonObject LedDeviceUdpRaw::getProperties(const QJsonObject& params)
 	Info(_log, "Get properties for %s", QSTRING_CSTR(_activeDeviceType));
 
 	QJsonObject propertiesDetails;
-	propertiesDetails.insert("maxLedCount", UDP_MAX_LED_NUM_RGB);
+	QJsonObject maxLedNumberInfo;
+	maxLedNumberInfo.insert("rgb", UdpRaw::MAX_LED_NUM_RGB);
+	maxLedNumberInfo.insert("rgbw", UdpRaw::MAX_LED_NUM_RGBW);
+	propertiesDetails.insert("maxLedCount", maxLedNumberInfo);
 
 	properties.insert("properties", propertiesDetails);
 
