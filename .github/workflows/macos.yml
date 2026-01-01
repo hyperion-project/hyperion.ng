@@ -85,7 +85,7 @@ jobs:
 
       - name: 📦 Upload
         if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ inputs.event_name == 'pull_request' && env.NAME || format('artifact-{0}', env.NAME) }}
           path: 'build/Hyperion-*'
