@@ -2559,7 +2559,6 @@ function validateWledLedCount(hardwareLedCount) {
           } else {
             maxLedCount = ledDeviceProperties.maxLedCount.rgbw;
           }
-          maxLedCount = ledDeviceProperties.maxLedCount;
           if (hardwareLedCount > maxLedCount) {
             showInfoDialog('warning', $.i18n("conf_leds_config_warning"), $.i18n('conf_leds_error_hwled_gt_maxled', hardwareLedCount, maxLedCount, maxLedCount));
             hardwareLedCount = maxLedCount;
