@@ -300,64 +300,78 @@ void GrabberWrapper::handleSourceRequest(hyperion::Components component, int hyp
 		!_grabberName.startsWith("V4L") &&
 		!_grabberName.startsWith("Audio"))
 	{
+		qCDebug(grabber_screen_flow) << "Instance:" << hyperionInd << ", listen" << listen << ", Global screen grabber current state:" << getSysGrabberState();;
 		if (listen)
 		{
 			GRABBER_SYS_CLIENTS.insert(hyperionInd, _grabberName);
+			qCDebug(grabber_screen_flow) << "Adding screen grabber" << _grabberName << "to instance [" << hyperionInd << "]";
+			if (GRABBER_SYS_CLIENTS.size() == 1)
+			{
+				Debug(_log, "Start screen grabber on first instance listing");
+				start();
+			}
 		}
 		else
 		{
+			qCDebug(grabber_screen_flow) << "Removing screen grabber" << GRABBER_SYS_CLIENTS[hyperionInd] << "from instance [" << hyperionInd << "]";
 			GRABBER_SYS_CLIENTS.remove(hyperionInd);
-		}
-
-		if (GRABBER_SYS_CLIENTS.empty() || !getSysGrabberState())
-		{
-			stop();
-		}
-		else
-		{
-			start();
+			if (GRABBER_SYS_CLIENTS.empty() || !getSysGrabberState())
+			{
+				Debug(_log, "Stop screen grabber %s, as no instance is listing any longer", QSTRING_CSTR(_grabberName));
+				stop();
+			}
 		}
 	}
 	else if (component == hyperion::Components::COMP_V4L &&
 		_grabberName.startsWith("V4L"))
 	{
+		qCDebug(grabber_video_flow) << "Instance:" << hyperionInd << ", listen" << listen << ", Global video grabber current state:" << getV4lGrabberState();;
+
 		if (listen)
 		{
 			GRABBER_V4L_CLIENTS.insert(hyperionInd, _grabberName);
+			qCDebug(grabber_video_flow) << "Adding video grabber" << _grabberName << "to instance [" << hyperionInd << "]";
+			if (GRABBER_V4L_CLIENTS.size() == 1)
+			{
+				Debug(_log, "Start video grabber on first instance listing");
+				start();
+			}
 		}
 		else
 		{
+			qCDebug(grabber_video_flow) << "Removing video grabber" << GRABBER_V4L_CLIENTS[hyperionInd] << "from instance [" << hyperionInd << "]";
 			GRABBER_V4L_CLIENTS.remove(hyperionInd);
-		}
-
-		if (GRABBER_V4L_CLIENTS.empty() || !getV4lGrabberState())
-		{
-			stop();
-		}
-		else
-		{
-			start();
+			if (GRABBER_V4L_CLIENTS.empty() || !getV4lGrabberState())
+			{
+				Debug(_log, "Stop video grabber %s, as no instance is listing any longer", QSTRING_CSTR(_grabberName));
+				stop();
+			}
 		}
 	}
 	else if (component == hyperion::Components::COMP_AUDIO &&
 		_grabberName.startsWith("Audio"))
 	{
+		qCDebug(grabber_audio_flow) << "Instance:" << hyperionInd << ", listen" << listen << ", Global audio grabber current state:" << getAudioGrabberState();;
+
 		if (listen)
 		{
+			qCDebug(grabber_audio_flow) << "Adding audio grabber" << _grabberName << "to instance [" << hyperionInd << "]";
 			GRABBER_AUDIO_CLIENTS.insert(hyperionInd, _grabberName);
+			if (GRABBER_AUDIO_CLIENTS.size() == 1)
+			{
+				Debug(_log, "Start audio grabber on first instance listing");
+				start();
+			}
 		}
 		else
 		{
+			qCDebug(grabber_audio_flow) << "Removing audio grabber" << GRABBER_AUDIO_CLIENTS[hyperionInd] << "from instance [" << hyperionInd << "]";
 			GRABBER_AUDIO_CLIENTS.remove(hyperionInd);
-		}
-
-		if (GRABBER_AUDIO_CLIENTS.empty() || !getAudioGrabberState())
-		{
-			stop();
-		}
-		else
-		{
-			start();
+			if (GRABBER_AUDIO_CLIENTS.empty() || !getAudioGrabberState())
+			{
+				Debug(_log, "Stop audio grabber %s, as no instance is listing any longer", QSTRING_CSTR(_grabberName));
+				stop();
+			}
 		}
 	}
 }
