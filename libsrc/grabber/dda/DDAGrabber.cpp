@@ -99,9 +99,9 @@ DDAGrabber::~DDAGrabber()
 	TRACK_SCOPE();
 }
 
-bool DDAGrabber::open()
+bool DDAGrabber::setupDisplay()
 {
-	qCDebug(grabber_screen_flow) << "Opening DDA grabber for display" << d->display;
+	qCDebug(grabber_screen_flow) << "Setting up DDA grabber for display" << d->display;
 
 	d->device.Release();
 	d->deviceContext.Release();
@@ -189,12 +189,12 @@ bool DDAGrabber::restartCapture()
 
 	if (d->dxgiAdapter == nullptr)
 	{
-		if (!open())
+		if (!setupDisplay())
 		{
-			setInError("restartCapture - Open failed");
+			setInError("restartCapture - Setting up the display failed");
 			return false;
 		}
-		// Continue with capture setup after successful open
+		// Continue with capture setup after setting up the display successfully
 	}
 
 	HRESULT hr{ S_OK };
@@ -255,7 +255,7 @@ bool DDAGrabber::restartCapture()
 			if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
 			{
 				qCDebug(grabber_screen_flow) << "Device removed/reset. Recreating D3D device and retrying duplication.";
-				if (!open())
+				if (!setupDisplay())
 				{
 					RETURN_IF_ERROR(hr, "Failed to recreate device after removal", false);
 				}
@@ -377,7 +377,7 @@ bool DDAGrabber::resetDeviceAndCapture()
 {
 	qCDebug(grabber_screen_flow) << "Resetting device and capture for display" << d->display;
 	resetInError();
-	return open() && restartCapture();
+	return setupDisplay() && restartCapture();
 }
 
 int DDAGrabber::grabFrame(Image<ColorRgb>& image)
@@ -612,7 +612,7 @@ bool DDAGrabber::setDisplayIndex(int index)
 QJsonObject DDAGrabber::discover(const QJsonObject& params)
 {
 	QJsonObject inputsDiscovered;
-	if (isAvailable(false) && open())
+	if (isAvailable(false) && setupDisplay())
 	{
 		HRESULT hr = S_OK;
 
