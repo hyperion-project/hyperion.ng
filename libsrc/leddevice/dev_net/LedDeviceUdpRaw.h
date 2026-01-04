@@ -9,6 +9,12 @@
 #include <QJsonObject>
 
 #include <utils/ColorRgb.h>
+#include "utils/RgbToRgbw.h"
+
+namespace UdpRaw {
+	const int MAX_LED_NUM_RGB = 490;
+	const int MAX_LED_NUM_RGBW = 368;
+}
 
 ///
 /// Implementation of the LedDevice interface for sending LED colors via UDP
@@ -64,6 +70,8 @@ protected:
 	/// @return Zero on success, else negative
 	///
 	int write(const QVector<ColorRgb> & ledValues) override;
+
+	RGBW::WhiteAlgorithm _whiteAlgorithm;
 };
 
 #endif // LEDEVICEUDPRAW_H

@@ -23,7 +23,6 @@ QtWrapper::QtWrapper(const QJsonDocument& grabberConfig)
 	}
 }
 
-
 bool QtWrapper::start()
 {
 	if (_grabber.isAvailable())
