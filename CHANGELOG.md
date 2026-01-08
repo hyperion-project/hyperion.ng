@@ -56,6 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - LED-device updates queue up and let Hyperion crash (#1887)
   - LED-device switch-off were not always executed during instance stopping
   - LED-Device latchTime was not considered correctly 
+  - LED-Device Adalight LightBerry APA102 Mode not working (#1961)
   - Segfault when turning an LED instance off (#1903)
   - Fix concurrent mDNS resolution (#1906) - _Thanks to @discordianfish_
   - The color of the backlight threshold is green, not white/gray (#1899)
