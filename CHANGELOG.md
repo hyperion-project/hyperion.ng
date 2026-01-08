@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### ✨ Added
 
 - Support of RGBW in **e1.31** LED devices.
+- Support of RGBW in **WLED, UDP-DDP, UDP-RAW** LED devices.
 - HTTPS support for homeassistant LED devices (#1886)
 - Hue Bridge - Use https and certificates for all API calls, support Bridge Pro (V3)
 - Hue Bridge - Alternate certificate support
@@ -46,7 +47,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - UI - Fixes for input/format selection
   - UI - Fix that gap-length could get negative
   - UI - Systray Settings is not using the actual port (#1964)
+  - UI - Dashboard, wrap long version text
   - CEC-Handler is not stopped properly
+  - Grabbers are started for every instance started
   - Qt-Grabber (Windows) does not apply pixel ratio (#1882) - _Thanks to @SolberLight_
   - LED-devices are not retrying to establish connectivity, if supported by the device
   - LED-devices are resolving IP-addresses for API and UDP two times in sequence
@@ -65,6 +68,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Memory/Image queuing issue when all instances are stopped but grabber is running
   - Forwarder was not using the correct target instance IDs for JSON requests
   - Flatbuffer/Protobuffer sources are not reconnected after (re)starting a hyperion instance
+  - Adalight.ino changes due to FastLED update (#1942) _Thanks to @JackSwieper_
   
 - **Refactors:**
   - Fixed Image & ImageData and add debug logging (#1792, #1892)

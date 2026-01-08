@@ -19,6 +19,11 @@ DDAWrapper::DDAWrapper(const QJsonDocument& grabberConfig)
 
 void DDAWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& grabberConfig)
 {
+	if (type != settings::SYSTEMCAPTURE)
+	{
+		return;
+	}
+
 	GrabberWrapper::handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
 	_grabber.resetDeviceAndCapture();
 }

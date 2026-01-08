@@ -33,7 +33,6 @@ public:
 		return true;
 	}
 
-
 	///
 	/// @brief Apply display index
 	///
@@ -46,16 +45,15 @@ public:
 	///
 	QJsonObject discover(const QJsonObject &params);
 
-	///
-	/// @brief Opens the input device.
-	///
-	/// @return Zero, on success (i.e. device is ready), else negative
-	///
-	bool open();
-
 	bool resetDeviceAndCapture();
 
 private:
+	///
+	/// @brief Sets up the input device.
+	///
+	/// @return Zero, on success (i.e. device is ready), else negative
+	///
+	bool setupDisplay();
 
 	///
 	/// @brief Setup a new capture display, will free the previous one
