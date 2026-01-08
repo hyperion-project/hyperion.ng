@@ -110,6 +110,7 @@ void SysTray::createBaseTrayMenu()
 void SysTray::setupConnections()
 {
 	WebServer const * webserver = _hyperiond->getWebServerInstance();
+	_webPort = webserver->getPort();
 	connect(webserver, &WebServer::portChanged, this, &SysTray::onWebserverPortChanged);
 	if (auto mgr = _instanceManagerWeak.toStrongRef())
 	{

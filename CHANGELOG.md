@@ -46,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - UI - Release were not shown on Update page
   - UI - Fixes for input/format selection
   - UI - Fix that gap-length could get negative
+  - UI - Systray Settings is not using the actual port (#1964)
   - UI - Dashboard, wrap long version text
   - CEC-Handler is not stopped properly
   - Grabbers are started for every instance started
