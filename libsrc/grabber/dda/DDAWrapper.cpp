@@ -1,4 +1,6 @@
 #include "grabber/dda/DDAWrapper.h"
+#include "events/EventHandler.h"
+
 
 DDAWrapper::DDAWrapper(int updateRate_Hz, int display, int pixelDecimation, int cropLeft, int cropRight, int cropTop,
 	int cropBottom)
@@ -13,7 +15,7 @@ DDAWrapper::DDAWrapper(const QJsonDocument& grabberConfig)
 {
 	if (_grabber.isAvailable(true))
 	{
-		GrabberWrapper::handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
+		this->handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
 	}
 }
 
@@ -23,9 +25,7 @@ void DDAWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& 
 	{
 		return;
 	}
-
 	GrabberWrapper::handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
-	_grabber.resetDeviceAndCapture();
 }
 
 bool DDAWrapper::start()
@@ -49,4 +49,32 @@ void DDAWrapper::action()
 	}
 
 	transferFrame(_grabber);
+}
+
+void DDAWrapper::handleEvent(Event event)
+{
+	switch (event)
+	{
+	case Event::ResumeIdle:
+		qCDebug(grabber_screen_flow) << "Resume from Idle - Start Grabber";
+		start();
+		_grabber.setEnabled(true);
+		break;
+	case Event::Resume:
+		if (!EventHandler::getInstance()->isIdle())
+		{
+			qCDebug(grabber_screen_flow) << "Resume from Suspend - Start Grabber as not being in Idle";
+			start();
+			_grabber.setEnabled(true);
+		}
+		else
+		{
+			qDebug(grabber_screen_flow) << "Resume from Suspend - Grabber not started, as Hyperion is still in Idle mode";
+		}
+		break;
+	case Event::Idle:
+	case Event::Suspend:
+	default:
+		break;
+	}
 }

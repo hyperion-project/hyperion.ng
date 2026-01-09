@@ -6,6 +6,7 @@
 // utils includes
 #include <utils/GlobalSignals.h>
 #include <events/EventHandler.h>
+#include <events/OsEventHandler.h>
 
 // qt
 #include <QTimer>
@@ -103,7 +104,10 @@ void GrabberWrapper::stop()
 
 void GrabberWrapper::handleEvent(Event event)
 {
-	_ggrabber->handleEvent(event);
+	if (_ggrabber != nullptr)
+	{
+		_ggrabber->handleEvent(event);
+	}
 }
 
 bool GrabberWrapper::isActive() const
@@ -307,8 +311,7 @@ void GrabberWrapper::handleSourceRequest(hyperion::Components component, int hyp
 			qCDebug(grabber_screen_flow) << "Adding screen grabber" << _grabberName << "to instance [" << hyperionInd << "]";
 			if (GRABBER_SYS_CLIENTS.size() == 1)
 			{
-				Debug(_log, "Start screen grabber on first instance listing");
-				start();
+				Debug(_log, "First instance available for grabber");
 			}
 		}
 		else

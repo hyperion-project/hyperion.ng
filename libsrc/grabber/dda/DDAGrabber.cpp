@@ -83,6 +83,7 @@ public:
 	DXGI_MODE_ROTATION desktopRotation = DXGI_MODE_ROTATION_IDENTITY;
 	int desktopWidth = 0;
 	int desktopHeight = 0;
+	bool isFrameAcquired = false;
 };
 
 DDAGrabber::DDAGrabber(int display, int cropLeft, int cropRight, int cropTop, int cropBottom)
@@ -97,6 +98,11 @@ DDAGrabber::DDAGrabber(int display, int cropLeft, int cropRight, int cropTop, in
 DDAGrabber::~DDAGrabber()
 {
 	TRACK_SCOPE();
+	if (d->isFrameAcquired && d->desktopDuplication)
+	{
+		SafeReleaseFrame(d->desktopDuplication);
+		d->isFrameAcquired = false;
+	}
 }
 
 bool DDAGrabber::setupDisplay()
@@ -390,6 +396,7 @@ int DDAGrabber::grabFrame(Image<ColorRgb>& image)
 
 	if (!_isEnabled)
 	{
+		qDebug() << "DDAGrabber: Capture is disabled";
 		return -1;
 	}
 
@@ -399,51 +406,68 @@ int DDAGrabber::grabFrame(Image<ColorRgb>& image)
 		return -1;
 	}
 
-	HRESULT hr{ S_OK };
-	bool frameHeld = false;
-	CComPtr<IDXGIResource> desktopResource;
-	if (d->desktopDuplication == nullptr)
+	if (d->isFrameAcquired)
 	{
-		qCDebug(grabber_screen_capture) << "Desktop duplication not available (yet)";
-		return -1;
+		HRESULT hrRelease = SafeReleaseFrame(d->desktopDuplication);
+		d->isFrameAcquired = false;
+		if (FAILED(hrRelease))
+		{
+			if (grabber_screen_capture().isDebugEnabled())
+			{
+				if (hrRelease == DXGI_ERROR_ACCESS_LOST)
+				{
+					qCDebug(grabber_screen_capture) << "Failed to release frame- DXGI_ERROR_ACCESS_LOST";
+				}
+			}
+			// Even if release fails, we try to continue. The state is reset.
+		}
 	}
 
+	HRESULT hr{ S_OK };
+	CComPtr<IDXGIResource> desktopResource;
 	DXGI_OUTDUPL_FRAME_INFO frameInfo = {};
 	hr = d->desktopDuplication->AcquireNextFrame(20, &frameInfo, &desktopResource);
 	if (SUCCEEDED(hr))
 	{
-		frameHeld = true;
+		d->isFrameAcquired = true;
 	}
 
 	// --- Error Handling ---
 	if (hr == DXGI_ERROR_ACCESS_LOST || hr == DXGI_ERROR_INVALID_CALL || hr == DXGI_ERROR_SESSION_DISCONNECTED || hr == DXGI_ERROR_ACCESS_DENIED || hr == DXGI_ERROR_NOT_CURRENTLY_AVAILABLE)
 	{
+		if (d->isFrameAcquired)
+		{
+			SafeReleaseFrame(d->desktopDuplication);
+			d->isFrameAcquired = false;
+		}
+
+		QString errorText;
 		switch (hr)
 		{
 		case DXGI_ERROR_ACCESS_LOST:
 			// Happens, if the graphics device is removed/reset or orientation changed
-			qCDebug(grabber_screen_flow) << "Access lost - DXGI_ERROR_ACCESS_LOST";
+			qCDebug(grabber_screen_flow) << "Access lost - DXGI_ERROR_ACCESS_LOST. Restarting capture.";
+			Error(_log, "Access lost to desktop duplication, attempting to reset device and capture... (DXGI_ERROR_ACCESS_LOST)");
+			restartCapture();
+			return -1;
+
 			break;
 		case DXGI_ERROR_INVALID_CALL:
 			// Happens, if a screen is locked or disconnected
 			qCDebug(grabber_screen_flow) << "Access lost - DXGI_ERROR_INVALID_CALL";
+			return -1;
 			break;
 		case DXGI_ERROR_ACCESS_DENIED:
-			SafeReleaseFrame(d->desktopDuplication);
-			RETURN_IF_ERROR(hr, "Access denied : The application does not have the required permissions to capture the desktop", -1)
-				break;
+			errorText = "Access denied : The application does not have the required permissions to capture the desktop";
+			break;
 		case DXGI_ERROR_NOT_CURRENTLY_AVAILABLE:
-			SafeReleaseFrame(d->desktopDuplication);
-			RETURN_IF_ERROR(hr, "Access lost: Another application or system component is currently using the desktop interface.", -1)
-				break;
+			errorText = "Access lost: Another application or system component is currently using the desktop interface.";
+			break;
 		case DXGI_ERROR_SESSION_DISCONNECTED:
-			SafeReleaseFrame(d->desktopDuplication);
-			Error(_log, "Access lost: Desktop session is currently locked or disconnected. Will retry.");
+			errorText = "Access lost: Desktop session is currently locked or disconnected. Will retry.";
 			break;
 		default:
-			SafeReleaseFrame(d->desktopDuplication);
-			RETURN_IF_ERROR(hr, "Access lost : Unknown error", -1)
-
+			errorText = "Access lost : Unknown error";
 		}
 
 		if (grabber_screen_flow().isDebugEnabled())
@@ -459,8 +483,7 @@ int DDAGrabber::grabFrame(Image<ColorRgb>& image)
 			}
 		}
 
-		SafeReleaseFrame(d->desktopDuplication);
-		return -1;
+		RETURN_IF_ERROR(hr, errorText, -1);
 	}
 
 	if (hr == DXGI_ERROR_WAIT_TIMEOUT)
@@ -482,7 +505,15 @@ int DDAGrabber::grabFrame(Image<ColorRgb>& image)
 
 	CComPtr<ID3D11Texture2D> sourceTexture;
 	hr = desktopResource->QueryInterface(&sourceTexture);
-	RETURN_IF_ERROR(hr, "Failed to get 2D texture from resource", -1);
+	if (FAILED(hr))
+	{
+		if (d->isFrameAcquired)
+		{
+			SafeReleaseFrame(d->desktopDuplication);
+			d->isFrameAcquired = false;
+		}
+		RETURN_IF_ERROR(hr, "Failed to get 2D texture from resource", -1);
+	}
 
 	// Use the D2D pipeline to handle any transformation or format conversion.
 	CComPtr<IDXGISurface> sourceSurface;
@@ -501,28 +532,6 @@ int DDAGrabber::grabFrame(Image<ColorRgb>& image)
 	// Copy the D2D result to the staging texture
 	d->deviceContext->CopyResource(d->intermediateTexture, d->d2dConvertedTexture);
 	d->deviceContext->Flush();
-
-	// Release duplication frame as early as possible to minimize AccumulatedFrames
-	if (frameHeld && d->desktopDuplication)
-	{
-		HRESULT hrRelease = SafeReleaseFrame(d->desktopDuplication);
-		frameHeld = false;
-		if (FAILED(hrRelease))
-		{
-			if (grabber_screen_capture().isDebugEnabled())
-			{
-				if (hrRelease == DXGI_ERROR_ACCESS_LOST)
-				{
-					qCDebug(grabber_screen_capture) << "Failed to release frame- DXGI_ERROR_ACCESS_LOST";
-				}
-				else if (hrRelease == DXGI_ERROR_INVALID_CALL)
-				{
-					qCDebug(grabber_screen_capture) << "Failed to release frame- DXGI_ERROR_INVALID_CALL";
-				}
-			}
-			return -1;
-		}
-	}
 
 	if (FAILED(hr))
 	{
@@ -560,7 +569,7 @@ int DDAGrabber::grabFrame(Image<ColorRgb>& image)
 
 	d->deviceContext->Unmap(d->intermediateTexture, 0);
 
-	// No final release needed if we already released after GPU work
+	// The frame is intentionally held until the next grabFrame call for performance.
 	return 0;
 }
 

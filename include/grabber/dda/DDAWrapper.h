@@ -45,6 +45,8 @@ public slots:
 
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& grabberConfig) override;
 
+	void handleEvent(Event event) override;
+
 private:
 	DDAGrabber _grabber;
 };
