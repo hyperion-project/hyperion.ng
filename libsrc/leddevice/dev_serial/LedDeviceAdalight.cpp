@@ -81,6 +81,12 @@ void LedDeviceAdalight::prepareHeader()
 		_bufferLength = HEADER_SIZE + (_ledCount * bytesPerRGBLed) + startFrameSize + endFrameSize;
 		_ledBuffer.fill(0x00, _bufferLength);
 
+		_ledBuffer[0] = 'A';
+		_ledBuffer[1] = 'd';
+		_ledBuffer[2] = 'a';
+		qToBigEndian<quint16>(static_cast<quint16>(_ledCount), &_ledBuffer[3]);
+		_ledBuffer[5] = _ledBuffer[3] ^ _ledBuffer[4] ^ 0x55; // Checksum
+
 		// init constant data values
 		for (uint iLed=1; iLed <= _ledCount; iLed++)
 		{
