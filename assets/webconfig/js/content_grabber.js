@@ -13,6 +13,7 @@ $(document).ready(function () {
   var configuredDevice = "";
   var discoveredInputSources = {};
   var deviceProperties = {};
+  const DDA_INACTIVE_TIMEOUT = 300; // The DDA grabber will not issue updates when no screen activity, define timeout of 5 minutes to avoid off/on blinking
 
   // Screen-Grabber
   if (screenGrabberAvailable) {
@@ -331,6 +332,14 @@ $(document).ready(function () {
       if (currentInstance !== null && window.serverConfig.instCapture) {
         let instCaptOptions = window.serverConfig.instCapture;
         instCaptOptions.systemEnable = saveOptions.framegrabber.enable;
+
+        // As the DDA grabber will not issue updates when no screen activity, set the timeout to 5 minutes to avoid off/on blinking
+        if (saveOptions.framegrabber.device === "dda" && instCaptOptions.screenInactiveTimeout < DDA_INACTIVE_TIMEOUT ) {
+          instCaptOptions.screenInactiveTimeout = DDA_INACTIVE_TIMEOUT;
+        } else {
+          instCaptOptions.screenInactiveTimeout = window.schema.instCapture.properties.screenInactiveTimeout.default;
+        }
+
         saveOptions.instCapture = instCaptOptions;
       }
 

@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QJsonDocument>
+#include <QLoggingCategory>
 
 #include <events/EventEnum.h>
 
@@ -16,6 +17,8 @@
 
 #include <utils/Logger.h>
 #include <utils/settings.h>
+
+Q_DECLARE_LOGGING_CATEGORY(event_os);
 
 class Logger;
 
@@ -64,6 +67,8 @@ public:
 	OsEventHandlerWindows();
 	~OsEventHandlerWindows();
 
+	static QScopedPointer<OsEventHandlerWindows>& getInstance();
+
 	void handleSuspendResumeEvent(bool sleep);
 
 protected:
@@ -79,7 +84,8 @@ protected:
 	void unregisterLockHandler() override;
 
 private:
-	static OsEventHandlerWindows* getInstance();
+
+	static QScopedPointer<OsEventHandlerWindows> instance;
 
 	static DEVICE_NOTIFY_CALLBACK_ROUTINE handlePowerNotifications;
 
@@ -94,7 +100,7 @@ class OsEventHandlerLinux : public OsEventHandlerBase
 {
 	Q_OBJECT
 
-		static void static_signaleHandler(int signum)
+	static void static_signaleHandler(int signum)
 	{
 		OsEventHandlerLinux::getInstance()->handleSignal(signum);
 	}
@@ -102,11 +108,12 @@ class OsEventHandlerLinux : public OsEventHandlerBase
 public:
 	OsEventHandlerLinux();
 
+	static QScopedPointer<OsEventHandlerLinux>& getInstance();
+
 	void handleSignal(int signum);
 
-
 private:
-	static OsEventHandlerLinux* getInstance();
+	static QScopedPointer<OsEventHandlerLinux> instance;
 
 #if defined(HYPERION_HAS_DBUS)
 	bool registerOsEventHandler() override;
@@ -126,7 +133,11 @@ class OsEventHandlerMacOS : public OsEventHandlerBase
 public:
 	OsEventHandlerMacOS();
 
+	static QScopedPointer<OsEventHandlerMacOS>& getInstance();
+
 private:
+	static QScopedPointer<OsEventHandlerMacOS> instance;
+
 	bool registerOsEventHandler() override;
 	void unregisterOsEventHandler() override;
 	bool registerLockHandler() override;

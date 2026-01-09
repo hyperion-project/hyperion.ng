@@ -154,7 +154,7 @@ public slots:
 	///
 	virtual void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
-	void handleEvent(Event event);
+	virtual void handleEvent(Event event);
 
 signals:
 	///
