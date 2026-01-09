@@ -69,7 +69,7 @@ void DDAWrapper::handleEvent(Event event)
 		}
 		else
 		{
-			qDebug(grabber_screen_flow) << "Resume from Suspend - Grabber not started, as Hyperion is still in Idle mode";
+			qCDebug(grabber_screen_flow) << "Resume from Suspend - Grabber not started, as Hyperion is still in Idle mode";
 		}
 		break;
 	case Event::Idle:
