@@ -117,7 +117,7 @@ void DDAWrapper::handleEvent(Event event)
 		}
 		else
 		{
-			qDebug(grabber_screen_flow) << "Resume from Suspend - Grabber not started, as system is still locked";
+			qCDebug(grabber_screen_flow) << "Resume from Suspend - Grabber not started, as system is still locked";
 		}
 		break;
 
