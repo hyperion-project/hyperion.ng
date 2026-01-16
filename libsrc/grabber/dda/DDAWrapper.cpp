@@ -28,18 +28,54 @@ void DDAWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& 
 	GrabberWrapper::handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
 }
 
-bool DDAWrapper::start()
+bool DDAWrapper::open()
 {
-	if (_grabber.isAvailable())
-	{
-		if (_grabber.resetDeviceAndCapture())
+	if (_isScreenLocked)
 		{
-			return GrabberWrapper::start();
-		}
+		qCDebug(grabber_screen_flow) << "Screen is locked - do not open grabber" << _grabber.getGrabberName();
+		return false;
 	}
 
-	return false;
+	qCDebug(grabber_screen_flow) << "Open grabber" << _grabber.getGrabberName() << "currently:" << (_grabber.isEnabled() ? "enabled" : "disabled");
+	return _grabber.resetDeviceAndCapture();
 }
+
+bool DDAWrapper::start()
+{
+	qCDebug(grabber_screen_flow) << "Start grabber" << _grabber.getGrabberName() << "currently:" << (_grabber.isEnabled() ? "enabled" : "disabled");
+	return GrabberWrapper::start();
+}
+
+//bool DDAWrapper::start()
+//{
+//	qCDebug(grabber_screen_flow) << "Start grabber" << _grabber.getGrabberName() << "currently:" << (_grabber.isEnabled() ? "enabled" : "disabled");
+//
+//	if (_grabber.isAvailable() && _grabber.isEnabled())
+//	{
+//		if (isActive())
+//		{
+//			qCDebug(grabber_screen_flow) << "Grabber" << _grabber.getGrabberName() << "is already running";
+//			return true;
+//		}
+//
+//		qDebug(grabber_screen_flow) << "Start grabber" << _grabber.getGrabberName()
+//			<< ". System is" << (OsEventHandler::getInstance()->isLocked() ? "locked" : "unlocked")
+//			<< "and" << (OsEventHandler::getInstance()->isSuspended() ? "suspended" : "resumed");
+//
+//		if (OsEventHandler::getInstance()->isLocked())
+//		{
+//			qCDebug(grabber_screen_flow) << "Grabber" << _grabber.getGrabberName() << "not started, as system is still locked";
+//			return false;
+//		}
+//
+//		if (_grabber.resetDeviceAndCapture())
+//		{
+//			return GrabberWrapper::start();
+//		}
+//	}
+//
+//	return false;
+//}
 
 void DDAWrapper::action()
 {
@@ -53,25 +89,38 @@ void DDAWrapper::action()
 
 void DDAWrapper::handleEvent(Event event)
 {
+	if (!_grabber.isEnabled())
+	{
+		qCDebug(grabber_screen_flow) << "Grabber is disabled. Ignore events.";
+		return;
+	}
+
+	qDebug(grabber_screen_flow) << "Handle event" << event << "for grabber" << _grabber.getGrabberName()
+		<< ". Screen is" << (_isScreenLocked ? "locked" : "unlocked");
+
 	switch (event)
 	{
-	case Event::ResumeIdle:
-		qCDebug(grabber_screen_flow) << "Resume from Idle - Start Grabber";
+	case Event::Lock:
+		_isScreenLocked = true;
+		qCDebug(grabber_screen_flow) << "Screen is Locked - Remember state";
+		break;
+	case Event::Unlock:
+		_isScreenLocked = false;
+		qCDebug(grabber_screen_flow) << "Resume after screen was unlocked - Start Grabber";
 		start();
-		_grabber.setEnabled(true);
 		break;
 	case Event::Resume:
-		if (!EventHandler::getInstance()->isIdle())
+		if (!_isScreenLocked)
 		{
-			qCDebug(grabber_screen_flow) << "Resume from Suspend - Start Grabber as not being in Idle";
+			qCDebug(grabber_screen_flow) << "Resume from Suspend - Start Grabber as system is not locked";
 			start();
-			_grabber.setEnabled(true);
 		}
 		else
 		{
-			qDebug(grabber_screen_flow) << "Resume from Suspend - Grabber not started, as Hyperion is still in Idle mode";
+			qDebug(grabber_screen_flow) << "Resume from Suspend - Grabber not started, as system is still locked";
 		}
 		break;
+
 	case Event::Idle:
 	case Event::Suspend:
 	default:

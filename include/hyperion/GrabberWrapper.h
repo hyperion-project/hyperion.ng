@@ -7,6 +7,7 @@
 #include <QStringList>
 #include <QMultiMap>
 #include <QScopedPointer>
+#include <QLoggingCategory>
 
 #include <utils/Logger.h>
 #include <utils/Components.h>
@@ -20,6 +21,8 @@
 #include <grabber/GrabberType.h>
 
 #include <events/EventEnum.h>
+
+Q_DECLARE_LOGGING_CATEGORY(grabber_flow);
 
 class Grabber;
 class GlobalSignals;
@@ -70,9 +73,14 @@ public:
 	virtual void tryStart();
 
 	///
-	/// Stop grabber
+	/// Stop the grabber
 	///
 	virtual void stop();
+
+	///
+	/// Restart the grabber
+	///
+	bool restart();
 
 	///
 	/// Check if grabber is active

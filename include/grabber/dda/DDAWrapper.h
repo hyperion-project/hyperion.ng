@@ -36,6 +36,8 @@ public:
 	///
 	bool start() override;
 
+	bool open()  override;
+
 public slots:
 
 	///
@@ -49,4 +51,6 @@ public slots:
 
 private:
 	DDAGrabber _grabber;
+
+	bool _isScreenLocked = false;
 };

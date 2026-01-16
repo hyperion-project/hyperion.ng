@@ -455,6 +455,7 @@ int DDAGrabber::grabFrame(Image<ColorRgb>& image)
 		case DXGI_ERROR_INVALID_CALL:
 			// Happens, if a screen is locked or disconnected
 			qCDebug(grabber_screen_flow) << "Access lost - DXGI_ERROR_INVALID_CALL";
+			//resetDeviceAndCapture();
 			return -1;
 			break;
 		case DXGI_ERROR_ACCESS_DENIED:

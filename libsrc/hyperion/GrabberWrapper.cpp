@@ -11,6 +11,8 @@
 // qt
 #include <QTimer>
 
+Q_LOGGING_CATEGORY(grabber_flow, "hyperion.grabber.flow");
+
 GrabberWrapper* GrabberWrapper::instance = nullptr;
 const int GrabberWrapper::DEFAULT_RATE_HZ = 25;
 const int GrabberWrapper::DEFAULT_MIN_GRAB_RATE_HZ = 1;
@@ -62,7 +64,6 @@ GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber * ggrabber, i
 
 	QObject::connect(EventHandler::getInstance().data(), &EventHandler::signalEvent, this, &GrabberWrapper::handleEvent);
 }
-
 GrabberWrapper::~GrabberWrapper()
 {
 	TRACK_SCOPE();
@@ -72,9 +73,25 @@ GrabberWrapper::~GrabberWrapper()
 
 bool GrabberWrapper::start()
 {
+	qCDebug(grabber_flow) << "Request to start grabber" << _grabberName
+		<< ", which is currently"<< (_ggrabber->isEnabled() ? "enabled" : "disabled");
 	if (!_ggrabber->isAvailable())
 	{
+		qCDebug(grabber_flow) << "Grabber" << _grabberName << "is not started as it not available";
 		return false;
+	}
+
+	if (!_ggrabber->isEnabled())
+	{
+		qCDebug(grabber_flow) << "Grabber" << _grabberName << "is not started as it is disabled";
+		Info(_log,"%s grabber is disabled, it is not started", QSTRING_CSTR(getName()));
+		return false;
+	}
+
+	if (isActive())
+	{
+		qCDebug(grabber_flow) << "Grabber" << _grabberName << "is already running";
+		return true;
 	}
 
 	if ( !open() )
@@ -88,22 +105,39 @@ bool GrabberWrapper::start()
 		Info(_log,"%s grabber started", QSTRING_CSTR(getName()));
 		_timer->start();
 	}
+	qCDebug(grabber_flow) << "Grabber" << _grabberName << (_timer->isActive() ? "active" : "inactive") << "now";
 
 	return _timer->isActive();
 }
 
 void GrabberWrapper::stop()
 {
+	qCDebug(grabber_flow) << "Request to stop grabber" << _grabberName
+		<< ", which is currently"<< (_ggrabber->isEnabled() ? "enabled" : "disabled")
+		<< ", and" << (_timer->isActive() ? "active" : "inactive");
+
 	if (_timer->isActive())
 	{
 		// Stop the timer, effectively stopping the process
 		Info(_log,"%s grabber stopped", QSTRING_CSTR(getName()));
 		_timer->stop();
 	}
+	qCDebug(grabber_flow) << "Grabber" << _grabberName << "stopped";
+}
+
+bool GrabberWrapper::restart()
+{
+	qCDebug(grabber_flow) << "Request to restart grabber" << _grabberName
+		<< ", which is currently" << (_ggrabber->isEnabled() ? "enabled" : "disabled")
+		<< ", and" << (_timer->isActive() ? "active" : "inactive");
+
+	_timer->stop();
+	return start();
 }
 
 void GrabberWrapper::handleEvent(Event event)
 {
+	qCDebug(grabber_flow) << "Received event" << event << "for grabber" << _grabberName;
 	if (_ggrabber != nullptr)
 	{
 		_ggrabber->handleEvent(event);
@@ -252,14 +286,15 @@ void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocume
 		!_grabberName.startsWith("V4L") &&
 		!_grabberName.startsWith("Audio"))
 	{
-		// extract settings
 		const QJsonObject& obj = config.object();
+		qCDebug(grabber_flow) << "Screen grabber" << _grabberName << "updating settings with" << obj;
 
 		// save current state
-		bool isEnabled = getSysGrabberState();
+		bool isCurrentlyEnabled = getSysGrabberState();
 
 		// set global grabber state
 		setSysGrabberState(obj["enable"].toBool(false));
+		qCDebug(grabber_flow) << "Screen grabber" << _grabberName << "is configured" << (getSysGrabberState() ? "enabled" : "disabled") << ", current state is" << (isCurrentlyEnabled ? "enabled" : "disabled");
 
 		if (getSysGrabberState())
 		{
@@ -285,15 +320,19 @@ void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocume
 			// eval new update time
 			updateTimer(_ggrabber->getUpdateInterval());
 
-			// start if current state is not true
-			if (!isEnabled)
-			{
-				start();
-			}
+			// restart the grabber after configuration change
+			Info(_log, "Restarting grabber %s after settings update", QSTRING_CSTR(_grabberName));
+			_ggrabber->setEnabled(true);
+			start();
 		}
 		else
 		{
-			stop();
+			_ggrabber->setEnabled(false);
+			if (isCurrentlyEnabled)
+			{
+				Info(_log, "Stop running grabber %s after settings update", QSTRING_CSTR(_grabberName));
+				stop();
+			}
 		}
 	}
 }
@@ -304,19 +343,29 @@ void GrabberWrapper::handleSourceRequest(hyperion::Components component, int hyp
 		!_grabberName.startsWith("V4L") &&
 		!_grabberName.startsWith("Audio"))
 	{
-		qCDebug(grabber_screen_flow) << "Instance:" << hyperionInd << ", listen" << listen << ", Global screen grabber current state:" << getSysGrabberState();;
+		qCDebug(grabber_screen_flow) << "Instance [" << hyperionInd << "] - Request to" << (listen ? "add" : "remove") << "screen grabber" << _grabberName << "which is" << (getSysGrabberState() ? "enabled" : "disabled");
 		if (listen)
 		{
+			if (GRABBER_SYS_CLIENTS.contains(hyperionInd))
+			{
+				if (GRABBER_SYS_CLIENTS[hyperionInd] == _grabberName)
+				{
+					qCDebug(grabber_screen_flow) << "Instance [" << hyperionInd << "] - Screen grabber" << _grabberName << "is already registered";
+					return;
+				}
+			}
+
 			GRABBER_SYS_CLIENTS.insert(hyperionInd, _grabberName);
-			qCDebug(grabber_screen_flow) << "Adding screen grabber" << _grabberName << "to instance [" << hyperionInd << "]";
+			qCDebug(grabber_screen_flow) << "Instance [" << hyperionInd << "] - Adding screen grabber" << _grabberName;
 			if (GRABBER_SYS_CLIENTS.size() == 1)
 			{
-				Debug(_log, "First instance available for grabber");
+				qCDebug(grabber_screen_flow) << "Instance [" << hyperionInd << "] - First instance available for screen grabber";
+				start();
 			}
 		}
 		else
 		{
-			qCDebug(grabber_screen_flow) << "Removing screen grabber" << GRABBER_SYS_CLIENTS[hyperionInd] << "from instance [" << hyperionInd << "]";
+			qCDebug(grabber_screen_flow) << "Instance [" << hyperionInd << "] - Removing screen grabber" << GRABBER_SYS_CLIENTS[hyperionInd];
 			GRABBER_SYS_CLIENTS.remove(hyperionInd);
 			if (GRABBER_SYS_CLIENTS.empty() || !getSysGrabberState())
 			{
@@ -325,18 +374,26 @@ void GrabberWrapper::handleSourceRequest(hyperion::Components component, int hyp
 			}
 		}
 	}
-	else if (component == hyperion::Components::COMP_V4L &&
-		_grabberName.startsWith("V4L"))
+	else if (component == hyperion::Components::COMP_V4L)
 	{
-		qCDebug(grabber_video_flow) << "Instance:" << hyperionInd << ", listen" << listen << ", Global video grabber current state:" << getV4lGrabberState();;
+		qCDebug(grabber_video_flow) << "Instance [" << hyperionInd << "] - Request to" << (listen ? "add" : "remove") << "video grabber" << _grabberName << "which is" << (getV4lGrabberState() ? "enabled" : "disabled");
 
 		if (listen)
 		{
+			if (GRABBER_V4L_CLIENTS.contains(hyperionInd))
+			{
+				if (GRABBER_V4L_CLIENTS[hyperionInd] == _grabberName)
+				{
+					qCDebug(grabber_video_flow) << "Instance [" << hyperionInd << "] - Video grabber" << _grabberName << "is already registered";
+					return;
+				}
+			}
+
 			GRABBER_V4L_CLIENTS.insert(hyperionInd, _grabberName);
-			qCDebug(grabber_video_flow) << "Adding video grabber" << _grabberName << "to instance [" << hyperionInd << "]";
+			qCDebug(grabber_video_flow) << "Instance [" << hyperionInd << "] - Adding video grabber" << _grabberName;
 			if (GRABBER_V4L_CLIENTS.size() == 1)
 			{
-				Debug(_log, "Start video grabber on first instance listing");
+				qCDebug(grabber_video_flow) << "Instance [" << hyperionInd << "] - First instance available for video grabber";
 				start();
 			}
 		}
@@ -354,15 +411,24 @@ void GrabberWrapper::handleSourceRequest(hyperion::Components component, int hyp
 	else if (component == hyperion::Components::COMP_AUDIO &&
 		_grabberName.startsWith("Audio"))
 	{
-		qCDebug(grabber_audio_flow) << "Instance:" << hyperionInd << ", listen" << listen << ", Global audio grabber current state:" << getAudioGrabberState();;
+		qCDebug(grabber_audio_flow) << "Instance [" << hyperionInd << "] - Request to" << (listen ? "add" : "remove") << "audio grabber" << _grabberName << "which is" << (getAudioGrabberState() ? "enabled" : "disabled");
 
 		if (listen)
 		{
-			qCDebug(grabber_audio_flow) << "Adding audio grabber" << _grabberName << "to instance [" << hyperionInd << "]";
+			if (GRABBER_AUDIO_CLIENTS.contains(hyperionInd))
+			{
+				if (GRABBER_AUDIO_CLIENTS[hyperionInd] == _grabberName)
+				{
+					qCDebug(grabber_audio_flow) << "Instance [" << hyperionInd << "] - Audio grabber" << _grabberName << "is already registered";
+					return;
+				}
+			}
+
+			qCDebug(grabber_audio_flow) << "Instance [" << hyperionInd << "] - Adding audio grabber" << _grabberName;
 			GRABBER_AUDIO_CLIENTS.insert(hyperionInd, _grabberName);
 			if (GRABBER_AUDIO_CLIENTS.size() == 1)
 			{
-				Debug(_log, "Start audio grabber on first instance listing");
+				qCDebug(grabber_audio_flow) << "Instance [" << hyperionInd << "] - First instance available for audio grabber";
 				start();
 			}
 		}
