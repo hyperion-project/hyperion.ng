@@ -99,6 +99,7 @@ void OsEventHandlerBase::handleSettingsUpdate(settings::type type, const QJsonDo
 
 void OsEventHandlerBase::suspend(bool sleep)
 {
+	qDebug(event_os) << "System suspend state changed. sleep =" << sleep;
 	if (sleep)
 	{
 		emit signalEvent(Event::Suspend);
@@ -111,8 +112,10 @@ void OsEventHandlerBase::suspend(bool sleep)
 
 void OsEventHandlerBase::lock(bool isLocked)
 {
+	qDebug(event_os) << "System lock state changed. System is now" << (isLocked ? "locked" : "unlocked");
 	if (isLocked)
 	{
+		emit signalEvent(Event::Lock);
 		if (_isSuspendOnLock)
 		{
 			emit signalEvent(Event::Suspend);
@@ -124,6 +127,7 @@ void OsEventHandlerBase::lock(bool isLocked)
 	}
 	else
 	{
+		emit signalEvent(Event::Unlock);
 		if (_isSuspendOnLock)
 		{
 			emit signalEvent(Event::Resume);
@@ -238,7 +242,7 @@ QScopedPointer<OsEventHandlerWindows> OsEventHandlerWindows::instance;
 
 QScopedPointer<OsEventHandlerWindows>& OsEventHandlerWindows::getInstance()
 {
-	if (!instance)
+	if (instance.isNull())
 	{
 		instance.reset(new OsEventHandlerWindows());
 	}
@@ -266,7 +270,6 @@ bool OsEventHandlerWindows::nativeEventFilter(const QByteArray& eventType, void*
 bool OsEventHandlerWindows::nativeEventFilter(const QByteArray& eventType, void* message, long int* /*result*/)
 #endif
 {
-
 	MSG* msg = static_cast<MSG*>(message);
 	switch (msg->message)
 	{
@@ -279,11 +282,11 @@ bool OsEventHandlerWindows::nativeEventFilter(const QByteArray& eventType, void*
 		switch (msg->wParam)
 		{
 		case WTS_SESSION_LOCK:
-			emit lock(true);
+			lock(true);
 			return true;
 			break;
 		case WTS_SESSION_UNLOCK:
-			emit lock(false);
+			lock(false);
 			return true;
 			break;
 		}

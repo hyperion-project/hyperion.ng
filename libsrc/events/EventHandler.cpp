@@ -208,6 +208,14 @@ void EventHandler::handleEvent(Event event)
 		emit signalEvent(Event::Quit);
 		break;
 
+	case Event::Lock:
+		emit signalEvent(Event::Lock);
+		break;
+
+	case Event::Unlock:
+		emit signalEvent(Event::Unlock);
+		break;
+
 	default:
 		Error(_log,"Unkonwn Event '%d' received", event);
 		break;
