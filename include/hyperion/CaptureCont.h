@@ -1,9 +1,15 @@
 #pragma once
 
+#include <QLoggingCategory>
+
 #include <utils/Logger.h>
 #include <utils/settings.h>
 #include <utils/Components.h>
 #include <utils/Image.h>
+
+Q_DECLARE_LOGGING_CATEGORY(capturectl_screen_flow);
+Q_DECLARE_LOGGING_CATEGORY(capturectl_video_flow);
+Q_DECLARE_LOGGING_CATEGORY(capturectl_audio_flow);
 
 class Hyperion;
 class QTimer;
