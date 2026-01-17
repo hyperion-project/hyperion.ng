@@ -99,7 +99,7 @@ void OsEventHandlerBase::handleSettingsUpdate(settings::type type, const QJsonDo
 
 void OsEventHandlerBase::suspend(bool sleep)
 {
-	qDebug(event_os) << "System suspend state changed. sleep =" << sleep;
+	qCDebug(event_os) << "System suspend state changed. System is now" << (sleep ? "suspended" : "running");
 	if (sleep)
 	{
 		emit signalEvent(Event::Suspend);
@@ -112,7 +112,7 @@ void OsEventHandlerBase::suspend(bool sleep)
 
 void OsEventHandlerBase::lock(bool isLocked)
 {
-	qDebug(event_os) << "System lock state changed. System is now" << (isLocked ? "locked" : "unlocked");
+	qCDebug(event_os) << "System lock state changed. System is now" << (isLocked ? "locked" : "unlocked");
 	if (isLocked)
 	{
 		emit signalEvent(Event::Lock);
@@ -216,7 +216,7 @@ inline void debugPowerNotification(ULONG Type, PVOID Setting)
 		const POWERBROADCAST_SETTING* pbs =
 			static_cast<const POWERBROADCAST_SETTING*>(Setting);
 
-		qDebug().noquote()
+		qCDebug(event_os).noquote()
 			<< "  Setting GUID:" << pbs->PowerSetting
 			<< "DataLength:" << pbs->DataLength;
 

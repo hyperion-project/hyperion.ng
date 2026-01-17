@@ -15,6 +15,7 @@
 #include <utils/Logger.h>
 
 #include <cmath>
+#include <cstddef>
 
 // Logs a message along with the hex error HRESULT.
 #define LOG_ERROR(hr, msg) Error(_log, msg ": 0x%x", hr)
@@ -88,7 +89,7 @@ public:
 
 DDAGrabber::DDAGrabber(int display, int cropLeft, int cropRight, int cropTop, int cropBottom)
 	: Grabber("GRABBER-DDA", cropLeft, cropRight, cropTop, cropBottom)
-	, d(new DDAGrabberImpl)
+	, d(std::make_unique<DDAGrabberImpl>())
 {
 	TRACK_SCOPE() << "Creating DDA grabber for display" << d->display;
 	_useImageResampler = false;
@@ -396,7 +397,7 @@ int DDAGrabber::grabFrame(Image<ColorRgb>& image)
 
 	if (!_isEnabled)
 	{
-		qDebug() << "DDAGrabber: Capture is disabled";
+		qCDebug(grabber_screen_capture) << "Capture is disabled";
 		return -1;
 	}
 
@@ -455,7 +456,6 @@ int DDAGrabber::grabFrame(Image<ColorRgb>& image)
 		case DXGI_ERROR_INVALID_CALL:
 			// Happens, if a screen is locked or disconnected
 			qCDebug(grabber_screen_flow) << "Access lost - DXGI_ERROR_INVALID_CALL";
-			//resetDeviceAndCapture();
 			return -1;
 			break;
 		case DXGI_ERROR_ACCESS_DENIED:
@@ -547,20 +547,20 @@ int DDAGrabber::grabFrame(Image<ColorRgb>& image)
 
 	// CPU pixel copy from BGRA to output RGB image
 	ColorRgb* destPtr = image.memptr();
-	const uint8_t* srcPtr = static_cast<const uint8_t*>(mapped.pData);
+	const auto* srcPtr = static_cast<const uint8_t*>(mapped.pData);
 
 	for (int y = 0; y < _height; ++y)
 	{
 		// Set pointers to the start of the current row
-		const uint32_t* srcRowPtr = reinterpret_cast<const uint32_t*>(srcPtr + y * mapped.RowPitch);
+		const auto* srcRowPtr = static_cast<const uint32_t*>(static_cast<const void*>(srcPtr + y * mapped.RowPitch));
 		ColorRgb* destRowPtr = destPtr + y * _width;
 
 		for (int x = 0; x < _width; ++x)
 		{
-			const uint8_t* bgra = reinterpret_cast<const uint8_t*>(srcRowPtr);
-			destRowPtr->red = bgra[2];
-			destRowPtr->green = bgra[1];
-			destRowPtr->blue = bgra[0];
+			const auto* bgra = static_cast<const std::byte*>(static_cast<const void*>(srcRowPtr));
+			destRowPtr->red = static_cast<uint8_t>(bgra[2]);
+			destRowPtr->green = static_cast<uint8_t>(bgra[1]);
+			destRowPtr->blue = static_cast<uint8_t>(bgra[0]);
 
 			// Move to the next pixel
 			srcRowPtr++;
@@ -650,7 +650,7 @@ QJsonObject DDAGrabber::discover(const QJsonObject& params)
 			const int width = desc.DesktopCoordinates.right - desc.DesktopCoordinates.left;
 			const int height = desc.DesktopCoordinates.bottom - desc.DesktopCoordinates.top;
 
-			qDebug() << "Found video input" << i << "with name" << QString::fromWCharArray(desc.DeviceName)
+			qCDebug(grabber_screen_properties) << "Found video input" << i << "with name" << QString::fromWCharArray(desc.DeviceName)
 				<< "and size" << width << "x" << height;
 
 			videoInputs.append(QJsonObject{

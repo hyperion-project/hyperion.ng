@@ -137,10 +137,16 @@ bool DirectXGrabber::setupDisplay()
 
 int DirectXGrabber::grabFrame(Image<ColorRgb> & image)
 {
+	if (_isDeviceInError)
+	{
+		Error(_log, "Cannot grab frame, device is in error state");
+		return -1;
+	}
+
 	if (!_isEnabled)
 	{
-		qDebug() << "AUS";
-		return 0;
+		qCDebug(grabber_screen_capture) << "Capture is disabled";
+		return -1;
 	}
 
 	if (_device == nullptr)
@@ -154,7 +160,7 @@ int DirectXGrabber::grabFrame(Image<ColorRgb> & image)
 	if (FAILED(_device->GetFrontBufferData(0, _surface)))
 	{
 		Error(_log, "Unable to get Buffer Surface Data");
-		return 0;
+		return -1;
 	}
 
 	D3DXLoadSurfaceFromSurface(_surfaceDest, nullptr, nullptr, _surface, nullptr, _srcRect, D3DX_DEFAULT, 0);
@@ -163,7 +169,7 @@ int DirectXGrabber::grabFrame(Image<ColorRgb> & image)
 	if (FAILED(_surfaceDest->LockRect(&lockedRect, nullptr, D3DLOCK_NO_DIRTY_UPDATE | D3DLOCK_NOSYSLOCK | D3DLOCK_READONLY)))
 	{
 		Error(_log, "Unable to lock destination Front Buffer Surface");
-		return 0;
+		return -1;
 	}
 
 	for(int i=0 ; i < _height ; i++)
@@ -175,7 +181,7 @@ int DirectXGrabber::grabFrame(Image<ColorRgb> & image)
 	if (FAILED(_surfaceDest->UnlockRect()))
 	{
 		Error(_log, "Unable to unlock destination Front Buffer Surface");
-		return 0;
+		return -1;
 	}
 
 	return 0;

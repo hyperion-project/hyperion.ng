@@ -15,7 +15,7 @@ DDAWrapper::DDAWrapper(const QJsonDocument& grabberConfig)
 {
 	if (_grabber.isAvailable(true))
 	{
-		this->handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
+		DDAWrapper::handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
 	}
 }
 
@@ -46,36 +46,6 @@ bool DDAWrapper::start()
 	return GrabberWrapper::start();
 }
 
-//bool DDAWrapper::start()
-//{
-//	qCDebug(grabber_screen_flow) << "Start grabber" << _grabber.getGrabberName() << "currently:" << (_grabber.isEnabled() ? "enabled" : "disabled");
-//
-//	if (_grabber.isAvailable() && _grabber.isEnabled())
-//	{
-//		if (isActive())
-//		{
-//			qCDebug(grabber_screen_flow) << "Grabber" << _grabber.getGrabberName() << "is already running";
-//			return true;
-//		}
-//
-//		qDebug(grabber_screen_flow) << "Start grabber" << _grabber.getGrabberName()
-//			<< ". System is" << (OsEventHandler::getInstance()->isLocked() ? "locked" : "unlocked")
-//			<< "and" << (OsEventHandler::getInstance()->isSuspended() ? "suspended" : "resumed");
-//
-//		if (OsEventHandler::getInstance()->isLocked())
-//		{
-//			qCDebug(grabber_screen_flow) << "Grabber" << _grabber.getGrabberName() << "not started, as system is still locked";
-//			return false;
-//		}
-//
-//		if (_grabber.resetDeviceAndCapture())
-//		{
-//			return GrabberWrapper::start();
-//		}
-//	}
-//
-//	return false;
-//}
 
 void DDAWrapper::action()
 {
@@ -95,7 +65,7 @@ void DDAWrapper::handleEvent(Event event)
 		return;
 	}
 
-	qDebug(grabber_screen_flow) << "Handle event" << event << "for grabber" << _grabber.getGrabberName()
+	qCDebug(grabber_screen_flow) << "Handle event" << event << "for grabber" << _grabber.getGrabberName()
 		<< ". Screen is" << (_isScreenLocked ? "locked" : "unlocked");
 
 	switch (event)
