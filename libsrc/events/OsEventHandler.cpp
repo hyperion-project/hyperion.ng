@@ -23,6 +23,8 @@
 #include <AppKit/AppKit.h>
 #endif
 
+Q_LOGGING_CATEGORY(event_os, "hyperion.event.os");
+
 OsEventHandlerBase::OsEventHandlerBase()
 	: _isSuspendEnabled(false)
 	, _isLockEnabled(false)
@@ -97,6 +99,7 @@ void OsEventHandlerBase::handleSettingsUpdate(settings::type type, const QJsonDo
 
 void OsEventHandlerBase::suspend(bool sleep)
 {
+	qCDebug(event_os) << "System suspend state changed. System is now" << (sleep ? "suspended" : "running");
 	if (sleep)
 	{
 		emit signalEvent(Event::Suspend);
@@ -109,8 +112,10 @@ void OsEventHandlerBase::suspend(bool sleep)
 
 void OsEventHandlerBase::lock(bool isLocked)
 {
+	qCDebug(event_os) << "System lock state changed. System is now" << (isLocked ? "locked" : "unlocked");
 	if (isLocked)
 	{
+		emit signalEvent(Event::Lock);
 		if (_isSuspendOnLock)
 		{
 			emit signalEvent(Event::Suspend);
@@ -122,6 +127,7 @@ void OsEventHandlerBase::lock(bool isLocked)
 	}
 	else
 	{
+		emit signalEvent(Event::Unlock);
 		if (_isSuspendOnLock)
 		{
 			emit signalEvent(Event::Resume);
@@ -140,10 +146,108 @@ void OsEventHandlerBase::quit()
 
 #if defined(_WIN32)
 
-OsEventHandlerWindows* OsEventHandlerWindows::getInstance()
+inline void debugSessionNotification(MSG* message)
 {
-	static OsEventHandlerWindows instance;
-	return &instance;
+	DWORD sessionId = static_cast<DWORD>(message->lParam);
+
+	const char* eventName = "UNKNOWN";
+
+	switch (message->wParam)
+	{
+	case WTS_CONSOLE_CONNECT:        eventName = "WTS_CONSOLE_CONNECT"; break;
+	case WTS_CONSOLE_DISCONNECT:     eventName = "WTS_CONSOLE_DISCONNECT"; break;
+	case WTS_REMOTE_CONNECT:         eventName = "WTS_REMOTE_CONNECT"; break;
+	case WTS_REMOTE_DISCONNECT:      eventName = "WTS_REMOTE_DISCONNECT"; break;
+	case WTS_SESSION_LOGON:          eventName = "WTS_SESSION_LOGON"; break;
+	case WTS_SESSION_LOGOFF:         eventName = "WTS_SESSION_LOGOFF"; break;
+	case WTS_SESSION_LOCK:           eventName = "WTS_SESSION_LOCK"; break;
+	case WTS_SESSION_UNLOCK:         eventName = "WTS_SESSION_UNLOCK"; break;
+	case WTS_SESSION_REMOTE_CONTROL: eventName = "WTS_SESSION_REMOTE_CONTROL"; break;
+	case WTS_SESSION_CREATE:         eventName = "WTS_SESSION_CREATE"; break;
+	case WTS_SESSION_TERMINATE:      eventName = "WTS_SESSION_TERMINATE"; break;
+	}
+
+	qCDebug(event_os).noquote()
+		<< "WM_WTSSESSION_CHANGE:"
+		<< eventName
+		<< "(wParam =" << message->wParam << ")"
+		<< "sessionId =" << sessionId;
+}
+
+inline void debugPowerNotification(ULONG Type, PVOID Setting)
+{
+	const char* typeName = "UNKNOWN";
+
+	switch (Type)
+	{
+	case PBT_APMSUSPEND:
+		typeName = "PBT_APMSUSPEND";
+		break;
+
+	case PBT_APMRESUMEAUTOMATIC:
+		typeName = "PBT_APMRESUMEAUTOMATIC";
+		break;
+
+	case PBT_APMRESUMESUSPEND:
+		typeName = "PBT_APMRESUMESUSPEND";
+		break;
+
+	case PBT_APMPOWERSTATUSCHANGE:
+		typeName = "PBT_APMPOWERSTATUSCHANGE";
+		break;
+
+	case PBT_APMBATTERYLOW:
+		typeName = "PBT_APMBATTERYLOW";
+		break;
+
+	case PBT_POWERSETTINGCHANGE:
+		typeName = "PBT_POWERSETTINGCHANGE";
+		break;
+	}
+
+	qCDebug(event_os).noquote()
+		<< "PowerNotification:"
+		<< typeName
+		<< "(Type =" << Qt::hex << Type << Qt::dec << ")";
+
+	// Extra details for power setting changes
+	if (Type == PBT_POWERSETTINGCHANGE && Setting)
+	{
+		const POWERBROADCAST_SETTING* pbs =
+			static_cast<const POWERBROADCAST_SETTING*>(Setting);
+
+		qCDebug(event_os).noquote()
+			<< "  Setting GUID:" << pbs->PowerSetting
+			<< "DataLength:" << pbs->DataLength;
+
+		// Example: monitor on/off
+		if (pbs->PowerSetting == GUID_CONSOLE_DISPLAY_STATE && pbs->DataLength == sizeof(DWORD))
+		{
+			DWORD state = *reinterpret_cast<const DWORD*>(pbs->Data);
+
+			const char* displayState = "UNKNOWN";
+			switch (state)
+			{
+			case 0: displayState = "DISPLAY_OFF"; break;
+			case 1: displayState = "DISPLAY_ON"; break;
+			case 2: displayState = "DISPLAY_DIMMED"; break;
+			}
+
+			qCDebug(event_os) << "  Console display state:" << displayState;
+		}
+	}
+}
+
+QScopedPointer<OsEventHandlerWindows> OsEventHandlerWindows::instance;
+
+QScopedPointer<OsEventHandlerWindows>& OsEventHandlerWindows::getInstance()
+{
+	if (instance.isNull())
+	{
+		instance.reset(new OsEventHandlerWindows());
+	}
+
+	return instance;
 }
 
 OsEventHandlerWindows::OsEventHandlerWindows()
@@ -166,19 +270,23 @@ bool OsEventHandlerWindows::nativeEventFilter(const QByteArray& eventType, void*
 bool OsEventHandlerWindows::nativeEventFilter(const QByteArray& eventType, void* message, long int* /*result*/)
 #endif
 {
-
 	MSG* msg = static_cast<MSG*>(message);
 	switch (msg->message)
 	{
 	case WM_WTSSESSION_CHANGE:
+		if (event_os().isDebugEnabled())
+		{
+			debugSessionNotification(msg);
+		}
+
 		switch (msg->wParam)
 		{
 		case WTS_SESSION_LOCK:
-			emit lock(true);
+			lock(true);
 			return true;
 			break;
 		case WTS_SESSION_UNLOCK:
-			emit lock(false);
+			lock(false);
 			return true;
 			break;
 		}
@@ -201,6 +309,11 @@ void OsEventHandlerWindows::handleSuspendResumeEvent(bool sleep)
 
 ULONG OsEventHandlerWindows::handlePowerNotifications(PVOID Context, ULONG Type, PVOID Setting)
 {
+	if (event_os().isDebugEnabled())
+	{
+		debugPowerNotification(Type, Setting);
+	}
+
 	switch (Type)
 	{
 	case PBT_APMRESUMESUSPEND:
@@ -298,10 +411,16 @@ void OsEventHandlerWindows::unregisterLockHandler()
 
 #include <csignal>
 
-OsEventHandlerLinux* OsEventHandlerLinux::getInstance()
+QScopedPointer<OsEventHandlerLinux> OsEventHandlerLinux::instance;
+
+QScopedPointer<OsEventHandlerLinux>& OsEventHandlerLinux::getInstance()
 {
-	static OsEventHandlerLinux instance;
-	return &instance;
+	if (!instance)
+	{
+		instance.reset(new OsEventHandlerLinux());
+	}
+
+	return instance;
 }
 
 OsEventHandlerLinux::OsEventHandlerLinux()
@@ -503,6 +622,18 @@ void OsEventHandlerLinux::unregisterLockHandler()
 #endif // HYPERION_HAS_DBUS
 
 #elif defined(__APPLE__)
+
+QScopedPointer<OsEventHandlerMacOS> OsEventHandlerMacOS::instance;
+
+QScopedPointer<OsEventHandlerMacOS>& OsEventHandlerMacOS::getInstance()
+{
+	if (!instance)
+	{
+		instance.reset(new OsEventHandlerMacOS());
+	}
+
+	return instance;
+}
 
 OsEventHandlerMacOS::OsEventHandlerMacOS()
 	: _sleepEventHandler(nullptr)

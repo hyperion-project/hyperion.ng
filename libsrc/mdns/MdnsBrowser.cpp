@@ -61,6 +61,8 @@ void MdnsBrowser::stop()
 	Info(_log, "mDNS-Browser stopped");
 
 	emit isStopped();
+
+	qCDebug(mdns_browser) << "MdnsBrowser stopped";
 }
 
 QSharedPointer<MdnsBrowser>& MdnsBrowser::getInstance(QThread* externalThread)
@@ -71,6 +73,7 @@ QSharedPointer<MdnsBrowser>& MdnsBrowser::getInstance(QThread* externalThread)
 		if (externalThread != nullptr) // Move to existing thread if provided
 		{
 			instance->moveToThread(externalThread);
+			qCDebug(mdns_browser) << "MdnsBrowser running in thread: " << externalThread->objectName();
 
 			// Ensure _server and _cache are initialized inside externalThread
 			QMetaObject::invokeMethod(instance.get(), "initMdns", Qt::QueuedConnection);
@@ -88,6 +91,7 @@ void MdnsBrowser::destroyInstance()
 {
 	if (!instance.isNull())
 	{
+		qCDebug(mdns_browser) << "Destroying MdnsBrowser";
 		instance.clear();
 	}
 }

@@ -7,6 +7,10 @@
 #include <hyperion/Hyperion.h>
 #include <utils/GlobalSignals.h>
 
+Q_LOGGING_CATEGORY(capturectl_screen_flow, "hyperion.capturectl.screen.flow");
+Q_LOGGING_CATEGORY(capturectl_video_flow, "hyperion.capturectl.video.flow");
+Q_LOGGING_CATEGORY(capturectl_audio_flow, "hyperion.capturectl.audio.flow");
+
 namespace {
 const int DEFAULT_VIDEO_CAPTURE_PRIORITY = 240;
 const int DEFAULT_SCREEN_CAPTURE_PRIORITY = 250;
@@ -47,7 +51,6 @@ void CaptureCont::start()
 
 		// comp changes
 		connect(hyperion.get(), &Hyperion::compStateChangeRequest, this, &CaptureCont::handleCompStateChangeRequest);
-
 
 		// inactive timer screen
 		_screenCaptureInactiveTimer.reset(new QTimer());
@@ -97,6 +100,7 @@ void CaptureCont::handleVideoImage(const QString& name, const Image<ColorRgb> & 
 	{
 		hyperion->registerInput(_videoCapturePriority, hyperion::COMP_V4L, "System", name);
 		_videoCaptureName = name;
+		qCDebug(capturectl_video_flow) << "Instance[" << hyperion.get()->getInstanceIndex() << "] - New video capture source registered:" << name;
 		emit GlobalSignals::getInstance()->requestSource(hyperion::COMP_V4L, int(hyperion->getInstanceIndex()), _videoCaptureEnabled);
 	}
 	_videoInactiveTimer->start();
@@ -111,6 +115,7 @@ void CaptureCont::handleScreenImage(const QString& name, const Image<ColorRgb>& 
 	{
 		hyperion->registerInput(_screenCapturePriority, hyperion::COMP_GRABBER, "System", name);
 		_screenCaptureName = name;
+		qCDebug(capturectl_screen_flow) << "Instance[" << hyperion.get()->getInstanceIndex() << "] - New screen capture source registered:" << name;
 		emit GlobalSignals::getInstance()->requestSource(hyperion::COMP_GRABBER, int(hyperion->getInstanceIndex()), _screenCaptureEnabled);
 	}
 	_screenCaptureInactiveTimer->start();
@@ -124,6 +129,7 @@ void CaptureCont::handleAudioImage(const QString& name, const Image<ColorRgb>& i
 	{
 		hyperion->registerInput(_audioCapturePriority, hyperion::COMP_AUDIO, "System", name);
 		_audioCaptureName = name;
+		qCDebug(capturectl_audio_flow) << "Instance[" << hyperion.get()->getInstanceIndex() << "] - New audio capture source registered:" << name;
 	}
 	_audioCaptureInactiveTimer->start();
 	hyperion->setInputImage(_audioCapturePriority, image);
@@ -151,6 +157,7 @@ void CaptureCont::setScreenCaptureEnable(bool enable)
 		}
 		_screenCaptureEnabled = enable;
 		hyperion->setNewComponentState(hyperion::COMP_GRABBER, enable);
+		qCDebug(capturectl_screen_flow) << "Instance[" << hyperion.get()->getInstanceIndex() << "] - Set screen capture component to" << (enable ? "enabled" : "disabled");
 		emit GlobalSignals::getInstance()->requestSource(hyperion::COMP_GRABBER, int(hyperion->getInstanceIndex()), enable);
 	}
 }
@@ -177,6 +184,7 @@ void CaptureCont::setVideoCaptureEnable(bool enable)
 		}
 		_videoCaptureEnabled = enable;
 		hyperion->setNewComponentState(hyperion::COMP_V4L, enable);
+		qCDebug(capturectl_video_flow) << "Instance[" << hyperion.get()->getInstanceIndex() << "] - Set video capture component to" << (enable ? "enabled" : "disabled");
 		emit GlobalSignals::getInstance()->requestSource(hyperion::COMP_V4L, int(hyperion->getInstanceIndex()), enable);
 	}
 }
@@ -203,6 +211,7 @@ void CaptureCont::setAudioCaptureEnable(bool enable)
 		}
 		_audioCaptureEnabled = enable;
 		hyperion->setNewComponentState(hyperion::COMP_AUDIO, enable);
+		qCDebug(capturectl_audio_flow) << "Instance[" << hyperion.get()->getInstanceIndex() << "] - Set audio capture component to" << (enable ? "enabled" : "disabled");
 		emit GlobalSignals::getInstance()->requestSource(hyperion::COMP_AUDIO, int(hyperion->getInstanceIndex()), enable);
 	}
 }
@@ -223,6 +232,8 @@ void CaptureCont::handleSettingsUpdate(settings::type type, const QJsonDocument&
 		auto videoCaptureInactiveTimeout = static_cast<std::chrono::milliseconds>(obj["videoInactiveTimeout"].toInt(DEFAULT_VIDEO_CAPTURE_INACTIVE_TIMEOUT.count()) * 1000);
 		if(_videoInactiveTimer->intervalAsDuration() != videoCaptureInactiveTimeout)
 		{
+			qCDebug(capturectl_video_flow) << "Instance[" << _hyperionWeak.toStrongRef()->getInstanceIndex() << "] - "
+				<< "Update video capture inactive timeout to" << std::chrono::duration_cast<std::chrono::seconds>(videoCaptureInactiveTimeout).count() << "s";
 			_videoInactiveTimer->setInterval(videoCaptureInactiveTimeout);
 		}
 
@@ -236,6 +247,8 @@ void CaptureCont::handleSettingsUpdate(settings::type type, const QJsonDocument&
 		auto screenCaptureInactiveTimeout =  static_cast<std::chrono::milliseconds>(obj["screenInactiveTimeout"].toInt(DEFAULT_SCREEN_CAPTURE_INACTIVE_TIMEOUT.count()) * 1000);
 		if(_screenCaptureInactiveTimer->intervalAsDuration() != screenCaptureInactiveTimeout)
 		{
+			qCDebug(capturectl_screen_flow) << "Instance[" << _hyperionWeak.toStrongRef()->getInstanceIndex() << "] - "
+				<< "Update screen capture inactive timeout to" << std::chrono::duration_cast<std::chrono::seconds>(screenCaptureInactiveTimeout).count() << "s";
 			_screenCaptureInactiveTimer->setInterval(screenCaptureInactiveTimeout);
 		}
 
@@ -249,6 +262,8 @@ void CaptureCont::handleSettingsUpdate(settings::type type, const QJsonDocument&
 		auto audioCaptureInactiveTimeout =  static_cast<std::chrono::milliseconds>(obj["audioInactiveTimeout"].toInt(DEFAULT_AUDIO_CAPTURE_INACTIVE_TIMEOUT.count()) * 1000);
 		if(_audioCaptureInactiveTimer->intervalAsDuration() != audioCaptureInactiveTimeout)
 		{
+			qCDebug(capturectl_audio_flow) << "Instance[" << _hyperionWeak.toStrongRef()->getInstanceIndex() << "] - "
+				<< "Update audio capture inactive timeout to" << std::chrono::duration_cast<std::chrono::seconds>(audioCaptureInactiveTimeout).count() << "s";
 			_audioCaptureInactiveTimer->setInterval(audioCaptureInactiveTimeout);
 		}
 
@@ -276,15 +291,18 @@ void CaptureCont::handleCompStateChangeRequest(hyperion::Components component, b
 
 void CaptureCont::onVideoIsInactive() const
 {
+	qCDebug(capturectl_video_flow) << "Instance[" << _hyperionWeak.toStrongRef()->getInstanceIndex() << "] - Video capture identified as inactive after " << _videoInactiveTimer->intervalAsDuration().count() << "ms";
 	_hyperionWeak.toStrongRef()->setInputInactive(_videoCapturePriority);
 }
 
 void CaptureCont::onScreenIsInactive() const
 {
+	qCDebug(capturectl_screen_flow) << "Instance[" << _hyperionWeak.toStrongRef()->getInstanceIndex() << "] - Screen capture identified as inactive after " << _screenCaptureInactiveTimer->intervalAsDuration().count() << "ms";
 	_hyperionWeak.toStrongRef()->setInputInactive(_screenCapturePriority);
 }
 
 void CaptureCont::onAudioIsInactive() const
 {
+	qCDebug(capturectl_audio_flow) << "Instance[" << _hyperionWeak.toStrongRef()->getInstanceIndex() << "] - Audio capture identified as inactive after " << _audioCaptureInactiveTimer->intervalAsDuration().count() << "ms";
 	_hyperionWeak.toStrongRef()->setInputInactive(_audioCapturePriority);
 }

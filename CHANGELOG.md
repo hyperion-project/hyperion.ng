@@ -31,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Hue Bridge - Wizard updates to support bridge-ids, overall code refactoring
   - USB Grabber - Default hardware control properties are now applied when a new USB grabber is selected (avoids black images)
   - USB Grabber - Correct garbage default control values to avoid save issues (#1928)
-  - Windows DDA Grabber - Rewritten grabber internals for better performance & stability and fixed various issues, e.g. screen locking, -orientation handling (#1872)
+  - Windows DDA Grabber - Rewritten grabber internals for better performance & stability and fixed various issues, e.g. screen locking, -orientation handling (#1872), sleep (#1893)
   - Amlogic grabber - Support to switch between DRM & FB-DEV for CoreElec New Order version
   - Web UI: Update panel title uses "Hyperion - <version>"; skip showing the "nightly" tag in releases list
   - Screen grabbers: Commonized base with getDeviceName/getInputDeviceDetails; explicit constructors; improved error handling
@@ -70,6 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Forwarder was not using the correct target instance IDs for JSON requests
   - Flatbuffer/Protobuffer sources are not reconnected after (re)starting a hyperion instance
   - Adalight.ino changes due to FastLED update (#1942) _Thanks to @JackSwieper_
+  - mdnsBrowser is not stopped properly on shutdown
   
 - **Refactors:**
   - Fixed Image & ImageData and add debug logging (#1792, #1892)

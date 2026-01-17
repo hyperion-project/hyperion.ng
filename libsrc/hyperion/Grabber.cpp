@@ -57,7 +57,6 @@ void Grabber::setEnabled(bool enable)
 void Grabber::setInError(const QString& errorMsg)
 {
 	_isDeviceInError = true;
-	_isEnabled = false;
 
 	Error(_log, "Grabber disabled, device '%s' signals error: '%s'", QSTRING_CSTR(_grabberName), QSTRING_CSTR(errorMsg));
 }

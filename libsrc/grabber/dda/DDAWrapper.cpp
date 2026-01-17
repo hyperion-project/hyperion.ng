@@ -1,4 +1,6 @@
 #include "grabber/dda/DDAWrapper.h"
+#include "events/EventHandler.h"
+
 
 DDAWrapper::DDAWrapper(int updateRate_Hz, int display, int pixelDecimation, int cropLeft, int cropRight, int cropTop,
 	int cropBottom)
@@ -13,7 +15,7 @@ DDAWrapper::DDAWrapper(const QJsonDocument& grabberConfig)
 {
 	if (_grabber.isAvailable(true))
 	{
-		GrabberWrapper::handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
+		DDAWrapper::handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
 	}
 }
 
@@ -23,23 +25,27 @@ void DDAWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& 
 	{
 		return;
 	}
-
 	GrabberWrapper::handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
-	_grabber.resetDeviceAndCapture();
+}
+
+bool DDAWrapper::open()
+{
+	if (_isScreenLocked)
+		{
+		qCDebug(grabber_screen_flow) << "Screen is locked - do not open grabber" << _grabber.getGrabberName();
+		return false;
+	}
+
+	qCDebug(grabber_screen_flow) << "Open grabber" << _grabber.getGrabberName() << "currently:" << (_grabber.isEnabled() ? "enabled" : "disabled");
+	return _grabber.resetDeviceAndCapture();
 }
 
 bool DDAWrapper::start()
 {
-	if (_grabber.isAvailable())
-	{
-		if (_grabber.resetDeviceAndCapture())
-		{
-			return GrabberWrapper::start();
-		}
-	}
-
-	return false;
+	qCDebug(grabber_screen_flow) << "Start grabber" << _grabber.getGrabberName() << "currently:" << (_grabber.isEnabled() ? "enabled" : "disabled");
+	return GrabberWrapper::start();
 }
+
 
 void DDAWrapper::action()
 {
@@ -49,4 +55,45 @@ void DDAWrapper::action()
 	}
 
 	transferFrame(_grabber);
+}
+
+void DDAWrapper::handleEvent(Event event)
+{
+	if (!_grabber.isEnabled())
+	{
+		qCDebug(grabber_screen_flow) << "Grabber is disabled. Ignore events.";
+		return;
+	}
+
+	qCDebug(grabber_screen_flow) << "Handle event" << event << "for grabber" << _grabber.getGrabberName()
+		<< ". Screen is" << (_isScreenLocked ? "locked" : "unlocked");
+
+	switch (event)
+	{
+	case Event::Lock:
+		_isScreenLocked = true;
+		qCDebug(grabber_screen_flow) << "Screen is Locked - Remember state";
+		break;
+	case Event::Unlock:
+		_isScreenLocked = false;
+		qCDebug(grabber_screen_flow) << "Resume after screen was unlocked - Start Grabber";
+		start();
+		break;
+	case Event::Resume:
+		if (!_isScreenLocked)
+		{
+			qCDebug(grabber_screen_flow) << "Resume from Suspend - Start Grabber as system is not locked";
+			start();
+		}
+		else
+		{
+			qCDebug(grabber_screen_flow) << "Resume from Suspend - Grabber not started, as system is still locked";
+		}
+		break;
+
+	case Event::Idle:
+	case Event::Suspend:
+	default:
+		break;
+	}
 }

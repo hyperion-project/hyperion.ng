@@ -198,12 +198,16 @@ private slots:
 
 private:
 
+	void startEventServices();
+	void stopEventServices();
+
 	void createNetworkServices();
 	void startNetworkServices();
 	void stopNetworkServices();
 
-	void startEventServices();
-	void stopEventServices();
+	void createNetworkWebServices();
+	void startNetworkWebServices();
+	void stopNetworkWebServices();
 
 	void createNetworkInputCaptureServices();
 	void startNetworkInputCaptureServices();
