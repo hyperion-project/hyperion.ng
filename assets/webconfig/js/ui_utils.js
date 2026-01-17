@@ -94,6 +94,13 @@ function getFirstConfiguredInstance() {
 
   return configuredInstance ? configuredInstance.instance : null; // Return instance number or null if none exists
 }
+function getConfiguredInstances() {
+  const instances = window.serverInfo?.instance || [];
+  const list = Array.isArray(instances) ? instances : Object.values(instances);
+  return list
+    .filter((inst) => typeof inst.instance !== 'undefined')
+    .map((inst) => inst.instance);
+}
 
 function doesInstanceExist(instanceId) {
 
