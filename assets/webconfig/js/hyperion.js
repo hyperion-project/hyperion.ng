@@ -508,12 +508,11 @@ function requestSetSource(priority, instanceIds = [window.currentHyperionInstanc
     sendToHyperion("sourceselect", "", { priority }, instanceIds);
 }
 
-// Function to transform the legacy config into thee new API format
-function transformConfig(configInput, instanceId = 0) {
+// Function to transform the legacy config into the new API format for a single instance
+function transformConfig(configInput, instanceId = 0 ) {
   const globalConfig = {};
   const instanceSettings = {};
 
-  // Populate globalConfig and instanceSettings based on the specified properties
   for (const [key, value] of Object.entries(configInput)) {
     if (window.schema.propertiesTypes.globalProperties.includes(key)) {
       globalConfig[key] = value;
@@ -522,15 +521,12 @@ function transformConfig(configInput, instanceId = 0) {
     }
   }
 
-  // Initialize the final transformed configuration
   const transformedConfig = {};
 
-  // Add `global` only if it has properties
   if (Object.keys(globalConfig).length > 0) {
     transformedConfig.global = { settings: globalConfig };
   }
 
-  // Add `instance` only if there are instance settings
   if (Object.keys(instanceSettings).length > 0) {
     transformedConfig.instances = [
       {
@@ -543,19 +539,55 @@ function transformConfig(configInput, instanceId = 0) {
   return transformedConfig;
 }
 
-function requestWriteConfig(singleInstanceConfig, full) {
+// Function to transform a single config for multiple instance IDs and merge into one config object
+function transformConfigForInstances(configInput, instanceIds = [0]) {
+  const globalConfig = {};
+  const instanceSettings = {};
+
+  for (const [key, value] of Object.entries(configInput)) {
+    if (window.schema.propertiesTypes.globalProperties.includes(key)) {
+      globalConfig[key] = value;
+    } else if (window.schema.propertiesTypes.instanceProperties.includes(key)) {
+      instanceSettings[key] = value;
+    }
+  }
+
+  const transformedConfig = {};
+
+  if (Object.keys(globalConfig).length > 0) {
+    transformedConfig.global = { settings: globalConfig };
+  }
+
+  if (Object.keys(instanceSettings).length > 0 && Array.isArray(instanceIds) && instanceIds.length > 0) {
+    transformedConfig.instances = instanceIds.map(id => ({ id, settings: instanceSettings }));
+  }
+
+  return transformedConfig;
+}
+
+function requestWriteConfig(singleInstanceConfig, full, instances) {
   let newConfig = "";
   const instance = Number(window.currentHyperionInstance);
 
   if (full === true) {
     window.serverConfig = singleInstanceConfig;
-    newConfig = transformConfig(window.serverConfig, instance);
+    // If a list of instances is provided, transform for all; otherwise use current instance
+    if (Array.isArray(instances) && instances.length > 0) {
+      newConfig = transformConfigForInstances(window.serverConfig, instances.map(Number));
+    } else {
+      newConfig = transformConfig(window.serverConfig, instance);
+    }
   }
   else {
     jQuery.each(singleInstanceConfig, function (i, val) {
       window.serverConfig[i] = val;
     });
-    newConfig = transformConfig(singleInstanceConfig, instance);
+    // Build config targeting provided instance list or the current instance
+    if (Array.isArray(instances) && instances.length > 0) {
+      newConfig = transformConfigForInstances(singleInstanceConfig, instances.map(Number));
+    } else {
+      newConfig = transformConfig(singleInstanceConfig, instance);
+    }
   }
 
   sendToHyperion("config", "setconfig", { config: newConfig });
