@@ -7,9 +7,9 @@
 #include <hyperion/Hyperion.h>
 #include <utils/GlobalSignals.h>
 
-Q_LOGGING_CATEGORY(capturectl_screen_flow, "hyperion.capturectl.screen.flow.debug");
-Q_LOGGING_CATEGORY(capturectl_video_flow, "hyperion.capturectl.video.flow.debug");
-Q_LOGGING_CATEGORY(capturectl_audio_flow, "hyperion.capturectl.audio.flow.debug");
+Q_LOGGING_CATEGORY(capturectl_screen_flow, "hyperion.capturectl.screen.flow");
+Q_LOGGING_CATEGORY(capturectl_video_flow, "hyperion.capturectl.video.flow");
+Q_LOGGING_CATEGORY(capturectl_audio_flow, "hyperion.capturectl.audio.flow");
 
 namespace {
 const int DEFAULT_VIDEO_CAPTURE_PRIORITY = 240;
