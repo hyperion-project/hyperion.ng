@@ -264,7 +264,7 @@ bool AmlogicGrabber::setWidthHeight(int width, int height)
 	return true;
 }
 
-QJsonObject AmlogicGrabber::discover(const QJsonObject &params)
+QJsonObject AmlogicGrabber::discover(const QJsonObject & /*params*/ ) const
 {
 	QJsonObject inputsDiscovered;
 
