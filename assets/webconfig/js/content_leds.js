@@ -1732,6 +1732,19 @@ $(document).ready(function () {
       }
     });
 
+    conf_editor.watch('root.specificOptions.whiteAlgorithm', () => {
+      const hardwareLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount").getValue();
+      switch (ledType) {
+        case "wled":
+          validateWledLedCount(hardwareLedCount);
+          break;
+        case "udpraw":
+          validateUdpRawLedCount(hardwareLedCount);
+          break;
+        default:
+      }
+    });
+
     //Handle Hardware Led Count constraint list
     conf_editor.watch('root.generalOptions.hardwareLedCountList', () => {
       var hwLedCountSelected = conf_editor.getEditor("root.generalOptions.hardwareLedCountList").getValue();
@@ -1740,10 +1753,13 @@ $(document).ready(function () {
 
     //Handle Hardware Led update and constraints
     conf_editor.watch('root.generalOptions.hardwareLedCount', () => {
-      var hardwareLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount").getValue();
+      const hardwareLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount").getValue();
       switch (ledType) {
         case "wled":
           validateWledLedCount(hardwareLedCount);
+          break;
+        case "udpraw":
+          validateUdpRawLedCount(hardwareLedCount);
           break;
         default:
       }
@@ -2398,13 +2414,13 @@ async function identify_device(type, params) {
 }
 
 function updateElements(ledType, key) {
-  var canLayout = false;
+  let canLayout = false;
+
   if (devicesProperties[ledType][key]) {
-    var hardwareLedCount = 1;
+    let hardwareLedCount = 1;
+    const ledProperties = devicesProperties[ledType][key];
     switch (ledType) {
       case "cololight":
-        var ledProperties = devicesProperties[ledType][key];
-
         if (ledProperties) {
           hardwareLedCount = ledProperties.ledCount;
         }
@@ -2415,8 +2431,6 @@ function updateElements(ledType, key) {
         break;
 
       case "nanoleaf":
-        var ledProperties = devicesProperties[ledType][key];
-
         if (ledProperties) {
           hardwareLedCount = ledProperties.ledCount;
           canLayout = true;
@@ -2425,16 +2439,9 @@ function updateElements(ledType, key) {
         break;
 
       case "udpraw":
-        var ledProperties = devicesProperties[ledType][key];
-
-        if (ledProperties && ledProperties.maxLedCount) {
+        if (ledProperties) {
           hardwareLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount").getValue();
-          var maxLedCount = ledProperties.maxLedCount;
-          if (hardwareLedCount > maxLedCount) {
-            showInfoDialog('warning', $.i18n("conf_leds_config_warning"), $.i18n('conf_leds_error_hwled_gt_maxled', hardwareLedCount, maxLedCount, maxLedCount));
-            hardwareLedCount = maxLedCount;
-          }
-          updateJsonEditorRange(conf_editor, "root.generalOptions", "hardwareLedCount", 1, maxLedCount, hardwareLedCount);
+          validateUdpRawLedCount(hardwareLedCount);
         }
         break;
 
@@ -2446,11 +2453,9 @@ function updateElements(ledType, key) {
 
       case "atmo":
       case "karate":
-        var ledProperties = devicesProperties[ledType][key];
-
         if (ledProperties && ledProperties.ledCount) {
           if (ledProperties.ledCount.length > 0) {
-            var configuredLedCount = window.serverConfig.device.hardwareLedCount;
+            const configuredLedCount = window.serverConfig.device.hardwareLedCount;
             showInputOptionForItem(conf_editor, 'generalOptions', "hardwareLedCount", false);
             updateJsonEditorSelection(conf_editor, 'root.generalOptions', "hardwareLedCountList", { "title": "edt_dev_general_hardwareLedCount_title" },
               ledProperties.ledCount.map(String), [], configuredLedCount);
@@ -2459,7 +2464,6 @@ function updateElements(ledType, key) {
         break;
 
       case "razer":
-        var ledProperties = devicesProperties[ledType][key];
         if (ledProperties) {
           conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(ledProperties.maxLedCount);
           $("#ip_ma_ledshoriz").val(ledProperties.maxColumn);
@@ -2541,30 +2545,55 @@ function validateWledSegmentConfig(streamSegmentId) {
 function validateWledLedCount(hardwareLedCount) {
 
   if (!jQuery.isEmptyObject(devicesProperties)) {
-    var host = conf_editor.getEditor("root.specificOptions.host").getValue();
-    var ledDeviceProperties = devicesProperties["wled"]?.[host] || {};
+    const host = conf_editor.getEditor("root.specificOptions.host").getValue();
+    const ledDeviceProperties = devicesProperties["wled"]?.[host] || {};
 
     if (ledDeviceProperties) {
-
-      var streamProtocol = conf_editor.getEditor("root.specificOptions.streamProtocol").getValue();
+      const streamProtocol = conf_editor.getEditor("root.specificOptions.streamProtocol").getValue();
       if (streamProtocol === "RAW") {
-        var maxLedCount = 490;
         if (ledDeviceProperties.maxLedCount) {
-          //WLED not DDP ready
-          maxLedCount = ledDeviceProperties.maxLedCount;
+          const whiteAlgorithm = conf_editor.getEditor("root.specificOptions.whiteAlgorithm").getValue();
+          let maxLedCount;
+          if (whiteAlgorithm === "white_off") {
+            maxLedCount = ledDeviceProperties.maxLedCount.rgb;
+          } else {
+            maxLedCount = ledDeviceProperties.maxLedCount.rgbw;
+          }
           if (hardwareLedCount > maxLedCount) {
             showInfoDialog('warning', $.i18n("conf_leds_config_warning"), $.i18n('conf_leds_error_hwled_gt_maxled', hardwareLedCount, maxLedCount, maxLedCount));
             hardwareLedCount = maxLedCount;
             conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(hardwareLedCount);
             conf_editor.getEditor("root.specificOptions.streamProtocol").setValue("RAW");
           }
-        } else {
+        } else if (hardwareLedCount > maxLedCount) {
           //WLED is DDP ready
-          if (hardwareLedCount > maxLedCount) {
-            var newStreamingProtocol = "DDP";
+            const newStreamingProtocol = "DDP";
             showInfoDialog('warning', $.i18n("conf_leds_config_warning"), $.i18n('conf_leds_error_hwled_gt_maxled_protocol', hardwareLedCount, maxLedCount, newStreamingProtocol));
             conf_editor.getEditor("root.specificOptions.streamProtocol").setValue(newStreamingProtocol);
           }
+      }
+    }
+  }
+}
+
+function validateUdpRawLedCount(hardwareLedCount) {
+  if (!jQuery.isEmptyObject(devicesProperties)) {
+    const host = conf_editor.getEditor("root.specificOptions.host").getValue();
+    const ledDeviceProperties = devicesProperties["udpraw"]?.[host] || {};
+
+    if (ledDeviceProperties) {
+      if (ledDeviceProperties.maxLedCount) {
+        const whiteAlgorithm = conf_editor.getEditor("root.specificOptions.whiteAlgorithm").getValue();
+        let maxLedCount;
+        if (whiteAlgorithm === "white_off") {
+          maxLedCount = ledDeviceProperties.maxLedCount.rgb;
+        } else {
+          maxLedCount = ledDeviceProperties.maxLedCount.rgbw;
+        }
+        if (hardwareLedCount > maxLedCount) {
+          showInfoDialog('warning', $.i18n("conf_leds_config_warning"), $.i18n('conf_leds_error_hwled_gt_maxled', hardwareLedCount, maxLedCount, maxLedCount));
+          hardwareLedCount = maxLedCount;
+          conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(hardwareLedCount);
         }
       }
     }

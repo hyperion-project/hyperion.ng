@@ -37,7 +37,7 @@ public:
 	///
 	/// @return A JSON structure holding a list of devices found
 	///
-	QJsonObject discover(const QJsonObject &params);
+	QJsonObject discover(const QJsonObject &params) const;
 
 	///
 	/// @brief Apply new width/height values, on errors (collide with cropping) reject the values
@@ -64,6 +64,8 @@ private:
 
 	Image<ColorBgr> _image_bgr;
 	ColorBgr* _image_ptr;
+	size_t _stride;
+	size_t _bytesToRead;
 
 	int _lastError;
 	int _grabbingModeNotification;

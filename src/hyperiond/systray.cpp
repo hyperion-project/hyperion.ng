@@ -110,6 +110,7 @@ void SysTray::createBaseTrayMenu()
 void SysTray::setupConnections()
 {
 	WebServer const * webserver = _hyperiond->getWebServerInstance();
+	_webPort = webserver->getPort();
 	connect(webserver, &WebServer::portChanged, this, &SysTray::onWebserverPortChanged);
 	if (auto mgr = _instanceManagerWeak.toStrongRef())
 	{
@@ -135,7 +136,8 @@ void SysTray::setColor(quint8 instance, const QColor &color) const
 	}
 	if (!hyperion.isNull())
 	{
-		QVector<ColorRgb> rgbColor {color.rgb()};
+		QVector<ColorRgb> rgbColor{ ColorRgb(color.rgb()) };
+
 		emit hyperion->setColor(PriorityMuxer::FG_PRIORITY,rgbColor, PriorityMuxer::ENDLESS);
 	}
 }

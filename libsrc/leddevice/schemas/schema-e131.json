@@ -43,6 +43,7 @@
     },
     "cid": {
       "type": "string",
+      "format": "uuid",
       "title": "edt_dev_spec_cid_title",
       "propertyOrder": 6
     },

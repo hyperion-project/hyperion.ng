@@ -135,6 +135,9 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	//Cleaning up Hyperion before quit
 	connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit, this, &HyperionDaemon::stopServices);
 
+	// Create network services singletons
+	createNetworkServices();
+
 	// Create instance manager singleton & spawn all Hyperion instances (non blocking)
 	HyperionIManager::createInstance(this);
 	_instanceManagerWeak = HyperionIManager::getInstanceWeak();
@@ -156,10 +159,11 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 
 	startEventServices();
 	
-	createNetworkServices();
+	createNetworkWebServices();
 	createNetworkInputCaptureServices();
 	createNetworkOutputServices();
 
+	startNetworkWebServices();
 	startNetworkServices();
 	startGrabberServices();
 	startNetworkInputCaptureServices();
@@ -276,7 +280,8 @@ void HyperionDaemon::stopServices()
 	}
 	loopInstances.exec();
 
-	stopNetworkInputCaptureServices();	
+	stopNetworkInputCaptureServices();
+	stopNetworkWebServices();
 	stopNetworkServices();
 
 	HyperionIManager::destroyInstance();
@@ -317,7 +322,48 @@ void HyperionDaemon::createNetworkServices()
 	connect(_ssdpHandlerThread.get(), &QThread::started, _ssdpHandler.get(), &SSDPHandler::initServer);
 	connect(this, &HyperionDaemon::settingsChanged, _ssdpHandler.get(), &SSDPHandler::handleSettingsUpdate);
 	_ssdpHandler->handleSettingsUpdate(settings::GENERAL, _settingsManager->getSetting(settings::GENERAL));
+}
 
+void HyperionDaemon::startNetworkServices()
+{
+#if defined(ENABLE_MDNS)
+	_mDnsThread->start();
+#endif
+	_ssdpHandlerThread->start();
+}
+
+void HyperionDaemon::stopNetworkServices()
+{
+#if defined(ENABLE_MDNS)
+	if (_mDnsThread->isRunning() && MdnsBrowser::getInstance().get() && _mDNSProvider.get())
+	{
+		QObject::connect(MdnsBrowser::getInstance().get(), &MdnsBrowser::isStopped,
+			_mDNSProvider.get(), &MdnsProvider::stop,
+			Qt::QueuedConnection);
+
+		QObject::connect(_mDNSProvider.get(), &MdnsProvider::isStopped,
+			_mDnsThread.get(), &QThread::quit,
+			Qt::DirectConnection);
+
+		QMetaObject::invokeMethod(MdnsBrowser::getInstance().get(), &MdnsBrowser::stop, Qt::QueuedConnection);
+
+		if (!_mDnsThread->wait(5000)) {
+			qWarning() << "mDNS thread failed to exit gracefully!";
+		}
+	}
+	MdnsBrowser::destroyInstance();
+#endif
+
+	safeShutdownThread(
+		_ssdpHandler.get(),
+		_ssdpHandlerThread.get(),
+		&SSDPHandler::isStopped,
+		&SSDPHandler::stop
+	);
+}
+
+void HyperionDaemon::createNetworkWebServices()
+{
 	// Create JSON server in own thread
 	_jsonServerThread.reset(new QThread());
 	_jsonServerThread->setObjectName("JSONServerThread");
@@ -364,7 +410,7 @@ void HyperionDaemon::createNetworkServices()
 	connect(this, &HyperionDaemon::settingsChanged, _sslWebServer.get(), &WebServer::handleSettingsUpdate);
 }
 
-void HyperionDaemon::startNetworkServices()
+void HyperionDaemon::startNetworkWebServices()
 {
 	//Start JSON-Server only after WebServery were started to avoid port mismatches
 	connect(_sslWebServerThread.get(), &QThread::started, [=]() {
@@ -373,35 +419,10 @@ void HyperionDaemon::startNetworkServices()
 
 	_webServerThread->start();
 	_sslWebServerThread->start();
-
-#if defined(ENABLE_MDNS)
-	_mDnsThread->start();
-#endif
-	_ssdpHandlerThread->start();
 }
 
-void HyperionDaemon::stopNetworkServices()
+void HyperionDaemon::stopNetworkWebServices()
 {
-#if defined(ENABLE_MDNS)
-	if (_mDnsThread->isRunning() && MdnsBrowser::getInstance().get() && _mDNSProvider.get())
-	{
-		QObject::connect(MdnsBrowser::getInstance().get(), &MdnsBrowser::isStopped,
-			_mDNSProvider.get(), &MdnsProvider::stop,
-			Qt::QueuedConnection);
-
-		QObject::connect(_mDNSProvider.get(), &MdnsProvider::isStopped,
-			_mDnsThread.get(), &QThread::quit,
-			Qt::DirectConnection);
-
-		QMetaObject::invokeMethod(MdnsBrowser::getInstance().get(), &MdnsBrowser::stop, Qt::QueuedConnection);
-
-		if (!_mDnsThread->wait(5000)) {
-			qWarning() << "mDNS thread failed to exit gracefully!";
-		}
-	}
-	MdnsBrowser::destroyInstance();
-#endif
-
 	safeShutdownThread(
 		_webServer.get(),
 		_webServerThread.get(),
@@ -423,13 +444,6 @@ void HyperionDaemon::stopNetworkServices()
 		&JsonServer::isStopped,
 		&JsonServer::stop,
 		5000 // 5 second timeout
-	);
-
-	safeShutdownThread(
-		_ssdpHandler.get(),
-		_ssdpHandlerThread.get(),
-		&SSDPHandler::isStopped,
-		&SSDPHandler::stop
 	);
 }
 

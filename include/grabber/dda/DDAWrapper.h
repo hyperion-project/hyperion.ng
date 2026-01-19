@@ -36,6 +36,8 @@ public:
 	///
 	bool start() override;
 
+	bool open()  override;
+
 public slots:
 
 	///
@@ -45,6 +47,10 @@ public slots:
 
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& grabberConfig) override;
 
+	void handleEvent(Event event) override;
+
 private:
 	DDAGrabber _grabber;
+
+	bool _isScreenLocked = false;
 };

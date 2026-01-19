@@ -2,6 +2,7 @@
 #define EVENTENUM_H
 
 #include <QString>
+#include <QDebug>
 
 enum class Event
 {
@@ -14,7 +15,9 @@ enum class Event
 	ToggleIdle,
 	Reload,
 	Restart,
-	Quit
+	Quit,
+	Lock,
+	Unlock
 };
 
 inline const char* eventToString(Event event)
@@ -30,6 +33,8 @@ inline const char* eventToString(Event event)
 	case Event::ToggleIdle:    return "ToggleIdle";
 	case Event::Reload:        return "Reload";
 	case Event::Restart:       return "Restart";
+	case Event::Lock:          return "Lock";
+	case Event::Unlock:        return "Unlock";
 	case Event::Unknown:
 	default:                   return "Unknown";
 	}
@@ -46,8 +51,15 @@ inline Event stringToEvent(const QString& event)
 	if (event.compare("ToggleIdle")==0)    return Event::ToggleIdle;
 	if (event.compare("Reload")==0)        return Event::Reload;
 	if (event.compare("Restart")==0)       return Event::Restart;
+	if (event.compare("Lock") == 0)        return Event::Lock;
+	if (event.compare("Unlock") == 0)      return Event::Unlock;
 	return Event::Unknown;
 }
 
+inline QDebug operator<<(QDebug dbg, Event event)
+{
+	dbg << eventToString(event);
+	return dbg;
+}
 
 #endif // EVENTENUM_H

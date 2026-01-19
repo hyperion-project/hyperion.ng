@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### ✨ Added
 
 - Support of RGBW in **e1.31** LED devices.
+- Support of RGBW in **WLED, UDP-DDP, UDP-RAW** LED devices.
 - HTTPS support for homeassistant LED devices (#1886)
 - Hue Bridge - Use https and certificates for all API calls, support Bridge Pro (V3)
 - Hue Bridge - Alternate certificate support
@@ -23,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add DRM_FORMAT_RGB565 format to DRM frame grabber
 - Add standalone DRM grabber
 - Avoid queuing on image processing for output
+- Validation of RFC 4122 UUID (Universally Unique Identifier) elements and apply it e1.31 devices config screen
 
 ---
 
@@ -31,7 +33,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Hue Bridge - Wizard updates to support bridge-ids, overall code refactoring
   - USB Grabber - Default hardware control properties are now applied when a new USB grabber is selected (avoids black images)
   - USB Grabber - Correct garbage default control values to avoid save issues (#1928)
-  - Windows DDA Grabber - Rewritten grabber internals for better performance & stability and fixed various issues, e.g. screen locking, -orientation handling (#1872)
+  - Windows DDA Grabber - Rewritten grabber internals for better performance & stability and fixed various issues, e.g. screen locking, -orientation handling (#1872), sleep (#1893)
+  - Amlogic grabber - Support to switch between DRM & FB-DEV for CoreElec New Order version
   - Web UI: Update panel title uses "Hyperion - <version>"; skip showing the "nightly" tag in releases list
   - Screen grabbers: Commonized base with getDeviceName/getInputDeviceDetails; explicit constructors; improved error handling
   - Framebuffer grabber: Internal cleanup, consistent device naming, safer mmap usage
@@ -45,13 +48,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - UI - Release were not shown on Update page
   - UI - Fixes for input/format selection
   - UI - Fix that gap-length could get negative
+  - UI - Systray Settings is not using the actual port (#1964)
+  - UI - Dashboard, wrap long version text
   - CEC-Handler is not stopped properly
+  - Grabbers are started for every instance started
   - Qt-Grabber (Windows) does not apply pixel ratio (#1882) - _Thanks to @SolberLight_
   - LED-devices are not retrying to establish connectivity, if supported by the device
   - LED-devices are resolving IP-addresses for API and UDP two times in sequence
   - LED-device updates queue up and let Hyperion crash (#1887)
   - LED-device switch-off were not always executed during instance stopping
   - LED-Device latchTime was not considered correctly 
+  - LED-Device Adalight LightBerry APA102 Mode not working (#1961)
   - Segfault when turning an LED instance off (#1903)
   - Fix concurrent mDNS resolution (#1906) - _Thanks to @discordianfish_
   - The color of the backlight threshold is green, not white/gray (#1899)
@@ -64,6 +71,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Memory/Image queuing issue when all instances are stopped but grabber is running
   - Forwarder was not using the correct target instance IDs for JSON requests
   - Flatbuffer/Protobuffer sources are not reconnected after (re)starting a hyperion instance
+  - Adalight.ino changes due to FastLED update (#1942) _Thanks to @JackSwieper_
+  - mdnsBrowser is not stopped properly on shutdown
   
 - **Refactors:**
   - Fixed Image & ImageData and add debug logging (#1792, #1892)

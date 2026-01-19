@@ -82,7 +82,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: 💾 Download artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           pattern: artifact-*
           merge-multiple: true

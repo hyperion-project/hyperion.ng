@@ -9,6 +9,7 @@
 #include <QJsonObject>
 
 #include <utils/ColorRgb.h>
+#include "utils/ColorRgbw.h"
 
 ///
 /// Implementation of the LedDevice interface for sending LED colors via UDP and the Distributed Display Protocol (DDP)
@@ -63,6 +64,7 @@ private:
 	QByteArray  _ddpData;
 
 	int _packageSequenceNumber;
+	RGBW::WhiteAlgorithm _whiteAlgorithm;	
 };
 
 #endif // LEDEVICEUDPDDP_H

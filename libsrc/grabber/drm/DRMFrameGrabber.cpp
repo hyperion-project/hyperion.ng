@@ -269,6 +269,12 @@ static bool processLinearFramebuffer(const LinearFramebufferParams& params)
         lineLength = params.w * 4;
     }
 
+    if (size == 0)
+    {
+        Error(params.log, "Computed framebuffer size is 0 for linear layout");
+        return false;
+    }
+
     int ret = drmPrimeHandleToFD(params.deviceFd, params.framebuffer->handles[0], O_RDONLY, &fb_dmafd);
     if (ret != 0)
     {
@@ -494,6 +500,13 @@ static bool untileBroadcomSandToLinear(int deviceFd,
     if (ret < 0)
     {
         Error(log, "drmPrimeHandleToFD failed (broadcom handle=%u): %s", fb->handles[0], strerror(errno));
+        return false;
+    }
+
+    if (totalSize == 0)
+    {
+        Error(log, "Computed framebuffer size is 0 for Broadcom SAND layout");
+        close(fb_dmafd);
         return false;
     }
 
@@ -1029,7 +1042,7 @@ QJsonArray DRMFrameGrabber::getInputDeviceDetails() const
 	return video_inputs;
 }
 
-QJsonObject DRMFrameGrabber::discover(const QJsonObject &params)
+QJsonObject DRMFrameGrabber::discover(const QJsonObject & /*params*/)
 {
 	if (!isAvailable(false))
 	{

@@ -13,6 +13,7 @@ $(document).ready(function () {
   var configuredDevice = "";
   var discoveredInputSources = {};
   var deviceProperties = {};
+  const DDA_INACTIVE_TIMEOUT = 300; // The DDA grabber will not issue updates when no screen activity, define timeout of 5 minutes to avoid off/on blinking
 
   // Screen-Grabber
   if (screenGrabberAvailable) {
@@ -326,14 +327,27 @@ $(document).ready(function () {
     $('#btn_submit_screengrabber').off().on('click', function () {
       let saveOptions = conf_editor_screen.getValue();
 
+      // As the DDA grabber will not issue updates when no screen activity, set all instances to a timeout of 5 minutes to avoid off/on blinking
+      // until a better design is in place
+      if (saveOptions.framegrabber.device === "dda") {
+        let instCaptOptions = window.serverConfig.instCapture;
+        instCaptOptions.systemEnable = saveOptions.framegrabber.enable;
+        instCaptOptions.screenInactiveTimeout = DDA_INACTIVE_TIMEOUT;
+
+        saveOptions.instCapture = instCaptOptions;
+        requestWriteConfig(saveOptions, false, getConfiguredInstances());
+        return;
+      }
+
       const currentInstance = window.currentHyperionInstance;
       //If an instance exists, enable/disable grabbing in line with the global state
       if (currentInstance !== null && window.serverConfig.instCapture) {
         let instCaptOptions = window.serverConfig.instCapture;
         instCaptOptions.systemEnable = saveOptions.framegrabber.enable;
+        instCaptOptions.screenInactiveTimeout = window.schema.instCapture.properties.screenInactiveTimeout.default;
+
         saveOptions.instCapture = instCaptOptions;
       }
-
       requestWriteConfig(saveOptions);
     });
   }
