@@ -298,16 +298,15 @@ void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocume
 
 		if (getSysGrabberState())
 		{
-			// width/height
-			_ggrabber->setWidthHeight(obj["width"].toInt(96), obj["height"].toInt(96));
-
 			_ggrabber->setInput(obj["input"].toInt(0));
 
 			// display index for MAC
 			_ggrabber->setDisplayIndex(obj["input"].toInt(0));
-
-			// pixel decimation for x11
+			// Set pixel decimation before width/height to allow calculation of proper output dimensions
 			_ggrabber->setPixelDecimation(obj["pixelDecimation"].toInt(DEFAULT_PIXELDECIMATION));
+
+			// width/height
+			_ggrabber->setWidthHeight(obj["width"].toInt(96), obj["height"].toInt(96));
 
 			// crop for system capture
 			_ggrabber->setCropping(
