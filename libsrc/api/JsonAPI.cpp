@@ -1444,8 +1444,11 @@ void JsonAPI::handleAdminRequired(const JsonApiCommand& cmd)
 
 void JsonAPI::handleNewPasswordRequired(const JsonApiCommand& cmd)
 {
-	QJsonObject const response { { "newPasswordRequired", API::hasHyperionDefaultPw() } };
-	sendSuccessDataReply(response, cmd);
+	if (auto auth = _authManagerWeak.toStrongRef())
+	{
+		QJsonObject const response { { "newPasswordRequired", auth->isDefaultUserPassword() } };
+		sendSuccessDataReply(response, cmd);
+	}
 }
 
 void JsonAPI::handleLogout(const JsonApiCommand& cmd)

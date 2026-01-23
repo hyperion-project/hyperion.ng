@@ -110,7 +110,25 @@ function initWebSocket() {
         });
       };
 
+      window.websocket.onerror = (error) => {
+          // Note: For security reasons, browsers don't give detailed error info here
+          console.error("WebSocket Error detected.");
+      };      
+
       window.websocket.onclose = function (event) {
+
+        // Check if the server sent the specific Policy Violation code (1008)
+        if (event.code === 1008) {
+          console.error("WebSocket closed due to policy violation (1008). Access forbidden.");
+          const interval_id = window.setInterval(function () { clearInterval(interval_id); }, 9999); // Get highest currently active timer ID.
+          // Clear all other timers
+          for (let i = 1; i < interval_id; i++) {
+            window.clearInterval(i);
+          }
+          $("body").html($("#container_forbidden").html());
+          return;
+        }
+
         // See http://tools.ietf.org/html/rfc6455#section-7.4.1
         let reason;
         switch (event.code) {
@@ -129,6 +147,8 @@ function initWebSocket() {
           case 1015: reason = "The connection was closed due to a failure to perform a TLS handshake (e.g., the server certificate can't be verified)."; break;
           default: reason = "Unknown reason";
         }
+
+        console.warn("WebSocket closed: ", sanitizeForLog(reason));
         $(window.hyperion).trigger({ type: "close", reason: reason });
         window.watchdog = 10;
         connectionLostDetection();
@@ -170,6 +190,8 @@ function initWebSocket() {
         }
         catch (exception_error) {
           console.error("[window.websocket::onmessage] ", exception_error);
+          debugger;
+          showInfoDialog("error", $.i18n('Info_error_general_title'), $.i18n('Info_error_general_text', exception_error.message));
           $(window.hyperion).trigger({
             type: "error",
             reason: {
@@ -182,6 +204,8 @@ function initWebSocket() {
 
       window.websocket.onerror = function (error) {
         console.error("[window.websocket::onerror] ", error);
+        debugger;
+        showInfoDialog("error", $.i18n('Info_error_con_lost_title'), $.i18n('Info_error_con_lost_text', "See browser console for details"));
         $(window.hyperion).trigger({
           type: "error",
           reason: {
@@ -193,6 +217,7 @@ function initWebSocket() {
     }
   }
   else {
+    debugger;
     $(window.hyperion).trigger({
       type: "error",
       reason: {

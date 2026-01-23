@@ -1,8 +1,9 @@
 #pragma once
 
-#include <utils/Logger.h>
-
 #include <QJsonObject>
+
+#include <utils/Logger.h>
+#include "QtHttpReply.h"
 
 class QtHttpServer;
 class QtHttpRequest;
@@ -26,5 +27,9 @@ private:
 	bool _unlocked = false;
 
 private slots:
-	void sendCallbackMessage(QJsonObject obj);
+	void sendOkCallbackMessage(QJsonObject obj);
+	void onForbidden();
+
+private:
+	void sendCallbackMessage(QJsonObject obj, QtHttpReply::StatusCode code);
 };

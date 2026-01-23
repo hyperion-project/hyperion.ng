@@ -4,6 +4,7 @@
 #include <api/JsonCallbacks.h>
 #include <utils/JsonUtils.h>
 #include <utils/NetOrigin.h>
+#include <hyperion/AuthManager.h>
 
 Q_LOGGING_CATEGORY(comm_websocket_receive, "hyperion.comm.websocket.receive");
 Q_LOGGING_CATEGORY(comm_websocket_send, "hyperion.comm.websocket.send");
@@ -25,6 +26,16 @@ WebSocketJsonHandler::WebSocketJsonHandler(QWebSocket* websocket, QObject* paren
 	if (auto origin = NetOrigin::getInstanceWeak().toStrongRef())
 	{
 		localConnection = origin->isLocalAddress(_websocket->peerAddress(), _websocket->localAddress());
+	}
+
+	if (!localConnection && AuthManager::getInstance() && AuthManager::getInstance()->isDefaultUserPassword())
+	{
+		Warning(_log, "Non local network WebSocket connect attempt from %s initiated via %s identified, but default Hyperion password is set! - Reject connection.", QSTRING_CSTR(_peerAddress), QSTRING_CSTR(_origin));
+		 _websocket->close(QWebSocketProtocol::CloseCodePolicyViolated, "Remote connections are not allowed to use WebSocket API");
+		return;
+	}
+	{
+		Debug(_log, "WebSocket connection from %s identified as local connection", QSTRING_CSTR(_peerAddress));
 	}
 
 	// Json processor

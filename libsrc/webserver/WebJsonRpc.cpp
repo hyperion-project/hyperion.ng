@@ -15,9 +15,10 @@ WebJsonRpc::WebJsonRpc(QtHttpRequest* request, QtHttpServer* server, bool localC
 {
 	const QString client = request->getClientInfo().clientAddress.toString();
 	_jsonAPI = new JsonAPI(client, _log, localConnection, this, true);
-	connect(_jsonAPI, &JsonAPI::callbackReady, this, &WebJsonRpc::sendCallbackMessage);
-	connect(_jsonAPI, &JsonAPI::forceClose, [&]() { _wrapper->closeConnection(); _stopHandle = true; });
-	connect(_jsonAPI->getCallBack().get(), &JsonCallbacks::callbackReady, this, &WebJsonRpc::sendCallbackMessage);
+	connect(_jsonAPI, &JsonAPI::callbackReady, this, &WebJsonRpc::sendOkCallbackMessage);
+
+	connect(_jsonAPI, &JsonAPI::isForbidden, this, &WebJsonRpc::onForbidden);
+	connect(_jsonAPI->getCallBack().get(), &JsonCallbacks::callbackReady, this, &WebJsonRpc::sendOkCallbackMessage);
 
 	_jsonAPI->initialize();
 }
@@ -34,15 +35,36 @@ void WebJsonRpc::handleMessage(QtHttpRequest* request)
 	}
 }
 
-void WebJsonRpc::sendCallbackMessage(QJsonObject obj)
+void WebJsonRpc::onForbidden()
+{
+	qCDebug(api_msg_reply_error) << "Connection is forbidden, closing connection";
+
+	QJsonObject response;
+	response["success"] = false;
+	response["error"] = "password change required";
+	response["errorData"] = QJsonArray{QJsonObject({{"description", "Default password must be changed before accessing the API"}})};
+
+	_unlocked = true; // unlock to allow sending the response
+	sendCallbackMessage(response, QtHttpReply::StatusCode::Forbidden);
+
+	_wrapper->closeConnection();
+	_stopHandle = true; 
+}
+
+void WebJsonRpc::sendOkCallbackMessage(QJsonObject obj)
+{
+	sendCallbackMessage(obj, QtHttpReply::Ok);
+}
+
+void WebJsonRpc::sendCallbackMessage(QJsonObject obj, QtHttpReply::StatusCode code)
 {
 	// guard against wrong callbacks; TODO: Remove when JSONAPI is more solid
 	if(!_unlocked) return;
 	_unlocked = false;
 	// construct reply with headers timestamp and server name
 	QtHttpReply reply(_server);
-	QJsonDocument doc(obj);
+	reply.setStatusCode(code);
 	reply.addHeader ("Content-Type", "application/json");
-	reply.appendRawData (doc.toJson());
+	reply.appendRawData (QJsonDocument(obj).toJson());
 	_wrapper->sendToClientWithReply(&reply);
 }

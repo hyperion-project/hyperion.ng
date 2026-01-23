@@ -276,6 +276,7 @@ function setMediaStreamingSupport() {
 
 async function loadEssentialContent() {
   loadContentTo("#container_connection_lost", "connection_lost");
+  loadContentTo("#container_forbidden", "forbidden");  
   loadContentTo("#container_restart", "restart");
 }
 
