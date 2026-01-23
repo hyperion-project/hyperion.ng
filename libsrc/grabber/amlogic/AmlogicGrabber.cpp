@@ -32,7 +32,7 @@ namespace
 	const int DEFAULT_DEVICE_IDX = 0;
 	const char DEFAULT_VIDEO_DEVICE[] = "/dev/amvideo";
 	const char DEFAULT_CAPTURE_DEVICE[] = "/dev/amvideocap0";
-	const int AMVIDEOCAP_WAIT_MAX_MS = 40;
+	const int AMVIDEOCAP_WAIT_MAX_MS = 15;
 	const int AMVIDEOCAP_DEFAULT_RATE_HZ = 25;
 	
 	const size_t AMVIDEO_ALIGNMENT = 32; // Standard for Amlogic S905/S912
