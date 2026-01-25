@@ -68,10 +68,6 @@ int main(int argc, char ** argv)
 	IntOption &argFps = parser.add<IntOption>('f', "framerate", QString("Capture frame rate. Range %1-%2fps").arg(GrabberWrapper::DEFAULT_MIN_GRAB_RATE_HZ).arg(GrabberWrapper::DEFAULT_MAX_GRAB_RATE_HZ), QString::number(GrabberWrapper::DEFAULT_RATE_HZ), GrabberWrapper::DEFAULT_MIN_GRAB_RATE_HZ, GrabberWrapper::DEFAULT_MAX_GRAB_RATE_HZ);
 	IntOption &argSizeDecimation = parser.add<IntOption>('s', "size-decimator", "Decimation factor for the output image size [default=%1]", QString::number(GrabberWrapper::DEFAULT_PIXELDECIMATION), 1);
 
-	IntOption &argCropLeft = parser.add<IntOption>(0x0, "crop-left", "Number of pixels to crop from the left of the picture before decimation");
-	IntOption &argCropRight = parser.add<IntOption>(0x0, "crop-right", "Number of pixels to crop from the right of the picture before decimation");
-	IntOption &argCropTop = parser.add<IntOption>(0x0, "crop-top", "Number of pixels to crop from the top of the picture before decimation");
-	IntOption &argCropBottom = parser.add<IntOption>(0x0, "crop-bottom", "Number of pixels to crop from the bottom of the picture before decimation");
 	BooleanOption const &arg3DSBS = parser.add<BooleanOption>(0x0, "3DSBS", "Interpret the incoming video stream as 3D side-by-side");
 	BooleanOption const &arg3DTAB = parser.add<BooleanOption>(0x0, "3DTAB", "Interpret the incoming video stream as 3D top-and-bottom");
 
@@ -101,11 +97,7 @@ int main(int argc, char ** argv)
 
 	AmlogicWrapper grabber(
 				argFps.getInt(parser),
-				argSizeDecimation.getInt(parser),
-				argCropLeft.getInt(parser),
-				argCropRight.getInt(parser),
-				argCropTop.getInt(parser),
-				argCropBottom.getInt(parser)
+				argSizeDecimation.getInt(parser)
 				);
 
 	if (!grabber.screenInit())
