@@ -34,7 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - USB Grabber - Default hardware control properties are now applied when a new USB grabber is selected (avoids black images)
   - USB Grabber - Correct garbage default control values to avoid save issues (#1928)
   - Windows DDA Grabber - Rewritten grabber internals for better performance & stability and fixed various issues, e.g. screen locking, -orientation handling (#1872), sleep (#1893)
-  - Amlogic grabber - Support to switch between DRM & FB-DEV for CoreElec New Order version
+  - Amlogic grabber - Capture image in target size to avoid extra downscaling by CPU
   - Web UI: Update panel title uses "Hyperion - <version>"; skip showing the "nightly" tag in releases list
   - Screen grabbers: Commonized base with getDeviceName/getInputDeviceDetails; explicit constructors; improved error handling
   - Framebuffer grabber: Internal cleanup, consistent device naming, safer mmap usage
@@ -89,7 +89,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🗑️ Removed
 
-  - Amlogic grabber - Removed support to grab DRM & FB-DEV, i.e.Kodi screens on will be captued on CoreElec
+  - Amlogic grabber - Removed support to grab DRM & FB-DEV, i.e.Kodi screens on will not be captued on CoreElec
 
 ### Technical
 
