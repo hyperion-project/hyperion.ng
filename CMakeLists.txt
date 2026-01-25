@@ -354,7 +354,11 @@ message(STATUS "ENABLE_DISPMANX = ${ENABLE_DISPMANX}")
 option(ENABLE_DDA "Enable the DXGI DDA grabber" ${DEFAULT_DDA})
 message(STATUS "ENABLE_DDA = ${ENABLE_DDA}")
 
-option(ENABLE_DRM "Enable the DRM grabber" ${DEFAULT_DRM})
+if(ENABLE_AMLOGIC)
+	set(ENABLE_DRM ON)
+else()
+	option(ENABLE_DRM "Enable the DRM grabber" ${DEFAULT_DRM})
+endif()
 message(STATUS "ENABLE_DRM = ${ENABLE_DRM}")
 
 option(ENABLE_DX "Enable the DirectX grabber" ${DEFAULT_DX})
