@@ -56,6 +56,25 @@ $(document).ready(function () {
       if (enabled) createEditor(key, schemaKey, handler);
     });
 
+    function createEditor(container, schemaKey, changeHandler) {
+      editors[container] = createJsonEditor(
+        `editor_container_${container}`,
+        { [schemaKey]: globalThis.schema[schemaKey] },
+        true,
+        true
+      );
+
+      editors[container].on('change', function () {
+        const isValid = editors[container].validate().length === 0 && !globalThis.readOnlyMode;
+        $(`#btn_submit_${container}`).prop('disabled', !isValid);
+      });
+
+      $(`#btn_submit_${container}`).off().on('click', function () {
+        requestWriteConfig(editors[container].getValue());
+      });
+
+      if (changeHandler) changeHandler(editors[container]);
+    }
 
     function handleFlatbufChange(editor) {
       editor.on('change', () => toggleHelpPanel(editor, "flatbufServer", "flatbufServerHelpPanelId"));
@@ -75,7 +94,37 @@ $(document).ready(function () {
       });
     }
 
+    function updateConfiguredInstancesList() {
+      const enumVals = [];
+      const enumTitelVals = [];
+      let enumDefaultVal = "";
+      let addSelect = false;
 
+      const configuredInstances = globalThis.serverInfo.instance;
+
+      if (!configuredInstances || Object.keys(configuredInstances).length === 0) {
+        enumVals.push("NONE");
+        enumTitelVals.push($.i18n('edt_conf_forwarder_no_instance_configured_title'));
+      } else {
+        Object.values(configuredInstances).forEach(({ friendly_name, instance }) => {
+          enumTitelVals.push(friendly_name);
+          enumVals.push(instance.toString());
+        });
+
+        const configuredInstance = globalThis.serverConfig.forwarder.instance.toString();
+
+        if (enumVals.includes(configuredInstance)) {
+          enumDefaultVal = configuredInstance;
+        } else {
+          addSelect = true;
+        }
+      }
+
+      if (enumVals.length > 0) {
+        updateJsonEditorSelection(editors["forwarder"], 'root.forwarder',
+          'instanceList', {}, enumVals, enumTitelVals, enumDefaultVal, addSelect, false);
+      }
+    }
 
     function handleForwarderChange(editor) {
       editor.on('ready', () => {
@@ -129,7 +178,7 @@ $(document).ready(function () {
       editor.watch('root.forwarder.instanceList', () => {
         const instanceId = editor.getEditor("root.forwarder.instanceList").getValue();
         if (!["NONE", "SELECT", "", undefined].includes(instanceId)) {
-          editor.getEditor("root.forwarder.instance").setValue(Number.parseInt((instanceId, 10)));
+          editor.getEditor("root.forwarder.instance").setValue(Number.parseInt(instanceId, 10));
         }
       });
     }
@@ -247,7 +296,7 @@ $(document).ready(function () {
 
   function onChangeForwarderServiceSections(type) {
     const editor = editors["forwarder"].getEditor(`root.forwarder.${type}`);
-    const configuredServices = JSON.parse(JSON.stringify(editor?.getValue('items')));
+    const configuredServices = structuredClone(editor?.getValue('items'));
 
     configuredServices.forEach((serviceConfig, i) => {
       const itemEditor = editors["forwarder"].getEditor(`root.forwarder.${type}.${i}`);
@@ -261,11 +310,16 @@ $(document).ready(function () {
 
         showInputOptions(`root.forwarder.${type}.${i}`, ["name"], true);
       } else {
-        itemEditor.enable();
-        itemEditor.getEditor(`root.forwarder.${type}.${i}.name`).setValue(serviceConfig.name);
-        itemEditor.getEditor(`root.forwarder.${type}.${i}.host`).setValue(serviceConfig.host);
-        itemEditor.getEditor(`root.forwarder.${type}.${i}.port`).setValue(serviceConfig.port);
-        itemEditor.getEditor(`root.forwarder.${type}.${i}.instanceIds`).setValue(serviceConfig.instanceIds);
+        itemEditor?.enable();
+        showInputOptions(`root.forwarder.${type}.${i}`, ["name"], false);
+
+        if (!service) {
+          const hostEditor = editors["forwarder"].getEditor(`root.forwarder.${type}.${i}.host`);
+          if (hostEditor?.getValue()) {
+            updateServiceCacheForwarderConfiguredItems(type);
+            updateForwarderSelectList(type);
+          }
+        }
       }
     });
   }
@@ -335,7 +389,7 @@ $(document).ready(function () {
         discoveredRemoteServices.set(serviceType, new Map());
       }
 
-      const configuredServices = JSON.parse(JSON.stringify(editor.getValue('items')));
+      const configuredServices = structuredClone(editor.getValue('items'));
       configuredServices.forEach((service) => {
         service.inConfig = true;
         let existingService = discoveredRemoteServices.get(serviceType).get(service.host) || {};
@@ -345,8 +399,6 @@ $(document).ready(function () {
   }
 
   function updateRemoteServiceCache(discoveryInfo) {
-
-    debugger;
     Object.entries(discoveryInfo).forEach(([serviceType, discoveredServices]) => {
       if (!discoveredRemoteServices.has(serviceType)) {
         discoveredRemoteServices.set(serviceType, new Map());
@@ -406,59 +458,7 @@ function appendPanel(id, titleKey) {
   $newContainer.append(createOptPanel('fa-sitemap', $.i18n(titleKey), `editor_container_${id}`, `btn_submit_${id}`, 'panel-system'));
 }
 
-  function createEditor(container, schemaKey, changeHandler) {
-    editors[container] = createJsonEditor(
-      `editor_container_${container}`,
-      { [schemaKey]: globalThis.schema[schemaKey] },
-      true,
-      true
-    );
-
-    editors[container].on('change', function () {
-      const isValid = editors[container].validate().length === 0 && !globalThis.readOnlyMode;
-      $(`#btn_submit_${container}`).prop('disabled', !isValid);
-    });
-
-    $(`#btn_submit_${container}`).off().on('click', function () {
-      requestWriteConfig(editors[container].getValue());
-    });
-
-    if (changeHandler) changeHandler(editors[container]);
-  }
-
-    function updateConfiguredInstancesList() {
-    const enumVals = [];
-    const enumTitelVals = [];
-    let enumDefaultVal = "";
-    let addSelect = false;
-
-    const configuredInstances = globalThis.serverInfo.instance;
-
-    if (!configuredInstances || Object.keys(configuredInstances).length === 0) {
-      enumVals.push("NONE");
-      enumTitelVals.push($.i18n('edt_conf_forwarder_no_instance_configured_title'));
-    } else {
-      Object.values(configuredInstances).forEach(({ friendly_name, instance }) => {
-        enumTitelVals.push(friendly_name);
-        enumVals.push(instance.toString());
-      });
-
-      const configuredInstance = globalThis.serverConfig.forwarder.instance.toString();
-
-      if (enumVals.includes(configuredInstance)) {
-        enumDefaultVal = configuredInstance;
-      } else {
-        addSelect = true;
-      }
-    }
-
-    if (enumVals.length > 0) {
-      updateJsonEditorSelection(editors["forwarder"], 'root.forwarder',
-        'instanceList', {}, enumVals, enumTitelVals, enumDefaultVal, addSelect, false);
-    }
-  }
-
-  function toggleHelpPanel(editor, key, panelId) {
-    const enable = editor.getEditor(`root.${key}.enable`).getValue();
-    $(`#${panelId}`).toggle(enable);
-  }
+function toggleHelpPanel(editor, key, panelId) {
+  const enable = editor.getEditor(`root.${key}.enable`).getValue();
+  $(`#${panelId}`).toggle(enable);
+}
