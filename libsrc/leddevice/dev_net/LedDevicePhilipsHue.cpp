@@ -1077,13 +1077,13 @@ QMap<QString, QJsonObject> LedDevicePhilipsHueBridge::getEntertainmentMap() cons
 	return _entertainmentMap;
 }
 
-QJsonObject LedDevicePhilipsHueBridge::getDeviceDetails(const QString &deviceId)
+QJsonObject LedDevicePhilipsHueBridge::getDeviceDetails(const QString &deviceId) const
 {
 	qCDebug(leddevice_properties) << "DeviceId:" << deviceId;
 	return _devicesMap.value(deviceId);
 }
 
-QJsonObject LedDevicePhilipsHueBridge::getLightDetails(const QString &lightId)
+QJsonObject LedDevicePhilipsHueBridge::getLightDetails(const QString &lightId) const
 {
 	qCDebug(leddevice_properties) << "LightId:" << lightId;
 	return _lightsMap.value(lightId);
@@ -1184,7 +1184,7 @@ QJsonDocument LedDevicePhilipsHueBridge::setGroupState(const QString &groupId, b
 	return put(resourcePath, cmd);
 }
 
-QJsonObject LedDevicePhilipsHueBridge::getEntertainmentSrvDetails(const QString &deviceId)
+QJsonObject LedDevicePhilipsHueBridge::getEntertainmentSrvDetails(const QString &deviceId) const
 {
 	qCDebug(leddevice_properties) << "getEntertainmentSrvDetails:" << deviceId;
 
@@ -1472,7 +1472,7 @@ QJsonObject LedDevicePhilipsHueBridge::addAuthorization(const QJsonObject &param
 	httpResponse response = _restApi->post(clientKeyCmd);
 	if (response.error())
 	{
-		Warning(_log, "%s generation of an authorization/client key for bridge-id: [%s] failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
+		Warning(_log, "%s generation of an authorization/client key for bridge-id: [%s] failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(getBridgeId()), QSTRING_CSTR(response.getErrorReason()));
 		return {};
 	}
 
@@ -2154,7 +2154,7 @@ bool LedDevicePhilipsHue::getStreamGroupState()
 bool LedDevicePhilipsHue::setStreamGroupState(bool state)
 {
 	QJsonDocument doc = setGroupState(_groupId, state);
-	qCDebug(leddevice_properties) << "StreamGroupState:" << doc.toJson(QJsonDocument::Compact);;
+	qCDebug(leddevice_properties) << "StreamGroupState:" << doc.toJson(QJsonDocument::Compact);
 
 	if (isUsingApiV2())
 	{
@@ -2757,15 +2757,12 @@ bool LedDevicePhilipsHue::powerOff()
 bool LedDevicePhilipsHue::storeState()
 {
 	bool rc{true};
-	if (_isRestoreOrigState)
+	if (_isRestoreOrigState && !_lightIds.empty())
 	{
-		if (!_lightIds.empty())
+		for (PhilipsHueLight &light : _lights)
 		{
-			for (PhilipsHueLight &light : _lights)
-			{
-				QJsonObject values = getLightDetails(light.getId());
-				light.saveOriginalState(values);
-			}
+			QJsonObject values = getLightDetails(light.getId());
+			light.saveOriginalState(values);
 		}
 	}
 	return rc;
@@ -2774,15 +2771,12 @@ bool LedDevicePhilipsHue::storeState()
 bool LedDevicePhilipsHue::restoreState()
 {
 	bool rc{true};
-	if (_isRestoreOrigState)
+	if (_isRestoreOrigState && !_lightIds.empty())
 	{
 		// Restore device's original state
-		if (!_lightIds.empty())
+		for (const PhilipsHueLight &light : _lights)
 		{
-			for (const PhilipsHueLight &light : _lights)
-			{
-				setLightState(light.getId(), light.getOriginalState());
-			}
+			setLightState(light.getId(), light.getOriginalState());
 		}
 	}
 	return rc;

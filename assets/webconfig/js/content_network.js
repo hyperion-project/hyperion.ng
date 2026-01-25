@@ -1,7 +1,7 @@
 $(document).ready(function () {
   performTranslation();
 
-  const services = window.serverInfo.services;
+  const services = globalThis.serverInfo.services;
   const isServiceEnabled = (service) => services.includes(service);
   const isForwarderEnabled = isServiceEnabled("forwarder");
   const isFlatbufEnabled = isServiceEnabled("flatbuffer");
@@ -10,7 +10,7 @@ $(document).ready(function () {
   let editors = {}; // Store JSON editors in a structured way
 
   // Service properties , 2-dimensional array of [servicetype][id]
-  let discoveredRemoteServices = {};
+  let discoveredRemoteServices = new Map();
 
   addJsonEditorHostValidation();
   initializeUI();
@@ -20,12 +20,12 @@ $(document).ready(function () {
   removeOverlay();
 
   function initializeUI() {
-    if (window.showOptHelp) {
-      createSection("network", "edt_conf_network_heading_title", window.schema.network.properties);
-      createSection("jsonServer", "edt_conf_jsonServer_heading_title", window.schema.jsonServer.properties);
-      if (isFlatbufEnabled) createSection("flatbufServer", "edt_conf_flatbufServer_heading_title", window.schema.flatbufServer.properties, "flatbufServerHelpPanelId");
-      if (isProtoBufEnabled) createSection("protoServer", "edt_conf_protoServer_heading_title", window.schema.protoServer.properties, "protoServerHelpPanelId");
-      if (isForwarderEnabled && storedAccess !== 'default') createSection("forwarder", "edt_conf_forwarder_heading_title", window.schema.forwarder.properties, "forwarderHelpPanelId");
+    if (globalThis.showOptHelp) {
+      createSection("network", "edt_conf_network_heading_title", globalThis.schema.network.properties);
+      createSection("jsonServer", "edt_conf_jsonServer_heading_title", globalThis.schema.jsonServer.properties);
+      if (isFlatbufEnabled) createSection("flatbufServer", "edt_conf_flatbufServer_heading_title", globalThis.schema.flatbufServer.properties, "flatbufServerHelpPanelId");
+      if (isProtoBufEnabled) createSection("protoServer", "edt_conf_protoServer_heading_title", globalThis.schema.protoServer.properties, "protoServerHelpPanelId");
+      if (isForwarderEnabled && storedAccess !== 'default') createSection("forwarder", "edt_conf_forwarder_heading_title", globalThis.schema.forwarder.properties, "forwarderHelpPanelId");
     } else {
       $('#conf_cont').addClass('row');
       appendPanel("network", "edt_conf_network_heading_title");
@@ -34,28 +34,6 @@ $(document).ready(function () {
       if (isProtoBufEnabled) appendPanel("protoServer", "edt_conf_protoServer_heading_title");
       if (isForwarderEnabled) appendPanel("forwarder", "edt_conf_forwarder_heading_title");
       $("#conf_cont_tok").removeClass('row');
-    }
-
-    function createSection(id, titleKey, schemaProps, helpPanelId = null) {
-      const containerId = `conf_cont_${id}`;
-      $('#conf_cont').append(createRow(containerId));
-      $(`#${containerId}`)
-        .append(createOptPanel('fa-sitemap', $.i18n(titleKey), `editor_container_${id}`, `btn_submit_${id}`, 'panel-system'))
-        .append(createHelpTable(schemaProps, $.i18n(titleKey), helpPanelId));
-    }
-
-    function appendPanel(id, titleKey) {
-
-      const containerId = `conf_cont_${id}`;
-
-      // Create the container element
-      const $newContainer = $('<div></div>', { id: containerId });
-
-      // Append the newly created container to #conf_cont
-      $('#conf_cont').append($newContainer);
-
-      // Append the option panel inside the newly created container
-      $newContainer.append(createOptPanel('fa-sitemap', $.i18n(titleKey), `editor_container_${id}`, `btn_submit_${id}`, 'panel-system'));
     }
   }
 
@@ -78,25 +56,6 @@ $(document).ready(function () {
       if (enabled) createEditor(key, schemaKey, handler);
     });
 
-    function createEditor(container, schemaKey, changeHandler) {
-      editors[container] = createJsonEditor(
-        `editor_container_${container}`,
-        { [schemaKey]: window.schema[schemaKey] },
-        true,
-        true
-      );
-
-      editors[container].on('change', function () {
-        const isValid = editors[container].validate().length === 0 && !window.readOnlyMode;
-        $(`#btn_submit_${container}`).prop('disabled', !isValid);
-      });
-
-      $(`#btn_submit_${container}`).off().on('click', function () {
-        requestWriteConfig(editors[container].getValue());
-      });
-
-      if (changeHandler) changeHandler(editors[container]);
-    }
 
     function handleFlatbufChange(editor) {
       editor.on('change', () => toggleHelpPanel(editor, "flatbufServer", "flatbufServerHelpPanelId"));
@@ -116,37 +75,7 @@ $(document).ready(function () {
       });
     }
 
-    function updateConfiguredInstancesList() {
-      const enumVals = [];
-      const enumTitelVals = [];
-      let enumDefaultVal = "";
-      let addSelect = false;
 
-      const configuredInstances = window.serverInfo.instance;
-
-      if (!configuredInstances || Object.keys(configuredInstances).length === 0) {
-        enumVals.push("NONE");
-        enumTitelVals.push($.i18n('edt_conf_forwarder_no_instance_configured_title'));
-      } else {
-        Object.values(configuredInstances).forEach(({ friendly_name, instance }) => {
-          enumTitelVals.push(friendly_name);
-          enumVals.push(instance.toString());
-        });
-
-        const configuredInstance = window.serverConfig.forwarder.instance.toString();
-
-        if (enumVals.includes(configuredInstance)) {
-          enumDefaultVal = configuredInstance;
-        } else {
-          addSelect = true;
-        }
-      }
-
-      if (enumVals.length > 0) {
-        updateJsonEditorSelection(editors["forwarder"], 'root.forwarder',
-          'instanceList', {}, enumVals, enumTitelVals, enumDefaultVal, addSelect, false);
-      }
-    }
 
     function handleForwarderChange(editor) {
       editor.on('ready', () => {
@@ -200,15 +129,11 @@ $(document).ready(function () {
       editor.watch('root.forwarder.instanceList', () => {
         const instanceId = editor.getEditor("root.forwarder.instanceList").getValue();
         if (!["NONE", "SELECT", "", undefined].includes(instanceId)) {
-          editor.getEditor("root.forwarder.instance").setValue(parseInt(instanceId, 10));
+          editor.getEditor("root.forwarder.instance").setValue(Number.parseInt((instanceId, 10)));
         }
       });
     }
 
-    function toggleHelpPanel(editor, key, panelId) {
-      const enable = editor.getEditor(`root.${key}.enable`).getValue();
-      $(`#${panelId}`).toggle(enable);
-    }
   }
 
   // Validate for conflicting ports
@@ -230,7 +155,7 @@ $(document).ready(function () {
 
       const isWebConfigPort = conflictKey.startsWith("webConfig");
       if (isWebConfigPort) {
-        conflictPort = window.serverConfig?.webConfig?.[conflictKey.replace("webConfig_", "")];
+        conflictPort = globalThis.serverConfig?.webConfig?.[conflictKey.replace("webConfig_", "")];
       } else {
         conflictPort = editors?.[conflictKey]?.getEditor(`root.${conflictKey}.port`)?.getValue();
       }
@@ -266,7 +191,7 @@ $(document).ready(function () {
     $("#conf_cont_tok").insertAfter("#conf_cont_network");
 
     // Initial state check based on server config
-    checkApiTokenState(window.serverConfig.network.localApiAuth || storedAccess === 'expert');
+    checkApiTokenState(globalThis.serverConfig.network.localApiAuth || storedAccess === 'expert');
 
     // Listen for changes on the local API Auth toggle
     $('#root_network_localApiAuth').on("change", function () {
@@ -284,7 +209,7 @@ $(document).ready(function () {
       $('#tok_chars_needed').html(charsNeeded > 0 ? `${charsNeeded} ${$.i18n('general_chars_needed')}` : "<br />");
     });
 
-    $(window.hyperion).off("cmd-authorize-createToken").on("cmd-authorize-createToken", function (event) {
+    $(globalThis.hyperion).off("cmd-authorize-createToken").on("cmd-authorize-createToken", function (event) {
       const val = event.response.info;
       showInfoDialog("newToken", $.i18n('conf_network_tok_diaTitle'), $.i18n('conf_network_tok_diaMsg') + `<br><div style="font-weight:bold">${val.token}</div>`);
       addToTokenList(val);
@@ -326,26 +251,21 @@ $(document).ready(function () {
 
     configuredServices.forEach((serviceConfig, i) => {
       const itemEditor = editors["forwarder"].getEditor(`root.forwarder.${type}.${i}`);
-      const service = discoveredRemoteServices[type]?.[serviceConfig.host];
+      const service = discoveredRemoteServices.get(type)?.get(serviceConfig.host);
 
       if (service?.wasDiscovered) {
-        itemEditor?.disable();
+        itemEditor.disable();
 
         const instanceIdsEditor = editors["forwarder"].getEditor(`root.forwarder.${type}.${i}.instanceIds`);
         instanceIdsEditor?.enable();
 
         showInputOptions(`root.forwarder.${type}.${i}`, ["name"], true);
       } else {
-        itemEditor?.enable();
-        showInputOptions(`root.forwarder.${type}.${i}`, ["name"], false);
-
-        if (!service) {
-          const hostEditor = editors["forwarder"].getEditor(`root.forwarder.${type}.${i}.host`);
-          if (hostEditor?.getValue()) {
-            updateServiceCacheForwarderConfiguredItems(type);
-            updateForwarderSelectList(type);
-          }
-        }
+        itemEditor.enable();
+        itemEditor.getEditor(`root.forwarder.${type}.${i}.name`).setValue(serviceConfig.name);
+        itemEditor.getEditor(`root.forwarder.${type}.${i}.host`).setValue(serviceConfig.host);
+        itemEditor.getEditor(`root.forwarder.${type}.${i}.port`).setValue(serviceConfig.port);
+        itemEditor.getEditor(`root.forwarder.${type}.${i}.instanceIds`).setValue(serviceConfig.instanceIds);
       }
     });
   }
@@ -359,7 +279,7 @@ $(document).ready(function () {
     }
 
     const newServices = selectedServices.map((serviceKey) => {
-      const service = discoveredRemoteServices[type][serviceKey];
+      const service = discoveredRemoteServices.get(type).get(serviceKey);
       return {
         name: service.name,
         host: service.host,
@@ -379,13 +299,15 @@ $(document).ready(function () {
     const enumTitleVals = [];
     const enumDefaultVals = [];
 
-    Object.values(discoveredRemoteServices[type]).forEach(service => {
-      enumVals.push(service.host);
-      enumTitleVals.push(service.name);
-      if (service.inConfig) {
-        enumDefaultVals.push(service.host);
+    if (discoveredRemoteServices.has(type)) {
+      for (const service of discoveredRemoteServices.get(type).values()) {
+        enumVals.push(service.host);
+        enumTitleVals.push(service.name);
+        if (service.inConfig) {
+          enumDefaultVals.push(service.host);
+        }
       }
-    });
+    }
 
     const addSchemaElements = { "uniqueItems": true };
 
@@ -409,22 +331,26 @@ $(document).ready(function () {
     const editor = editors["forwarder"].getEditor(`root.forwarder.${serviceType}`);
 
     if (editor) {
-      if (!discoveredRemoteServices[serviceType]) {
-        discoveredRemoteServices[serviceType] = {};
+      if (!discoveredRemoteServices.has(serviceType)) {
+        discoveredRemoteServices.set(serviceType, new Map());
       }
 
       const configuredServices = JSON.parse(JSON.stringify(editor.getValue('items')));
       configuredServices.forEach((service) => {
         service.inConfig = true;
-        let existingService = discoveredRemoteServices[serviceType][service.host] || {};
-        discoveredRemoteServices[serviceType][service.host] = { ...existingService, ...service };
+        let existingService = discoveredRemoteServices.get(serviceType).get(service.host) || {};
+        discoveredRemoteServices.get(serviceType).set(service.host, { ...existingService, ...service });
       });
     }
   }
 
   function updateRemoteServiceCache(discoveryInfo) {
+
+    debugger;
     Object.entries(discoveryInfo).forEach(([serviceType, discoveredServices]) => {
-      discoveredRemoteServices[serviceType] = discoveredRemoteServices[serviceType] || {};
+      if (!discoveredRemoteServices.has(serviceType)) {
+        discoveredRemoteServices.set(serviceType, new Map());
+      }
 
       discoveredServices.forEach((service) => {
         if (!service.sameHost) {
@@ -435,12 +361,12 @@ $(document).ready(function () {
           // Might be updated when instance IDs are provided by the remote service info
           service.instanceIds = [];
 
-          if (discoveredRemoteServices[serviceType][service.host]) {
+          if (discoveredRemoteServices.get(serviceType).has(service.host)) {
             service.inConfig = true;
-            service.instanceIds = discoveredRemoteServices[serviceType][service.host].instanceIds;
+            service.instanceIds = discoveredRemoteServices.get(serviceType).get(service.host).instanceIds;
           }
 
-          discoveredRemoteServices[serviceType][service.host] = service;
+          discoveredRemoteServices.get(serviceType).set(service.host, service);
         }
       });
     });
@@ -458,3 +384,81 @@ $(document).ready(function () {
   }
 
 });
+
+function createSection(id, titleKey, schemaProps, helpPanelId = null) {
+  const containerId = `conf_cont_${id}`;
+  $('#conf_cont').append(createRow(containerId));
+  $(`#${containerId}`)
+    .append(createOptPanel('fa-sitemap', $.i18n(titleKey), `editor_container_${id}`, `btn_submit_${id}`, 'panel-system'))
+    .append(createHelpTable(schemaProps, $.i18n(titleKey), helpPanelId));
+}
+
+function appendPanel(id, titleKey) {
+  const containerId = `conf_cont_${id}`;
+
+  // Create the container element
+  const $newContainer = $('<div></div>', { id: containerId });
+
+  // Append the newly created container to #conf_cont
+  $('#conf_cont').append($newContainer);
+
+  // Append the option panel inside the newly created container
+  $newContainer.append(createOptPanel('fa-sitemap', $.i18n(titleKey), `editor_container_${id}`, `btn_submit_${id}`, 'panel-system'));
+}
+
+  function createEditor(container, schemaKey, changeHandler) {
+    editors[container] = createJsonEditor(
+      `editor_container_${container}`,
+      { [schemaKey]: globalThis.schema[schemaKey] },
+      true,
+      true
+    );
+
+    editors[container].on('change', function () {
+      const isValid = editors[container].validate().length === 0 && !globalThis.readOnlyMode;
+      $(`#btn_submit_${container}`).prop('disabled', !isValid);
+    });
+
+    $(`#btn_submit_${container}`).off().on('click', function () {
+      requestWriteConfig(editors[container].getValue());
+    });
+
+    if (changeHandler) changeHandler(editors[container]);
+  }
+
+    function updateConfiguredInstancesList() {
+    const enumVals = [];
+    const enumTitelVals = [];
+    let enumDefaultVal = "";
+    let addSelect = false;
+
+    const configuredInstances = globalThis.serverInfo.instance;
+
+    if (!configuredInstances || Object.keys(configuredInstances).length === 0) {
+      enumVals.push("NONE");
+      enumTitelVals.push($.i18n('edt_conf_forwarder_no_instance_configured_title'));
+    } else {
+      Object.values(configuredInstances).forEach(({ friendly_name, instance }) => {
+        enumTitelVals.push(friendly_name);
+        enumVals.push(instance.toString());
+      });
+
+      const configuredInstance = globalThis.serverConfig.forwarder.instance.toString();
+
+      if (enumVals.includes(configuredInstance)) {
+        enumDefaultVal = configuredInstance;
+      } else {
+        addSelect = true;
+      }
+    }
+
+    if (enumVals.length > 0) {
+      updateJsonEditorSelection(editors["forwarder"], 'root.forwarder',
+        'instanceList', {}, enumVals, enumTitelVals, enumDefaultVal, addSelect, false);
+    }
+  }
+
+  function toggleHelpPanel(editor, key, panelId) {
+    const enable = editor.getEditor(`root.${key}.enable`).getValue();
+    $(`#${panelId}`).toggle(enable);
+  }

@@ -227,64 +227,81 @@ QStringList JsonCallbacks::subscribe(const QJsonArray& subscriptions)
 
 bool JsonCallbacks::unsubscribe(const Subscription::Type cmd)
 {
+	// Unsubscribe from a specific event notification.
+	// This method removes the client from the list of subscribers for a given command
+	// and disconnects the corresponding signal to stop receiving updates.
+
+	// Check if the client is actually subscribed to this command
 	if (!_subscribedCommands.contains(cmd))
 	{
+		// If not subscribed, there's nothing to do
 		return true;
 	}
 
+	// Remove the command from the set of subscribed commands
 	_subscribedCommands.remove(cmd);
 
+	// Get a strong reference to the Hyperion instance
 	QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
 
+	// Disconnect the signal based on the command type
 	switch (cmd) {
-	// Global subscriptions
+		// Global subscriptions (not tied to a specific Hyperion instance)
 	case Subscription::EffectsUpdate:
 #if defined(ENABLE_EFFECTENGINE)
+		// Disconnect from the effect list change signal
 		if (auto fh = EffectFileHandler::getInstance())
 		{
 			disconnect(fh.data(), &EffectFileHandler::effectListChanged, this, &JsonCallbacks::handleEffectListChange);
 		}
 #endif
-	break;
+		break;
 
 	case Subscription::EventUpdate:
+		// Disconnect from the event signal
 		disconnect(EventHandler::getInstance().data(), &EventHandler::signalEvent, this, &JsonCallbacks::handleEventUpdate);
-	break;
+		break;
 	case Subscription::InstanceUpdate:
+		// Disconnect from the instance change signal
 		if (auto mgr = _instanceManagerWeak.toStrongRef())
 		{
 			disconnect(mgr.get(), &HyperionIManager::change, this, &JsonCallbacks::handleInstanceChange);
 		}
-	break;
+		break;
 	case Subscription::LogMsgUpdate:
+		// Disconnect from the log message signal
 		disconnect(LoggerManager::getInstance().data(), &LoggerManager::newLogMessage, this, &JsonCallbacks::handleLogMessageUpdate);
 		if (_islogMsgStreamingActive)
 		{
 			_islogMsgStreamingActive = false;
 			Debug(_log, "log streaming deactivated for client  %s", _peerAddress.toStdString().c_str());
 		}
-	break;
+		break;
 	case Subscription::SettingsUpdate:
+		// Disconnect from the settings change signal
 		if (auto mgr = _instanceManagerWeak.toStrongRef())
 		{
 			disconnect(mgr.get(), &HyperionIManager::settingsChanged, this, &JsonCallbacks::handleSettingsChange);
 		}
-	break;
+		break;
 	case Subscription::TokenUpdate:
+		// Disconnect from the token change signal
 		if (auto auth = AuthManager::getInstance())
 		{
 			disconnect(auth.data(), &AuthManager::tokenChange, this, &JsonCallbacks::handleTokenChange);
 		}
-	break;
+		break;
 
-		// Instance specific subscriptions
+		// Instance-specific subscriptions
 	case Subscription::AdjustmentUpdate:
+		// Disconnect from the adjustment change signal for the current Hyperion instance
 		if (!hyperion.isNull()) {
 			disconnect(hyperion.get(), &Hyperion::adjustmentChanged, this, &JsonCallbacks::handleAdjustmentChange);
 		}
-	break;
+		break;
 	case Subscription::ComponentsUpdate:
 	{
+		// Disconnect from the component state update signal
 		QSharedPointer<ComponentRegister> const componentRegisterStrong = _componentRegisterWeak.toStrongRef();
 		if (!componentRegisterStrong.isNull()) {
 			disconnect(componentRegisterStrong.get(), &ComponentRegister::updatedComponentState, this, &JsonCallbacks::handleComponentState);
@@ -293,31 +310,38 @@ bool JsonCallbacks::unsubscribe(const Subscription::Type cmd)
 	break;
 
 	case Subscription::ImageToLedMappingUpdate:
+		// Disconnect from the image to LED mapping change signal
 		if (!hyperion.isNull()) {
 			disconnect(hyperion.get(), &Hyperion::imageToLedsMappingChanged, this, &JsonCallbacks::handleImageToLedsMappingChange);
 		}
-	break;
+		break;
 	case Subscription::ImageUpdate:
+		// Invalidate the timer and reset the last update time for image updates
 		_imageUpdateTimer.invalidate();
 		_lastImageUpdateTime = 0;
+		// Disconnect from the current image signal
 		if (!hyperion.isNull()) {
 			disconnect(hyperion.get(), &Hyperion::currentImage, this, &JsonCallbacks::handleImageUpdate);
 		}
-	break;
+		break;
 	case Subscription::LedColorsUpdate:
+		// Invalidate the timer and reset the last update time for LED color updates
 		if (!hyperion.isNull()) {
 			_ledUpdateTimer.invalidate();
 			_lastLedUpdateTime = 0;
+			// Disconnect from the raw LED colors signal
 			disconnect(hyperion.get(), &Hyperion::rawLedColors, this, &JsonCallbacks::handleLedColorUpdate);
 		}
-	break;
+		break;
 	case Subscription::LedsUpdate:
+		// Disconnect from the LED configuration change signal
 		if (!hyperion.isNull()) {
 			disconnect(hyperion.get(), &Hyperion::settingsChanged, this, &JsonCallbacks::handleLedsConfigChange);
 		}
-	break;
+		break;
 	case Subscription::PrioritiesUpdate:
 	{
+		// Disconnect from the priorities change signal
 		QSharedPointer<PriorityMuxer> const prioMuxerStrong = _prioMuxerWeak.toStrongRef();
 		if (!prioMuxerStrong.isNull()) {
 			disconnect(prioMuxerStrong.get(), &PriorityMuxer::prioritiesChanged, this, &JsonCallbacks::handlePriorityUpdate);
@@ -325,14 +349,17 @@ bool JsonCallbacks::unsubscribe(const Subscription::Type cmd)
 	}
 	break;
 	case Subscription::VideomodeUpdate:
+		// Disconnect from the video mode change signal
 		if (!hyperion.isNull()) {
 			disconnect(hyperion.get(), &Hyperion::newVideoMode, this, &JsonCallbacks::handleVideoModeChange);
 		}
-	break;
+		break;
 
 	default:
-	return false;
+		// If the command is not recognized, return false
+		return false;
 	}
+	// Return true to indicate that the unsubscription was successful
 	return true;
 }
 
