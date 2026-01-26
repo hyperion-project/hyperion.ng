@@ -50,8 +50,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - UI - Fix that gap-length could get negative
   - UI - Systray Settings is not using the actual port (#1964)
   - UI - Dashboard, wrap long version text
-  - CEC-Handler is not stopped properly
-  - Grabbers are started for every instance started
+  - UI - Non local network connection is dropped without providing a reason (#1970)
+  - CEC-Handler is not stopped  every instance started
   - Qt-Grabber (Windows) does not apply pixel ratio (#1882) - _Thanks to @SolberLight_
   - LED-devices are not retrying to establish connectivity, if supported by the device
   - LED-devices are resolving IP-addresses for API and UDP two times in sequence
