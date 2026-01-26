@@ -201,6 +201,10 @@ protected:
 
 private:
 
+	void handleSourceRequestScreen(hyperion::Components component, int hyperionInd, bool listen);
+	void handleSourceRequestVideo(hyperion::Components component, int hyperionInd, bool listen);
+	void handleSourceRequestAudio(hyperion::Components component, int hyperionInd, bool listen);
+
 	Grabber *_ggrabber;
 	QString _grabberName;
 

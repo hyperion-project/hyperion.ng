@@ -1,7 +1,5 @@
 #pragma once
 
-#include <QScopedPointer>
-
 // Utils includes
 #include <utils/ColorBgr.h>
 #include <utils/ColorRgba.h>
@@ -20,12 +18,6 @@ public:
 	///
 	explicit AmlogicGrabber(int deviceIdx = 0);
 	~AmlogicGrabber() override;
-
-	///
-	/// @brief Setup a new capture screen, will free the previous one
-	/// @return True on success, false if no screen is found
-	///
-	bool setupScreen() override;
 
 	///
 	/// Captures a single snapshot of the display and writes the data to the given image. The
@@ -48,35 +40,12 @@ public:
 	QJsonObject discover(const QJsonObject &params) const;
 
 	///
-	/// Set the video mode (2D/3D)
-	/// @param[in] mode The new video mode
-	///
-	void setVideoMode(VideoMode mode) override;
-
-	///
-	/// @brief Apply new crop values, on errors reject the values
-	///
-	void setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom) override;
-
-	///
 	/// @brief Apply new width/height values, on errors (collide with cropping) reject the values
 	/// @return True on success else false
 	///
 	bool setWidthHeight(int width, int height) override;
 
-	///
-	/// @brief Apply new framerate
-	/// @param fps framesPerSecond
-	///
-	bool setFramerate(int fps) override;
-
-	///
-	/// @brief  Apply new pixelDecimation
-	///
-	bool setPixelDecimation(int pixelDecimation) override;
-
 private:
-
 	bool isGbmSupported() const;
 
 	/**
@@ -99,7 +68,5 @@ private:
 	size_t _bytesToRead;
 
 	int _lastError;
-	bool _videoPlaying;
-	QScopedPointer<Grabber>	_screenGrabber;
 	int _grabbingModeNotification;
 };

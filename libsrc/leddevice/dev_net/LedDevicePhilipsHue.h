@@ -264,10 +264,10 @@ public:
 	QJsonDocument put(const QStringList& routeElements, const QJsonObject& content, bool supressError = false);
 
 	QJsonDocument retrieveBridgeDetails();
-	QJsonObject getDeviceDetails(const QString& deviceId);
-	QJsonObject getEntertainmentSrvDetails(const QString& deviceId);
+	QJsonObject getDeviceDetails(const QString& deviceId) const;
+	QJsonObject getEntertainmentSrvDetails(const QString& deviceId) const;
 
-	QJsonObject getLightDetails(const QString& lightId);
+	QJsonObject getLightDetails(const QString& lightId) const;
 	QJsonDocument setLightState(const QString& lightId, const QJsonObject& state);
 
 	QMap<QString,QJsonObject> getDevicesMap() const;

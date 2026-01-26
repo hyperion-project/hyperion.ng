@@ -2,25 +2,24 @@ $(document).ready(function () {
 
   performTranslation();
 
-  var screenGrabberAvailable = (window.serverInfo.grabbers.screen.available.length !== 0);
-  var videoGrabberAvailable = (window.serverInfo.grabbers.video.available.length !== 0);
-  const audioGrabberAvailable = (window.serverInfo.grabbers.audio.available.length !== 0);
+  const screenGrabberAvailable = (globalThis.serverInfo.grabbers.screen.available.length !== 0);
+  const videoGrabberAvailable = (globalThis.serverInfo.grabbers.video.available.length !== 0);
+  const audioGrabberAvailable = (globalThis.serverInfo.grabbers.audio.available.length !== 0);
 
-  var conf_editor_video = null;
-  var conf_editor_audio = null;
-  var conf_editor_screen = null;
+  let conf_editor_video = null;
+  let conf_editor_audio = null;
+  let conf_editor_screen = null;
 
-  var configuredDevice = "";
-  var discoveredInputSources = {};
-  var deviceProperties = {};
+  let configuredDevice = "";
+  const discoveredInputSources = {};
   const DDA_INACTIVE_TIMEOUT = 300; // The DDA grabber will not issue updates when no screen activity, define timeout of 5 minutes to avoid off/on blinking
 
   // Screen-Grabber
   if (screenGrabberAvailable) {
     $('#conf_cont').append(createRow('conf_cont_screen'));
     $('#conf_cont_screen').append(createOptPanel('fa-camera', $.i18n("edt_conf_fg_heading_title"), 'editor_container_screengrabber', 'btn_submit_screengrabber', 'panel-system', 'screengrabberPanelId'));
-    if (window.showOptHelp) {
-      $('#conf_cont_screen').append(createHelpTable(window.schema.framegrabber.properties, $.i18n("edt_conf_fg_heading_title"), "screengrabberHelpPanelId"));
+    if (globalThis.showOptHelp) {
+      $('#conf_cont_screen').append(createHelpTable(globalThis.schema.framegrabber.properties, $.i18n("edt_conf_fg_heading_title"), "screengrabberHelpPanelId"));
     }
   }
 
@@ -30,13 +29,13 @@ $(document).ready(function () {
     $('#conf_cont_video').append(createOptPanel('fa-camera', $.i18n("edt_conf_v4l2_heading_title"), 'editor_container_videograbber', 'btn_submit_videograbber', 'panel-system', 'videograbberPanelId'));
 
     if (storedAccess === 'expert') {
-      var conf_cont_video_footer = document.getElementById("editor_container_videograbber").nextElementSibling;
+      const conf_cont_video_footer = document.getElementById("editor_container_videograbber").nextElementSibling;
       $(conf_cont_video_footer).prepend('<button class="btn btn-primary mdi-24px" id="btn_videograbber_set_defaults" disabled data-toggle="tooltip" data-placement="top" title="' + $.i18n("edt_conf_v4l2_hardware_set_defaults_tip") + '">'
         + '<i class= "fa fa-fw fa-undo" ></i >' + $.i18n("edt_conf_v4l2_hardware_set_defaults") + '</button > ');
     }
 
-    if (window.showOptHelp) {
-      $('#conf_cont_video').append(createHelpTable(window.schema.grabberV4L2.properties, $.i18n("edt_conf_v4l2_heading_title"), "videograbberHelpPanelId"));
+    if (globalThis.showOptHelp) {
+      $('#conf_cont_video').append(createHelpTable(globalThis.schema.grabberV4L2.properties, $.i18n("edt_conf_v4l2_heading_title"), "videograbberHelpPanelId"));
     }
   }
 
@@ -51,16 +50,16 @@ $(document).ready(function () {
         + '<i class= "fa fa-fw fa-undo" ></i >' + $.i18n("edt_conf_audio_effect_set_defaults") + '</button > ');
     }
 
-    if (window.showOptHelp) {
-      $('#conf_cont_audio').append(createHelpTable(window.schema.grabberAudio.properties, $.i18n("edt_conf_audio_heading_title"), "audiograbberHelpPanelId"));
+    if (globalThis.showOptHelp) {
+      $('#conf_cont_audio').append(createHelpTable(globalThis.schema.grabberAudio.properties, $.i18n("edt_conf_audio_heading_title"), "audiograbberHelpPanelId"));
     }
   }
 
   JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
-    var errors = [];
+    let errors = [];
 
     if (path === "root.grabberV4L2" || path === "root.framegrabber") {
-      var editor;
+      let editor;
       switch (path) {
         case "root.framegrabber":
           editor = conf_editor_screen;
@@ -71,7 +70,7 @@ $(document).ready(function () {
       }
 
       if (value.cropLeft || value.cropRight) {
-        var width = editor.getEditor(path + ".width").getValue();
+        const width = editor.getEditor(path + ".width").getValue();
         if (value.cropLeft + value.cropRight > width) {
           errors.push({
             path: path,
@@ -82,7 +81,7 @@ $(document).ready(function () {
       }
 
       if (value.cropTop || value.cropBottom) {
-        var height = editor.getEditor(path + ".height").getValue();
+        const height = editor.getEditor(path + ".height").getValue();
         if (value.cropTop + value.cropBottom > height) {
           errors.push({
             path: path,
@@ -95,34 +94,25 @@ $(document).ready(function () {
     return errors;
   });
 
-  function updateCropForWidth(editor, path) {
-    var width = editor.getEditor(path + ".width").getValue();
-    updateJsonEditorRange(editor, path, 'cropLeft', 0, width);
-    updateJsonEditorRange(editor, path, 'cropRight', 0, width);
-  }
-
-  function updateCropForHeight(editor, path) {
-    var height = editor.getEditor(path + ".height").getValue();
-    updateJsonEditorRange(editor, path, 'cropTop', 0, height);
-    updateJsonEditorRange(editor, path, 'cropBottom', 0, height);
-  }
-
   // Screen-Grabber
   if (screenGrabberAvailable) {
     conf_editor_screen = createJsonEditor('editor_container_screengrabber', {
-      framegrabber: window.schema.framegrabber
+      framegrabber: globalThis.schema.framegrabber
     }, true, true);
 
     conf_editor_screen.on('ready', function () {
       // Trigger conf_editor_screen.watch - 'root.framegrabber.enable'
-      var screenEnable = window.serverConfig.framegrabber.enable;
+      const screenEnable = globalThis.serverConfig.framegrabber.enable;
       conf_editor_screen.getEditor("root.framegrabber.enable").setValue(screenEnable);
     });
 
     conf_editor_screen.on('change', function () {
 
-      if (!conf_editor_screen.validate().length) {
-        var deviceSelected = conf_editor_screen.getEditor("root.framegrabber.available_devices").getValue();
+      if (conf_editor_screen.validate().length) {
+        $('#btn_submit_screengrabber').prop('disabled', true);
+      }
+      else {
+        const deviceSelected = conf_editor_screen.getEditor("root.framegrabber.available_devices").getValue();
         switch (deviceSelected) {
           case "SELECT":
             showInputOptionsForKey(conf_editor_screen, "framegrabber", ["enable", "available_devices"], false);
@@ -131,21 +121,18 @@ $(document).ready(function () {
             showInputOptionsForKey(conf_editor_screen, "framegrabber", ["enable", "available_devices"], false);
             break;
           default:
-            window.readOnlyMode ? $('#btn_submit_screengrabber').prop('disabled', true) : $('#btn_submit_screengrabber').prop('disabled', false);
+            globalThis.readOnlyMode ? $('#btn_submit_screengrabber').prop('disabled', true) : $('#btn_submit_screengrabber').prop('disabled', false);
             break;
         }
-      }
-      else {
-        $('#btn_submit_screengrabber').prop('disabled', true);
       }
     });
 
     conf_editor_screen.watch('root.framegrabber.enable', () => {
 
-      var screenEnable = conf_editor_screen.getEditor("root.framegrabber.enable").getValue();
+      const screenEnable = conf_editor_screen.getEditor("root.framegrabber.enable").getValue();
       if (screenEnable) {
         showInputOptionsForKey(conf_editor_screen, "framegrabber", "enable", true);
-        if (window.showOptHelp) {
+        if (globalThis.showOptHelp) {
           $('#screengrabberHelpPanelId').show();
         }
         discoverInputSources("screen");
@@ -160,24 +147,24 @@ $(document).ready(function () {
 
     conf_editor_screen.watch('root.framegrabber.available_devices', () => {
 
-      var deviceSelected = conf_editor_screen.getEditor("root.framegrabber.available_devices").getValue();
+      const deviceSelected = conf_editor_screen.getEditor("root.framegrabber.available_devices").getValue();
       if (deviceSelected === "SELECT" || deviceSelected === "NONE" || deviceSelected === "") {
         $('#btn_submit_screengrabber').prop('disabled', true);
         showInputOptionsForKey(conf_editor_screen, "framegrabber", ["enable", "available_devices"], false);
       }
       else {
         showInputOptionsForKey(conf_editor_screen, "framegrabber", ["enable", "available_devices"], true);
-        var addSchemaElements = {};
-        var enumVals = [];
-        var enumTitelVals = [];
-        var enumDefaultVal = "";
+        let addSchemaElements = {};
+        let enumVals = [];
+        let enumTitelVals = [];
+        let enumDefaultVal = "";
 
-        var deviceProperties = getPropertiesOfDevice("screen", deviceSelected);
+        const deviceProperties = getPropertiesOfDevice("screen", deviceSelected);
 
         //Update hidden input element
         conf_editor_screen.getEditor("root.framegrabber.device").setValue(deviceProperties.device);
 
-        var video_inputs = deviceProperties.video_inputs;
+        const video_inputs = deviceProperties.video_inputs;
         if (video_inputs.length <= 1) {
           addSchemaElements.access = "expert";
         }
@@ -189,7 +176,7 @@ $(document).ready(function () {
 
         if (enumVals.length > 0) {
           if (deviceSelected === configuredDevice) {
-            var configuredVideoInput = window.serverConfig.framegrabber.input.toString();
+            const configuredVideoInput = globalThis.serverConfig.framegrabber.input.toString();
             if ($.inArray(configuredVideoInput, enumVals) != -1) {
               enumDefaultVal = configuredVideoInput;
             }
@@ -198,47 +185,47 @@ $(document).ready(function () {
             'device_inputs', addSchemaElements, enumVals, enumTitelVals, enumDefaultVal, false);
         }
 
-        if (conf_editor_screen.validate().length && !window.readOnlyMode) {
+        if (conf_editor_screen.validate().length && !globalThis.readOnlyMode) {
           $('#btn_submit_screengrabber').prop('disabled', false);
         }
       }
     });
 
     conf_editor_screen.watch('root.framegrabber.device_inputs', () => {
-      var deviceSelected = conf_editor_screen.getEditor("root.framegrabber.available_devices").getValue();
-      var videoInputSelected = conf_editor_screen.getEditor("root.framegrabber.device_inputs").getValue();
+      const deviceSelected = conf_editor_screen.getEditor("root.framegrabber.available_devices").getValue();
+      const videoInputSelected = conf_editor_screen.getEditor("root.framegrabber.device_inputs").getValue();
 
      //Update hidden input element
-      conf_editor_screen.getEditor("root.framegrabber.input").setValue(parseInt(videoInputSelected));
+      conf_editor_screen.getEditor("root.framegrabber.input").setValue(Number.parseInt(videoInputSelected));
 
-      var addSchemaElements = {};
-      var enumVals = [];
-      var enumTitelVals = [];
-      var enumDefaultVal = "";
+      let addSchemaElements = {};
+      let enumVals = [];
+      let enumTitelVals = [];
+      let enumDefaultVal = "";
 
-      var deviceProperties = getPropertiesOfDevice("screen", deviceSelected);
+      const deviceProperties = getPropertiesOfDevice("screen", deviceSelected);
       
-      const videoInput = deviceProperties.video_inputs.find(input => input.inputIdx === parseInt(videoInputSelected));
+      const videoInput = deviceProperties.video_inputs.find(input => input.inputIdx === Number.parseInt(videoInputSelected));
       const formats = videoInput.formats;
-      var formatIdx = 0;
+      let formatIdx = 0;
 
-      var resolutions = formats[formatIdx].resolutions;
+      let resolutions = formats[formatIdx].resolutions;
       if (resolutions.length <= 1) {
         addSchemaElements.access = "advanced";
       } else {
         resolutions.sort(compareTwoValues('width', 'height', 'asc'));
       }
 
-      for (var i = 0; i < resolutions.length; i++) {
+      for (let i = 0; i < resolutions.length; i++) {
         enumVals.push(i.toString());
-        var resolutionText = resolutions[i].width + "x" + resolutions[i].height;
+        const resolutionText = resolutions[i].width + "x" + resolutions[i].height;
         enumTitelVals.push(resolutionText);
       }
 
       if (enumVals.length > 0) {
         if (deviceSelected === configuredDevice) {
-          var configuredResolutionText = window.serverConfig.framegrabber.width + "x" + window.serverConfig.framegrabber.height;
-          var idx = $.inArray(configuredResolutionText, enumTitelVals);
+          const configuredResolutionText = globalThis.serverConfig.framegrabber.width + "x" + globalThis.serverConfig.framegrabber.height;
+          const idx = $.inArray(configuredResolutionText, enumTitelVals);
           if (idx != -1) {
             enumDefaultVal = idx.toString();
           }
@@ -248,46 +235,45 @@ $(document).ready(function () {
           'resolutions', addSchemaElements, enumVals, enumTitelVals, enumDefaultVal, false);
       }
 
-      if (conf_editor_screen.validate().length && !window.readOnlyMode) {
+      if (conf_editor_screen.validate().length && !globalThis.readOnlyMode) {
         $('#btn_submit_screengrabber').prop('disabled', false);
       }
     });
 
     conf_editor_screen.watch('root.framegrabber.resolutions', () => {
-      var deviceSelected = conf_editor_screen.getEditor("root.framegrabber.available_devices").getValue();
-      var videoInputSelected = conf_editor_screen.getEditor("root.framegrabber.device_inputs").getValue();
-      var resolutionSelected = conf_editor_screen.getEditor("root.framegrabber.resolutions").getValue();
+      const deviceSelected = conf_editor_screen.getEditor("root.framegrabber.available_devices").getValue();
+      const videoInputSelected = conf_editor_screen.getEditor("root.framegrabber.device_inputs").getValue();
+      const resolutionSelected = conf_editor_screen.getEditor("root.framegrabber.resolutions").getValue();
 
-      var addSchemaElements = {};
-      var enumVals = [];
-      var enumDefaultVal = "";
+      let addSchemaElements = {};
+      let enumVals = [];
+      let enumDefaultVal = "";
 
-      var deviceProperties = getPropertiesOfDevice("screen", deviceSelected);
-
+      const deviceProperties = getPropertiesOfDevice("screen", deviceSelected);
       const videoInput = deviceProperties.video_inputs.find(input => input.inputIdx == videoInputSelected);
       const formats = videoInput.formats;
-      var formatIdx = 0;
+      let formatIdx = 0;
 
       //Update hidden resolution related elements
-      var width = parseInt(formats[formatIdx].resolutions[resolutionSelected].width);
+      const width = Number.parseInt(formats[formatIdx].resolutions[resolutionSelected].width);
       conf_editor_screen.getEditor("root.framegrabber.width").setValue(width);
 
-      var height = parseInt(formats[formatIdx].resolutions[resolutionSelected].height);
+      const height = Number.parseInt(formats[formatIdx].resolutions[resolutionSelected].height);
       conf_editor_screen.getEditor("root.framegrabber.height").setValue(height);
 
       //Update crop rage depending on selected resolution
       updateCropForWidth(conf_editor_screen, "root.framegrabber");
       updateCropForHeight(conf_editor_screen, "root.framegrabber");
 
-      var fps = formats[formatIdx].resolutions[resolutionSelected].fps;
-      if (!fps) {
+      const fps = formats[formatIdx].resolutions[resolutionSelected].fps;
+      if (fps) {
+        fps.sort((a, b) => a - b);
+        for (const element of fps) {
+          enumVals.push(element.toString());
+        }
+      } else {
         enumVals.push("NONE");
         addSchemaElements.options = { "hidden": true };
-      } else {
-        fps.sort((a, b) => a - b);
-        for (var i = 0; i < fps.length; i++) {
-          enumVals.push(fps[i].toString());
-        }
       }
 
       if (enumVals.length <= 1) {
@@ -296,7 +282,7 @@ $(document).ready(function () {
 
       if (enumVals.length > 0) {
         if (deviceSelected === configuredDevice) {
-          var configuredFps = window.serverConfig.framegrabber.fps.toString();
+          const configuredFps = globalThis.serverConfig.framegrabber.fps.toString();
           if ($.inArray(configuredFps, enumVals) != -1) {
             enumDefaultVal = configuredFps;
           }
@@ -309,17 +295,17 @@ $(document).ready(function () {
           'framerates', addSchemaElements, enumVals, [], enumDefaultVal, false);
       }
 
-      if (conf_editor_screen.validate().length && !window.readOnlyMode) {
+      if (conf_editor_screen.validate().length && !globalThis.readOnlyMode) {
         $('#btn_submit_screengrabber').prop('disabled', false);
       }
     });
 
     conf_editor_screen.watch('root.framegrabber.framerates', () => {
       //Update hidden fps element
-      var fps = 0;
-      var framerates = conf_editor_screen.getEditor("root.framegrabber.framerates").getValue();
+      let fps = 0;
+      const framerates = conf_editor_screen.getEditor("root.framegrabber.framerates").getValue();
       if (framerates !== "NONE") {
-        fps = parseInt(framerates);
+        fps = Number.parseInt(framerates);
       }
       conf_editor_screen.getEditor("root.framegrabber.fps").setValue(fps);
     });
@@ -330,7 +316,7 @@ $(document).ready(function () {
       // As the DDA grabber will not issue updates when no screen activity, set all instances to a timeout of 5 minutes to avoid off/on blinking
       // until a better design is in place
       if (saveOptions.framegrabber.device === "dda") {
-        let instCaptOptions = window.serverConfig.instCapture;
+        let instCaptOptions = globalThis.serverConfig.instCapture;
         instCaptOptions.systemEnable = saveOptions.framegrabber.enable;
         instCaptOptions.screenInactiveTimeout = DDA_INACTIVE_TIMEOUT;
 
@@ -339,12 +325,12 @@ $(document).ready(function () {
         return;
       }
 
-      const currentInstance = window.currentHyperionInstance;
+      const currentInstance = globalThis.currentHyperionInstance;
       //If an instance exists, enable/disable grabbing in line with the global state
-      if (currentInstance !== null && window.serverConfig.instCapture) {
-        let instCaptOptions = window.serverConfig.instCapture;
+      if (currentInstance !== null && globalThis.serverConfig.instCapture) {
+        let instCaptOptions = globalThis.serverConfig.instCapture;
         instCaptOptions.systemEnable = saveOptions.framegrabber.enable;
-        instCaptOptions.screenInactiveTimeout = window.schema.instCapture.properties.screenInactiveTimeout.default;
+        instCaptOptions.screenInactiveTimeout = globalThis.schema.instCapture.properties.screenInactiveTimeout.default;
 
         saveOptions.instCapture = instCaptOptions;
       }
@@ -355,7 +341,7 @@ $(document).ready(function () {
   // External Input Sources (Video-Grabbers)
   if (videoGrabberAvailable) {
     function updateDeviceProperties(deviceProperties, property, key) {
-      var properties = {};
+      let properties = {};
       if (deviceProperties) {
         if (deviceProperties.hasOwnProperty(property)) {
           properties = deviceProperties[property];
@@ -376,20 +362,23 @@ $(document).ready(function () {
     }
 
     conf_editor_video = createJsonEditor('editor_container_videograbber', {
-      grabberV4L2: window.schema.grabberV4L2
+      grabberV4L2: globalThis.schema.grabberV4L2
     }, true, true);
 
     conf_editor_video.on('ready', function () {
       // Trigger conf_editor_video.watch - 'root.grabberV4L2.enable'
-      var videoEnable = window.serverConfig.grabberV4L2.enable;
+      const videoEnable = globalThis.serverConfig.grabberV4L2.enable;
       conf_editor_video.getEditor("root.grabberV4L2.enable").setValue(videoEnable);
     });
 
     conf_editor_video.on('change', function () {
 
       // Validate the current editor's content
-      if (!conf_editor_video.validate().length) {
-        var deviceSelected = conf_editor_video.getEditor("root.grabberV4L2.available_devices").getValue();
+      if (conf_editor_video.validate().length) {
+        $('#btn_submit_videograbber').prop('disabled', true);
+      }
+      else {
+        const deviceSelected = conf_editor_video.getEditor("root.grabberV4L2.available_devices").getValue();
         switch (deviceSelected) {
           case "SELECT":
             showInputOptionsForKey(conf_editor_video, "grabberV4L2", ["enable", "available_devices"], false);
@@ -398,22 +387,19 @@ $(document).ready(function () {
             showInputOptionsForKey(conf_editor_video, "grabberV4L2", ["enable", "available_devices"], false);
             break;
           default:
-            window.readOnlyMode ? $('#btn_submit_videograbber').prop('disabled', true) : $('#btn_submit_videograbber').prop('disabled', false);
+            globalThis.readOnlyMode ? $('#btn_submit_videograbber').prop('disabled', true) : $('#btn_submit_videograbber').prop('disabled', false);
             break;
         }
-      }
-      else {
-        $('#btn_submit_videograbber').prop('disabled', true);
       }
     });
 
     conf_editor_video.watch('root.grabberV4L2.enable', () => {
 
-      var videoEnable = conf_editor_video.getEditor("root.grabberV4L2.enable").getValue();
+      const videoEnable = conf_editor_video.getEditor("root.grabberV4L2.enable").getValue();
       if (videoEnable) {
         showInputOptionsForKey(conf_editor_video, "grabberV4L2", "enable", true);
         $('#btn_videograbber_set_defaults').show();
-        if (window.showOptHelp) {
+        if (globalThis.showOptHelp) {
           $('#videograbberHelpPanelId').show();
         }
         discoverInputSources("video");
@@ -447,7 +433,7 @@ $(document).ready(function () {
       $('#btn_videograbber_set_defaults').prop('disabled', !hasDefaults);
 
       const isConfiguredDevice = (deviceSelected === configuredDevice);
-      const { grabberV4L2 } = window.serverConfig;
+      const { grabberV4L2 } = globalThis.serverConfig;
       const currentProps = deviceProperties.properties;
 
       const propMappings = {
@@ -466,7 +452,7 @@ $(document).ready(function () {
 
         let currentValue = 0;
         if (isConfiguredDevice) {
-          currentValue = window.serverConfig.grabberV4L2[propMappings[prop]];
+          currentValue = globalThis.serverConfig.grabberV4L2[propMappings[prop]];
         } else if (hasDefaults && currentProps[prop]?.hasOwnProperty('default')) {
           currentValue = currentProps[prop].default;
         }
@@ -503,29 +489,29 @@ $(document).ready(function () {
       }
 
       const isValid = conf_editor_video.validate().length === 0;
-      if (isValid && !window.readOnlyMode) {
+      if (isValid && !globalThis.readOnlyMode) {
         $('#btn_submit_videograbber').prop('disabled', false);
       }
     });
 
     conf_editor_video.watch('root.grabberV4L2.device_inputs', () => {
-      var deviceSelected = conf_editor_video.getEditor("root.grabberV4L2.available_devices").getValue();
-      var videoInputSelected = conf_editor_video.getEditor("root.grabberV4L2.device_inputs").getValue();
+      const deviceSelected = conf_editor_video.getEditor("root.grabberV4L2.available_devices").getValue();
+      const videoInputSelected = conf_editor_video.getEditor("root.grabberV4L2.device_inputs").getValue();
 
-      var addSchemaElements = {};
-      var enumVals = [];
-      var enumTitelVals = [];
-      var enumDefaultVal = "";
+      let addSchemaElements = {};
+      let enumVals = [];
+      let enumTitelVals = [];
+      let enumDefaultVal = "";
 
-      var deviceProperties = getPropertiesOfDevice("video", deviceSelected);
-      var formats = deviceProperties.video_inputs[videoInputSelected].formats;
+      const deviceProperties = getPropertiesOfDevice("video", deviceSelected);
+      const formats = deviceProperties.video_inputs[videoInputSelected].formats;
 
       addSchemaElements.access = "advanced";
 
-      for (var i = 0; i < formats.length; i++) {
-        if (formats[i].format) {
-          enumVals.push(formats[i].format);
-          enumTitelVals.push(formats[i].format.toUpperCase());
+      for (const element of formats) {
+        if (element.format) {
+          enumVals.push(element.format);
+          enumTitelVals.push(element.format.toUpperCase());
         }
         else {
           enumVals.push("NONE");
@@ -534,7 +520,7 @@ $(document).ready(function () {
 
       if (enumVals.length > 0) {
         if (deviceSelected === configuredDevice) {
-          var configuredEncoding = window.serverConfig.grabberV4L2.encoding;
+          const configuredEncoding = globalThis.serverConfig.grabberV4L2.encoding;
           if ($.inArray(configuredEncoding, enumVals) != -1) {
             enumDefaultVal = configuredEncoding;
           }
@@ -543,20 +529,17 @@ $(document).ready(function () {
           'encoding', addSchemaElements, enumVals, enumTitelVals, enumDefaultVal, false);
       }
 
-      var enumVals = [];
-      var enumDefaultVal = "";
-
-      var standards = deviceProperties.video_inputs[videoInputSelected].standards;
-      if (!standards) {
+      const standards = deviceProperties.video_inputs[videoInputSelected].standards;
+      if (standards) {
+        enumVals = standards;
+      } else {
         enumVals.push("NONE");
         addSchemaElements.options = { "hidden": true };
-      } else {
-        enumVals = standards;
       }
 
       if (enumVals.length > 0) {
         if (deviceSelected === configuredDevice) {
-          var configuredStandard = window.serverConfig.grabberV4L2.standard;
+          const configuredStandard = globalThis.serverConfig.grabberV4L2.standard;
           if ($.inArray(configuredStandard, enumVals) != -1) {
             enumDefaultVal = configuredStandard;
           }
@@ -572,43 +555,43 @@ $(document).ready(function () {
     });
 
     conf_editor_video.watch('root.grabberV4L2.encoding', () => {
-      var deviceSelected = conf_editor_video.getEditor("root.grabberV4L2.available_devices").getValue();
-      var videoInputSelected = conf_editor_video.getEditor("root.grabberV4L2.device_inputs").getValue();
-      var formatSelected = conf_editor_video.getEditor("root.grabberV4L2.encoding").getValue();
+      const deviceSelected = conf_editor_video.getEditor("root.grabberV4L2.available_devices").getValue();
+      const videoInputSelected = conf_editor_video.getEditor("root.grabberV4L2.device_inputs").getValue();
+      const formatSelected = conf_editor_video.getEditor("root.grabberV4L2.encoding").getValue();
 
       //Update hidden input element
-      conf_editor_video.getEditor("root.grabberV4L2.input").setValue(parseInt(videoInputSelected));
+      conf_editor_video.getEditor("root.grabberV4L2.input").setValue(Number.parseInt(videoInputSelected));
 
-      var addSchemaElements = {};
-      var enumVals = [];
-      var enumTitelVals = [];
-      var enumDefaultVal = "";
+      let addSchemaElements = {};
+      let enumVals = [];
+      let enumTitelVals = [];
+      let enumDefaultVal = "";
 
-      var deviceProperties = getPropertiesOfDevice("video", deviceSelected);
+      const deviceProperties = getPropertiesOfDevice("video", deviceSelected);
 
-      var formats = deviceProperties.video_inputs[videoInputSelected].formats;
-      var formatIdx = 0;
+      const formats = deviceProperties.video_inputs[videoInputSelected].formats;
+      let formatIdx = 0;
       if (formatSelected !== "NONE") {
         formatIdx = formats.findIndex(x => x.format === formatSelected);
       }
 
-      var resolutions = formats[formatIdx].resolutions;
+      const resolutions = formats[formatIdx].resolutions;
       if (resolutions.length <= 1) {
         addSchemaElements.access = "advanced";
       } else {
         resolutions.sort(compareTwoValues('width', 'height', 'asc'));
       }
 
-      for (var i = 0; i < resolutions.length; i++) {
+      for (let i = 0; i < resolutions.length; i++) {
         enumVals.push(i.toString());
-        var resolutionText = resolutions[i].width + "x" + resolutions[i].height;
+        const resolutionText = resolutions[i].width + "x" + resolutions[i].height;
         enumTitelVals.push(resolutionText);
       }
 
       if (enumVals.length > 0) {
         if (deviceSelected === configuredDevice) {
-          var configuredResolutionText = window.serverConfig.grabberV4L2.width + "x" + window.serverConfig.grabberV4L2.height;
-          var idx = $.inArray(configuredResolutionText, enumTitelVals);
+          const configuredResolutionText = globalThis.serverConfig.grabberV4L2.width + "x" + globalThis.serverConfig.grabberV4L2.height;
+          const idx = $.inArray(configuredResolutionText, enumTitelVals);
           if (idx != -1) {
             enumDefaultVal = idx.toString();
           }
@@ -618,48 +601,47 @@ $(document).ready(function () {
           'resolutions', addSchemaElements, enumVals, enumTitelVals, enumDefaultVal, false);
       }
 
-      if (conf_editor_video.validate().length && !window.readOnlyMode) {
+      if (conf_editor_video.validate().length && !globalThis.readOnlyMode) {
         $('#btn_submit_videograbber').prop('disabled', false);
       }
     });
 
     conf_editor_video.watch('root.grabberV4L2.resolutions', () => {
-      var deviceSelected = conf_editor_video.getEditor("root.grabberV4L2.available_devices").getValue();
-      var videoInputSelected = conf_editor_video.getEditor("root.grabberV4L2.device_inputs").getValue();
-      var formatSelected = conf_editor_video.getEditor("root.grabberV4L2.encoding").getValue();
-      var resolutionSelected = conf_editor_video.getEditor("root.grabberV4L2.resolutions").getValue();
+      const deviceSelected = conf_editor_video.getEditor("root.grabberV4L2.available_devices").getValue();
+      const videoInputSelected = conf_editor_video.getEditor("root.grabberV4L2.device_inputs").getValue();
+      const formatSelected = conf_editor_video.getEditor("root.grabberV4L2.encoding").getValue();
+      const resolutionSelected = conf_editor_video.getEditor("root.grabberV4L2.resolutions").getValue();
 
-      var addSchemaElements = {};
-      var enumVals = [];
-      var enumDefaultVal = "";
+      let addSchemaElements = {};
+      let enumVals = [];
+      let enumDefaultVal = "";
 
-      var deviceProperties = getPropertiesOfDevice("video", deviceSelected);
-
-      var formats = deviceProperties.video_inputs[videoInputSelected].formats;
-      var formatIdx = 0;
+      const deviceProperties = getPropertiesOfDevice("video", deviceSelected);
+      const formats = deviceProperties.video_inputs[videoInputSelected].formats;
+      let formatIdx = 0;
       if (formatSelected !== "NONE") {
         formatIdx = formats.findIndex(x => x.format === formatSelected);
       }
 
       //Update hidden resolution related elements
-      var width = parseInt(formats[formatIdx].resolutions[resolutionSelected].width);
+      const width = Number.parseInt(formats[formatIdx].resolutions[resolutionSelected].width);
       conf_editor_video.getEditor("root.grabberV4L2.width").setValue(width);
 
-      var height = parseInt(formats[formatIdx].resolutions[resolutionSelected].height);
+      const height = Number.parseInt(formats[formatIdx].resolutions[resolutionSelected].height);
       conf_editor_video.getEditor("root.grabberV4L2.height").setValue(height);
 
       //Update crop rage depending on selected resolution
       updateCropForWidth(conf_editor_video, "root.grabberV4L2");
       updateCropForHeight(conf_editor_video, "root.grabberV4L2");
 
-      var fps = formats[formatIdx].resolutions[resolutionSelected].fps;
-      if (!fps) {
-        addSchemaElements.options = { "hidden": true };
-      } else {
+      const fps = formats[formatIdx].resolutions[resolutionSelected].fps;
+      if (fps) {
         fps.sort((a, b) => a - b);
-        for (var i = 0; i < fps.length; i++) {
-          enumVals.push(fps[i].toString());
+        for (const element of fps) {
+          enumVals.push(element.toString());
         }
+      } else {
+        addSchemaElements.options = { "hidden": true };
       }
 
       if (enumVals.length <= 1) {
@@ -668,7 +650,7 @@ $(document).ready(function () {
 
       if (enumVals.length > 0) {
         if (deviceSelected === configuredDevice) {
-          var configuredFps = window.serverConfig.grabberV4L2.fps.toString();
+          const configuredFps = globalThis.serverConfig.grabberV4L2.fps.toString();
           if ($.inArray(configuredFps, enumVals) != -1) {
             enumDefaultVal = configuredFps;
           }
@@ -677,17 +659,17 @@ $(document).ready(function () {
           'framerates', addSchemaElements, enumVals, [], enumDefaultVal, false);
       }
 
-      if (conf_editor_video.validate().length && !window.readOnlyMode) {
+      if (conf_editor_video.validate().length && !globalThis.readOnlyMode) {
         $('#btn_submit_videograbber').prop('disabled', false);
       }
     });
 
     conf_editor_video.watch('root.grabberV4L2.framerates', () => {
       //Update hidden fps element
-      var fps = 0;
-      var framerates = conf_editor_video.getEditor("root.grabberV4L2.framerates").getValue();
+      let fps = 0;
+      const framerates = conf_editor_video.getEditor("root.grabberV4L2.framerates").getValue();
       if (framerates !== "NONE") {
-        fps = parseInt(framerates);
+        fps = Number.parseInt(framerates);
       }
       //Show Frameskipping only when more than 2 fps
       if (fps > 2) {
@@ -702,10 +684,10 @@ $(document).ready(function () {
     $('#btn_submit_videograbber').off().on('click', function () {
       let saveOptions = conf_editor_video.getValue();
 
-      const currentInstance = window.currentHyperionInstance;
+      const currentInstance = globalThis.currentHyperionInstance;
       //If an instance exists, enable/disable grabbing in line with the global state
-      if (currentInstance !== null && window.serverConfig.instCapture) {
-        let instCaptOptions = window.serverConfig.instCapture;
+      if (currentInstance !== null && globalThis.serverConfig.instCapture) {
+        let instCaptOptions = globalThis.serverConfig.instCapture;
         instCaptOptions.v4lEnable = saveOptions.grabberV4L2.enable;
         saveOptions.instCapture = instCaptOptions;
       }
@@ -716,10 +698,10 @@ $(document).ready(function () {
     // ------------------------------------------------------------------
 
     $('#btn_videograbber_set_defaults').off().on('click', function () {
-      var deviceSelected = conf_editor_video.getEditor("root.grabberV4L2.available_devices").getValue();
-      var deviceProperties = getPropertiesOfDevice("video", deviceSelected);
+      const deviceSelected = conf_editor_video.getEditor("root.grabberV4L2.available_devices").getValue();
+      const deviceProperties = getPropertiesOfDevice("video", deviceSelected);
 
-      var defaultDeviceProperties = {};
+      let defaultDeviceProperties = {};
       if (deviceProperties.hasOwnProperty('default')) {
         if (deviceProperties.default.hasOwnProperty('properties')) {
           defaultDeviceProperties = deviceProperties.default.properties;
@@ -744,19 +726,22 @@ $(document).ready(function () {
   if (audioGrabberAvailable) {
 
     conf_editor_audio = createJsonEditor('editor_container_audiograbber', {
-      grabberAudio: window.schema.grabberAudio
+      grabberAudio: globalThis.schema.grabberAudio
     }, true, true);
 
     conf_editor_audio.on('ready', () => {
       // Trigger conf_editor_audio.watch - 'root.grabberAudio.enable'
-      const audioEnable = window.serverConfig.grabberAudio.enable;
+      const audioEnable = globalThis.serverConfig.grabberAudio.enable;
       conf_editor_audio.getEditor("root.grabberAudio.enable").setValue(audioEnable);
     });
 
     conf_editor_audio.on('change', () => {
 
       // Validate the current editor's content
-      if (!conf_editor_audio.validate().length) {
+      if (conf_editor_audio.validate().length) {
+        $('#btn_submit_audiograbber').prop('disabled', true);
+      }
+      else {
         const deviceSelected = conf_editor_audio.getEditor("root.grabberAudio.available_devices").getValue();
         switch (deviceSelected) {
           case "SELECT":
@@ -766,12 +751,9 @@ $(document).ready(function () {
             showInputOptionsForKey(conf_editor_audio, "grabberAudio", ["enable", "available_devices"], false);
             break;
           default:
-            window.readOnlyMode ? $('#btn_submit_audiograbber').prop('disabled', true) : $('#btn_submit_audiograbber').prop('disabled', false);
+            globalThis.readOnlyMode ? $('#btn_submit_audiograbber').prop('disabled', true) : $('#btn_submit_audiograbber').prop('disabled', false);
             break;
         }
-      }
-      else {
-        $('#btn_submit_audiograbber').prop('disabled', true);
       }
     });
 
@@ -785,7 +767,7 @@ $(document).ready(function () {
 
         $('#btn_audiograbber_set_effect_defaults').show();
 
-        if (window.showOptHelp) {
+        if (globalThis.showOptHelp) {
           $('#audiograbberHelpPanelId').show();
         }
 
@@ -823,7 +805,7 @@ $(document).ready(function () {
         //Enable set defaults button
         $('#btn_audiograbber_set_effect_defaults').prop('disabled', false);
 
-        if (conf_editor_audio.validate().length && !window.readOnlyMode) {
+        if (conf_editor_audio.validate().length && !globalThis.readOnlyMode) {
           $('#btn_submit_audiograbber').prop('disabled', false);
         }
       }
@@ -832,10 +814,10 @@ $(document).ready(function () {
     $('#btn_submit_audiograbber').off().on('click', function () {
       let saveOptions = conf_editor_audio.getValue();
 
-      const currentInstance = window.currentHyperionInstance;
+      const currentInstance = globalThis.currentHyperionInstance;
       //If an instance exists, enable/disable grabbing in line with the global state
-      if (currentInstance !== null && window.serverConfig.instCapture) {
-        let instCaptOptions = window.serverConfig.instCapture;
+      if (currentInstance !== null && globalThis.serverConfig.instCapture) {
+        let instCaptOptions = globalThis.serverConfig.instCapture;
         instCaptOptions.audioEnable = saveOptions.grabberAudio.enable;
         saveOptions.instCapture = instCaptOptions;
       }
@@ -847,10 +829,10 @@ $(document).ready(function () {
 
     $('#btn_audiograbber_set_effect_defaults').off().on('click', function () {
       const currentEffect = conf_editor_audio.getEditor("root.grabberAudio.audioEffect").getValue();
-      var effectEditor = conf_editor_audio.getEditor("root.grabberAudio." + currentEffect);
-      var defaultProperties = effectEditor.schema.defaultProperties;
+      let effectEditor = conf_editor_audio.getEditor("root.grabberAudio." + currentEffect);
+      const defaultProperties = effectEditor.schema.defaultProperties;
 
-      var default_values = {};
+      let default_values = {};
       for (const item of defaultProperties) {
 
         default_values[item] = effectEditor.schema.properties[item].default;
@@ -864,7 +846,7 @@ $(document).ready(function () {
   //////////////////////////////////////////////////
 
   //create introduction
-  if (window.showOptHelp) {
+  if (globalThis.showOptHelp) {
     if (screenGrabberAvailable) {
       createHint("intro", $.i18n('conf_grabber_fg_intro'), "editor_container_screengrabber");
     }
@@ -879,11 +861,11 @@ $(document).ready(function () {
   removeOverlay();
 
   // build dynamic screen input enum
-  var updateScreenSourcesList = function (type, discoveryInfo) {
-    var enumVals = [];
-    var enumTitelVals = [];
-    var enumDefaultVal = "";
-    var addSelect = false;
+  const updateScreenSourcesList = function (type, discoveryInfo) {
+    let enumVals = [];
+    let enumTitelVals = [];
+    let enumDefaultVal = "";
+    let addSelect = false;
 
     if (jQuery.isEmptyObject(discoveryInfo)) {
       enumVals.push("NONE");
@@ -894,13 +876,13 @@ $(document).ready(function () {
         enumVals.push(device.device_name);
       }
       conf_editor_screen.getEditor('root.framegrabber').enable();
-      configuredDevice = window.serverConfig.framegrabber.available_devices;
+      configuredDevice = globalThis.serverConfig.framegrabber.available_devices;
 
-      if ($.inArray(configuredDevice, enumVals) != -1) {
-        enumDefaultVal = configuredDevice;
+      if ($.inArray(configuredDevice, enumVals) == -1) {
+        addSelect = true;
       }
       else {
-        addSelect = true;
+        enumDefaultVal = configuredDevice;
       }
     }
     if (enumVals.length > 0) {
@@ -910,12 +892,11 @@ $(document).ready(function () {
   };
 
   // build dynamic video input enum
-  var updateVideoSourcesList = function (type, discoveryInfo) {
-    var enumVals = [];
-    var enumTitelVals = [];
-    var enumDefaultVal = "";
-    var addSelect = false;
-
+  const updateVideoSourcesList = function (type, discoveryInfo) {
+    let enumVals = [];
+    let enumTitelVals = [];
+    let enumDefaultVal = "";
+    let addSelect = false;
     if (jQuery.isEmptyObject(discoveryInfo)) {
       enumVals.push("NONE");
       enumTitelVals.push($.i18n('edt_conf_grabber_discovered_none'));
@@ -925,13 +906,13 @@ $(document).ready(function () {
         enumVals.push(device.device_name);
       }
       conf_editor_video.getEditor('root.grabberV4L2').enable();
-      configuredDevice = window.serverConfig.grabberV4L2.available_devices;
+      configuredDevice = globalThis.serverConfig.grabberV4L2.available_devices;
 
-      if ($.inArray(configuredDevice, enumVals) != -1) {
-        enumDefaultVal = configuredDevice;
+      if ($.inArray(configuredDevice, enumVals) == -1) {
+        addSelect = true;
       }
       else {
-        addSelect = true;
+        enumDefaultVal = configuredDevice;
       }
     }
 
@@ -957,13 +938,13 @@ $(document).ready(function () {
         enumVals.push(device.device_name);
       }
       conf_editor_audio.getEditor('root.grabberAudio').enable();
-      configuredDevice = window.serverConfig.grabberAudio.available_devices;
+      configuredDevice = globalThis.serverConfig.grabberAudio.available_devices;
 
-      if ($.inArray(configuredDevice, enumVals) != -1) {
-        enumDefaultVal = configuredDevice;
+      if ($.inArray(configuredDevice, enumVals) == -1) {
+        addSelect = true;
       }
       else {
-        addSelect = true;
+        enumDefaultVal = configuredDevice;
       }
     }
 
@@ -976,14 +957,14 @@ $(document).ready(function () {
   async function discoverInputSources(type, params) {
     const result = await requestInputSourcesDiscovery(type, params);
 
-    var discoveryResult;
+    let discoveryResult;
     if (result && !result.error) {
       discoveryResult = result.info;
     }
     else {
       discoveryResult = {
         "video_sources": [],
-        "audio_soruces": []
+        "audio_sources": []
       };
     }
 
@@ -1023,3 +1004,15 @@ $(document).ready(function () {
   }
 
 });
+
+function updateCropForWidth(editor, path) {
+  const width = editor.getEditor(path + ".width").getValue();
+  updateJsonEditorRange(editor, path, 'cropLeft', 0, width);
+  updateJsonEditorRange(editor, path, 'cropRight', 0, width);
+}
+
+function updateCropForHeight(editor, path) {
+  const height = editor.getEditor(path + ".height").getValue();
+  updateJsonEditorRange(editor, path, 'cropTop', 0, height);
+  updateJsonEditorRange(editor, path, 'cropBottom', 0, height);
+}
