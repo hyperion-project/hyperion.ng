@@ -30,9 +30,8 @@ const char NO_AUTHORIZATION[] = "No Authorization";;
 /// @brief API for Hyperion to be inherted from a child class with specific protocol implementations
 /// Workflow:
 /// 1. create the class
-/// 2. connect the forceClose signal, as the api might to close the connection for security reasons
-/// 3. call Initialize()
-/// 4. proceed as usual
+/// 2. call Initialize()
+/// 3. proceed as usual
 ///
 
 class API : public QObject
@@ -366,12 +365,6 @@ protected:
 	bool isUserAuthorized(const QString &password);
 
 	///
-	/// @brief Test if Hyperion has the default PW
-	/// @return The result
-	///
-	bool hasHyperionDefaultPw();
-
-	///
 	/// @brief Logout revokes all authorizations
 	///
 	void logout();
@@ -388,9 +381,9 @@ protected:
 
 signals:
 	///
-	/// @brief The API might decide to block connections for security reasons, this emitter should close the socket
+	/// @brief The API might decide to block connections for security reasons, this signal should trigger closing the connection
 	///
-	void forceClose();
+	void isForbidden();
 
 	///
 	/// @brief Emits whenever a new Token request is pending. This signal is just active when ADMIN ACCESS has been granted

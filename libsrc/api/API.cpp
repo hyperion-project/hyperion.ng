@@ -83,13 +83,6 @@ void API::init()
 {
 	_authorized = false;
 
-	// For security we block external connections, if default PW is set
-	if (!_localConnection && API::hasHyperionDefaultPw())
-	{
-		Warning(_log, "Non local network connect attempt identified, but default Hyperion passwort set! - Reject connection.");
-		emit forceClose();
-	}
-
 	// if this is localConnection and network allows unauth locals
 	if (_localConnection)
 	{
@@ -690,16 +683,6 @@ bool API::isUserAuthorized(const QString &password)
 		}
 	}
 	return isUserAuthorized;
-}
-
-bool API::hasHyperionDefaultPw()
-{
-	bool isDefaultPassword {false};
-	if (auto auth = _authManagerWeak.toStrongRef())
-	{
-		QMetaObject::invokeMethod(auth.get(), "isUserAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isDefaultPassword), Q_ARG(QString, DEFAULT_USER), Q_ARG(QString, DEFAULT_PASSWORD));
-	}
-	return isDefaultPassword;
 }
 
 void API::logout()

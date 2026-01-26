@@ -43,6 +43,8 @@ private slots:
 
 	void disconnected();
 
+	void onForbidden();
+
 private:
 	QTcpSocket* _socket;
 	/// new instance of JsonAPI

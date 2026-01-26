@@ -129,6 +129,11 @@ bool AuthManager::isUserAuthorized(const QString &user, const QString &pw)
 	return true;
 }
 
+bool AuthManager::isDefaultUserPassword() const
+{
+	return _authTable->isUserAuthorized(hyperion::DEFAULT_USER, hyperion::DEFAULT_PASSWORD);
+}
+
 bool AuthManager::isTokenAuthorized(const QString &token)
 {
 	if (isTokenAuthBlocked())

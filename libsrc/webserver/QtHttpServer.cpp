@@ -8,6 +8,8 @@
 
 #include <utils/NetOrigin.h>
 
+Q_LOGGING_CATEGORY(comm_http_server_track, "hyperion.comm.http.server.track");
+
 const QString & QtHttpServer::HTTP_VERSION = QStringLiteral ("HTTP/1.1");
 
 QtHttpServerWrapper::QtHttpServerWrapper (QObject * parent)
@@ -40,8 +42,14 @@ QtHttpServer::QtHttpServer (QObject * parent)
 	, m_netOriginWeak  (NetOrigin::getInstance())
 	, m_sockServer (nullptr)
 {
-	m_sockServer = new QtHttpServerWrapper (this);
-	connect (m_sockServer, &QtHttpServerWrapper::newConnection, this, &QtHttpServer::onClientConnected, Qt::UniqueConnection);
+	TRACK_SCOPE();
+	m_sockServer.reset(new QtHttpServerWrapper());
+	connect (m_sockServer.get(), &QtHttpServerWrapper::newConnection, this, &QtHttpServer::onClientConnected, Qt::UniqueConnection);
+}
+
+QtHttpServer::~QtHttpServer()
+{
+	TRACK_SCOPE() << m_socksClientsHash.size() << "clients connected. SSL:" << m_useSsl;
 }
 
 void QtHttpServer::start (quint16 port)
@@ -56,20 +64,35 @@ void QtHttpServer::start (quint16 port)
 
 void QtHttpServer::stop (void)
 {
-	if (m_sockServer != nullptr)
+	qCDebug(comm_http_server_track) << "Stopping HTTP-Server..." << m_socksClientsHash.size() << "clients connected. SSL:" << m_useSsl;
+	if (m_sockServer != nullptr && m_sockServer->isListening ())
 	{
-		if (m_sockServer->isListening ())
+		m_sockServer->close ();
+		// disconnect clients
+		const auto wrappers = m_socksClientsHash.values();
+		for(auto *wrapper : wrappers)
 		{
-			m_sockServer->close ();
-			// disconnect clients
-			const QList<QTcpSocket*> socks = m_socksClientsHash.keys();
-			for(auto *sock : socks)
+			if (wrapper->isWebSocketConnectionOpen())
 			{
-				sock->close();
+				qCDebug(comm_http_server_track) << "Closing Websocket connection for client:" << wrapper->getGuid();
+				wrapper->closeWebSocketConnection();
+			}
+			else
+			{
+				if (QTcpSocket* sock = m_socksClientsHash.key(wrapper, Q_NULLPTR))
+				{
+					qCDebug(comm_http_server_track) << "Closing socket connection for client:" << sock->peerAddress().toString() << ":" << sock->peerPort();
+					sock->close();
+				}
 			}
 		}
 	}
-	emit stopped ();
+
+	if (m_socksClientsHash.isEmpty())
+	{
+		qCDebug(comm_http_server_track) <<  "All clients disconnected.";
+		emit stopped ();
+	}
 }
 
 void QtHttpServer::setUseSecure (const bool ssl)
@@ -84,8 +107,6 @@ void QtHttpServer::onClientConnected (void)
 	{
 		if (QTcpSocket * sock = m_sockServer->nextPendingConnection ())
 		{
-			connect(sock, &QTcpSocket::disconnected, this, &QtHttpServer::onClientDisconnected);
-
 			if (m_useSsl)
 			{
 				if (QSslSocket* ssl = qobject_cast<QSslSocket*> (sock))
@@ -107,6 +128,9 @@ void QtHttpServer::onClientConnected (void)
 				isLocal = origin->isLocalAddress(sock->peerAddress(), sock->localAddress());
 			}
 			auto* wrapper = new QtHttpClientWrapper(sock, isLocal, this);
+			connect(wrapper, &QtHttpClientWrapper::disconnected, this, &QtHttpServer::onClientDisconnected);
+
+			qCDebug(comm_http_server_track) << "Add Socket connection -" << wrapper->getGuid ();
 			m_socksClientsHash.insert(sock, wrapper);
 			emit clientConnected (wrapper->getGuid ());
 		}
@@ -115,13 +139,20 @@ void QtHttpServer::onClientConnected (void)
 
 void QtHttpServer::onClientDisconnected (void)
 {
-	if (QTcpSocket * sockClient = qobject_cast<QTcpSocket *> (sender ()))
+	if (QtHttpClientWrapper* wrapper = qobject_cast<QtHttpClientWrapper*>(sender()))
 	{
-		if (QtHttpClientWrapper * wrapper = m_socksClientsHash.value (sockClient, Q_NULLPTR))
+		if (QTcpSocket* sockClient = m_socksClientsHash.key(wrapper, Q_NULLPTR))
 		{
-			emit clientDisconnected (wrapper->getGuid ());
-			wrapper->deleteLater ();
-			m_socksClientsHash.remove (sockClient);
+			qCDebug(comm_http_server_track) << "Remove Socket connection -" << wrapper->getGuid();
+			m_socksClientsHash.remove(sockClient);
+			emit clientDisconnected(wrapper->getGuid());
+			wrapper->deleteLater();
 		}
+	}
+
+	if (!m_sockServer->isListening() && m_socksClientsHash.isEmpty())
+	{
+		qCDebug(comm_http_server_track) << "All clients disconnected.";
+		emit stopped ();
 	}
 }
