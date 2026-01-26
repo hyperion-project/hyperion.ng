@@ -10,6 +10,9 @@
 #include <QSslKey>
 #include <QSslSocket>
 #include <QHostAddress>
+#include <QLoggingCategory>
+
+Q_DECLARE_LOGGING_CATEGORY(comm_http_server_track);
 
 class QTcpSocket;
 class QTcpServer;
@@ -41,17 +44,18 @@ class QtHttpServer : public QObject
 
 public:
 	explicit QtHttpServer (QObject * parent = Q_NULLPTR);
+	~QtHttpServer() override;
 
 	static const QString & HTTP_VERSION;
 
-	typedef void (QSslSocket::* SslErrorSignal) (const QList<QSslError> &);
+	using SslErrorSignal = void (QSslSocket::*)(const QList<QSslError> &);
 
 	const QString & getServerName (void) const { return m_serverName; }
 
 	quint16 getServerPort  (void) const { return m_sockServer->serverPort();  }
 	QString getErrorString (void) const { return m_sockServer->errorString(); }
-	bool    isListening()               { return m_sockServer->isListening(); }
-	bool    isSecure()                  { return m_useSsl;  }
+	bool    isListening() const         { return m_sockServer->isListening(); }
+	bool    isSecure() const            { return m_useSsl;  }
 
 public slots:
 	void start           (quint16 port = 0);
@@ -60,8 +64,8 @@ public slots:
 	void setServerName   (const QString & serverName)           { m_serverName = serverName; }
 	void setPrivateKey   (const QSslKey & key)                  { m_sslKey = key; }
 	void setCertificates (const QList<QSslCertificate> & certs) { m_sslCerts = certs; }
-	QSslKey getPrivateKey()                  					{ return m_sslKey; }
-	QList<QSslCertificate> getCertificates() 					{ return m_sslCerts; }
+	QSslKey getPrivateKey() const                  			    { return m_sslKey; }
+	QList<QSslCertificate> getCertificates() const 				{ return m_sslCerts; }
 
 signals:
 	void started            (quint16 port);
@@ -74,10 +78,10 @@ signals:
 private slots:
 	void onClientConnected          (void);
 	void onClientDisconnected       (void);
-	void onClientSslEncrypted       (void)                            {                   }
-	void onClientSslPeerVerifyError (const QSslError & err)           { Q_UNUSED (err)    }
-	void onClientSslErrors          (const QList<QSslError> & errors) { Q_UNUSED (errors) }
-	void onClientSslModeChanged     (QSslSocket::SslMode mode)        { Q_UNUSED (mode)   }
+	void onClientSslEncrypted       (void) const                             { /* Not used */    }
+	void onClientSslPeerVerifyError (const QSslError & err) const      		 { Q_UNUSED (err)    }
+	void onClientSslErrors          (const QList<QSslError> & errors) const  { Q_UNUSED (errors) }
+	void onClientSslModeChanged     (QSslSocket::SslMode mode) const         { Q_UNUSED (mode)   }
 
 private:
 	bool                                       m_useSsl;
@@ -85,7 +89,7 @@ private:
 	QList<QSslCertificate>                     m_sslCerts;
 	QString                                    m_serverName;
 	QWeakPointer<NetOrigin>                    m_netOriginWeak;
-	QtHttpServerWrapper *                      m_sockServer;
+	QScopedPointer<QtHttpServerWrapper>        m_sockServer;
 	QHash<QTcpSocket *, QtHttpClientWrapper *> m_socksClientsHash;
 };
 

@@ -6,6 +6,7 @@
 #include <utils/NetOrigin.h>
 #include <hyperion/AuthManager.h>
 
+Q_LOGGING_CATEGORY(comm_websocket_track, "hyperion.comm.websocket.track");
 Q_LOGGING_CATEGORY(comm_websocket_receive, "hyperion.comm.websocket.receive");
 Q_LOGGING_CATEGORY(comm_websocket_send, "hyperion.comm.websocket.send");
 
@@ -20,7 +21,7 @@ WebSocketJsonHandler::WebSocketJsonHandler(QWebSocket* websocket, QObject* paren
 
 	_peerAddress = _websocket->peerAddress().toString();
 	_origin = websocket->origin();
-	Debug(_log, "New WebSocket connection from %s initiated via: %s", QSTRING_CSTR(_peerAddress), QSTRING_CSTR(_origin));
+	qCDebug(comm_websocket_track) << "New WebSocket connection from" << _peerAddress << "initiated via:" << _origin;
 
 	bool localConnection = false;
 	if (auto origin = NetOrigin::getInstanceWeak().toStrongRef())
@@ -38,14 +39,20 @@ WebSocketJsonHandler::WebSocketJsonHandler(QWebSocket* websocket, QObject* paren
 		Debug(_log, "WebSocket connection from %s identified as local connection", QSTRING_CSTR(_peerAddress));
 	}
 
-	// Json processor
-	_jsonAPI.reset(new JsonAPI(_peerAddress, _log, localConnection));
+	// JSON processor
+	_jsonAPI = MAKE_TRACKED_SHARED(JsonAPI, _peerAddress, _log, localConnection);
 
 	connect(_jsonAPI.get(), &JsonAPI::callbackReady, this, &WebSocketJsonHandler::sendMessage);
 	connect(_jsonAPI->getCallBack().get(), &JsonCallbacks::callbackReady, this, &WebSocketJsonHandler::sendMessage);
 
 	// Init JsonAPI
 	_jsonAPI->initialize();
+}
+
+void WebSocketJsonHandler::close()
+{
+	qCDebug(comm_websocket_track) << "[" << _peerAddress << "] WebSocket closing connection.";
+	_websocket->close(QWebSocketProtocol::CloseCodeNormal, "Server closed connection");
 }
 
 void WebSocketJsonHandler::onTextMessageReceived(const QString& message)

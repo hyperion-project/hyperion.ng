@@ -1,3 +1,11 @@
+#include <QCryptographicHash>
+#include <QTcpSocket>
+#include <QStringBuilder>
+#include <QStringList>
+#include <QDateTime>
+#include <QHostAddress>
+#include <QLoggingCategory>
+
 #include <utils/QStringUtils.h>
 
 #include "QtHttpClientWrapper.h"
@@ -7,13 +15,10 @@
 #include "QtHttpHeader.h"
 #include "WebSocketJsonHandler.h"
 #include "WebJsonRpc.h"
+#include <utils/MemoryTracker.h>
 
-#include <QCryptographicHash>
-#include <QTcpSocket>
-#include <QStringBuilder>
-#include <QStringList>
-#include <QDateTime>
-#include <QHostAddress>
+
+Q_LOGGING_CATEGORY(comm_http_client_track, "hyperion.comm.http.client.track");
 
 const QByteArray & QtHttpClientWrapper::CRLF = QByteArrayLiteral ("\r\n");
 
@@ -29,7 +34,9 @@ QtHttpClientWrapper::QtHttpClientWrapper (QTcpSocket * sock, const bool& localCo
 	, m_webJsonRpc     (nullptr)
 	, m_websocketServer (nullptr)
 {
+	TRACK_SCOPE();
 	connect(m_sockClient, &QTcpSocket::readyRead, this, &QtHttpClientWrapper::onClientDataReceived);
+	connect(m_sockClient, &QTcpSocket::disconnected, this, &QtHttpClientWrapper::disconnected);
 }
 
 QString QtHttpClientWrapper::getGuid (void)
@@ -47,7 +54,7 @@ QString QtHttpClientWrapper::getGuid (void)
 	return m_guid;
 }
 
-void QtHttpClientWrapper::injectCorsHeaders(QtHttpReply* reply)
+void QtHttpClientWrapper::injectCorsHeaders(QtHttpReply* reply) const
 {
 	if (reply == nullptr)
 		return;
@@ -65,7 +72,7 @@ void QtHttpClientWrapper::injectCorsHeaders(QtHttpReply* reply)
 
 void QtHttpClientWrapper::onClientDataReceived (void)
 {
-	if (m_sockClient != Q_NULLPTR)
+	if (m_sockClient != Q_NULLPTR && m_sockClient->isOpen())
 	{
 		if (!m_sockClient->isTransactionStarted())
 		{
@@ -120,7 +127,7 @@ void QtHttpClientWrapper::onClientDataReceived (void)
 					QByteArray raw = m_fragment.trimmed ();
 					if (!raw.isEmpty ()) // parse headers
 					{
-						int pos = raw.indexOf (COLON);
+						auto pos = raw.indexOf (COLON);
 						if (pos > 0)
 						{
 							QByteArray header = raw.left (pos).trimmed();
@@ -206,13 +213,14 @@ void QtHttpClientWrapper::onClientDataReceived (void)
 				{
 					if(m_websocketClient == Q_NULLPTR)
 					{
+						qCDebug(comm_http_client_track) << "Upgrading connection to WebSocket.";
 						// disconnect this slot from socket for further requests
 						disconnect(m_sockClient, &QTcpSocket::readyRead, this, &QtHttpClientWrapper::onClientDataReceived);
 						m_sockClient->rollbackTransaction();
 
 						QString servername = QCoreApplication::applicationName() + QLatin1Char('/') + HYPERION_VERSION;
 						QWebSocketServer::SslMode secureMode = m_serverHandle->isSecure() ? QWebSocketServer::SecureMode : QWebSocketServer::NonSecureMode;
-						m_websocketServer.reset(new QWebSocketServer(servername, secureMode));
+						m_websocketServer = MAKE_TRACKED_SHARED(QWebSocketServer, servername, secureMode);
 						connect(m_websocketServer.get(), &QWebSocketServer::newConnection,
 							this, &QtHttpClientWrapper::onNewWebSocketConnection);
 
@@ -232,9 +240,9 @@ void QtHttpClientWrapper::onClientDataReceived (void)
 					QByteArray data = m_currentRequest->getRawData();
 					QList<QByteArray> parts = data.split('&');
 
-					for (int i = 0; i < parts.size(); ++i)
+					for (const auto &part : parts)
 					{
-						QList<QByteArray> keyValue = parts.at(i).split('=');
+						QList<QByteArray> keyValue = part.split('=');
 						QByteArray value;
 
 						if (keyValue.size()>1)
@@ -253,9 +261,9 @@ void QtHttpClientWrapper::onClientDataReceived (void)
 					QStringList uri_parts = QStringUtils::split(path,'/', QStringUtils::SplitBehavior::SkipEmptyParts);
 					if ( ! uri_parts.empty() && uri_parts.at(0) == "json-rpc" )
 					{
-						if(m_webJsonRpc == Q_NULLPTR)
+						if(m_webJsonRpc.isNull())
 						{
-							m_webJsonRpc = new WebJsonRpc(m_currentRequest, m_serverHandle, m_localConnection, this);
+							m_webJsonRpc = MAKE_TRACKED_SHARED(WebJsonRpc, this, m_currentRequest, m_serverHandle, m_localConnection);
 						}
 
 						m_webJsonRpc->handleMessage(m_currentRequest);
@@ -389,6 +397,7 @@ QtHttpClientWrapper::ParsingStatus QtHttpClientWrapper::sendReplyToClient (QtHtt
 
 			if (m_currentRequest->getHeader(QtHttpHeader::Connection).toLower() == CLOSE)
 			{
+				qCDebug(comm_http_client_track) << "Closing connection as per 'Connection: close' header from client request.";
 				// must close connection after this request
 				m_sockClient->close ();
 			}
@@ -403,6 +412,7 @@ QtHttpClientWrapper::ParsingStatus QtHttpClientWrapper::sendReplyToClient (QtHtt
 
 void QtHttpClientWrapper::closeConnection()
 {
+	qCDebug(comm_http_client_track) << "Closing connection for client:" << this->getGuid();
 	// probably filter for request to follow http spec
 	if(m_currentRequest != Q_NULLPTR)
 	{
@@ -417,16 +427,26 @@ void QtHttpClientWrapper::closeConnection()
 	m_sockClient->close ();
 }
 
+void QtHttpClientWrapper::closeWebSocketConnection()
+{
+	if (!m_websocketClient.isNull())
+	{
+		qCDebug(comm_http_client_track) << "Closing WebSocket connection for client:" << this->getGuid();
+		m_websocketClient->close();
+	}
+}
+
 void QtHttpClientWrapper::onNewWebSocketConnection() {
 
 	// Handle the pending connection
 	QWebSocket* webSocket = m_websocketServer->nextPendingConnection();
-	if (webSocket) {
+	if (webSocket != nullptr) {
 		// Manage the WebSocketJsonHandler for this connection
-		WebSocketJsonHandler* handler = new WebSocketJsonHandler(webSocket);
-		connect(webSocket, &QWebSocket::disconnected, handler, &QObject::deleteLater);
-	}
-	else {
-		qWarning() << "No pending WebSocket connection!";
+		m_websocketClient = MAKE_TRACKED_SHARED(WebSocketJsonHandler, webSocket);
+		connect(webSocket, &QWebSocket::disconnected, this, [this]() {
+			qCDebug(comm_http_client_track) << "WebSocket disconnected for client:" << this->getGuid();
+			emit disconnected();
+			deleteLater();
+		});
 	}
 }
