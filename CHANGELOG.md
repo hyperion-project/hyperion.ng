@@ -73,6 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Flatbuffer/Protobuffer sources are not reconnected after (re)starting a hyperion instance
   - Adalight.ino changes due to FastLED update (#1942) _Thanks to @JackSwieper_
   - mdnsBrowser is not stopped properly on shutdown
+  - WebSockets are not closed properly when stopping Hyperion
   
 - **Refactors:**
   - Fixed Image & ImageData and add debug logging (#1792, #1892)
