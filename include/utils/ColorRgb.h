@@ -44,7 +44,9 @@ struct ColorRgb
 	/// 'Magenta' RgbColor (255, 0,255)
 	static const ColorRgb MAGENTA;
 
-	ColorRgb() = default;
+	ColorRgb() : ColorRgb(ColorRgb::BLACK)
+	{
+	}
 
 	ColorRgb(uint8_t _red, uint8_t _green, uint8_t _blue) : red(_red),
 															green(_green),
@@ -52,7 +54,7 @@ struct ColorRgb
 	{
 	}
 
-	explicit ColorRgb(const QRgb rgb) : ColorRgb()
+	explicit ColorRgb(const QRgb rgb)
 	{
 		setRgb(rgb);
 	}
