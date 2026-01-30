@@ -77,14 +77,16 @@ int getRunningInstance(ErrorManager* errorManager, const QJsonObject &reply, con
 
 int main(int argc, char * argv[])
 {
-	DefaultSignalHandler::install();
+	//Initialize tracing pattern for QT logging
+	setTracingLogPattern();
 
 	QSharedPointer<Logger> log = Logger::getInstance("REMOTE");
 	Logger::setLogLevel(Logger::LogLevel::Info);
 
-	QCoreApplication const app(argc, argv);
-
+	DefaultSignalHandler::install();
 	ErrorManager errorManager;
+
+	QCoreApplication const app(argc, argv);
 
 	QString const baseName = QCoreApplication::applicationName();
 	std::cout << baseName.toStdString() << ":\n"

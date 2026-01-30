@@ -86,6 +86,11 @@ public slots:
 	///
 	bool isUserAuthorized(const QString &user, const QString &pw);
 
+	/// @brief Check if the default's user password is still set
+	/// @return        True if default password is set else false
+	///
+	bool isDefaultUserPassword() const;
+
 	///
 	/// @brief Check if token is authorized
 	/// @param  token  The token

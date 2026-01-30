@@ -256,6 +256,12 @@ void ProtoClientConnection::handleNotImplemented()
 
 void ProtoClientConnection::sendMessage(const google::protobuf::Message &message)
 {
+	if (_socket == nullptr || !_socket->isOpen())
+	{
+		qCDebug(proto_server_client_flow) << "Attempted to send message to closed socket for client" << QString("PROTO1@%2").arg( _clientAddress);
+		return;
+	}
+
 	std::string serializedReply = message.SerializeAsString();
 	auto size = static_cast<uint32_t>(serializedReply.size());
 	uint8_t sizeData[] = {uint8_t(size >> 24), uint8_t(size >> 16), uint8_t(size >> 8), uint8_t(size)};

@@ -295,7 +295,7 @@ void LedDevice::startEnableAttemptsTimer()
 	}
 
 	++_enableAttempts;
-	trackDevice(leddevice_flow, "Starting enable retry timer") << ", current attempt:" << (_enableAttempts) << "of" << _maxEnableAttempts;
+	trackDevice(leddevice_flow, "Starting enable retry timer") << ", current attempt:" << _enableAttempts << "of" << _maxEnableAttempts;
 
 	if (_enableAttempts <= _maxEnableAttempts && _enableAttemptTimerInterval.count() > 0)
 	{

@@ -317,6 +317,12 @@ void FlatBufferClient::registationRequired(int priority)
 
 void FlatBufferClient::sendMessage(const uint8_t* data, size_t size)
 {
+	if (_socket == nullptr || !_socket->isOpen())
+	{
+		qCDebug(flatbuffer_server_client_flow) << "Attempted to send message to closed socket for client" << QString("%1@%2").arg(_origin, _clientAddress);
+		return;
+	}
+
 	_timeoutTimer->start();
 	const uint8_t header[4] = {
 		uint8_t((size >> 24) & 0xFF),
