@@ -74,6 +74,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Flatbuffer/Protobuffer breaks, if socket drops while sending a reply 
   - Adalight.ino changes due to FastLED update (#1942) _Thanks to @JackSwieper_
   - mdnsBrowser is not stopped properly on shutdown
+  - ColorTypes are not correctly initialised to black
   - WebSockets are not closed properly when stopping Hyperion
   - Tracing is not initialized for hyperion remote executables
   

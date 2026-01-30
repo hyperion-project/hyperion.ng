@@ -93,6 +93,7 @@ public:
 	ssize_t size() const;
 
 	void clear();
+	void clear(const pixel_type background);
 
 	void reset();
 

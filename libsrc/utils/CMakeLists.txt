@@ -24,6 +24,7 @@ add_library(hyperion-utils
 	${CMAKE_SOURCE_DIR}/include/utils/ColorRgba.h
 	${CMAKE_SOURCE_DIR}/libsrc/utils/ColorRgba.cpp
 	${CMAKE_SOURCE_DIR}/include/utils/ColorRgbScalar.h
+	${CMAKE_SOURCE_DIR}/libsrc/utils/ColorRgbScalar.cpp	
 	${CMAKE_SOURCE_DIR}/include/utils/ColorRgbw.h
 	${CMAKE_SOURCE_DIR}/libsrc/utils/ColorRgbw.cpp
 	# Image declaration
