@@ -45,11 +45,14 @@ inline const QString CAPTURE_TYPE = QStringLiteral("V42L-Grabber");
 
 int main(int argc, char** argv)
 {
-	DefaultSignalHandler::install();
-	ErrorManager errorManager;
+	//Initialize tracing pattern for QT logging
+	setTracingLogPattern();
 
 	QSharedPointer<Logger> log = Logger::getInstance(CAPTURE_TYPE.toUpper());
 	Logger::setLogLevel(Logger::LogLevel::Info);
+
+	DefaultSignalHandler::install();
+	ErrorManager errorManager;
 
 	QCoreApplication const app(argc, argv);
 
