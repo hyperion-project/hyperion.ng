@@ -77,6 +77,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - ColorTypes are not correctly initialised to black
   - WebSockets are not closed properly when stopping Hyperion
   - Tracing is not initialized for hyperion remote executables
+  - DDA Grabber is entering permanent error state when elevated or policy deny DDA
   
 - **Refactors:**
   - Fixed Image & ImageData and add debug logging (#1792, #1892)
