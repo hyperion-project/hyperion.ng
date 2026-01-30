@@ -4,7 +4,9 @@
 #include <api/JsonCallbacks.h>
 #include <utils/JsonUtils.h>
 #include <utils/NetOrigin.h>
+#include <hyperion/AuthManager.h>
 
+Q_LOGGING_CATEGORY(comm_websocket_track, "hyperion.comm.websocket.track");
 Q_LOGGING_CATEGORY(comm_websocket_receive, "hyperion.comm.websocket.receive");
 Q_LOGGING_CATEGORY(comm_websocket_send, "hyperion.comm.websocket.send");
 
@@ -19,7 +21,7 @@ WebSocketJsonHandler::WebSocketJsonHandler(QWebSocket* websocket, QObject* paren
 
 	_peerAddress = _websocket->peerAddress().toString();
 	_origin = websocket->origin();
-	Debug(_log, "New WebSocket connection from %s initiated via: %s", QSTRING_CSTR(_peerAddress), QSTRING_CSTR(_origin));
+	qCDebug(comm_websocket_track) << "New WebSocket connection from" << _peerAddress << "initiated via:" << _origin;
 
 	bool localConnection = false;
 	if (auto origin = NetOrigin::getInstanceWeak().toStrongRef())
@@ -27,14 +29,30 @@ WebSocketJsonHandler::WebSocketJsonHandler(QWebSocket* websocket, QObject* paren
 		localConnection = origin->isLocalAddress(_websocket->peerAddress(), _websocket->localAddress());
 	}
 
-	// Json processor
-	_jsonAPI.reset(new JsonAPI(_peerAddress, _log, localConnection));
+	if (!localConnection && AuthManager::getInstance() && AuthManager::getInstance()->isDefaultUserPassword())
+	{
+		Warning(_log, "Non local network WebSocket connect attempt from %s initiated via %s identified, but default Hyperion password is set! - Reject connection.", QSTRING_CSTR(_peerAddress), QSTRING_CSTR(_origin));
+		 _websocket->close(QWebSocketProtocol::CloseCodePolicyViolated, "Remote connections are not allowed to use WebSocket API");
+		return;
+	}
+	{
+		Debug(_log, "WebSocket connection from %s identified as local connection", QSTRING_CSTR(_peerAddress));
+	}
+
+	// JSON processor
+	_jsonAPI = MAKE_TRACKED_SHARED(JsonAPI, _peerAddress, _log, localConnection);
 
 	connect(_jsonAPI.get(), &JsonAPI::callbackReady, this, &WebSocketJsonHandler::sendMessage);
 	connect(_jsonAPI->getCallBack().get(), &JsonCallbacks::callbackReady, this, &WebSocketJsonHandler::sendMessage);
 
 	// Init JsonAPI
 	_jsonAPI->initialize();
+}
+
+void WebSocketJsonHandler::close()
+{
+	qCDebug(comm_websocket_track) << "[" << _peerAddress << "] WebSocket closing connection.";
+	_websocket->close(QWebSocketProtocol::CloseCodeNormal, "Server closed connection");
 }
 
 void WebSocketJsonHandler::onTextMessageReceived(const QString& message)
