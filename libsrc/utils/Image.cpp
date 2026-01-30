@@ -202,6 +202,12 @@ void Image<Pixel_T>::clear()
 }
 
 template <typename Pixel_T>
+void Image<Pixel_T>::clear(const pixel_type background)
+{
+	_d_ptr->clear(background);
+}
+
+template <typename Pixel_T>
 void Image<Pixel_T>::reset()
 {
 	_d_ptr->reset();

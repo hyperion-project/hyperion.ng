@@ -179,6 +179,11 @@ public:
 	void clear();
 
 	///
+	/// Clear the image and fill it with the specified background color
+	///	
+	void clear(const pixel_type background);
+
+	///
 	/// Reset the image to 1x1 with default background color
 	///
 	void reset();

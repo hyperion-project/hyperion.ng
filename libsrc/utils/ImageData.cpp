@@ -167,7 +167,14 @@ template <typename Pixel_T>
 void ImageData<Pixel_T>::clear()
 {
 	// Fill the entire existing pixel buffer with the default-constructed pixel value
-	std::fill(_pixels.begin(), _pixels.end(), pixel_type());
+	clear(pixel_type());
+}
+
+template <typename Pixel_T>
+void ImageData<Pixel_T>::clear(const pixel_type background)
+{
+	// Fill the entire existing pixel buffer with the default-constructed pixel value
+	std::fill(_pixels.begin(), _pixels.end(), background);
 }
 
 template <typename Pixel_T>
