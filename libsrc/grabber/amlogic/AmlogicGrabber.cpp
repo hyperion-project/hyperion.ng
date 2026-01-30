@@ -185,7 +185,7 @@ int AmlogicGrabber::grabFrame(Image<ColorRgb> &image)
 
 	if (_grabbingModeNotification != 1)
 	{
-		qCDebug(grabber_screen_flow) << "Video is playing. Switch to VPU capture mode";
+		qCDebug(grabber_screen_flow) << "Video is playing. Switch to VPU capture mode.";
 		_grabbingModeNotification = 1;
 		_lastError = 0;
 		return -1; // Skip the first frame after mode switch
