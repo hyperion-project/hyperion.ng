@@ -1,6 +1,6 @@
 
 # With Docker
-If you are using [Docker](https://www.docker.com/), you can compile Hyperion inside a docker container. This keeps your system clean and with a simple script it's easy to use. Supported is also cross compiling for Raspberry Pi (Debian Buster or higher). To compile Hyperion just execute one of the following commands.
+If you are using [Docker](https://www.docker.com/), you can compile Hyperion inside a docker container. This keeps your system clean and with a simple script it's easy to use. Supported is also cross compiling for Raspberry Pi. To compile Hyperion just execute one of the following commands.
 
 The compiled binaries and packages will be available at the deploy folder next to the script.<br/>
 
@@ -37,9 +37,9 @@ wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/
 
 ### Fedora
 
-**amd64 (41):**
+**amd64 (43):**
 ```console
-wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh --name 41
+wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh --name 43
 ```
 
 ## Cross compilation on amd64 for developers
@@ -47,10 +47,10 @@ Using additional options you can cross compile locally
 --local: use a local hyperion source code directory rather than cloning from GitHub
 --incremental: do incremental compiles, Note: you need to keep the image and tag stable
 
-**Compile code in $HYPERION_HOME incrementally for Raspberry Pi 2/3/4 (Debian Bookworm)**
+**Compile code in $HYPERION_HOME incrementally for Raspberry Pi5 (Debian Bookworm)**
 ```console
 cd $HYPERION_HOME
-./bin/scripts/docker-compile.sh --local --incremental --architecture arm/v7 --name bookworm
+./bin/scripts/docker-compile.sh --local --incremental --architecture arm64 --name bookworm
 ```
 
 # The usual way
@@ -69,6 +69,12 @@ sudo apt-get install git cmake build-essential ninja-build qtbase5-dev libqt5ser
 ```console
 sudo apt-get update
 sudo apt-get install git cmake build-essential ninja-build qt6-base-dev libqt6serialport6-dev libqt6websockets6-dev libxkbcommon-dev libvulkan-dev libgl1-mesa-dev libusb-1.0-0-dev python3-dev libasound2-dev libturbojpeg0-dev libjpeg-dev libssl-dev pkg-config libftdi1-dev
+```
+
+**For Linux DRM grabber support**
+
+```console
+sudo apt-get install libglib2.0-dev libdrm-dev
 ```
 
 **For Linux X11/XCB grabber support**
@@ -110,7 +116,7 @@ See [AUR](https://aur.archlinux.org/packages/?O=0&SeB=nd&K=hyperion&outdated=&SB
 The following dependencies are needed to build hyperion.ng on fedora.
 ```console
 sudo dnf -y groupinstall "Development Tools"
-sudo dnf install ninja-build python3-devel qt-devel qt6-qtbase-devel qt6-qtserialport-devel qt6-qtwebsockets-devel xrandr xcb-util-image-devel qt5-qtx11extras-devel alsa-lib-devel turbojpeg-devel libusb-devel xcb-util-devel dbus-devel openssl-devel fedora-packager rpmdevtools gcc libcec-devel libftdi1-dev
+sudo dnf install ninja-build python3-devel qt-devel qt6-qtbase-devel qt6-qtserialport-devel qt6-qtwebsockets-devel xrandr xcb-util-image-devel qt5-qtx11extras-devel alsa-lib-devel turbojpeg-devel libusb-devel xcb-util-devel dbus-devel openssl-devel fedora-packager rpmdevtools gcc libcec-devel libftdi1-dev libdrm-devel
 ```
 After installing the dependencies, you can continue with the compile instructions later on this page (the more detailed way..).
 
@@ -162,9 +168,12 @@ We assume a 64bit Windows 11. Install the following:
 
 ## The general quick way (without big comments)
 
-**complete automated process (Linux only):**
+**complete straight forward build process (Linux only):**
 ```console
-wget -qO- https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/bin/compile.sh | sh
+# be sure you fulfill the prerequisites above
+git clone --recursive https://github.com/hyperion-project/hyperion.ng.git hyperion
+cd hyperion
+python3 ./bin/scripts/build.py --full
 ```
 
 **some more detailed way: (or more or less the content of the script above)**
@@ -185,7 +194,7 @@ sudo cmake --build . --target install/strip
 sudo cmake --build . --target uninstall
 # ... or run it from compile directory
 bin/hyperiond
-# webui is located on localhost:8090 or 8091
+# webui is located on localhost:8090 or 8092
 ```
 
 In case you would like to build with a dedicated Qt version, Either supply ``QTDIR`` as ``-DQTDIR=<path>`` to CMake or set an environment variable ``QTDIR`` pointing to the Qt installation.
