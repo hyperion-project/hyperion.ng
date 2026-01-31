@@ -11,11 +11,17 @@
 #include "grabber/dda/DDAGrabber.h"
 #include <QDebug>
 #include <QJsonDocument>
+#include <QElapsedTimer>
 
 #include <utils/Logger.h>
 
 #include <cmath>
 #include <cstddef>
+
+// Constants
+namespace {
+	constexpr std::chrono::milliseconds RETRY_INTERVAL{ 2000 };
+} //End of constants
 
 // Logs a message along with the hex error HRESULT.
 #define LOG_ERROR(hr, msg) Error(_log, msg ": 0x%x", hr)
@@ -85,6 +91,9 @@ public:
 	int desktopWidth = 0;
 	int desktopHeight = 0;
 	bool isFrameAcquired = false;
+
+	// Retry timer for reinitializing duplication when unavailable/access denied
+	QElapsedTimer lastRetryTimer;
 };
 
 DDAGrabber::DDAGrabber(int display, int cropLeft, int cropRight, int cropTop, int cropBottom)
@@ -94,6 +103,8 @@ DDAGrabber::DDAGrabber(int display, int cropLeft, int cropRight, int cropTop, in
 	TRACK_SCOPE() << "Creating DDA grabber for display" << d->display;
 	_useImageResampler = false;
 	d->display = display;
+	// Initialize retry timer
+	d->lastRetryTimer.start();
 }
 
 DDAGrabber::~DDAGrabber()
@@ -282,6 +293,12 @@ bool DDAGrabber::restartCapture()
 			{
 				Error(_log, "DuplicateOutput failed: Another application or system component is currently using the desktop interface.");
 			}
+			else if (hr == E_ACCESSDENIED || hr == DXGI_ERROR_ACCESS_DENIED)
+			{
+				// When process runs elevated or policy denies DDA, avoid entering permanent error state.
+				Error(_log, "DuplicateOutput failed: Access denied to desktop duplication. Will retry later.");
+				return false;
+			}
 			else if (hr == DXGI_ERROR_SESSION_DISCONNECTED)
 			{
 				Error(_log, "DuplicateOutput failed: Desktop session is currently locked or disconnected. Will retry.");
@@ -404,6 +421,13 @@ int DDAGrabber::grabFrame(Image<ColorRgb>& image)
 	if (!d->desktopDuplication)
 	{
 		qCDebug(grabber_screen_capture) << "Desktop duplication not available (yet)";
+		// Try to re-establish duplication periodically
+		if (d->lastRetryTimer.hasExpired(RETRY_INTERVAL.count()))
+		{
+			qCDebug(grabber_screen_flow) << "Attempting to re-establish desktop duplication";
+			restartCapture();
+			d->lastRetryTimer.restart();
+		}
 		return -1;
 	}
 
@@ -456,6 +480,7 @@ int DDAGrabber::grabFrame(Image<ColorRgb>& image)
 		case DXGI_ERROR_INVALID_CALL:
 			// Happens, if a screen is locked or disconnected
 			qCDebug(grabber_screen_flow) << "Access lost - DXGI_ERROR_INVALID_CALL";
+			restartCapture();
 			return -1;
 			break;
 		case DXGI_ERROR_ACCESS_DENIED:
@@ -484,6 +509,19 @@ int DDAGrabber::grabFrame(Image<ColorRgb>& image)
 			}
 		}
 
+		// For access denied scenarios, do not mark device in error; just return and retry later
+		if (hr == E_ACCESSDENIED || hr == DXGI_ERROR_ACCESS_DENIED)
+		{
+			Error(_log, "%s", errorText.toUtf8().constData());
+			// Periodically attempt to recreate duplication
+			if (d->lastRetryTimer.hasExpired(RETRY_INTERVAL.count()))
+			{
+				qCDebug(grabber_screen_flow) << "Access denied, retrying to create duplication later";
+				restartCapture();
+				d->lastRetryTimer.restart();
+			}
+			return -1;
+		}
 		RETURN_IF_ERROR(hr, errorText, -1);
 	}
 
