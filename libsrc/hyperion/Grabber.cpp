@@ -1,6 +1,8 @@
 #include <hyperion/Grabber.h>
 #include <hyperion/GrabberWrapper.h>
 
+const QJsonArray Grabber::DEFAULT_SUPPORTED_FPS_LIST = {{ 1, 5, 10, 15, 20, 25, 30, 40, 50, 60 }};
+
 Q_LOGGING_CATEGORY(grabber_screen_capture, "hyperion.grabber.screen.capture");
 Q_LOGGING_CATEGORY(grabber_screen_capture_failed, "hyperion.grabber.screen.capture.failed");
 Q_LOGGING_CATEGORY(grabber_screen_flow, "hyperion.grabber.screen.flow");
@@ -19,7 +21,6 @@ Q_LOGGING_CATEGORY(grabber_audio_flow, "hyperion.grabber.audio.flow");
 Q_LOGGING_CATEGORY(grabber_audio_properties, "hyperion.grabber.audio.properties");
 Q_LOGGING_CATEGORY(grabber_audio_benchmark, "hyperion.grabber.audio.benchmark");
 
-
 Grabber::Grabber(const QString& grabberName, int cropLeft, int cropRight, int cropTop, int cropBottom)
 	: _grabberName(grabberName)
 	, _log(Logger::getInstance(_grabberName.toUpper()))
@@ -32,6 +33,7 @@ Grabber::Grabber(const QString& grabberName, int cropLeft, int cropRight, int cr
 	, _height(0)
 	, _fps(GrabberWrapper::DEFAULT_RATE_HZ)
 	, _fpsSoftwareDecimation(0)
+	, _fpsSupportedList (DEFAULT_SUPPORTED_FPS_LIST)
 	, _input(-1)
 	, _cropLeft(0)
 	, _cropRight(0)
