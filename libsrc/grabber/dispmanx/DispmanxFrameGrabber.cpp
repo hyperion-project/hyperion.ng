@@ -312,8 +312,6 @@ QJsonObject DispmanxFrameGrabber::discover(const QJsonObject& /*params*/)
 		QSize screenSize = getScreenSize(deviceIdx);
 		if ( !screenSize.isEmpty() )
 		{
-			QJsonArray fps = { 1, 5, 10, 15, 20, 25, 30, 40, 50, 60 };
-
 			QJsonObject in;
 
 			QString displayName;
@@ -331,7 +329,7 @@ QJsonObject DispmanxFrameGrabber::discover(const QJsonObject& /*params*/)
 
 			resolution["width"] = screenSize.width();
 			resolution["height"] = screenSize.height();
-			resolution["fps"] = fps;
+			resolution["fps"] = getFpsSupported();
 
 			resolutionArray.append(resolution);
 

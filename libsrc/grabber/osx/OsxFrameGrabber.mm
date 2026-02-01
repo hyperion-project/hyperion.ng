@@ -242,8 +242,6 @@ QJsonObject OsxFrameGrabber::discover(const QJsonObject& params)
 			inputsDiscovered["type"] = "screen";
 
 			QJsonArray video_inputs;
-			QJsonArray fps = { 1, 5, 10, 15, 20, 25, 30, 40, 50, 60 };
-
 			for (int i = 0; i < static_cast<int>(dspyCnt); ++i)
 			{
 				QJsonObject in;
@@ -270,7 +268,7 @@ QJsonObject OsxFrameGrabber::discover(const QJsonObject& params)
 				resolution["height"] = static_cast<int>(rect.size.height);
 				CGDisplayModeRelease(dispMode);
 
-				resolution["fps"] = fps;
+				resolution["fps"] = getFpsSupported();
 
 				resolutionArray.append(resolution);
 
