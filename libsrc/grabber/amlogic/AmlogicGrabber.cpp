@@ -320,7 +320,7 @@ QJsonObject AmlogicGrabber::discover(const QJsonObject& /*params*/) const
 	}
 
 	//Overwrite default supported fps values
-	screenGrabber->setFpsSupported({ 1, 5, 10, 15, 20, 25, 30, 40, 50 });
+	screenGrabber->setFpsSupported({ 1, 5, 10, 15, 20, 25, 30 });
 
 	QJsonArray const video_inputs = screenGrabber->getInputDeviceDetails();
 	if (video_inputs.isEmpty())
