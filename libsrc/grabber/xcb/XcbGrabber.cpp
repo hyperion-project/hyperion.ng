@@ -528,8 +528,6 @@ QJsonObject XcbGrabber::discover(const QJsonObject& params)
 
 		if (_connection != nullptr && _screen != nullptr )
 		{
-			QJsonArray fps = { 1, 5, 10, 15, 20, 25, 30, 40, 50, 60 };
-
 			const xcb_setup_t * setup = xcb_get_setup(_connection);
 
 			xcb_screen_iterator_t it = xcb_setup_roots_iterator(setup);
@@ -575,7 +573,7 @@ QJsonObject XcbGrabber::discover(const QJsonObject& params)
 
 					resolution["width"] = geometry->width;
 					resolution["height"] = geometry->height;
-					resolution["fps"] = fps;
+					resolution["fps"] = getFpsSupported();
 
 					resolutionArray.append(resolution);
 

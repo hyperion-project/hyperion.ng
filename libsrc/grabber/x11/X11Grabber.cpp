@@ -417,8 +417,6 @@ QJsonObject X11Grabber::discover(const QJsonObject& params)
 
 		if (_x11Display != nullptr)
 		{
-			QJsonArray fps = { 1, 5, 10, 15, 20, 25, 30, 40, 50, 60 };
-
 			// Iterate through all X screens
 			for (int i = 0; i < XScreenCount(_x11Display); ++i)
 			{
@@ -453,7 +451,7 @@ QJsonObject X11Grabber::discover(const QJsonObject& params)
 
 					resolution["width"] = _windowAttr.width;
 					resolution["height"] = _windowAttr.height;
-					resolution["fps"] = fps;
+					resolution["fps"] = getFpsSupported();
 
 					resolutionArray.append(resolution);
 

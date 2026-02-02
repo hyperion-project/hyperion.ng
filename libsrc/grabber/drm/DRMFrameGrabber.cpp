@@ -1008,8 +1008,6 @@ QJsonArray DRMFrameGrabber::getInputDeviceDetails() const
 		//Only add devices with a valid screen size, i.e. where a monitor is connected
 		if ( !screenSize.isEmpty() )
 		{
-			QJsonArray fps = {"1", "5", "10", "15", "20", "25", "30", "40", "50", "60"};
-
 			QJsonObject input;
 
 			QString displayName;
@@ -1027,7 +1025,7 @@ QJsonArray DRMFrameGrabber::getInputDeviceDetails() const
 
 			resolution["width"] = screenSize.width();
 			resolution["height"] = screenSize.height();
-			resolution["fps"] = fps;
+			resolution["fps"] = getFpsSupported();
 
 			resolutionArray.append(resolution);
 

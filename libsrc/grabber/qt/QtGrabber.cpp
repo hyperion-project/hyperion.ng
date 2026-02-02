@@ -450,8 +450,6 @@ QJsonObject QtGrabber::discover(const QJsonObject& params)
 			inputsDiscovered["type"] = "screen";
 
 			QJsonArray video_inputs;
-			QJsonArray fps = { 1, 5, 10, 15, 20, 25, 30, 40, 50, 60 };
-
 			for (int i = 0; i < screens.size(); ++i)
 			{
 				QJsonObject in;
@@ -475,7 +473,7 @@ QJsonObject QtGrabber::discover(const QJsonObject& params)
 
 				resolution["width"] = screens.at(i)->size().width();
 				resolution["height"] = screens.at(i)->size().height();
-				resolution["fps"] = fps;
+				resolution["fps"] = getFpsSupported();
 
 				resolutionArray.append(resolution);
 
@@ -502,7 +500,7 @@ QJsonObject QtGrabber::discover(const QJsonObject& params)
 
 				resolution["width"] = screens.at(0)->virtualSize().width();
 				resolution["height"] = screens.at(0)->virtualSize().height();
-				resolution["fps"] = fps;
+				resolution["fps"] = getFpsSupported();
 
 				resolutionArray.append(resolution);
 

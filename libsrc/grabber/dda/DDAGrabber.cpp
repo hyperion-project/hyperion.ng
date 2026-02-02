@@ -664,6 +664,7 @@ QJsonObject DDAGrabber::discover(const QJsonObject& params)
 	{
 		HRESULT hr = S_OK;
 
+		setFpsSupported(QJsonArray{1, 5, 10, 15, 20, 25, 30, 40, 50, 60, 120, 144});
 		// Enumerate through the outputs.
 		QJsonArray videoInputs;
 		for (int i = 0;; ++i)
@@ -702,7 +703,7 @@ QJsonObject DDAGrabber::discover(const QJsonObject& params)
 							  QJsonObject{
 								  {"width", width},
 								  {"height", height},
-								  {"fps", QJsonArray{1, 5, 10, 15, 20, 25, 30, 40, 50, 60, 120, 144}},
+								  {"fps", getFpsSupported()},
 							  },
 						  }},
 					 },

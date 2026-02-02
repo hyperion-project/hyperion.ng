@@ -43,6 +43,8 @@ Q_DECLARE_LOGGING_CATEGORY(grabber_audio_benchmark);
 class Grabber : public QObject
 {
 	Q_OBJECT
+public:
+	static const QJsonArray DEFAULT_SUPPORTED_FPS_LIST;
 
 public:
 	explicit Grabber(const QString &grabberName = "", int cropLeft = 0, int cropRight = 0, int cropTop = 0, int cropBottom = 0);
@@ -150,6 +152,9 @@ public:
 	virtual QSize getScreenSize() const { return QSize(); }
 	virtual QJsonArray getInputDeviceDetails() const { return QJsonArray(); }
 
+	QJsonArray getFpsSupported() const { return _fpsSupportedList; }
+	void setFpsSupported(const QJsonArray& fpsSupported) { _fpsSupportedList = fpsSupported; }
+
 public slots:
 
 	virtual void handleEvent(Event event) { /* to be overridden by subclasses */ }
@@ -197,6 +202,9 @@ protected:
 
 	/// fps software decimation
 	int _fpsSoftwareDecimation;
+
+	// Supported fps values
+	QJsonArray _fpsSupportedList;
 
 	/// device input
 	int _input;

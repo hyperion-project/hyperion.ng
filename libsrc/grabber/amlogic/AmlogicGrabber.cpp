@@ -32,8 +32,10 @@ namespace
 	const int DEFAULT_DEVICE_IDX = 0;
 	const char DEFAULT_VIDEO_DEVICE[] = "/dev/amvideo";
 	const char DEFAULT_CAPTURE_DEVICE[] = "/dev/amvideocap0";
-	const int AMVIDEOCAP_WAIT_MAX_MS = 15;
-	const int AMVIDEOCAP_DEFAULT_RATE_HZ = 25;
+	// The Amlogic capture rate is driven by the video FPS. If video FPS is greater than 30hz, then it will be video FPS/2
+	// The Hyperion rate is the frequence of frame grabs we attempt to do (but it is different from video FPS, as that is dynamic).
+	const int AMVIDEOCAP_DEFAULT_RATE_HZ = 25; 
+	const int AMVIDEOCAP_WAIT_MAX_MS = 100; // Max wait time for frame capture. A capture time-out or pause scenario are identified, if rate falls under 10 fps (100ms per frame).
 	
 	const size_t AMVIDEO_ALIGNMENT = 32; // Standard for Amlogic S905/S912
 } // End of constants
@@ -316,6 +318,9 @@ QJsonObject AmlogicGrabber::discover(const QJsonObject& /*params*/) const
 		qCDebug(grabber_screen_properties) << "DRM/GBM not supported, using FramebufferFrameGrabber for screen capture.";
 		screenGrabber.reset(new FramebufferFrameGrabber(DEFAULT_DEVICE_IDX));
 	}
+
+	//Overwrite default supported fps values
+	screenGrabber->setFpsSupported({ 1, 5, 10, 15, 20, 25, 30 });
 
 	QJsonArray const video_inputs = screenGrabber->getInputDeviceDetails();
 	if (video_inputs.isEmpty())
