@@ -52,16 +52,15 @@ struct ColorRgbScalar
 	{
 	}
 
-	ColorRgbScalar(ColorRgb rgb):
+	explicit ColorRgbScalar(ColorRgb rgb):
 		  red(rgb.red),
 		  green(rgb.green),
 		  blue(rgb.blue)
 	{
 	}
 
-	ColorRgbScalar operator-(const ColorRgbScalar& b) const
+	friend inline ColorRgbScalar operator-(ColorRgbScalar a, const ColorRgbScalar &b)
 	{
-		ColorRgbScalar a(*this);
 		a.red -= b.red;
 		a.green -= b.green;
 		a.blue -= b.blue;

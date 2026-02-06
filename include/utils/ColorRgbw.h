@@ -51,7 +51,7 @@ struct ColorRgbw
 	{
 	}
 
-	ColorRgbw(ColorRgb rgb):
+	explicit ColorRgbw(ColorRgb rgb):
 			red(rgb.red),
 			green(rgb.green),
 			blue(rgb.blue),
@@ -59,9 +59,8 @@ struct ColorRgbw
 	{
 	}
 
-	ColorRgbw operator-(const ColorRgbw& b) const
+	friend inline ColorRgbw operator-(ColorRgbw a, const ColorRgbw &b)
 	{
-		ColorRgbw a(*this);
 		a.red -= b.red;
 		a.green -= b.green;
 		a.blue -= b.blue;

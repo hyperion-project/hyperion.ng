@@ -48,7 +48,7 @@ struct ColorArgb
 	{
 	}
 
-	ColorArgb(ColorRgb rgb):
+	explicit ColorArgb(ColorRgb rgb):
 			alpha(255),
 			red(rgb.red),
 			green(rgb.green),
@@ -56,9 +56,8 @@ struct ColorArgb
 	{
 	}
 
-	ColorArgb operator-(const ColorArgb& b) const
+	friend inline ColorArgb operator-(ColorArgb a, const ColorArgb &b)
 	{
-		ColorArgb a(*this);
 		a.alpha -= b.alpha;
 		a.red -= b.red;
 		a.green -= b.green;

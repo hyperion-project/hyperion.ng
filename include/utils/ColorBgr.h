@@ -49,19 +49,18 @@ struct ColorBgr
 	{
 	}
 
-	ColorBgr(ColorRgb rgb):
-			red(rgb.red),
+	explicit ColorBgr(ColorRgb rgb):
+			blue(rgb.blue),
 			green(rgb.green),
-			blue(rgb.blue)
+			red(rgb.red)
 	{
 	}
 
-	ColorBgr operator-(const ColorBgr& b) const
+	friend inline ColorBgr operator-(ColorBgr a, const ColorBgr &b)
 	{
-		ColorBgr a(*this);
-		a.red -= b.red;
+		a.blue -= b.blue;		
 		a.green -= b.green;
-		a.blue -= b.blue;
+		a.red -= b.red;
 		return a;
 	}
 
