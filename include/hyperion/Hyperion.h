@@ -121,7 +121,7 @@ public slots:
 	/// Forces one update to the priority muxer with the current time and (re)writes the led color with applied
 	/// transforms.
 	///
-	void refreshUpdate();
+	void refreshUpdate() const;
 
 	///
 	/// Returns the number of attached leds
