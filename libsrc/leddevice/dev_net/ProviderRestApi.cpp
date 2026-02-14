@@ -273,7 +273,7 @@ httpResponse ProviderRestApi::executeOperation(QNetworkAccessManager::Operation 
 	if (response.error())
 	{
 		TRACK_SCOPE_SUBCOMPONENT_CATEGORY(restapi_msg_reply_error) << opCode << "took" << start.msecsTo(end) << "ms, Error: " << response.getErrorReason() << ", Response:" << response.getBody().toJson(QJsonDocument::Compact);
-		Debug(_log, "Error reason: %s, Response: %s", QSTRING_CSTR(response.getErrorReason()), response.getBody().toJson(QJsonDocument::Compact));
+		Debug(_log, "Error reason: %s, Response: %s", QSTRING_CSTR(response.getErrorReason()), response.getBody().toJson(QJsonDocument::Compact).constData());
 	}
 	else
 	{
