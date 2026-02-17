@@ -422,23 +422,30 @@ if(ENABLE_PROTOBUF_SERVER)
 			find_package(Protobuf REQUIRED)
 		endif()
 
-		if(NOT TARGET protoc)
-			if(USE_PRE_BUILT_DEPS)
-				add_executable(protoc IMPORTED GLOBAL)
-				set_target_properties(protoc PROPERTIES
-					IMPORTED_LOCATION ${PRE_BUILT_DEPS_DIR}/bin/protoc${CMAKE_EXECUTABLE_SUFFIX}
-				)
-			elseif(TARGET protobuf::protoc)
-				add_executable(protoc IMPORTED GLOBAL)
-				getTargetImportedLocation(PROTOC_EXECUTABLE protobuf::protoc)
-				set_target_properties(protoc PROPERTIES IMPORTED_LOCATION ${PROTOC_EXECUTABLE})
+		message(STATUS "Attempting to locate protoc compiler...")
+		if(NOT PROTOC_EXECUTABLE)
+			if(TARGET protobuf::protoc)
+				message(STATUS "'protobuf::protoc' target found. Getting location.")
+				get_target_property(PROTOC_EXECUTABLE protobuf::protoc LOCATION)
+				message(STATUS "Found 'protoc' at: ${PROTOC_EXECUTABLE}")
 			else()
-				find_program(PROTOC_EXECUTABLE protoc)
-				if(PROTOC_EXECUTABLE)
-					add_executable(protoc IMPORTED)
-					set_target_properties(protoc PROPERTIES IMPORTED_LOCATION "${PROTOC_EXECUTABLE}")
+				message(STATUS "'protoc' target not found. Searching for executable...")
+				if(USE_PRE_BUILT_DEPS)
+					message(STATUS "Using pre-built dependencies path.")
+					set(PROTOC_EXECUTABLE "${PRE_BUILT_DEPS_DIR}/bin/protoc${CMAKE_EXECUTABLE_SUFFIX}")
+				else()
+					message(STATUS "Searching for 'protoc' in system path.")
+					find_program(PROTOC_EXECUTABLE protoc)
+					if(PROTOC_EXECUTABLE)
+						message(STATUS "Found 'protoc' at: ${PROTOC_EXECUTABLE}")
+					else()
+						message(WARNING "'protoc' executable not found in system path.")
+					endif()
 				endif()
 			endif()
+			set(PROTOC_EXECUTABLE ${PROTOC_EXECUTABLE} CACHE FILEPATH "Path to protoc compiler" FORCE)
+		else()
+			message(STATUS "'protoc' executable already set: ${PROTOC_EXECUTABLE}")
 		endif()
 
 		if(NOT USE_SYSTEM_PROTO_LIBS)
@@ -587,10 +594,10 @@ if(ENABLE_PROTOBUF_SERVER)
 				add_custom_command(
 					OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.cc"
 							"${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.h"
-					COMMAND "$<TARGET_FILE:protoc>"
+					COMMAND ${PROTOC_EXECUTABLE}
 					ARGS --cpp_out ${CMAKE_CURRENT_BINARY_DIR} ${_protobuf_include_path} ${ABS_FIL}
-					DEPENDS ${ABS_FIL} protoc
-					COMMENT "Running C++ Protocol Buffers Compiler '$<TARGET_FILE:protoc>' on '${FIL}'"
+					DEPENDS ${ABS_FIL}
+					COMMENT "Running C++ Protocol Buffers Compiler '${PROTOC_EXECUTABLE}' on '${FIL}'"
 					VERBATIM
 				)
 				set_property(SOURCE "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.cc" PROPERTY SKIP_AUTOMOC ON)
