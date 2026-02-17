@@ -470,7 +470,7 @@ private:
 	QSharedPointer<Logger> _log;
 
 	/// QNetworkAccessManager object for sending REST-requests.
-	QScopedPointer<QNetworkAccessManager, QScopedPointerDeleteLater> _networkManager;
+	QScopedPointer<QNetworkAccessManager> _networkManager;
 
 	std::chrono::milliseconds _requestTimeout;
 

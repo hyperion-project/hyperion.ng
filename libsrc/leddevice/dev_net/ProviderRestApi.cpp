@@ -30,7 +30,7 @@ const QChar ONE_SLASH = '/';
 
 ProviderRestApi::ProviderRestApi(const QString& scheme, const QString& host, int port, const QString& basePath)
 	: _log(Logger::getInstance("LEDDEVICE"))
-	, _networkManager(nullptr)
+	, _networkManager(new QNetworkAccessManager())
 	, _requestTimeout(DEFAULT_REST_TIMEOUT)
 	, _isSelfSignedCertificateAccpeted(false)
 {
@@ -40,9 +40,6 @@ ProviderRestApi::ProviderRestApi(const QString& scheme, const QString& host, int
 	_apiUrl.setHost(host);
 	_apiUrl.setPort(port);
 	_basePath = basePath;
-
-	_networkManager.reset(new QNetworkAccessManager());
-	_networkManager->moveToThread(this->thread());
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
 	_networkManager->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);

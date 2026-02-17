@@ -27,7 +27,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Technical
 
--- Fix - Locally installed flatc/protoc compilers were not found
+- Fixed - Locally installed flatc/protoc compilers were not found
+- ProviderRestAPI - Handle QNetworkAccessManager as direct object 
 
 ## [2.2.0](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.2.0) - 2026-02-02
 
