@@ -272,17 +272,30 @@ if(ENABLE_FLATBUF_SERVER OR ENABLE_FLATBUF_CONNECT)
 			find_package(Flatbuffers REQUIRED)
 		endif()
 
-		if(NOT TARGET flatc)
-			if(USE_PRE_BUILT_DEPS)
-				add_executable(flatc IMPORTED GLOBAL)
-				set_target_properties(flatc PROPERTIES
-					IMPORTED_LOCATION ${PRE_BUILT_DEPS_DIR}/bin/flatc${CMAKE_EXECUTABLE_SUFFIX}
-				)
-			elseif(TARGET flatbuffers::flatc)
-				add_executable(flatc IMPORTED GLOBAL)
-				getTargetImportedLocation(FLATC_EXECUTABLE flatbuffers::flatc)
-				set_target_properties(flatc PROPERTIES IMPORTED_LOCATION ${FLATC_EXECUTABLE})
+		message(STATUS "Attempting to locate flatc compiler...")
+		if(NOT FLATC_EXECUTABLE)
+			if(TARGET flatbuffers::flatc)
+				message(STATUS "'flatbuffers::flatc' target found. Getting location.")
+				get_target_property(FLATC_EXECUTABLE flatbuffers::flatc LOCATION)
+				message(STATUS "Found 'flatc' at: ${FLATC_EXECUTABLE}")
+			else()
+				message(STATUS "'flatc' target not found. Searching for executable...")
+				if(USE_PRE_BUILT_DEPS)
+					message(STATUS "Using pre-built dependencies path.")
+					set(FLATC_EXECUTABLE "${PRE_BUILT_DEPS_DIR}/bin/flatc${CMAKE_EXECUTABLE_SUFFIX}")
+				else()
+					message(STATUS "Searching for 'flatc' in system path.")
+					find_program(FLATC_EXECUTABLE flatc)
+					if(FLATC_EXECUTABLE)
+						message(STATUS "Found 'flatc' at: ${FLATC_EXECUTABLE}")
+					else()
+						message(WARNING "'flatc' executable not found in system path.")
+					endif()
+				endif()
 			endif()
+			set(FLATC_EXECUTABLE ${FLATC_EXECUTABLE} CACHE FILEPATH "Path to flatc compiler" FORCE)
+		else()
+			message(STATUS "'flatc' executable already set: ${FLATC_EXECUTABLE}")
 		endif()
 	endif()
 
@@ -368,7 +381,7 @@ if(ENABLE_FLATBUF_SERVER OR ENABLE_FLATBUF_CONNECT)
 
 	function(compile_flatbuffer_schema FBS_GENERATED)
 		if(NOT ARGN)
-			message(SEND_ERROR "Error: compile_flatbuffer_schema() called without any schema files")
+			message(SEND_ERROR "compile_flatbuffer_schema() called without any files")
 			return()
 		endif()
 
@@ -382,10 +395,10 @@ if(ENABLE_FLATBUF_SERVER OR ENABLE_FLATBUF_CONNECT)
 
 			add_custom_command(
 				OUTPUT ${OUT_FILE}
-				COMMAND "$<TARGET_FILE:flatc>"
+				COMMAND ${FLATC_EXECUTABLE}
 				ARGS -c --no-includes --gen-mutable --gen-object-api -o "${CMAKE_CURRENT_BINARY_DIR}" "${ABS_FIL}"
-				DEPENDS ${ABS_FIL} flatc
-				COMMENT "Running FlatBuffers Compiler '$<TARGET_FILE:flatc>' on '${FIL}'"
+				DEPENDS ${ABS_FIL}
+				COMMENT "Running FlatBuffers Compiler '${FLATC_EXECUTABLE}' on '${FIL}'"
 				VERBATIM
 			)
 			set_property(SOURCE ${OUT_FILE} PROPERTY SKIP_AUTOMOC ON)
@@ -419,183 +432,189 @@ if(ENABLE_PROTOBUF_SERVER)
 				add_executable(protoc IMPORTED GLOBAL)
 				getTargetImportedLocation(PROTOC_EXECUTABLE protobuf::protoc)
 				set_target_properties(protoc PROPERTIES IMPORTED_LOCATION ${PROTOC_EXECUTABLE})
-			endif()
-		endif()
-	endif()
-
-	if(NOT USE_SYSTEM_PROTO_LIBS)
-
-		# Enable ProtoBuf verbose mode
-		set(protobuf_VERBOSE OFF CACHE BOOL "Build protobuf verbose")
-
-		# Build Protobuf as static library
-		set(protobuf_BUILD_SHARED_LIBS OFF CACHE BOOL "Build protobuf shared")
-
-		# Disable build of Protobuf tests
-		set(protobuf_BUILD_TESTS OFF CACHE BOOL "Build protobuf with tests")
-
-		# Disable build of Protobuf with zlib support
-		set(protobuf_WITH_ZLIB OFF CACHE BOOL "Build protobuf with zlib support")
-
-		# Enable build of libupb
-		set(protobuf_BUILD_LIBUPB ON CACHE BOOL "Build libupb")
-
-		# Build abeil (3rd party sub-module) with C++ version requirements
-		set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "Build abseil-cpp with C++ version requirements propagated")
-
-		# Override debug prefix
-		set(protobuf_DEBUG_POSTFIX "" CACHE STRING "Default debug postfix" FORCE)
-
-		# Disable static linking of MSVC runtime libraries under Windows
-		if(WIN32)
-			set(protobuf_MSVC_STATIC_RUNTIME OFF CACHE BOOL "Build protobuf static")
-			if(USE_PRE_BUILT_DEPS)
-				set(CMAKE_INSTALL_CMAKEDIR "lib/cmake/protobuf")
-			endif()
-		endif()
-
-		# Define the protoc import option
-		set(IMPORT_PROTOC "" CACHE STRING "Import the Protobuf compiler (protoc_export.cmake) from a native build")
-
-		if(CMAKE_CROSSCOMPILING)
-			# Disable Protobuf Compiler
-			set(protobuf_BUILD_PROTOC_BINARIES OFF CACHE BOOL "Build protobuf libraries and protoc compiler")
-		endif()
-
-		# Apply patches to Protobuf
-		execute_process(
-			COMMAND git apply "${CMAKE_CURRENT_SOURCE_DIR}/patch/protobuf/atomic.diff"
-			WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/external/protobuf"
-			OUTPUT_QUIET
-			ERROR_QUIET
-		)
-
-		# Add Protobuf directory to the build
-		add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/external/protobuf")
-
-		if(CMAKE_CROSSCOMPILING)
-			if(IMPORT_PROTOC)
-				# Import the Protobuf Compiler from a native build ...
-				include(${IMPORT_FLATC})
 			else()
-				# ... or build protoc nativly
-				include(ExternalProject)
-				ExternalProject_Add(protoc-host
-					PREFIX				${CMAKE_BINARY_DIR}/dependencies/external/protoc-host
-					BUILD_ALWAYS		OFF
-					DOWNLOAD_COMMAND	""
-					INSTALL_COMMAND     ""
-					SOURCE_DIR			${CMAKE_CURRENT_SOURCE_DIR}/external/protobuf
-					CMAKE_ARGS          -Dprotobuf_BUILD_LIBPROTOC:BOOL=OFF
-										-Dprotobuf_INSTALL:BOOL=OFF
-										-Dprotobuf_BUILD_TESTS:BOOL=${protobuf_BUILD_TESTS}
-										-Dprotobuf_BUILD_SHARED_LIBS:BOOL=${protobuf_BUILD_SHARED_LIBS}
-										-Dprotobuf_WITH_ZLIB:BOOL=${protobuf_WITH_ZLIB}
-										-DABSL_PROPAGATE_CXX_STD:BOOL=${ABSL_PROPAGATE_CXX_STD}
-										-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
-										-Wno-dev # We don't want to be warned over unused variables
-					BUILD_BYPRODUCTS    <BINARY_DIR>/protoc${CMAKE_EXECUTABLE_SUFFIX}
-				)
-
-				add_executable(protoc IMPORTED GLOBAL)
-				ExternalProject_Get_Property(protoc-host BINARY_DIR)
-				set_target_properties(protoc PROPERTIES
-					IMPORTED_LOCATION ${BINARY_DIR}/protoc${CMAKE_EXECUTABLE_SUFFIX}
-				)
-				add_dependencies(protoc protoc-host)
+				find_program(PROTOC_EXECUTABLE protoc)
+				if(PROTOC_EXECUTABLE)
+					add_executable(protoc IMPORTED)
+					set_target_properties(protoc PROPERTIES IMPORTED_LOCATION "${PROTOC_EXECUTABLE}")
+				endif()
 			endif()
-		else()
-			# export the protoc compiler so it can be used when cross compiling
-			export(TARGETS protoc FILE "${CMAKE_BINARY_DIR}/protoc_export.cmake")
-		endif()
-	endif()
-
-	if(TARGET protobuf::libprotobuf)
-		if(NOT TARGET ProtoBuf)
-			add_library(ProtoBuf INTERFACE IMPORTED GLOBAL)
-			target_link_libraries(ProtoBuf INTERFACE protobuf::libprotobuf)
 		endif()
 
-		# static protobuf version detection from: https://github.com/opencv/opencv/blob/4.x/cmake/OpenCVFindProtobuf.cmake
-		get_build_interface_include_directory(TARGET protobuf::libprotobuf OUTPUT PROTOBUF_INCLUDE_DIR)
-		if(PROTOBUF_INCLUDE_DIR AND EXISTS "${PROTOBUF_INCLUDE_DIR}/google/protobuf/stubs/common.h")
-			file(STRINGS "${PROTOBUF_INCLUDE_DIR}/google/protobuf/stubs/common.h" ver REGEX "#define GOOGLE_PROTOBUF_VERSION [0-9]+")
-			string(REGEX MATCHALL "[0-9]+" ver ${ver})
-			math(EXPR minor "${ver} / 1000 % 1000")
-			math(EXPR patch "${ver} % 1000")
-			message(STATUS "Protocol Buffers version used: ${minor}.${patch}")
-		endif()
-	endif()
+		if(NOT USE_SYSTEM_PROTO_LIBS)
 
-	function(protobuf_generate_cpp SRCS HDRS)
-		if(NOT ARGN)
-			message(SEND_ERROR "Error: PROTOBUF_GENERATE_CPP() called without any proto files")
-			return()
+			# Enable ProtoBuf verbose mode
+			set(protobuf_VERBOSE OFF CACHE BOOL "Build protobuf verbose")
+
+			# Build Protobuf as static library
+			set(protobuf_BUILD_SHARED_LIBS OFF CACHE BOOL "Build protobuf shared")
+
+			# Disable build of Protobuf tests
+			set(protobuf_BUILD_TESTS OFF CACHE BOOL "Build protobuf with tests")
+
+			# Disable build of Protobuf with zlib support
+			set(protobuf_WITH_ZLIB OFF CACHE BOOL "Build protobuf with zlib support")
+
+			# Enable build of libupb
+			set(protobuf_BUILD_LIBUPB ON CACHE BOOL "Build libupb")
+
+			# Build abeil (3rd party sub-module) with C++ version requirements
+			set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "Build abseil-cpp with C++ version requirements propagated")
+
+			# Override debug prefix
+			set(protobuf_DEBUG_POSTFIX "" CACHE STRING "Default debug postfix" FORCE)
+
+			# Disable static linking of MSVC runtime libraries under Windows
+			if(WIN32)
+				set(protobuf_MSVC_STATIC_RUNTIME OFF CACHE BOOL "Build protobuf static")
+				if(USE_PRE_BUILT_DEPS)
+					set(CMAKE_INSTALL_CMAKEDIR "lib/cmake/protobuf")
+				endif()
+			endif()
+
+			# Define the protoc import option
+			set(IMPORT_PROTOC "" CACHE STRING "Import the Protobuf compiler (protoc_export.cmake) from a native build")
+
+			if(CMAKE_CROSSCOMPILING)
+				# Disable Protobuf Compiler
+				set(protobuf_BUILD_PROTOC_BINARIES OFF CACHE BOOL "Build protobuf libraries and protoc compiler")
+			endif()
+
+			# Apply patches to Protobuf
+			execute_process(
+				COMMAND git apply "${CMAKE_CURRENT_SOURCE_DIR}/patch/protobuf/atomic.diff"
+				WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/external/protobuf"
+				OUTPUT_QUIET
+				ERROR_QUIET
+			)
+
+			# Add Protobuf directory to the build
+			add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/external/protobuf")
+
+			if(CMAKE_CROSSCOMPILING)
+				if(IMPORT_PROTOC)
+					# Import the Protobuf Compiler from a native build ...
+					include(${IMPORT_FLATC})
+				else()
+					# ... or build protoc nativly
+					include(ExternalProject)
+					ExternalProject_Add(protoc-host
+						PREFIX				${CMAKE_BINARY_DIR}/dependencies/external/protoc-host
+						BUILD_ALWAYS		OFF
+						DOWNLOAD_COMMAND	""
+						INSTALL_COMMAND     ""
+						SOURCE_DIR			${CMAKE_CURRENT_SOURCE_DIR}/external/protobuf
+						CMAKE_ARGS          -Dprotobuf_BUILD_LIBPROTOC:BOOL=OFF
+													-Dprotobuf_INSTALL:BOOL=OFF
+													-Dprotobuf_BUILD_TESTS:BOOL=${protobuf_BUILD_TESTS}
+													-Dprotobuf_BUILD_SHARED_LIBS:BOOL=${protobuf_BUILD_SHARED_LIBS}
+													-Dprotobuf_WITH_ZLIB:BOOL=${protobuf_WITH_ZLIB}
+													-DABSL_PROPAGATE_CXX_STD:BOOL=${ABSL_PROPAGATE_CXX_STD}
+													-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
+													-Wno-dev # We don't want to be warned over unused variables
+						BUILD_BYPRODUCTS    <BINARY_DIR>/protoc${CMAKE_EXECUTABLE_SUFFIX}
+					)
+
+					add_executable(protoc IMPORTED GLOBAL)
+					ExternalProject_Get_Property(protoc-host BINARY_DIR)
+					set_target_properties(protoc PROPERTIES
+						IMPORTED_LOCATION ${BINARY_DIR}/protoc${CMAKE_EXECUTABLE_SUFFIX}
+					)
+					add_dependencies(protoc protoc-host)
+				endif()
+			else()
+				# export the protoc compiler so it can be used when cross compiling
+				export(TARGETS protoc FILE "${CMAKE_BINARY_DIR}/protoc_export.cmake")
+			endif()
 		endif()
 
-		if(PROTOBUF_GENERATE_CPP_APPEND_PATH)
-			# Create an include path for each file specified
+		if(TARGET protobuf::libprotobuf)
+			if(NOT TARGET ProtoBuf)
+				add_library(ProtoBuf INTERFACE IMPORTED GLOBAL)
+				target_link_libraries(ProtoBuf INTERFACE protobuf::libprotobuf)
+			endif()
+
+			# static protobuf version detection from: https://github.com/opencv/opencv/blob/4.x/cmake/OpenCVFindProtobuf.cmake
+			get_build_interface_include_directory(TARGET protobuf::libprotobuf OUTPUT PROTOBUF_INCLUDE_DIR)
+			if(PROTOBUF_INCLUDE_DIR AND EXISTS "${PROTOBUF_INCLUDE_DIR}/google/protobuf/stubs/common.h")
+				file(STRINGS "${PROTOBUF_INCLUDE_DIR}/google/protobuf/stubs/common.h" ver REGEX "#define GOOGLE_PROTOBUF_VERSION [0-9]+")
+				string(REGEX MATCHALL "[0-9]+" ver ${ver})
+				math(EXPR minor "${ver} / 1000 % 1000")
+				math(EXPR patch "${ver} % 1000")
+				message(STATUS "Protocol Buffers version used: ${minor}.${patch}")
+			endif()
+		endif()
+
+		function(protobuf_generate_cpp SRCS HDRS)
+			if(NOT ARGN)
+				message(SEND_ERROR "Error: PROTOBUF_GENERATE_CPP() called without any proto files")
+				return()
+			endif()
+
+			if(PROTOBUF_GENERATE_CPP_APPEND_PATH)
+				# Create an include path for each file specified
+				foreach(FIL ${ARGN})
+					get_filename_component(ABS_FIL ${FIL} ABSOLUTE)
+					get_filename_component(ABS_PATH ${ABS_FIL} PATH)
+					list(FIND _protobuf_include_path ${ABS_PATH} _contains_already)
+					if(${_contains_already} EQUAL -1)
+						list(APPEND _protobuf_include_path -I ${ABS_PATH})
+					endif()
+				endforeach()
+			else()
+				set(_protobuf_include_path -I ${CMAKE_CURRENT_SOURCE_DIR})
+			endif()
+
+			if(DEFINED PROTOBUF_IMPORT_DIRS)
+				foreach(DIR ${PROTOBUF_IMPORT_DIRS})
+					get_filename_component(ABS_PATH ${DIR} ABSOLUTE)
+					list(FIND _protobuf_include_path ${ABS_PATH} _contains_already)
+					if(${_contains_already} EQUAL -1)
+						list(APPEND _protobuf_include_path -I ${ABS_PATH})
+					endif()
+				endforeach()
+			endif()
+
+			set(${SRCS})
+			set(${HDRS})
 			foreach(FIL ${ARGN})
 				get_filename_component(ABS_FIL ${FIL} ABSOLUTE)
-				get_filename_component(ABS_PATH ${ABS_FIL} PATH)
-				list(FIND _protobuf_include_path ${ABS_PATH} _contains_already)
-				if(${_contains_already} EQUAL -1)
-					list(APPEND _protobuf_include_path -I ${ABS_PATH})
-				endif()
+				get_filename_component(FIL_WE ${FIL} NAME_WE)
+
+				list(APPEND ${SRCS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.cc")
+				list(APPEND ${HDRS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.h")
+
+				add_custom_command(
+					OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.cc"
+							"${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.h"
+					COMMAND "$<TARGET_FILE:protoc>"
+					ARGS --cpp_out ${CMAKE_CURRENT_BINARY_DIR} ${_protobuf_include_path} ${ABS_FIL}
+					DEPENDS ${ABS_FIL} protoc
+					COMMENT "Running C++ Protocol Buffers Compiler '$<TARGET_FILE:protoc>' on '${FIL}'"
+					VERBATIM
+				)
+				set_property(SOURCE "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.cc" PROPERTY SKIP_AUTOMOC ON)
+				set_property(SOURCE "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.h" PROPERTY SKIP_AUTOMOC ON)
 			endforeach()
-		else()
-			set(_protobuf_include_path -I ${CMAKE_CURRENT_SOURCE_DIR})
-		endif()
 
-		if(DEFINED PROTOBUF_IMPORT_DIRS)
-			foreach(DIR ${PROTOBUF_IMPORT_DIRS})
-				get_filename_component(ABS_PATH ${DIR} ABSOLUTE)
-				list(FIND _protobuf_include_path ${ABS_PATH} _contains_already)
-				if(${_contains_already} EQUAL -1)
-					list(APPEND _protobuf_include_path -I ${ABS_PATH})
-				endif()
-			endforeach()
-		endif()
+			# disable warnings for auto generated proto files, we can't change the files ....
+			if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
+				set_source_files_properties(${${SRCS}} ${${HDRS}} ${ARGN} PROPERTIES
+					COMPILE_FLAGS "-w -Wno-return-local-addr"
+				)
+			elseif(MSVC)
+				set_source_files_properties(${${SRCS}} ${${HDRS}} ${ARGN} PROPERTIES
+					COMPILE_FLAGS "/W0"
+				)
+			endif()
 
-		set(${SRCS})
-		set(${HDRS})
-		foreach(FIL ${ARGN})
-			get_filename_component(ABS_FIL ${FIL} ABSOLUTE)
-			get_filename_component(FIL_WE ${FIL} NAME_WE)
-
-			list(APPEND ${SRCS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.cc")
-			list(APPEND ${HDRS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.h")
-
-			add_custom_command(
-				OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.cc"
-						"${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.h"
-				COMMAND "$<TARGET_FILE:protoc>"
-				ARGS --cpp_out ${CMAKE_CURRENT_BINARY_DIR} ${_protobuf_include_path} ${ABS_FIL}
-				DEPENDS ${ABS_FIL} protoc
-				COMMENT "Running C++ Protocol Buffers Compiler '$<TARGET_FILE:protoc>' on '${FIL}'"
-				VERBATIM
+			set_source_files_properties(${${SRCS}} ${${HDRS}} PROPERTIES
+				GENERATED TRUE
 			)
-			set_property(SOURCE "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.cc" PROPERTY SKIP_AUTOMOC ON)
-			set_property(SOURCE "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.h" PROPERTY SKIP_AUTOMOC ON)
-		endforeach()
-
-		# disable warnings for auto generated proto files, we can't change the files ....
-		if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-			set_source_files_properties(${${SRCS}} ${${HDRS}} ${ARGN} PROPERTIES
-				COMPILE_FLAGS "-w -Wno-return-local-addr"
-			)
-		elseif(MSVC)
-			set_source_files_properties(${${SRCS}} ${${HDRS}} ${ARGN} PROPERTIES
-				COMPILE_FLAGS "/W0"
-			)
-		endif()
-
-		set_source_files_properties(${${SRCS}} ${${HDRS}} PROPERTIES
-			GENERATED TRUE
-		)
-		set(${SRCS} ${${SRCS}} PARENT_SCOPE)
-		set(${HDRS} ${${HDRS}} PARENT_SCOPE)
-	endfunction()
+			set(${SRCS} ${${SRCS}} PARENT_SCOPE)
+			set(${HDRS} ${${HDRS}} PARENT_SCOPE)
+		endfunction()
+	endif()
 endif()
 
 #=============================================================================
