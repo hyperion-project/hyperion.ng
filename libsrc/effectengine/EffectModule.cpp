@@ -414,7 +414,7 @@ PyObject* EffectModule::wrapGetImage(PyObject* self, PyObject* args)
 				}
 
 				// Use format unit 'N' to pass ownership of pyBytes to the dict without needing DECREF here
-				PyObject* dict = Py_BuildValue("{s:i,s:i,s:N}", "imageWidth", width, "imageHeight", height, pyBytes);
+				PyObject* dict = Py_BuildValue("{s:i,s:i,s:N}", "imageWidth", width, "imageHeight", height, "imageData", pyBytes);
 
 				if (!dict)
 				{

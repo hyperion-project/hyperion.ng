@@ -52,16 +52,23 @@ struct ColorRgbScalar
 	{
 	}
 
-	ColorRgbScalar(ColorRgb rgb):
+	explicit ColorRgbScalar(ColorRgb rgb):
 		  red(rgb.red),
 		  green(rgb.green),
 		  blue(rgb.blue)
 	{
 	}
 
-	ColorRgbScalar operator-(const ColorRgbScalar& b) const
+	ColorRgbScalar& operator=(const ColorRgb& rhs)
+    {
+        red = rhs.red;
+        green = rhs.green;
+        blue = rhs.blue;
+        return *this;
+    }
+
+	friend inline ColorRgbScalar operator-(ColorRgbScalar a, const ColorRgbScalar &b)
 	{
-		ColorRgbScalar a(*this);
 		a.red -= b.red;
 		a.green -= b.green;
 		a.blue -= b.blue;
@@ -86,7 +93,6 @@ struct ColorRgbScalar
 	{
 		return QString("(%1,%2,%3)").arg(red).arg(green).arg(blue);
 	}
-
 	
 	///
 	/// Stream operator to write ColorRgbInt to an outputstream (format "'{'[red]','[green]','[blue]'}'")

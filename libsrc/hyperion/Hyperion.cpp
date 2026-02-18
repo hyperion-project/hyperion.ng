@@ -770,7 +770,7 @@ void Hyperion::writeToLeds()
 	}
 }
 
-void Hyperion::refreshUpdate()
+void Hyperion::refreshUpdate() const
 {
 	qCDebug(instance_flow) << "A forced refresh update is requested, waiting for latch time of" << _ledDeviceWrapper->getLatchTime() << "ms before processing.";
 	wait(_ledDeviceWrapper->getLatchTime());

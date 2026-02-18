@@ -14,8 +14,13 @@
 #include <QFile>
 #include <QBasicTimer>
 #include <QTimerEvent>
+#include <QLoggingCategory>
 
 #include <chrono>
+
+Q_DECLARE_LOGGING_CATEGORY(restapi_msg_request);
+Q_DECLARE_LOGGING_CATEGORY(restapi_msg_reply_success);
+Q_DECLARE_LOGGING_CATEGORY(restapi_msg_reply_error);
 
 constexpr std::chrono::milliseconds DEFAULT_REST_TIMEOUT{ 2000 };
 
@@ -465,7 +470,7 @@ private:
 	QSharedPointer<Logger> _log;
 
 	/// QNetworkAccessManager object for sending REST-requests.
-	QScopedPointer<QNetworkAccessManager, QScopedPointerDeleteLater> _networkManager;
+	QScopedPointer<QNetworkAccessManager> _networkManager;
 
 	std::chrono::milliseconds _requestTimeout;
 

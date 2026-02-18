@@ -59,6 +59,8 @@ struct ColorRgb
 		setRgb(rgb);
 	}
 
+	ColorRgb& operator=(const ColorRgb& rhs) = default;	
+
 	friend inline ColorRgb operator-(ColorRgb a, const ColorRgb &b)
 	{
 		a.red -= b.red;

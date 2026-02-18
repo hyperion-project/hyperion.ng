@@ -98,7 +98,8 @@ target_link_libraries(${PROJECT_NAME}
 
 if(ENABLE_EFFECTENGINE AND TARGET python)
 	target_link_libraries(${PROJECT_NAME}
-	$<$<BOOL:${ENABLE_EFFECTENGINE} AND TARGET python>:effectengine python>
+		effectengine
+		python
 	)
 endif()
 
@@ -155,9 +156,15 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	install(FILES ${CMAKE_SOURCE_DIR}/cmake/linux/desktop/hyperion.desktop DESTINATION "share/hyperion/desktop" COMPONENT "Hyperion")
 
 	# create symlink and copy "updateHyperionUser.sh" script
-	install(CODE "execute_process(COMMAND ln -sf \"../share/hyperion/bin/${PROJECT_NAME}\" \"${CMAKE_BINARY_DIR}/symlink_${PROJECT_NAME}\")" COMPONENT "Hyperion")
-	install(FILES "${CMAKE_BINARY_DIR}/symlink_${PROJECT_NAME}" DESTINATION "bin" RENAME ${PROJECT_NAME} COMPONENT "Hyperion")
-	install(CODE "file (REMOVE ${CMAKE_BINARY_DIR}/symlink_${PROJECT_NAME})" COMPONENT "Hyperion")
+	install(CODE "
+	file(MAKE_DIRECTORY
+	\"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/bin\"
+	)
+	file(CREATE_LINK
+	\"../share/hyperion/bin/${PROJECT_NAME}\"
+	\"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/bin/${PROJECT_NAME}\"
+	SYMBOLIC
+	)" COMPONENT "Hyperion")
 	install(FILES ${CMAKE_SOURCE_DIR}/bin/scripts/updateHyperionUser.sh DESTINATION "share/hyperion/scripts" COMPONENT "Hyperion")
 
 	if(ENABLE_DEPLOY_DEPENDENCIES)
