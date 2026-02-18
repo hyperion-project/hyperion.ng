@@ -26,6 +26,7 @@
       "type": "integer",
       "title": "edt_dev_spec_chanperfixture_title",
       "default": 3,
+      "minimum": 3,
       "propertyOrder": 4
     },
     "latchTime": {

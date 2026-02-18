@@ -43,6 +43,13 @@ bool LedDeviceUdpArtNet::init(const QJsonObject &deviceConfig)
 	_artnet_universe = deviceConfig["universe"].toInt(1);
 	_artnet_channelsPerFixture = deviceConfig["channelsPerFixture"].toInt(3);
 
+	// Validate channelsPerFixture
+	if (_artnet_channelsPerFixture < 3)
+	{
+		Error(_log, "channelsPerFixture must be at least 3 (for RGB). Setting to 3.");
+		_artnet_channelsPerFixture = 3;
+	}
+
 	return true;
 }
 
@@ -104,17 +111,10 @@ int LedDeviceUdpArtNet::write(const QVector<ColorRgb> &ledValues)
 	// Iterate over LEDs, not RGB bytes
 	for (unsigned int ledIdx = 0; ledIdx < static_cast<unsigned int>(ledValues.size()); ledIdx++)
 	{
-		// Write R, G, B for this LED
-		artnet_packet.Data[dmxIdx++] = rawdata[ledIdx * 3 + 0]; // Red
-		artnet_packet.Data[dmxIdx++] = rawdata[ledIdx * 3 + 1]; // Green
-		artnet_packet.Data[dmxIdx++] = rawdata[ledIdx * 3 + 2]; // Blue
-		
-		// Skip extra channels if fixture needs more than RGB
-		dmxIdx += (_artnet_channelsPerFixture - 3);
-
-		// is this the last LED of last packet || last LED that fits in current packet
-		if ( (ledIdx == static_cast<unsigned int>(ledValues.size()) - 1) || (dmxIdx >= DMX_MAX) )
+		// Check if this LED would overflow the DMX packet
+		if (dmxIdx + _artnet_channelsPerFixture > DMX_MAX)
 		{
+			// Send current packet before continuing
 			prepare(thisUniverse, _artnet_seq, dmxIdx);
 			
 			if (writeBytes(18 + dmxIdx, artnet_packet.raw) < 0)
@@ -125,6 +125,25 @@ int LedDeviceUdpArtNet::write(const QVector<ColorRgb> &ledValues)
 			memset(artnet_packet.raw, 0, sizeof(artnet_packet.raw));
 			thisUniverse++;
 			dmxIdx = 0;
+		}
+
+		// Write R, G, B for this LED
+		artnet_packet.Data[dmxIdx++] = rawdata[ledIdx * 3 + 0]; // Red
+		artnet_packet.Data[dmxIdx++] = rawdata[ledIdx * 3 + 1]; // Green
+		artnet_packet.Data[dmxIdx++] = rawdata[ledIdx * 3 + 2]; // Blue
+		
+		// Skip extra channels if fixture needs more than RGB
+		dmxIdx += (_artnet_channelsPerFixture - 3);
+	}
+
+	// Send the last packet if there's any data
+	if (dmxIdx > 0)
+	{
+		prepare(thisUniverse, _artnet_seq, dmxIdx);
+		
+		if (writeBytes(18 + dmxIdx, artnet_packet.raw) < 0)
+		{
+			retVal = -1;
 		}
 	}
 
