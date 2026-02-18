@@ -84,14 +84,14 @@ void LedDeviceUdpArtNet::prepare(unsigned this_universe, unsigned this_sequence,
 
 int LedDeviceUdpArtNet::write(const QVector<ColorRgb> &ledValues)
 {
-	int retVal            = 0;
-	int thisUniverse	= _artnet_universe;
+	int retVal = 0;
+	int thisUniverse = _artnet_universe;
 	auto rawdata = reinterpret_cast<const uint8_t *>(ledValues.data());
 
-/*
-This field is incremented in the range 0x01 to 0xff to allow the receiving node to resequence packets.
-The Sequence field is set to 0x00 to disable this feature.
-*/
+	/*
+	This field is incremented in the range 0x01 to 0xff to allow the receiving node to resequence packets.
+	The Sequence field is set to 0x00 to disable this feature.
+	*/
 	if (_artnet_seq++ == 0)
 	{
 		_artnet_seq = 1;
@@ -100,23 +100,30 @@ The Sequence field is set to 0x00 to disable this feature.
 	int dmxIdx = 0; // offset into the current dmx packet
 
 	memset(artnet_packet.raw, 0, sizeof(artnet_packet.raw));
-	for (unsigned int ledIdx = 0; ledIdx < _ledRGBCount; ledIdx++)
+	
+	// Iterate over LEDs, not RGB bytes
+	for (unsigned int ledIdx = 0; ledIdx < static_cast<unsigned int>(ledValues.size()); ledIdx++)
 	{
+		// Write R, G, B for this LED
+		artnet_packet.Data[dmxIdx++] = rawdata[ledIdx * 3 + 0]; // Red
+		artnet_packet.Data[dmxIdx++] = rawdata[ledIdx * 3 + 1]; // Green
+		artnet_packet.Data[dmxIdx++] = rawdata[ledIdx * 3 + 2]; // Blue
+		
+		// Skip extra channels if fixture needs more than RGB
+		dmxIdx += (_artnet_channelsPerFixture - 3);
 
-		artnet_packet.Data[dmxIdx++] = rawdata[ledIdx];
-		if ( (ledIdx % 3 == 2) && (ledIdx > 0) )
-		{
-			dmxIdx += (_artnet_channelsPerFixture-3);
-		}
-
-// is this the last byte of last packet || last byte of other packets
-		if ( (ledIdx == _ledRGBCount-1) || (dmxIdx >= DMX_MAX) )
+		// is this the last LED of last packet || last LED that fits in current packet
+		if ( (ledIdx == static_cast<unsigned int>(ledValues.size()) - 1) || (dmxIdx >= DMX_MAX) )
 		{
 			prepare(thisUniverse, _artnet_seq, dmxIdx);
-			retVal &= writeBytes(18 + qMin(dmxIdx, DMX_MAX), artnet_packet.raw);
+			
+			if (writeBytes(18 + dmxIdx, artnet_packet.raw) < 0)
+			{
+				retVal = -1;
+			}
 
 			memset(artnet_packet.raw, 0, sizeof(artnet_packet.raw));
-			thisUniverse ++;
+			thisUniverse++;
 			dmxIdx = 0;
 		}
 	}
