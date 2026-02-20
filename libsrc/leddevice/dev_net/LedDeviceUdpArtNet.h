@@ -8,6 +8,8 @@
 #include <QJsonObject>
 #include <QVector>
 
+#include <utils/RgbToRgbw.h>
+
 /**
  *
  *  This program is provided free for you to use in any way that you wish,
@@ -19,7 +21,7 @@
 const int DMX_MAX = 512; // 512 usable slots
 
 // http://stackoverflow.com/questions/16396013/artnet-packet-structure
-typedef union
+struct artnet_packet_t
 {
 #pragma pack(push, 1)
 	struct {
@@ -32,12 +34,11 @@ typedef union
 		uint8_t		Net;		// high universe (not used)
 		uint16_t	Length;		// data length (2 - 512)
 		uint8_t		Data[ DMX_MAX ];	// universe data
-	};
+	} header;
 #pragma pack(pop)
 
 	uint8_t raw[ 18 + DMX_MAX ];
-
-} artnet_packet_t;
+};
 
 ///
 /// Implementation of the LedDevice interface for sending LED colors to an Art-Net LED-device via UDP
@@ -91,10 +92,17 @@ private:
 	///
 	void prepare(unsigned this_universe, unsigned this_sequence, unsigned this_dmxChannelCount);
 
+	int _ledChannelsPerFixture = 3;
+
 	artnet_packet_t artnet_packet;
 	uint8_t _artnet_seq = 1;
-	int _artnet_channelsPerFixture = 3;
+	int _artnet_channelsPerFixture = _ledChannelsPerFixture;
 	int _artnet_universe = 1;
+
+
+	// RGBW specific members
+	RGBW::WhiteAlgorithm _whiteAlgorithm;
+	ColorRgbw _temp_rgbw;
 };
 
 #endif // LEDEVICEUDPARTNET_H

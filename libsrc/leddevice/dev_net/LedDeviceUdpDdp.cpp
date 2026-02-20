@@ -3,7 +3,7 @@
 #include <QtEndian>
 
 #include <utils/NetUtils.h>
-#include "utils/RgbToRgbw.h"
+#include <utils/RgbToRgbw.h>
 
 // DDP header format
 // header is 10 bytes (14 if TIME flag used)
