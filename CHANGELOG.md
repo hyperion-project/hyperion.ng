@@ -12,11 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### ✨ Added
 
+- Art-Net - Add RGBW support
+
 ---
 
 ### 🔧 Changed
 
 - **Fixes:**
+  - Art-Net device is limited to 108 DMX channels (36 RGB LEDs) instead of 512 channels (170 RGB LEDs)
 
 ---
 
