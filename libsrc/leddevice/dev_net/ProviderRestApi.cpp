@@ -17,6 +17,10 @@
 
 #include <QSslSocket>
 
+Q_LOGGING_CATEGORY(restapi_msg_request, "hyperion.restapi.msg.request");
+Q_LOGGING_CATEGORY(restapi_msg_reply_success, "hyperion.restapi.msg.reply.success");
+Q_LOGGING_CATEGORY(restapi_msg_reply_error, "hyperion.restapi.msg.reply.error");
+
 // Constants
 namespace {
 
@@ -26,7 +30,7 @@ const QChar ONE_SLASH = '/';
 
 ProviderRestApi::ProviderRestApi(const QString& scheme, const QString& host, int port, const QString& basePath)
 	: _log(Logger::getInstance("LEDDEVICE"))
-	, _networkManager(nullptr)
+	, _networkManager(new QNetworkAccessManager())
 	, _requestTimeout(DEFAULT_REST_TIMEOUT)
 	, _isSelfSignedCertificateAccpeted(false)
 {
@@ -36,9 +40,6 @@ ProviderRestApi::ProviderRestApi(const QString& scheme, const QString& host, int
 	_apiUrl.setHost(host);
 	_apiUrl.setPort(port);
 	_basePath = basePath;
-
-	_networkManager.reset(new QNetworkAccessManager());
-	_networkManager->moveToThread(this->thread());
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
 	_networkManager->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
@@ -262,9 +263,19 @@ httpResponse ProviderRestApi::executeOperation(QNetworkAccessManager::Operation 
 	loop.exec();
 	QDateTime const end = QDateTime::currentDateTime();
 
+	TRACK_SCOPE_SUBCOMPONENT_CATEGORY(restapi_msg_request) << "[" << url.toString() << "]," << opCode << "[" << body << "]";
 	httpResponse response = (reply->operation() == operation) ? getResponse(reply) : httpResponse();
 
 	Debug(_log, "%s took %lldms, HTTP %d: [%s] [%s]", QSTRING_CSTR(opCode), start.msecsTo(end), response.getHttpStatusCode(), QSTRING_CSTR(url.toString()), body.constData());
+	if (response.error())
+	{
+		TRACK_SCOPE_SUBCOMPONENT_CATEGORY(restapi_msg_reply_error) << opCode << "took" << start.msecsTo(end) << "ms, Error: " << response.getErrorReason() << ", Response:" << response.getBody().toJson(QJsonDocument::Compact);
+		Debug(_log, "Error reason: %s, Response: %s", QSTRING_CSTR(response.getErrorReason()), response.getBody().toJson(QJsonDocument::Compact).constData());
+	}
+	else
+	{
+		TRACK_SCOPE_SUBCOMPONENT_CATEGORY(restapi_msg_reply_success) << opCode << "took" << start.msecsTo(end) << "ms, Result [" << static_cast<int>(response.getHttpStatusCode()) << "], Response:" << response.getBody().toJson(QJsonDocument::Compact);
+	}
 
 	// Free space.
 	reply->deleteLater();
@@ -345,31 +356,29 @@ httpResponse ProviderRestApi::getResponse(QNetworkReply* const& reply) const
 	response.setNetworkReplyError(reply->error());
 	response.setHeaders(reply->rawHeaderPairs());
 
-	if (reply->error() == QNetworkReply::NoError)
+	QByteArray const replyData = reply->readAll();
+	if (!replyData.isEmpty())
 	{
-		QByteArray const replyData = reply->readAll();
-		if (!replyData.isEmpty())
-		{
-			QJsonParseError error;
-			QJsonDocument const jsonDoc = QJsonDocument::fromJson(replyData, &error);
+		QJsonParseError error;
+		QJsonDocument const jsonDoc = QJsonDocument::fromJson(replyData, &error);
 
-			if (error.error != QJsonParseError::NoError)
-			{
-				//Received not valid JSON response
-				response.setError(true);
-				response.setErrorReason(error.errorString());
-			}
-			else
-			{
-				response.setBody(jsonDoc);
-			}
+		if (error.error != QJsonParseError::NoError)
+		{
+			//Received not valid JSON response
+			response.setError(true);
+			response.setErrorReason(error.errorString());
 		}
 		else
-		{	// Create valid body which is empty
-			response.setBody(QJsonDocument());
+		{
+			response.setBody(jsonDoc);
 		}
 	}
 	else
+	{	// Create valid body which is empty
+		response.setBody(QJsonDocument());
+	}
+
+	if (reply->error() != QNetworkReply::NoError)
 	{
 		QString errorReason = getReplyErrorReason(reply, response);
 		response.setError(true);

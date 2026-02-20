@@ -272,27 +272,35 @@ if(ENABLE_FLATBUF_SERVER OR ENABLE_FLATBUF_CONNECT)
 			find_package(Flatbuffers REQUIRED)
 		endif()
 
-		if(NOT TARGET flatc)
-			if(USE_PRE_BUILT_DEPS)
-				add_executable(flatc IMPORTED GLOBAL)
-				set_target_properties(flatc PROPERTIES
-					IMPORTED_LOCATION ${PRE_BUILT_DEPS_DIR}/bin/flatc${CMAKE_EXECUTABLE_SUFFIX}
-				)
-			elseif(TARGET flatbuffers::flatc)
-				add_executable(flatc IMPORTED GLOBAL)
-				getTargetImportedLocation(FLATC_EXECUTABLE flatbuffers::flatc)
-				set_target_properties(flatc PROPERTIES IMPORTED_LOCATION ${FLATC_EXECUTABLE})
+		if(USE_PRE_BUILT_DEPS)
+			unset(FLATC_EXECUTABLE CACHE)
+			message(STATUS "Using pre-built dependencies path to find flatc compiler.")
+			find_program(FLATC_EXECUTABLE flatc HINTS "${PRE_BUILT_DEPS_DIR}/bin")
+		else()		
+			message(STATUS "Attempting to locate flatc compiler...")
+			if(NOT FLATC_EXECUTABLE)
+				message(STATUS "'flatc' target not found. Searching for executable...")
+				if(TARGET flatbuffers::flatc)
+					message(STATUS "'flatbuffers::flatc' target found. Getting location.")
+					get_target_property(FLATC_EXECUTABLE flatbuffers::flatc LOCATION)
+				else()
+					message(STATUS "Searching for 'flatc' in system path.")
+					find_program(FLATC_EXECUTABLE flatc)
+				endif()
 			endif()
 		endif()
-	endif()
 
-	if(NOT USE_SYSTEM_FLATBUFFERS_LIBS)
+		if(FLATC_EXECUTABLE)
+			message(STATUS "Found 'flatc' at: ${FLATC_EXECUTABLE}")
+		else()
+			message(WARNING "'flatc' executable not found in system path.")
+		endif()
+		set(FLATC_EXECUTABLE ${FLATC_EXECUTABLE} CACHE FILEPATH "Path to flatc compiler" FORCE)
+	else()
 		# Build Flatbuffers as static library
 		set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared Flatbuffers library")
-
 		# Disable build of Flatbuffers tests
 		set(FLATBUFFERS_BUILD_TESTS OFF CACHE BOOL "Build Flatbuffers with tests")
-
 		# Define the flatc import option
 		set(IMPORT_FLATC "" CACHE STRING "Import the Flatbuffers compiler (flatc_export.cmake) from a native build")
 
@@ -368,13 +376,24 @@ if(ENABLE_FLATBUF_SERVER OR ENABLE_FLATBUF_CONNECT)
 
 	function(compile_flatbuffer_schema FBS_GENERATED)
 		if(NOT ARGN)
-			message(SEND_ERROR "Error: compile_flatbuffer_schema() called without any schema files")
+			message(SEND_ERROR "compile_flatbuffer_schema() called without any files")
 			return()
+		endif()
+
+		set(FLATC_DEP)
+		if(TARGET flatc)
+			set(FLATC_DEP flatc)
+			if(NOT FLATC_EXECUTABLE)
+				set(FLATC_EXECUTABLE "$<TARGET_FILE:flatc>")
+			endif()
+		endif()
+
+		if(NOT FLATC_EXECUTABLE)
+			message(FATAL_ERROR "FLATC_EXECUTABLE not found. Please install flatc or enable the build from source.")
 		endif()
 
 		set(${FBS_GENERATED})
 		foreach(FIL ${ARGN})
-			get_filename_component(ABS_FIL ${FIL} ABSOLUTE)
 			get_filename_component(FIL_WE ${FIL} NAME_WE)
 
 			set(OUT_FILE "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}_generated.h")
@@ -382,10 +401,10 @@ if(ENABLE_FLATBUF_SERVER OR ENABLE_FLATBUF_CONNECT)
 
 			add_custom_command(
 				OUTPUT ${OUT_FILE}
-				COMMAND "$<TARGET_FILE:flatc>"
-				ARGS -c --no-includes --gen-mutable --gen-object-api -o "${CMAKE_CURRENT_BINARY_DIR}" "${ABS_FIL}"
-				DEPENDS ${ABS_FIL} flatc
-				COMMENT "Running FlatBuffers Compiler '$<TARGET_FILE:flatc>' on '${FIL}'"
+				COMMAND ${FLATC_EXECUTABLE}
+				ARGS -c --no-includes --gen-mutable --gen-object-api -o "${CMAKE_CURRENT_BINARY_DIR}" "${FIL}"
+				DEPENDS ${FIL} ${FLATC_DEP}
+				COMMENT "Running FlatBuffers Compiler '${FLATC_EXECUTABLE}' on '${FIL}'"
 				VERBATIM
 			)
 			set_property(SOURCE ${OUT_FILE} PROPERTY SKIP_AUTOMOC ON)
@@ -409,40 +428,43 @@ if(ENABLE_PROTOBUF_SERVER)
 			find_package(Protobuf REQUIRED)
 		endif()
 
-		if(NOT TARGET protoc)
-			if(USE_PRE_BUILT_DEPS)
-				add_executable(protoc IMPORTED GLOBAL)
-				set_target_properties(protoc PROPERTIES
-					IMPORTED_LOCATION ${PRE_BUILT_DEPS_DIR}/bin/protoc${CMAKE_EXECUTABLE_SUFFIX}
-				)
-			elseif(TARGET protobuf::protoc)
-				add_executable(protoc IMPORTED GLOBAL)
-				getTargetImportedLocation(PROTOC_EXECUTABLE protobuf::protoc)
-				set_target_properties(protoc PROPERTIES IMPORTED_LOCATION ${PROTOC_EXECUTABLE})
+		if(USE_PRE_BUILT_DEPS)
+			unset(PROTOC_EXECUTABLE CACHE)
+			message(STATUS "Using pre-built dependencies path to find protoc compiler.")
+			find_program(PROTOC_EXECUTABLE protoc HINTS "${PRE_BUILT_DEPS_DIR}/bin")
+		else()
+			message(STATUS "Attempting to locate protoc compiler...")
+			if(NOT PROTOC_EXECUTABLE)
+				message(STATUS "'protoc' target not found. Searching for executable...")
+				if(TARGET protobuf::protoc)
+					message(STATUS "'protobuf::protoc' target found. Getting location.")
+					get_target_property(PROTOC_EXECUTABLE protobuf::protoc LOCATION)
+				else()
+					message(STATUS "Searching for 'protoc' in system path.")
+					find_program(PROTOC_EXECUTABLE protoc)
+				endif()
 			endif()
 		endif()
-	endif()
 
-	if(NOT USE_SYSTEM_PROTO_LIBS)
-
+		if(PROTOC_EXECUTABLE)
+			message(STATUS "Found 'protoc' at: ${PROTOC_EXECUTABLE}")
+		else()
+			message(WARNING "'protoc' executable not found.")
+		endif()
+		set(PROTOC_EXECUTABLE ${PROTOC_EXECUTABLE} CACHE FILEPATH "Path to protoc compiler" FORCE)
+	else()
 		# Enable ProtoBuf verbose mode
 		set(protobuf_VERBOSE OFF CACHE BOOL "Build protobuf verbose")
-
 		# Build Protobuf as static library
 		set(protobuf_BUILD_SHARED_LIBS OFF CACHE BOOL "Build protobuf shared")
-
 		# Disable build of Protobuf tests
 		set(protobuf_BUILD_TESTS OFF CACHE BOOL "Build protobuf with tests")
-
 		# Disable build of Protobuf with zlib support
 		set(protobuf_WITH_ZLIB OFF CACHE BOOL "Build protobuf with zlib support")
-
 		# Enable build of libupb
 		set(protobuf_BUILD_LIBUPB ON CACHE BOOL "Build libupb")
-
 		# Build abeil (3rd party sub-module) with C++ version requirements
 		set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "Build abseil-cpp with C++ version requirements propagated")
-
 		# Override debug prefix
 		set(protobuf_DEBUG_POSTFIX "" CACHE STRING "Default debug postfix" FORCE)
 
@@ -473,6 +495,14 @@ if(ENABLE_PROTOBUF_SERVER)
 		# Add Protobuf directory to the build
 		add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/external/protobuf")
 
+		# Suppres warnings about deprecated declarations in protobuf generated code, we can't change the files ....
+		if(TARGET libprotobuf)
+			target_compile_options(libprotobuf PRIVATE -Wno-deprecated-declarations)
+		endif()
+		if(TARGET libprotoc)
+			target_compile_options(libprotoc PRIVATE -Wno-deprecated-declarations)
+		endif()
+
 		if(CMAKE_CROSSCOMPILING)
 			if(IMPORT_PROTOC)
 				# Import the Protobuf Compiler from a native build ...
@@ -487,13 +517,14 @@ if(ENABLE_PROTOBUF_SERVER)
 					INSTALL_COMMAND     ""
 					SOURCE_DIR			${CMAKE_CURRENT_SOURCE_DIR}/external/protobuf
 					CMAKE_ARGS          -Dprotobuf_BUILD_LIBPROTOC:BOOL=OFF
-										-Dprotobuf_INSTALL:BOOL=OFF
-										-Dprotobuf_BUILD_TESTS:BOOL=${protobuf_BUILD_TESTS}
-										-Dprotobuf_BUILD_SHARED_LIBS:BOOL=${protobuf_BUILD_SHARED_LIBS}
-										-Dprotobuf_WITH_ZLIB:BOOL=${protobuf_WITH_ZLIB}
-										-DABSL_PROPAGATE_CXX_STD:BOOL=${ABSL_PROPAGATE_CXX_STD}
-										-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
-										-Wno-dev # We don't want to be warned over unused variables
+												-Dprotobuf_INSTALL:BOOL=OFF
+												-Dprotobuf_BUILD_TESTS:BOOL=${protobuf_BUILD_TESTS}
+												-Dprotobuf_BUILD_SHARED_LIBS:BOOL=${protobuf_BUILD_SHARED_LIBS}
+												-Dprotobuf_WITH_ZLIB:BOOL=${protobuf_WITH_ZLIB}
+												-DABSL_PROPAGATE_CXX_STD:BOOL=${ABSL_PROPAGATE_CXX_STD}
+												-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
+												-Wno-dev # We don't want to be warned over unused variables
+												-Wno-deprecated-declarations # We don't want to be warned about deprecated declarations
 					BUILD_BYPRODUCTS    <BINARY_DIR>/protoc${CMAKE_EXECUTABLE_SUFFIX}
 				)
 
@@ -533,6 +564,18 @@ if(ENABLE_PROTOBUF_SERVER)
 			return()
 		endif()
 
+		set(PROTOC_DEP)
+		if(TARGET protoc)
+			set(PROTOC_DEP protoc)
+			if(NOT PROTOC_EXECUTABLE)
+				set(PROTOC_EXECUTABLE "$<TARGET_FILE:protoc>")
+			endif()
+		endif()
+
+		if(NOT PROTOC_EXECUTABLE)
+			message(FATAL_ERROR "PROTOC_EXECUTABLE not found. Please install protoc or enable the build from source.")
+		endif()
+
 		if(PROTOBUF_GENERATE_CPP_APPEND_PATH)
 			# Create an include path for each file specified
 			foreach(FIL ${ARGN})
@@ -569,10 +612,10 @@ if(ENABLE_PROTOBUF_SERVER)
 			add_custom_command(
 				OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.cc"
 						"${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.h"
-				COMMAND "$<TARGET_FILE:protoc>"
+				COMMAND ${PROTOC_EXECUTABLE}
 				ARGS --cpp_out ${CMAKE_CURRENT_BINARY_DIR} ${_protobuf_include_path} ${ABS_FIL}
-				DEPENDS ${ABS_FIL} protoc
-				COMMENT "Running C++ Protocol Buffers Compiler '$<TARGET_FILE:protoc>' on '${FIL}'"
+				DEPENDS ${ABS_FIL} ${PROTOC_DEP}
+				COMMENT "Running C++ Protocol Buffers Compiler '${PROTOC_EXECUTABLE}' on '${FIL}'"
 				VERBATIM
 			)
 			set_property(SOURCE "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.cc" PROPERTY SKIP_AUTOMOC ON)
