@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Get User Media Code Along!</title>
+  <meta name="viewport" content="width=640, initial-scale=1.0">
+  <link rel="stylesheet" type="text/css" href="/c/styles.css">
+</head>
+<body>
+
+  <section id="calibration">
+
+    <div id="camera">
+      <canvas id="canvas"></canvas>
+      <video id="source" playsinline autoplay muted></video>
+
+      <ins id="tv">
+        <!--
+        <ins id="tv_white"></ins>
+        <ins id="tv_red"></ins>
+        <ins id="tv_green"></ins>
+        <ins id="tv_blue"></ins>
+        <ins id="tv_cyan"></ins>
+        <ins id="tv_magenta"></ins>
+        <ins id="tv_yellow"></ins>
+        <ins id="tv_black"></ins>
+      -->
+      </ins>
+
+      <ins id="tv_wall_devider"></ins>
+
+      <ins id="wall"></ins>
+    </div>
+
+
+
+
+    <form id="controls">
+      <button id="calibrate_init">INIT</button>
+      <button id="calibrate_white">WHITE</button>
+      <button id="calibrate_red">RED</button>
+      <button id="calibrate_green">GREEN</button>
+      <button id="calibrate_blue">BLUE</button>
+      <button id="calibrate_cyan">CYAN</button>
+      <button id="calibrate_magenta">MAGENTA</button>
+      <button id="calibrate_yellow">YELLOW</button>
+      <button id="calibrate_off">OFF</button>
+    </form>
+    <div id="tv_color_led"></div>
+    <div id="wall_color_led">Color Accuracy: 0%</div>
+    <div id="color_text">...</div>
+    <br><br>
+    <button id="calibrate_apply">APPLY</button>
+
+  </section>
+
+  <script src="https://colorjs.io/dist/color.global.js"></script>
+  <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+  <script src="https://unpkg.com/fast-average-color/dist/index.browser.min.js"></script>
+  <script src="/c/script.js"></script>
+
+</body>
+</html>
