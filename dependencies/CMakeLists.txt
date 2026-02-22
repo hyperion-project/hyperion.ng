@@ -128,6 +128,7 @@ if(ENABLE_DEV_FTDI)
 								-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
 								-DCMAKE_STATIC_LIBRARY_PREFIX_C:STRING=lib
 								-DCMAKE_WARN_DEPRECATED:BOOL=OFF # Suppress warnings about "Compatibility with CMake < 3.5 will be removed from a future version of CMake"
+								-Wmaybe-uninitialized # Suppress warnings about "maybe uninitialized variables"
 								${APPLE_CONFIGURATION}
 			BUILD_BYPRODUCTS    <BINARY_DIR>/src/libftdi1${CMAKE_STATIC_LIBRARY_SUFFIX}
 		)
@@ -215,6 +216,9 @@ endif()
 #=============================================================================
 
 if(ENABLE_DEV_WS281XPWM)
+	# Suppress warnings about "Compatibility with CMake < 3.5 will be removed from a future version of CMake"
+	set(CMAKE_WARN_DEPRECATED OFF CACHE INTERNAL "")
+
 	# Build rpi_ws281x as static library
 	set(BUILD_SHARED OFF CACHE BOOL "Build statically version of rpi_ws281x")
 
@@ -223,6 +227,9 @@ if(ENABLE_DEV_WS281XPWM)
 
 	# Add rpi_ws281x directory to the build
 	add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/external/rpi_ws281x")
+
+	# Restore CMAKE_WARN_DEPRECATED to its previous value
+	unset(CMAKE_WARN_DEPRECATED CACHE)
 endif()
 
 #=============================================================================
@@ -497,10 +504,10 @@ if(ENABLE_PROTOBUF_SERVER)
 
 		# Suppres warnings about deprecated declarations in protobuf generated code, we can't change the files ....
 		if(TARGET libprotobuf)
-			target_compile_options(libprotobuf PRIVATE -Wno-deprecated-declarations)
+			target_compile_options(libprotobuf PRIVATE -Wno-deprecated-declarations -Wno-nonnull -Wno-lto-type-mismatch)
 		endif()
 		if(TARGET libprotoc)
-			target_compile_options(libprotoc PRIVATE -Wno-deprecated-declarations)
+			target_compile_options(libprotoc PRIVATE -Wno-deprecated-declarations -Wno-nonnull -Wno-lto-type-mismatch)
 		endif()
 
 		if(CMAKE_CROSSCOMPILING)
@@ -525,6 +532,8 @@ if(ENABLE_PROTOBUF_SERVER)
 												-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
 												-Wno-dev # We don't want to be warned over unused variables
 												-Wno-deprecated-declarations # We don't want to be warned about deprecated declarations
+												-Wno-nonnull # We don't want to be warned about nonnull
+												-Wno-lto-type-mismatch # We don't want to be warned about LTO type mismatches
 					BUILD_BYPRODUCTS    <BINARY_DIR>/protoc${CMAKE_EXECUTABLE_SUFFIX}
 				)
 
