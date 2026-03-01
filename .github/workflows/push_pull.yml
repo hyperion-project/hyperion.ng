@@ -70,7 +70,7 @@ jobs:
           echo "VERSION=$(tr -d '\n' < .version)" >> $GITHUB_ENV
 
       - name: 💾 Download artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           pattern: artifact-*
           path: all-artifacts
