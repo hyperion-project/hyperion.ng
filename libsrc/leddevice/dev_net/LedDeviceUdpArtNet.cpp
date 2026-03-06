@@ -6,6 +6,7 @@
 #include <arpa/inet.h>
 #endif
 
+#include <QtEndian>
 #include <QHostInfo>
 
 #include <utils/NetUtils.h>
@@ -13,14 +14,15 @@
 // Constants
 namespace {
 
-const char CONFIG_HOST[] = "host";
-const char CONFIG_PORT[] = "port";
+	const char CONFIG_HOST[] = "host";
+	const char CONFIG_PORT[] = "port";
 
-const ushort ARTNET_DEFAULT_PORT = 6454;
+	const ushort ARTNET_DEFAULT_PORT = 6454;
 }
 
 LedDeviceUdpArtNet::LedDeviceUdpArtNet(const QJsonObject &deviceConfig)
 	: ProviderUdp(deviceConfig)
+	, _whiteAlgorithm(RGBW::WhiteAlgorithm::INVALID)
 {
 }
 
@@ -37,7 +39,7 @@ bool LedDeviceUdpArtNet::init(const QJsonObject &deviceConfig)
 		return false;
 	}
 
-	_hostName = _devConfig[ CONFIG_HOST ].toString();
+	_hostName = _devConfig[CONFIG_HOST].toString();
 	_port = deviceConfig[CONFIG_PORT].toInt(ARTNET_DEFAULT_PORT);
 
 	// Initialize white algorithm
@@ -49,7 +51,7 @@ bool LedDeviceUdpArtNet::init(const QJsonObject &deviceConfig)
 		this->setInError(errortext);
 		return false;
 	}
-	Debug(_log, "White-Algorithm   : %s", QSTRING_CSTR(whiteAlgorithmStr));	
+	Debug(_log, "White-Algorithm   : %s", QSTRING_CSTR(whiteAlgorithmStr));
 	_ledChannelsPerFixture = (_whiteAlgorithm == RGBW::WhiteAlgorithm::WHITE_OFF) ? 3 : 4;
 
 	_artnet_universe = deviceConfig["universe"].toInt(1);
@@ -69,7 +71,7 @@ int LedDeviceUdpArtNet::open()
 {
 	_isDeviceReady = false;
 	this->setIsRecoverable(true);
-	
+
 	NetUtils::convertMdnsToIp(_log, _hostName);
 	if (ProviderUdp::open() == 0)
 	{
@@ -83,22 +85,22 @@ int LedDeviceUdpArtNet::open()
 // populates the headers
 void LedDeviceUdpArtNet::prepare(unsigned this_universe, unsigned this_sequence, unsigned this_dmxChannelCount)
 {
-// WTF? why do the specs say:
-// "This value should be an even number in the range 2 – 512. "
+	// WTF? why do the specs say:
+	// "This value should be an even number in the range 2 – 512. "
 	if (this_dmxChannelCount & 0x1)
 	{
 		this_dmxChannelCount++;
 	}
 
-	memcpy (artnet_packet.header.ID, "Art-Net\0", 8);
-
-	artnet_packet.header.OpCode   = htons(0x5000); // OpOutput / OpDmx
-	artnet_packet.header.ProtVer  = htons(0x000e);
-	artnet_packet.header.Sequence = static_cast<uint8_t>(this_sequence);
+	memcpy(artnet_packet.header.ID, "Art-Net\0", 8);
+	artnet_packet.header.OpCode = qToLittleEndian<quint16>(0x5000);
+	artnet_packet.header.ProtVer = qToBigEndian<quint16>(14);
+	artnet_packet.header.Sequence = static_cast<quint8>(this_sequence);
 	artnet_packet.header.Physical = 0;
-	artnet_packet.header.SubUni   = this_universe & 0xff ;
-	artnet_packet.header.Net      = (this_universe >> 8) & 0x7f;
-	artnet_packet.header.Length   = htons(static_cast<uint16_t>(this_dmxChannelCount));
+	artnet_packet.header.SubUni = this_universe & 0xFF;
+	artnet_packet.header.Net = (this_universe >> 8) & 0x7F;
+	artnet_packet.header.Length = qToBigEndian<quint16>(static_cast<quint16>(this_dmxChannelCount));
+
 }
 
 int LedDeviceUdpArtNet::write(const QVector<ColorRgb> &ledValues)
@@ -118,7 +120,7 @@ int LedDeviceUdpArtNet::write(const QVector<ColorRgb> &ledValues)
 	int dmxIdx = 0; // offset into the current dmx packet
 
 	memset(artnet_packet.raw, 0, sizeof(artnet_packet.raw));
-	
+
 	for (const ColorRgb& color : ledValues)
 	{
 		// Check if this LED would overflow the DMX packet
@@ -126,7 +128,7 @@ int LedDeviceUdpArtNet::write(const QVector<ColorRgb> &ledValues)
 		{
 			// Send current packet before continuing
 			prepare(thisUniverse, _artnet_seq, dmxIdx);
-			
+
 			if (writeBytes(18 + dmxIdx, artnet_packet.raw) < 0)
 			{
 				retVal = -1;
@@ -139,19 +141,19 @@ int LedDeviceUdpArtNet::write(const QVector<ColorRgb> &ledValues)
 
 		if (_whiteAlgorithm == RGBW::WhiteAlgorithm::WHITE_OFF)
 		{
-			artnet_packet.header.Data[dmxIdx++] = color.red;
-			artnet_packet.header.Data[dmxIdx++] = color.green;
-			artnet_packet.header.Data[dmxIdx++] = color.blue;
+			artnet_packet.Data[dmxIdx++] = color.red;
+			artnet_packet.Data[dmxIdx++] = color.green;
+			artnet_packet.Data[dmxIdx++] = color.blue;
 		}
 		else
 		{
 			RGBW::Rgb_to_Rgbw(color, &_temp_rgbw, _whiteAlgorithm);
-			artnet_packet.header.Data[dmxIdx++] = _temp_rgbw.red;
-			artnet_packet.header.Data[dmxIdx++] = _temp_rgbw.green;
-			artnet_packet.header.Data[dmxIdx++] = _temp_rgbw.blue;
-			artnet_packet.header.Data[dmxIdx++] = _temp_rgbw.white;
+			artnet_packet.Data[dmxIdx++] = _temp_rgbw.red;
+			artnet_packet.Data[dmxIdx++] = _temp_rgbw.green;
+			artnet_packet.Data[dmxIdx++] = _temp_rgbw.blue;
+			artnet_packet.Data[dmxIdx++] = _temp_rgbw.white;
 		}
-		
+
 		// Skip extra channels if fixture needs more than RGB/RGBW
 		dmxIdx += (_artnet_channelsPerFixture - _ledChannelsPerFixture);
 	}
@@ -160,7 +162,7 @@ int LedDeviceUdpArtNet::write(const QVector<ColorRgb> &ledValues)
 	if (dmxIdx > 0)
 	{
 		prepare(thisUniverse, _artnet_seq, dmxIdx);
-		
+
 		if (writeBytes(18 + dmxIdx, artnet_packet.raw) < 0)
 		{
 			retVal = -1;
