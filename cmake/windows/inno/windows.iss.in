@@ -2,7 +2,7 @@
 #define AppVersion "@CPACK_PACKAGE_VERSION@"
 #define AppPublisher "@CPACK_PACKAGE_VENDOR@"
 #define AppURL "@CPACK_PACKAGE_HOMEPAGE_URL@"
-#define AppCopyright "Copyright (c) 2014-2025 Hyperion Project"
+#define AppCopyright "Copyright (c) 2014-2026 Hyperion Project"
 #define AppLicense "@CPACK_RESOURCE_FILE_LICENSE@"
 #define AppDescription "@CPACK_PACKAGE_DESCRIPTION_SUMMARY@"
 #define OutputName "@CPACK_PACKAGE_FILE_NAME@"

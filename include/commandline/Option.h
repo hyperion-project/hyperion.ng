@@ -30,8 +30,8 @@ public:
 	virtual bool validate(Parser &parser, QString &value);
 	QString name() const;
 	QString getError() const;
-	QString value(Parser &parser) const;
-	const char* getCString(Parser &parser) const;
+	QString value(const Parser &parser) const;
+	const char* getCString(const Parser& parser) const;
 
 	virtual ~Option();
 

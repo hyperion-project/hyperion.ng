@@ -85,39 +85,42 @@ QCoreApplication* createApplication(int& argc, char* argv[])
 #else
 	if (!forceNoGui)
 	{
-		isGuiApp = (getenv("DISPLAY") != NULL && (getenv("XDG_SESSION_TYPE") != NULL || getenv("WAYLAND_DISPLAY") != NULL));
+		isGuiApp = (getenv("DISPLAY") != nullptr && (getenv("XDG_SESSION_TYPE") != nullptr || getenv("WAYLAND_DISPLAY") != NULL));
 	}
 #endif
 
 	if (isGuiApp)
 	{
-		QApplication* app = new QApplication(argc, argv);
+		auto* app = new QApplication(argc, argv);
 		// add optional library path
-		app->addLibraryPath(QApplication::applicationDirPath() + "/../lib");
-		app->setApplicationDisplayName("Hyperion");
+		QApplication::addLibraryPath(QApplication::applicationDirPath() + "/../lib");
+		QApplication::setApplicationDisplayName("Hyperion");
 #ifndef __APPLE__
-		app->setWindowIcon(QIcon(":/hyperion-32px.png"));
+		QApplication::setWindowIcon(QIcon(":/hyperion-32px.png"));
 #endif
 		return app;
 	}
 
-	QCoreApplication* app = new QCoreApplication(argc, argv);
-	app->setApplicationName("Hyperion");
-	app->setApplicationVersion(HYPERION_VERSION);
+	auto* app = new QCoreApplication(argc, argv);
+	QCoreApplication::setApplicationName("Hyperion");
+	QCoreApplication::setApplicationVersion(HYPERION_VERSION);
 	// add optional library path
-	app->addLibraryPath(QApplication::applicationDirPath() + "/../lib");
+	QCoreApplication::addLibraryPath(QCoreApplication::applicationDirPath() + "/../lib");
 
 	return app;
 }
 
 int main(int argc, char** argv)
 {
-	ErrorManager errorManager;
-	DefaultSignalHandler::install();
+	//Initialize tracing pattern for QT logging
+	setTracingLogPattern();
 
 	// initialize main logger and set global log level
-	Logger* log = Logger::getInstance("MAIN");
-	Logger::setLogLevel(Logger::LOG_WARNING);
+	QSharedPointer<Logger> log = Logger::getInstance("MAIN");
+	Logger::setLogLevel(Logger::LogLevel::Warning);
+
+	ErrorManager errorManager;
+	DefaultSignalHandler::install();
 
 	// Initialising QCoreApplication
 	QScopedPointer<QCoreApplication> app(createApplication(argc, argv));
@@ -132,15 +135,15 @@ int main(int argc, char** argv)
 	CreateMutexA(0, FALSE, "Hyperion");
 #endif
 
-	QObject::connect(&errorManager, &ErrorManager::errorOccurred, [&](const QString& error) {
+	QObject::connect(&errorManager, &ErrorManager::errorOccurred, [&log](const QString& error) {
 		Error(log, "Error occured: %s", QSTRING_CSTR(error));
-		QTimer::singleShot(0, [&app]() { app.get()->quit(); });
+		QTimer::singleShot(0, []() { QCoreApplication::quit(); });
 		});
 
 	bool isGuiApp = !(qobject_cast<QApplication*>(app.data()) == nullptr) && QSystemTrayIcon::isSystemTrayAvailable();
 
-	app->setApplicationName(APPLICATION_NAME);
-	app->setApplicationVersion(QString("%1 (%2)").arg(HYPERION_VERSION, HYPERION_BUILD_ID));
+	QCoreApplication::setApplicationName(APPLICATION_NAME);
+	QCoreApplication::setApplicationVersion(QString("%1 (%2)").arg(HYPERION_VERSION, HYPERION_BUILD_ID));
 
 	// Force locale to have predictable, minimal behavior while still supporting full Unicode.
 	setlocale(LC_ALL, "C.UTF-8");
@@ -150,24 +153,24 @@ int main(int argc, char** argv)
 	parser.addHelpOption();
 	parser.addVersionOption();
 
-	Option& userDataOption = parser.add<Option>('u', "userdata", "Overwrite user data path, defaults to home directory of current user (%1)", QDir::homePath() + "/.hyperion");
-	BooleanOption& resetPassword = parser.add<BooleanOption>(0x0, "resetPassword", "Lost your password? Reset it with this option back to 'hyperion'");
-	BooleanOption& readOnlyModeOption = parser.add<BooleanOption>(0x0, "readonlyMode", "Start in read-only mode. No updates will be written to the database");
-	BooleanOption& deleteDB = parser.add<BooleanOption>(0x0, "deleteDatabase", "Start all over? This Option will delete the database");
-	Option& importConfig = parser.add<Option>(0x0, "importConfig", "Replace the current configuration database by a new configuration");
-	Option& exportConfigPath = parser.add<Option>(0x0, "exportConfig", "Export the current configuration database, defaults to home directory of current user (%1)", QDir::homePath() + "/.hyperion//archive");
-	BooleanOption& silentLogOption = parser.add<BooleanOption>('s', "silent", "Do not print any log outputs");
-	BooleanOption& infoLogOption = parser.add<BooleanOption>('i', "info", "Show Info log messages");
-	BooleanOption& debugLogOption = parser.add<BooleanOption>('d', "debug", "Show Debug log messages");
+	Option const & userDataOption = parser.add<Option>('u', "userdata", "Overwrite user data path, defaults to home directory of current user (%1)", QDir::homePath() + "/.hyperion");
+	BooleanOption const &resetPassword = parser.add<BooleanOption>(0x0, "resetPassword", "Lost your password? Reset it with this option back to 'hyperion'");
+	BooleanOption const &readOnlyModeOption = parser.add<BooleanOption>(0x0, "readonlyMode", "Start in read-only mode. No updates will be written to the database");
+	BooleanOption const &deleteDB = parser.add<BooleanOption>(0x0, "deleteDatabase", "Start all over? This Option will delete the database");
+	Option const &importConfig = parser.add<Option>(0x0, "importConfig", "Replace the current configuration database by a new configuration");
+	Option const &exportConfigPath = parser.add<Option>(0x0, "exportConfig", "Export the current configuration database, defaults to home directory of current user (%1)", QDir::homePath() + "/.hyperion//archive");
+	BooleanOption const &silentLogOption = parser.add<BooleanOption>('s', "silent", "Do not print any log outputs");
+	BooleanOption const &infoLogOption = parser.add<BooleanOption>('i', "info", "Show Info log messages");
+	BooleanOption const &debugLogOption = parser.add<BooleanOption>('d', "debug", "Show Debug log messages");
 
 	parser.add<BooleanOption>(0x0, "desktop", "Show systray on desktop");
 	parser.add<BooleanOption>(0x0, "service", "Force hyperion to start as console service");
 #if defined(ENABLE_EFFECTENGINE)
-	Option& exportEfxOption = parser.add<Option>(0x0, "export-effects", "Export effects to given path");
+	Option const &exportEfxOption = parser.add<Option>(0x0, "export-effects", "Export effects to given path");
 #endif
 
 	/* Internal options, invisible to help */
-	BooleanOption& waitOption = parser.addHidden<BooleanOption>(0x0, "wait-hyperion", "Do not exit if other Hyperion instances are running, wait them to finish");
+	BooleanOption const &waitOption = parser.addHidden<BooleanOption>(0x0, "wait-hyperion", "Do not exit if other Hyperion instances are running, wait them to finish");
 
 	parser.process(*qApp);
 
@@ -216,23 +219,23 @@ int main(int argc, char** argv)
 	int logLevelCheck = 0;
 	if (parser.isSet(silentLogOption))
 	{
-		Logger::setLogLevel(Logger::LOG_OFF);
+		Logger::setLogLevel(Logger::LogLevel::Off);
 		logLevelCheck++;
 	}
 
 	if (parser.isSet(infoLogOption))
 	{
-		Logger::setLogLevel(Logger::LOG_INFO);
+		Logger::setLogLevel(Logger::LogLevel::Info);
 		logLevelCheck++;
 	}
 
 	if (parser.isSet(debugLogOption))
 	{
-		Logger::setLogLevel(Logger::LOG_DEBUG);
+		Logger::setLogLevel(Logger::LogLevel::Debug);
 		logLevelCheck++;
 	}
 
-	Info(log, "%s %s, %s, built: %s:%s", QSTRING_CSTR(APPLICATION_NAME), HYPERION_VERSION, HYPERION_BUILD_ID, __DATE__, __TIME__);
+	Info(log, "%s %s, %s, built: %s", QSTRING_CSTR(APPLICATION_NAME), HYPERION_VERSION, HYPERION_BUILD_ID, BUILD_TIMESTAMP);
 	Debug(log, "QtVersion [%s]", QT_VERSION_STR);
 
 	if (logLevelCheck > 1)
@@ -259,44 +262,42 @@ int main(int argc, char** argv)
 			}
 		}
 
-		if (sourceDir.exists())
+		if (!sourceDir.exists())
 		{
-			std::cout << "Extract to folder: " << destinationDir.absolutePath().toStdString() << '\n';
-			const QStringList filenames = sourceDir.entryList(QStringList() << "*", QDir::Files, QDir::Name | QDir::IgnoreCase);
-			for (const QString& filename : filenames)
-			{
-				QString const sourceFilePath = sourceDir.absoluteFilePath(filename);
-				QString const destinationFilePath = destinationDir.absoluteFilePath(filename);
-
-				if (QFile::exists(destinationFilePath))
-				{
-					QFile::remove(destinationFilePath);
-				}
-
-				if (Logger::getLogLevel() == Logger::LOG_DEBUG)
-				{
-					std::cout << "Copy \"" << sourceFilePath.toStdString() << "\" -> \"" << destinationFilePath.toStdString() << "\"" << '\n';
-				}
-
-				std::cout << "Extract: " << filename.toStdString() << " ... ";
-				if (QFile::copy(sourceFilePath, destinationFilePath))
-				{
-					QFile::setPermissions(destinationFilePath, PERM0664);
-					std::cout << "OK" << '\n';
-				}
-				else
-				{
-					std::cerr << "Error copying [" << sourceFilePath.toStdString() << " -> [" << destinationFilePath.toStdString() << "]" << '\n';
-
-					emit errorManager.errorOccurred("Failed to copy effect(s) to target directory.");
-					return EXIT_FAILURE;
-				}
-			}
-			return EXIT_SUCCESS;
+			emit errorManager.errorOccurred(QString("Can not export to %1.").arg(exportEfxOption.getCString(parser)));
+			return EXIT_FAILURE;
 		}
 
-		emit errorManager.errorOccurred(QString("Can not export to %1.").arg(exportEfxOption.getCString(parser)));
-		return EXIT_FAILURE;
+		std::cout << "Extract to folder: " << destinationDir.absolutePath().toStdString() << '\n';
+		const QStringList filenames = sourceDir.entryList(QStringList() << "*", QDir::Files, QDir::Name | QDir::IgnoreCase);
+		for (const QString& filename : filenames)
+		{
+			QString const sourceFilePath = sourceDir.absoluteFilePath(filename);
+			QString const destinationFilePath = destinationDir.absoluteFilePath(filename);
+
+			if (QFile::exists(destinationFilePath))
+			{
+				QFile::remove(destinationFilePath);
+			}
+
+			if (Logger::getLogLevel() == Logger::LogLevel::Debug)
+			{
+				std::cout << "Copy \"" << sourceFilePath.toStdString() << "\" -> \"" << destinationFilePath.toStdString() << "\"" << '\n';
+			}
+
+			std::cout << "Extract: " << filename.toStdString() << " ... ";
+			if (!QFile::copy(sourceFilePath, destinationFilePath))
+			{
+				std::cerr << "Error copying [" << sourceFilePath.toStdString() << " -> [" << destinationFilePath.toStdString() << "]" << '\n';
+
+				emit errorManager.errorOccurred("Failed to copy effect(s) to target directory.");
+				return EXIT_FAILURE;
+			}
+
+			QFile::setPermissions(destinationFilePath, PERM0664);
+			std::cout << "OK" << '\n';
+		}
+		return EXIT_SUCCESS;
 	}
 #endif
 
@@ -475,6 +476,7 @@ int main(int argc, char** argv)
 	catch (std::exception& e)
 	{
 		Error(log, "Hyperion Daemon aborted: %s", e.what());
+		return EXIT_FAILURE;
 	}
 
 	int exitCode{ EXIT_FAILURE };
@@ -485,11 +487,11 @@ int main(int argc, char** argv)
 		QApplication::setQuitOnLastWindowClosed(false);
 		SysTray tray(hyperiond.get());
 		tray.hide();
-		exitCode = (qobject_cast<QApplication*>(app.data()))->exec();
+		exitCode = QApplication::exec();
 	}
 	else
 	{
-		exitCode = app->exec();
+		exitCode = QCoreApplication::exec();
 	}
 
 	Info(log, "Application ended with code %d", exitCode);

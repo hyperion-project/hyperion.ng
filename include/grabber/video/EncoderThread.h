@@ -19,6 +19,22 @@
 
 constexpr int DEFAULT_THREAD_COUNT {1};
 
+struct ProcessingParams {
+	PixelFormat pixelFormat;
+	uint8_t* sharedData;
+	int size;
+	int width;
+	int height;
+	int lineLength;
+	int cropLeft;
+	int cropTop;
+	int cropBottom;
+	int cropRight;
+	VideoMode videoMode;
+	FlipMode flipMode;
+	int pixelDecimation;
+};
+
 /// Encoder thread for USB devices
 class EncoderThread : public QObject
 {
@@ -35,13 +51,13 @@ public:
 
 	void process();
 
-	bool isBusy() { return _busy; }
-	QAtomicInt _busy = false;
+	bool isBusy() const { return _busy; }
 
 signals:
 	void newFrame(const Image<ColorRgb>& data);
 
 private:
+	QAtomicInt _busy = false;
 	PixelFormat _pixelFormat;
 	uint8_t* _localData;
 	int	_scalingFactorsCount;
@@ -136,8 +152,6 @@ class EncoderThreadManager : public QObject
 public:
 	explicit EncoderThreadManager(QObject *parent = nullptr)
 		: QObject(parent)
-		, _threadCount(qMax(QThread::idealThreadCount(), DEFAULT_THREAD_COUNT))
-		, _threads(nullptr)
 	{
 		_threads = new Thread<EncoderThread>*[_threadCount];
 		for (int i = 0; i < _threadCount; i++)
@@ -176,11 +190,10 @@ public:
 				disconnect(_threads[i]->thread(), nullptr, nullptr, nullptr);
 	}
 
-	int _threadCount;
-	Thread<EncoderThread>**	_threads;
+	int _threadCount = qMax(QThread::idealThreadCount(), DEFAULT_THREAD_COUNT);
+	Thread<EncoderThread>**	_threads = nullptr;
 
 signals:
 	void newFrame(const Image<ColorRgb>& data);
 };
-
 #endif //ENCODERTHREAD_H

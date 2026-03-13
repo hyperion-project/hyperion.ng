@@ -10,6 +10,11 @@
 #include <QNetworkReply>
 #include <QtCore/qmath.h>
 #include <QStringList>
+#include <QScopedPointer>
+#include <QJsonObject>
+#include <QByteArray>
+#include <QVector>
+#include <QHostAddress>
 
 // LedDevice includes
 #include <leddevice/LedDevice.h>
@@ -32,7 +37,9 @@ struct XYColor
  */
 struct CiColorTriangle
 {
-	XYColor red, green, blue;
+	XYColor red;
+	XYColor green;
+	XYColor blue;
 };
 
 /**
@@ -126,7 +133,7 @@ public:
 	/// @param onBlackTimeToPowerOff Timeframe of Black output that triggers powering off the light
 	/// @param onBlackTimeToPowerOn Timeframe of non Black output that triggers powering on the light
 	///
-	PhilipsHueLight(Logger* log, bool useApiV2, const QString& id, const QJsonObject& lightAttributes,
+	PhilipsHueLight(QSharedPointer<Logger> log, bool useApiV2, const QString& id, const QJsonObject& lightAttributes,
 					int onBlackTimeToPowerOff,
 					int onBlackTimeToPowerOn);
 
@@ -174,10 +181,11 @@ public:
 	bool isWhite(bool isWhite);
 	void setBlack();
 	void blackScreenTriggered();
+
 private:
 
-	Logger* _log;
-	bool _useApiV2;
+	QSharedPointer<Logger> _log;
+	bool _isUsingApiV2;
 
 	QString _id;
 	QString _deviceId;
@@ -256,10 +264,10 @@ public:
 	QJsonDocument put(const QStringList& routeElements, const QJsonObject& content, bool supressError = false);
 
 	QJsonDocument retrieveBridgeDetails();
-	QJsonObject getDeviceDetails(const QString& deviceId);
-	QJsonObject getEntertainmentSrvDetails(const QString& deviceId);
+	QJsonObject getDeviceDetails(const QString& deviceId) const;
+	QJsonObject getEntertainmentSrvDetails(const QString& deviceId) const;
 
-	QJsonObject getLightDetails(const QString& lightId);
+	QJsonObject getLightDetails(const QString& lightId) const;
 	QJsonDocument setLightState(const QString& lightId, const QJsonObject& state);
 
 	QMap<QString,QJsonObject> getDevicesMap() const;
@@ -270,6 +278,15 @@ public:
 	QString getGroupName(const QString& groupId) const;
 	QStringList getGroupLights(const QString& groupId) const;
 	int getGroupChannelsCount(const QString& groupId) const;
+
+	bool isPhilipsHueBridge() const;
+	bool isDiyHue() const;
+	bool isAPIv2Ready() const;
+	bool isAPIv2Ready(int swVersion) const;
+	bool isApiEntertainmentReady(const QString& apiVersion);
+
+	QString getBridgeId() const;
+	int getFirmwareVersion() const;
 
 protected:
 
@@ -349,10 +366,14 @@ protected:
 	///
 	QJsonObject addAuthorization(const QJsonObject& params) override;
 
-	bool isApiEntertainmentReady(const QString& apiVersion);
-	bool isAPIv2Ready (int swVersion);
+	void setBridgeId(const QString& bridgeId);
 
-	int getFirmwareVerion() { return _deviceFirmwareVersion; }
+	void useApiV2(bool useApiV2);
+	bool isUsingApiV2() const;
+
+	void useEntertainmentAPI(bool useEntertainmentAPI);
+	bool isUsingEntertainmentApi() const;
+
 	void setBridgeDetails( const QJsonDocument &doc, bool isLogging = false );
 
 	void setBaseApiEnvironment(bool apiV2 = true, const QString& path = "");
@@ -367,23 +388,16 @@ protected:
 	bool initGroupsMap();
 	bool initEntertainmentSrvsMap();
 
-	void log(const char* msg, const char* type, ...) const;
+	void log(const QString& msg, const QVariant& value) const;
 
 	bool configureSsl();
 	const int * getCiphersuites() const override;
 
 	///REST-API wrapper
-	ProviderRestApi* _restApi;
+	QScopedPointer<ProviderRestApi> _restApi;
 	int _apiPort;
 	/// User name for the API ("newdeveloper")
 	QString _authToken;
-	QString _applicationID;
-
-	bool _useEntertainmentAPI;
-	bool _useApiV2;
-	bool _isAPIv2Ready;
-
-	bool _isDiyHue;
 
 private:
 
@@ -393,7 +407,7 @@ private:
 	///
 	/// @return A JSON structure holding a list of devices found
 	///
-	QJsonArray discoverSsdp();
+	QJsonArray discoverSsdp() const;
 
 	QJsonDocument retrieveDeviceDetails(const QString& deviceId = "");
 	QJsonDocument retrieveLightDetails(const QString& lightId = "");
@@ -401,6 +415,9 @@ private:
 	QJsonDocument retrieveEntertainmentSrvDetails(const QString& deviceId = "");
 
 	bool retrieveApplicationId();
+
+	bool handleV1ApiError(const QJsonArray& responseList, QString& errorReason) const;
+	bool handleV2ApiError(const QJsonObject& obj, QString& errorReason) const;
 
 	void setDevicesMap( const QJsonDocument &doc );
 	void setLightsMap( const QJsonDocument &doc );
@@ -418,7 +435,15 @@ private:
 	uint _api_minor;
 	uint _api_patch;
 
+	bool _isPhilipsHueBridge;
+	bool _isDiyHue;
 	bool _isHueEntertainmentReady;
+	bool _isAPIv2Ready;
+
+	QString _applicationID;
+
+	bool _useEntertainmentAPI;
+	bool _useApiV2;
 
 	QMap<QString,QJsonObject> _devicesMap;
 	QMap<QString,QJsonObject> _lightsMap;
@@ -447,11 +472,6 @@ public:
 	/// @param deviceConfig Device's configuration as JSON-Object
 	///
 	explicit LedDevicePhilipsHue(const QJsonObject &deviceConfig);
-
-	///
-	/// @brief Destructor of the LED-device
-	///
-	~LedDevicePhilipsHue() override;
 
 	///
 	/// @brief Constructs the LED-device
@@ -487,6 +507,7 @@ public:
 	void setOnOffState(PhilipsHueLight& light, bool on, bool force = false);
 	void setTransitionTime(PhilipsHueLight& light);
 	void setColor(PhilipsHueLight& light, CiColor& color);
+	void setColor(PhilipsHueLight &light, CiColor &color, bool force);
 	void setState(PhilipsHueLight& light, bool on, const CiColor& color);
 
 public slots:
@@ -521,7 +542,7 @@ protected:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	int write(const std::vector<ColorRgb>& ledValues) override;
+	int write(const QVector<ColorRgb>& ledValues) override;
 
 	///
 	/// @brief Switch the LEDs on.
@@ -608,8 +629,10 @@ private:
 	bool startStream();
 	bool stopStream();
 
-	int writeSingleLights(const std::vector<ColorRgb>& ledValues);
-	int writeStreamData(const std::vector<ColorRgb>& ledValues, bool flush = false);
+	int writeSingleLights(const QVector<ColorRgb>& ledValues);
+	int writeStreamData(const QVector<ColorRgb>& ledValues, bool flush = false);
+
+	QJsonObject buildSetStateCommand(PhilipsHueLight& light, bool on, const CiColor& color);
 
 	///
 	bool _switchOffOnBlack;

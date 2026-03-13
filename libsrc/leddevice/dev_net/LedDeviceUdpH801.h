@@ -4,6 +4,9 @@
 // hyperion includes
 #include "ProviderUdp.h"
 
+#include <QVector>
+#include <QJsonObject>
+
 ///
 /// Implementation of the LedDevice interface for sending LED colors to a H801 LED-device via UDP
 ///
@@ -50,7 +53,7 @@ private:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	int write(const std::vector<ColorRgb> & ledValues) override;
+	int write(const QVector<ColorRgb> & ledValues) override;
 
 	QList<int> _ids;
 	QByteArray _message;

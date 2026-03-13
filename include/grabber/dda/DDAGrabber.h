@@ -6,6 +6,8 @@
 #include <hyperion/Grabber.h>
 #include <utils/ColorRgb.h>
 
+#include <d3d11.h>
+
 class DDAGrabberImpl;
 
 class DDAGrabber : public Grabber
@@ -21,12 +23,7 @@ public:
 	///
 	/// @param[out] image  The snapped screenshot
 	///
-	int grabFrame(Image<ColorRgb> &image);
-
-	///
-	/// @brief Set a new video mode
-	///
-	void setVideoMode(VideoMode mode) override;
+	int grabFrame(Image<ColorRgb> &image) override;
 
 	///
 	/// @brief Apply new width/height values, overwrite Grabber.h implementation
@@ -37,24 +34,9 @@ public:
 	}
 
 	///
-	/// @brief Apply new pixelDecimation
-	///
-	bool setPixelDecimation(int pixelDecimation) override;
-
-	///
-	/// Set the crop values
-	/// @param  cropLeft    Left pixel crop
-	/// @param  cropRight   Right pixel crop
-	/// @param  cropTop     Top pixel crop
-	/// @param  cropBottom  Bottom pixel crop
-	///
-	void setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom);
-
-	///
 	/// @brief Apply display index
 	///
 	bool setDisplayIndex(int index) override;
-
 	/// @brief Discover QT screens available (for configuration).
 	///
 	/// @param[in] params Parameters used to overwrite discovery default behaviour
@@ -63,12 +45,23 @@ public:
 	///
 	QJsonObject discover(const QJsonObject &params);
 
+	bool resetDeviceAndCapture();
+
 private:
+	///
+	/// @brief Sets up the input device.
+	///
+	/// @return Zero, on success (i.e. device is ready), else negative
+	///
+	bool setupDisplay();
+
 	///
 	/// @brief Setup a new capture display, will free the previous one
 	/// @return True on success, false if no display is found
 	///
 	bool restartCapture();
+
+	void computeCropBox(int sourceWidth, int sourceHeight, D3D11_BOX& box) const;
 
 private:
 	std::unique_ptr<DDAGrabberImpl> d;

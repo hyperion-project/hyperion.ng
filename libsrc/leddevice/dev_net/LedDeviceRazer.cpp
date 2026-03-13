@@ -17,8 +17,6 @@ using namespace Chroma::Chromalink;
 
 // Constants
 namespace {
-	bool verbose = false;
-
 	// Configuration settings
 	const char CONFIG_RAZER_DEVICE_TYPE[] = "subType";
 	const char CONFIG_SINGLE_COLOR[] = "singleColor";
@@ -49,84 +47,74 @@ LedDevice* LedDeviceRazer::construct(const QJsonObject& deviceConfig)
 	return new LedDeviceRazer(deviceConfig);
 }
 
-LedDeviceRazer::~LedDeviceRazer()
-{
-	delete _restApi;
-	_restApi = nullptr;
-}
-
-
 bool LedDeviceRazer::init(const QJsonObject& deviceConfig)
 {
-	bool isInitOK = false;
+
 	setRewriteTime(HEARTBEAT_INTERVALL.count());
 	connect(_refreshTimer.get(), &QTimer::timeout, this, &LedDeviceRazer::rewriteLEDs);
 
 	// Initialise sub-class
-	if (LedDevice::init(deviceConfig))
+	if (!LedDevice::init(deviceConfig))
 	{
+		return false;
+	}
 
-		//Razer Chroma SDK allows localhost connection only
-		_hostname = API_DEFAULT_HOST;
-		_apiPort = API_DEFAULT_PORT;
+	//Razer Chroma SDK allows localhost connection only
+	_hostName = API_DEFAULT_HOST;
+	_apiPort = API_DEFAULT_PORT;
 
-		Debug(_log, "Hostname     : %s", QSTRING_CSTR(_hostname));
-		Debug(_log, "Port         : %d", _apiPort);
+	Debug(_log, "Hostname     : %s", QSTRING_CSTR(_hostName));
+	Debug(_log, "Port         : %d", _apiPort);
 
-		_razerDeviceType = deviceConfig[CONFIG_RAZER_DEVICE_TYPE].toString("invalid").toLower();
-		_isSingleColor = deviceConfig[CONFIG_SINGLE_COLOR].toBool();
+	_razerDeviceType = deviceConfig[CONFIG_RAZER_DEVICE_TYPE].toString("invalid").toLower();
+	_isSingleColor = deviceConfig[CONFIG_SINGLE_COLOR].toBool();
 
-		Debug(_log, "Razer Device : %s", QSTRING_CSTR(_razerDeviceType));
-		Debug(_log, "Single Color : %d", _isSingleColor);
+	Debug(_log, "Razer Device : %s", QSTRING_CSTR(_razerDeviceType));
+	Debug(_log, "Single Color : %d", _isSingleColor);
 
-		int configuredLedCount = this->getLedCount();
-		if (resolveDeviceProperties(_razerDeviceType))
+	int configuredLedCount = this->getLedCount();
+	if (!resolveDeviceProperties(_razerDeviceType))
+	{
+		Error(_log, "Razer devicetype \"%s\" not supported", QSTRING_CSTR(_razerDeviceType));
+		return false;
+	}
+
+	if (_isSingleColor && configuredLedCount > 1)
+	{
+		Info(_log, "In single color mode only the first LED of the configured [%d] will be used.", configuredLedCount);
+	}
+	else
+	{
+		if (_maxLeds != configuredLedCount)
 		{
-			if (_isSingleColor && configuredLedCount > 1)
-			{
-				Info(_log, "In single color mode only the first LED of the configured [%d] will be used.", configuredLedCount);
-			}
-			else
-			{
-				if (_maxLeds != configuredLedCount)
-				{
-					Warning(_log, "Razer device might not work as expected. The type \"%s\" requires an LED-matrix [%d,%d] configured, i.e. %d LEDs. Currently only %d are defined via the layout.",
-						QSTRING_CSTR(_razerDeviceType),
-						_maxRow, _maxColumn, _maxLeds,
-						configuredLedCount
-					);
-				}
-			}
-
-			if (initRestAPI(_hostname, _apiPort))
-			{
-				isInitOK = true;
-			}
-		}
-		else
-		{
-			Error(_log, "Razer devicetype \"%s\" not supported", QSTRING_CSTR(_razerDeviceType));
+			Warning(_log, "Razer device might not work as expected. The type \"%s\" requires an LED-matrix [%d,%d] configured, i.e. %d LEDs. Currently only %d are defined via the layout.",
+				QSTRING_CSTR(_razerDeviceType),
+				_maxRow, _maxColumn, _maxLeds,
+				configuredLedCount
+			);
 		}
 	}
 
-	return isInitOK;
+	return openRestAPI();
 }
 
-bool LedDeviceRazer::initRestAPI(const QString& hostname, int port)
+bool LedDeviceRazer::openRestAPI()
 {
-	bool isInitOK = false;
-
-	if (_restApi == nullptr)
+	if (_hostName.isNull())
 	{
-		_restApi = new ProviderRestApi(hostname, port);
+		Error(_log, "Empty hostname or IP address. REST API cannot be initiatised.");
+		return false;
+	}
+
+	if ( _restApi.isNull() )
+	{
+		_restApi.reset(new ProviderRestApi(_hostName, _apiPort));
 		_restApi->setLogger(_log);
 
 		_restApi->setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-
-		isInitOK = true;
 	}
 
-	return isInitOK;
+	return true;
 }
 
 bool LedDeviceRazer::checkApiError(const httpResponse& response)
@@ -195,7 +183,7 @@ int LedDeviceRazer::open()
 			_uri = jsonObj.value("uri").toString();
 			_restApi->setUrl(_uri);
 
-			DebugIf(verbose, _log, "Session-ID: %d, uri [%s]", jsonObj.value("sessionid").toInt(), QSTRING_CSTR(_uri.toString()));
+			qCDebug(leddevice_control) << "Session-ID:" << jsonObj.value("sessionid").toInt() << ", uri:" << _uri.toString();
 
 			QJsonObject effectObj;
 			effectObj.insert("effect", "CHROMA_STATIC");
@@ -240,7 +228,7 @@ int LedDeviceRazer::close()
 	return retval;
 }
 
-int LedDeviceRazer::write(const std::vector<ColorRgb>& ledValues)
+int LedDeviceRazer::write(const QVector<ColorRgb>& ledValues)
 {
 	int retval = -1;
 
@@ -324,7 +312,7 @@ bool LedDeviceRazer::resolveDeviceProperties(const QString& deviceType)
 {
 	bool rc = true;
 
-	int typeID = Chroma::SupportedDevices.indexOf(deviceType);
+	auto typeID = Chroma::SupportedDevices.indexOf(deviceType);
 
 	switch (typeID)
 	{
@@ -372,9 +360,7 @@ bool LedDeviceRazer::resolveDeviceProperties(const QString& deviceType)
 
 QJsonObject LedDeviceRazer::getProperties(const QJsonObject& params)
 {
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 	QJsonObject properties;
-
 	_razerDeviceType = params[CONFIG_RAZER_DEVICE_TYPE].toString("invalid").toLower();
 	if (resolveDeviceProperties(_razerDeviceType))
 	{
@@ -384,8 +370,6 @@ QJsonObject LedDeviceRazer::getProperties(const QJsonObject& params)
 		propertiesDetails.insert("maxLedCount", _maxLeds);
 
 		properties.insert("properties", propertiesDetails);
-
-		DebugIf(verbose, _log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData());
 	}
 	return properties;
 }

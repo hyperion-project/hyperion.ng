@@ -11,6 +11,8 @@
 DBMigrationManager::DBMigrationManager(QObject *parent)
 	: DBManager{parent}
 {
+	TRACK_SCOPE();	
+	_log = Logger::getInstance("DB-MIGRATIONMGR");
 }
 
 bool DBMigrationManager::isMigrationRequired()

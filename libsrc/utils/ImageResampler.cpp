@@ -124,8 +124,8 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, s
 				{
 					ColorRgb & rgb = outputImage(abs(xDest), abs(yDest));
 					size_t index = lineLength * ySource + (xSource << 1);
-					rgb.blue  = (data[index] & 0x1f) << 3;
-					rgb.green = (((data[index+1] & 0x7) << 3) | (data[index] & 0xE0) >> 5) << 2;
+					rgb.blue  = static_cast<uint8_t>((data[index] & 0x1f) << 3);
+					rgb.green = static_cast<uint8_t>((((data[index+1] & 0x7) << 3) | (data[index] & 0xE0) >> 5) << 2);
 					rgb.red   = (data[index+1] & 0xF8);
 				}
 			}
@@ -218,13 +218,13 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, s
 			for (int yDest = yDestStart, ySource = cropTop + (_verticalDecimation >> 1); yDest <= yDestEnd; ySource += _verticalDecimation, ++yDest)
 			{
 				int uOffset = width * height + (ySource/2) * width/2;
-				int vOffset = width * height * 1.25 + (ySource/2) * width/2;
+				int vOffset = width * height + (width * height / 4) + (ySource/2) * width/2;
 				for (int xDest = xDestStart, xSource = cropLeft + (_horizontalDecimation >> 1); xDest <= xDestEnd; xSource += _horizontalDecimation, ++xDest)
 				{
 					ColorRgb & rgb = outputImage(abs(xDest), abs(yDest));
-					int y = data[lineLength * ySource + xSource];
-					int u = data[uOffset + (xSource >> 1)];
-					int v = data[vOffset + (xSource >> 1)];
+					uint8_t y = data[lineLength * ySource + xSource];
+					uint8_t u = data[uOffset + (xSource >> 1)];
+					uint8_t v = data[vOffset + (xSource >> 1)];
 					ColorSys::yuv2rgb(y, u, v, rgb.red, rgb.green, rgb.blue);
 				}
 			}
@@ -232,6 +232,11 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, s
 		}
 		case PixelFormat::MJPEG:
 		break;
+		case PixelFormat::NV21:
+		case PixelFormat::P030:
+			Warning(Logger::getInstance("ImageResampler"), "%s",
+					QSTRING_CSTR(QString("Pixel format %1 not supported yet").arg(pixelFormatToString(pixelFormat))));
+			break;
 		case PixelFormat::NO_CHANGE:
 			Error(Logger::getInstance("ImageResampler"), "Invalid pixel format given");
 		break;

@@ -52,18 +52,18 @@ public:
 	///
 	/// @param ledColors The list with raw colors
 	///
-	void applyAdjustment(std::vector<ColorRgb>& ledColors);
+	void applyAdjustment(QVector<ColorRgb>& ledColors);
 
 private:
 	/// List with transform ids
 	QStringList _adjustmentIds;
 
 	/// List with unique ColorTransforms
-	std::vector<ColorAdjustment*> _adjustment;
+	QVector<ColorAdjustment*> _adjustment;
 
 	/// List with a pointer to the ColorAdjustment for each individual led
-	std::vector<ColorAdjustment*> _ledAdjustments;
+	QVector<ColorAdjustment*> _ledAdjustments;
 
 	// logger instance
-	Logger * _log;
+	QSharedPointer<Logger> _log;
 };

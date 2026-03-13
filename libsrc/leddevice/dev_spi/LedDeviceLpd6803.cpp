@@ -12,24 +12,23 @@ LedDevice* LedDeviceLpd6803::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceLpd6803::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = false;
-
 	// Initialise sub-class
-	if ( ProviderSpi::init(deviceConfig) )
+	if ( !ProviderSpi::init(deviceConfig) )
 	{
-		unsigned messageLength = 4 + 2*_ledCount + _ledCount/8 + 1;
-		// Initialise the buffer
-		_ledBuffer.resize(messageLength, 0x00);
-
-		isInitOK = true;
+		return false;
 	}
-	return isInitOK;
+
+	unsigned messageLength = 4 + 2*_ledCount + _ledCount/8 + 1;
+	// Initialise the buffer
+	_ledBuffer.fill(0x00, messageLength);
+
+	return true;
 }
 
-int LedDeviceLpd6803::write(const std::vector<ColorRgb> &ledValues)
+int LedDeviceLpd6803::write(const QVector<ColorRgb> &ledValues)
 {
 	// Copy the colors from the ColorRgb vector to the Ldp6803 data vector
-	for (unsigned iLed=0; iLed<(unsigned)_ledCount; ++iLed)
+	for (unsigned iLed=0; iLed<_ledCount; ++iLed)
 	{
 		const ColorRgb& color = ledValues[iLed];
 

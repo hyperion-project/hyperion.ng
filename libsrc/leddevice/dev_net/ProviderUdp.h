@@ -4,12 +4,13 @@
 // LedDevice includes
 #include <leddevice/LedDevice.h>
 
-// Hyperion includes
-#include <utils/Logger.h>
-
 // Qt includes
 #include <QHostAddress>
 #include <QUdpSocket>
+#include <QScopedPointer>
+
+// Hyperion includes
+#include <utils/Logger.h>
 
 ///
 /// The ProviderUdp implements an abstract base-class for LedDevices using UDP packets.
@@ -21,14 +22,9 @@ public:
 	///
 	/// @brief Constructs an UDP LED-device
 	///
-	ProviderUdp(const QJsonObject& deviceConfig);
+	explicit ProviderUdp(const QJsonObject& deviceConfig);
 
-	///
-	/// @brief Destructor of the UDP LED-device
-	///
-	~ProviderUdp() override;
-
-	QHostAddress getAddress() const { return _address; }
+	QString getHostName() const { return _hostName; }
 
 protected:
 
@@ -66,10 +62,14 @@ protected:
 	int writeBytes(const QByteArray& bytes);
 
 	///
-	QUdpSocket*  _udpSocket;
-	QString      _hostName;
-	QHostAddress _address;
-	int       _port;
+	QString _hostName;
+	int _port;
+
+	QScopedPointer<QUdpSocket> _udpSocket;
+
+private:	
+
+	QHostAddress _ipAddress;
 };
 
 #endif // PROVIDERUDP_H

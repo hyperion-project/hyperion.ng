@@ -10,4 +10,5 @@ add_library(ssdp
 
 target_link_libraries(ssdp
 	webserver
+	hyperion-utils	
 )

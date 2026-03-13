@@ -4,6 +4,8 @@
 // hyperion includes
 #include "ProviderSpi.h"
 
+#include <QVector>
+
 ///
 /// Implementation of the LedDevice interface for writing to SK9822 led device via SPI.
 ///
@@ -34,7 +36,7 @@ private:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @param[in] maxLevel The maximal current level 1 .. 31 to use
 	///
-	void bufferWithMaxCurrent(std::vector<uint8_t> &txBuf, const std::vector<ColorRgb> & ledValues, const int maxLevel);
+	void bufferWithMaxCurrent(QVector<uint8_t> &txBuf, const QVector<ColorRgb> & ledValues, const int maxLevel) const;
 
 	///
 	/// @brief Writes the RGB-Color values to the SPI Tx buffer using an adjusted SK9822 current level for LED maximal rgb-grayscale values not exceeding the threshold, uses maximal level otherwise.
@@ -44,7 +46,7 @@ private:
 	/// @param[in] threshold The threshold 0 .. 255 that defines whether to use adjusted SK9822 current level per LED
 	/// @param[in] maxLevel The maximal current level 1 .. 31 to use
 	///
-	void bufferWithAdjustedCurrent(std::vector<uint8_t> &txBuf, const std::vector<ColorRgb> & ledValues, const int threshold, const int maxLevel);
+	void bufferWithAdjustedCurrent(QVector<uint8_t> &txBuf, const QVector<ColorRgb> & ledValues, const int threshold, const int maxLevel) const;
 
 	/// The threshold that defines use of SK9822 global brightness control for maximal rgb grayscale values below.
 	/// i.e. global brightness control is used for rgb-values when max(r,g,b) < threshold.
@@ -61,7 +63,7 @@ private:
 	/// @param[in] brightness The target brightness
 	/// @return The scaled grayscale stimulus
 	///
-	inline __attribute__((always_inline)) unsigned scale(const uint8_t value, const int maxLevel, const uint16_t brightness);
+	inline __attribute__((always_inline)) unsigned scale(const uint8_t value, const int maxLevel, const uint16_t brightness) const;
 
 	///
 	/// @brief Initialise the device's configuration
@@ -77,7 +79,7 @@ private:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	int write(const std::vector<ColorRgb> & ledValues) override;
+	int write(const QVector<ColorRgb> & ledValues) override;
 };
 
 #endif // LEDEVICESK9822_H

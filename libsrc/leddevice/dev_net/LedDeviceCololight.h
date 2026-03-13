@@ -5,6 +5,8 @@
 #include <leddevice/LedDevice.h>
 #include "ProviderUdp.h"
 
+#include <QVector>
+
 enum appID {
 	TL1_CMD = 0x00,
 	DIRECT_CONTROL = 0x01,
@@ -174,7 +176,7 @@ protected:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	int write(const std::vector<ColorRgb>& ledValues) override;
+	int write(const QVector<ColorRgb>& ledValues) override;
 
 	///
 	/// @brief Power-/turn on the Cololight device.
@@ -236,7 +238,7 @@ private:
 	///
 	/// @return True if success
 	///
-	bool setColor(const std::vector<ColorRgb>& ledValues);
+	bool setColor(const QVector<ColorRgb>& ledValues);
 
 	///
 	/// @brief Set the Cololight device in TL1 command mode

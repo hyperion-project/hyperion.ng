@@ -94,6 +94,13 @@ function getFirstConfiguredInstance() {
 
   return configuredInstance ? configuredInstance.instance : null; // Return instance number or null if none exists
 }
+function getConfiguredInstances() {
+  const instances = window.serverInfo?.instance || [];
+  const list = Array.isArray(instances) ? instances : Object.values(instances);
+  return list
+    .filter((inst) => typeof inst.instance !== 'undefined')
+    .map((inst) => inst.instance);
+}
 
 function doesInstanceExist(instanceId) {
 
@@ -865,8 +872,12 @@ function updateJsonEditorRange(rootEditor, path, key, minimum, maximum, defaultV
   delete editor.cached_editors[key];
   editor.addObjectProperty(key);
 
-  // Restore the current value after updating the range
-  rootEditor.getEditor(path + "." + key).setValue(currentValue);
+  // restore the current value, if no default value given
+  if (typeof defaultValue === "undefined") {
+    rootEditor.getEditor(path + "." + key).setValue(currentValue);
+  } else {
+    rootEditor.getEditor(path + "." + key).setValue(defaultValue);
+  }
 }
 
 // Add custom host validation to JSON Editor
@@ -900,6 +911,9 @@ function addJsonEditorHostValidation() {
           if (!isValidHostname(value)) {
             errors.push({ path, property: 'format', message: $.i18n('edt_msg_error_hostname') });
           }
+          break;
+        case "uuid":
+          errors.push(...validateUUIDSchema(schema, value, path));      
           break;
         default:
           break;
@@ -1339,6 +1353,8 @@ function getReleases(callback) {
 
       // Iterate through releases
       releases.forEach((release) => {
+
+        if (release.tag_name === "nightly") return;
         if (release.draft) return;
 
         if (release.tag_name.includes('alpha') && semverLite.gt(release.tag_name, highestAlphaRelease.tag_name)) {
@@ -1552,6 +1568,17 @@ function isValidHostnameOrIP4(value) {
 
 function isValidHostnameOrIP(value) {
   return (isValidHostnameOrIP4(value) || isValidIPv6(value) || isValidServicename(value));
+}
+
+function validateUUIDSchema(schema, value, path) {
+  if (!(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value))) {
+    return [{
+      path,
+      property: 'format',
+      message: $.i18n('edt_msg_error_uuid')
+    }]
+  }
+  return []
 }
 
 const loadedScripts = [];

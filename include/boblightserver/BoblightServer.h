@@ -90,7 +90,7 @@ private:
 	int _priority;
 
 	/// Logger instance
-	Logger * _log;
+	QSharedPointer<Logger> _log;
 
 	// current port
 	uint16_t  _port;

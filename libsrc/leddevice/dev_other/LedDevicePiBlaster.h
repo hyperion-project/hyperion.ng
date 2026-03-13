@@ -4,6 +4,9 @@
 // LedDevice includes
 #include <leddevice/LedDevice.h>
 
+#include <QVector>
+#include <QJsonObject>
+
 ///
 /// Implementation of the LedDevice interface for writing to pi-blaster based PWM LEDs
 ///
@@ -66,7 +69,7 @@ private:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	int write(const std::vector<ColorRgb> &ledValues) override;
+	int write(const QVector<ColorRgb> &ledValues) override;
 
 	/// The name of the output device (very likely '/dev/pi-blaster')
 	QString _deviceName;

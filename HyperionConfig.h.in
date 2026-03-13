@@ -43,6 +43,9 @@
 // Define to enable CEC
 #cmakedefine ENABLE_CEC
 
+// Define to enable the DRM grabber
+#cmakedefine ENABLE_DRM
+
 // Define to enable flatbuffer server
 #cmakedefine ENABLE_FLATBUF_SERVER
 
@@ -94,6 +97,11 @@
 // Define to enable deploy dependencies to packages
 #cmakedefine ENABLE_DEPLOY_DEPENDENCIES
 
+// Memory tracing
+#cmakedefine ENABLE_GLOBAL_MEMORY_TRACKING
+#cmakedefine ENABLE_TRACE_IMAGE_MEMORY
+#cmakedefine ENABLE_TRACE_IMAGE_DATA_MEMORY
+
 // the hyperion build id string
 #define HYPERION_BUILD_ID "${HYPERION_BUILD_ID}"
 #define HYPERION_GIT_REMOTE "${HYPERION_GIT_REMOTE}"
@@ -104,3 +112,5 @@
 #define HYPERION_VERSION "${HYPERION_VERSION}"
 
 #define HYPERION_JSON_VERSION "1.0.0"
+
+#define BUILD_TIMESTAMP "${BUILD_TIMESTAMP}"

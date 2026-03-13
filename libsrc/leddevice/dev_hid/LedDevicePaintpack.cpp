@@ -14,21 +14,20 @@ LedDevice* LedDevicePaintpack::construct(const QJsonObject &deviceConfig)
 
 bool LedDevicePaintpack::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = false;
-
 	// Initialise sub-class
-	if ( ProviderHID::init(deviceConfig) )
+	if ( !ProviderHID::init(deviceConfig) )
 	{
-		_ledBuffer.resize(_ledRGBCount + 2, uint8_t(0));
-		_ledBuffer[0] = 3;
-		_ledBuffer[1] = 0;
-
-		isInitOK = true;
+		return false;
 	}
-	return isInitOK;
+
+	_ledBuffer.fill(0x00, _ledRGBCount + 2);
+	_ledBuffer[0] = 3;
+	_ledBuffer[1] = 0;
+
+	return true;
 }
 
-int LedDevicePaintpack::write(const std::vector<ColorRgb> & ledValues)
+int LedDevicePaintpack::write(const QVector<ColorRgb> & ledValues)
 {
 	auto bufIt = _ledBuffer.begin()+2;
 	for (const ColorRgb & color : ledValues)

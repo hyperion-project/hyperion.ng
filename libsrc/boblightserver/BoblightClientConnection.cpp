@@ -37,8 +37,8 @@ BoblightClientConnection::BoblightClientConnection(const QSharedPointer<Hyperion
 	: QObject()
 	, _locale(QLocale::C)
 	, _socket(socket)
+	, _imageProcessorWeak()	
 	, _hyperionWeak(hyperionInstance)
-	, _imageProcessorWeak()
 	, _receiveBuffer()
 	, _priority(priority)
 	, _ledColors()
@@ -56,7 +56,7 @@ BoblightClientConnection::BoblightClientConnection(const QSharedPointer<Hyperion
 		subComponent = hyperion->property("instance").toString();
 
 		_imageProcessorWeak = hyperion->getImageProcessor();
-		_ledColors.resize(hyperion->getLedCount(), ColorRgb::BLACK);
+		_ledColors.fill(ColorRgb::BLACK, hyperion->getLedCount());
 	}
 	_log = Logger::getInstance("BOBLIGHT", subComponent);
 

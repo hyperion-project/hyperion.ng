@@ -59,7 +59,7 @@ protected:
 	///
 	/// @return Zero on success, else negative
 	///
-	int writeBytes(unsigned size, const uint8_t *data);
+	int writeBytes(qsizetype size, const uint8_t *data);
 
 	/// The name of the output device
 	QString _deviceName;

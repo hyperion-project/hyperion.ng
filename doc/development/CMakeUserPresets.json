@@ -53,7 +53,7 @@
         "Python3_EXECUTABLE": "$env{WIN_PYTHON_ROOT_DIR}/Python313/python.exe"
       },
       "environment": {
-        "QTDIR": "$env{WIN_QT_ROOT_DIR}/6.8.1/msvc2022_64/"
+        "QTDIR": "$env{WIN_QT_ROOT_DIR}/6.10.1/msvc2022_64/"
       }
     },
 
@@ -103,7 +103,7 @@
         "PRE_BUILT_DEPS_DIR": "$env{LINUX_PRE_BUILT_DEPS_ROOT_DIR}/qt6"
       },
       "environment": {
-        "QTDIR": "$env{LINUX_QT_ROOT_DIR}/6.9.0/gcc_64"
+        "QTDIR": "$env{LINUX_QT_ROOT_DIR}/6.10.1/gcc_64"
       }
     },
     {

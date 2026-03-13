@@ -1,21 +1,14 @@
 // Local-Hyperion includes
 #include "LedDeviceHomeAssistant.h"
 
+#include <algorithm>
+
 #include <ssdp/SSDPDiscover.h>
-// mDNS discover
-#ifdef ENABLE_MDNS
-#include <mdns/MdnsBrowser.h>
-#include <mdns/MdnsServiceRegister.h>
-#endif
 #include <utils/NetUtils.h>
 #include <utils/ColorRgb.h>
 
-#include <algorithm>
-
 // Constants
 namespace {
-	const bool verbose = false;
-
 	// Configuration settings
 	const char CONFIG_HOST[] = "host";
 	const char CONFIG_PORT[] = "port";
@@ -61,10 +54,11 @@ LedDeviceHomeAssistant::LedDeviceHomeAssistant(const QJsonObject& deviceConfig)
 	, _brightness(BRI_MAX)
 	, _transitionTime(0)
 {
-#ifdef ENABLE_MDNS
-	QMetaObject::invokeMethod(MdnsBrowser::getInstance().data(), "browseForServiceType",
-		Qt::QueuedConnection, Q_ARG(QByteArray, MdnsServiceRegister::getServiceType(_activeDeviceType)));
-#endif
+	NetUtils::discoverMdnsServices(_activeDeviceType);
+}
+
+LedDeviceHomeAssistant::~LedDeviceHomeAssistant()
+{
 }
 
 LedDevice* LedDeviceHomeAssistant::construct(const QJsonObject& deviceConfig)
@@ -72,61 +66,56 @@ LedDevice* LedDeviceHomeAssistant::construct(const QJsonObject& deviceConfig)
 	return new LedDeviceHomeAssistant(deviceConfig);
 }
 
-LedDeviceHomeAssistant::~LedDeviceHomeAssistant()
-{
-	delete _restApi;
-	_restApi = nullptr;
-}
-
 bool LedDeviceHomeAssistant::init(const QJsonObject& deviceConfig)
 {
-	bool isInitOK{ false };
-
-	if (LedDevice::init(deviceConfig))
+	if (!LedDevice::init(deviceConfig))
 	{
-		// Overwrite non supported/required features
-		if (deviceConfig["rewriteTime"].toInt(0) > 0)
-		{
-			Info(_log, "Home Assistant lights do not require rewrites. Refresh time is ignored.");
-			setRewriteTime(0);
-		}
-		DebugIf(verbose, _log, "deviceConfig: [%s]", QString(QJsonDocument(_devConfig).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
-		//Set hostname as per configuration and default port
-		_hostName = deviceConfig[CONFIG_HOST].toString();
-		_apiPort = deviceConfig[CONFIG_PORT].toInt(API_DEFAULT_PORT);
-		_useSsl = deviceConfig[CONFIG_USE_SSL].toBool(false);
-		_bearerToken = deviceConfig[CONFIG_AUTH_TOKEN].toString();
-
-		_isBrightnessOverwrite = _devConfig[CONFIG_BRIGHTNESS_OVERWRITE].toBool(DEFAULT_IS_BRIGHTNESS_OVERWRITE);
-		_isFullBrightnessAtStart = _devConfig[CONFIG_FULL_BRIGHTNESS_AT_START].toBool(DEFAULT_IS_FULL_BRIGHTNESS_AT_START);
-		_brightness = _devConfig[CONFIG_BRIGHTNESS].toInt(BRI_MAX);
-		int transitionTimeMs = _devConfig[CONFIG_TRANSITIONTIME].toInt(0);
-		_transitionTime = transitionTimeMs / 1000.0;
-
-		Debug(_log, "Hostname/IP       : %s", QSTRING_CSTR(_hostName));
-		Debug(_log, "Port              : %d", _apiPort);
-		Debug(_log, "Use SSL           : %s", _useSsl ? "Yes" : "No");
-
-		Debug(_log, "Overwrite Brightn.: %s", _isBrightnessOverwrite ? "Yes" : "No");
-		Debug(_log, "Set Brightness to : %d", _brightness);
-		Debug(_log, "Full Bri. at start: %s", _isFullBrightnessAtStart ? "Yes" : "No");
-		Debug(_log, "Transition Time   : %d ms", transitionTimeMs);
-
-		_lightEntityIds = _devConfig[CONFIG_ENITYIDS].toVariant().toStringList();
-		int configuredLightsCount = _lightEntityIds.size();
-
-		if (configuredLightsCount == 0)
-		{
-			this->setInError("No light entity-ids configured");
-			isInitOK = false;
-		}
-		else
-		{
-			Debug(_log, "Lights configured : %d", configuredLightsCount);
-			isInitOK = true;
-		}
+		return false;
 	}
+
+	bool isInitOK{ false };
+	// Overwrite non supported/required features
+	if (deviceConfig["rewriteTime"].toInt(0) > 0)
+	{
+		Info(_log, "Home Assistant lights do not require rewrites. Refresh time is ignored.");
+		setRewriteTime(0);
+	}
+
+	//Set hostname as per configuration and default port
+	_hostName = deviceConfig[CONFIG_HOST].toString();
+	_apiPort = deviceConfig[CONFIG_PORT].toInt(API_DEFAULT_PORT);
+	_useSsl = deviceConfig[CONFIG_USE_SSL].toBool(false);
+	_bearerToken = deviceConfig[CONFIG_AUTH_TOKEN].toString();
+
+	_isBrightnessOverwrite = _devConfig[CONFIG_BRIGHTNESS_OVERWRITE].toBool(DEFAULT_IS_BRIGHTNESS_OVERWRITE);
+	_isFullBrightnessAtStart = _devConfig[CONFIG_FULL_BRIGHTNESS_AT_START].toBool(DEFAULT_IS_FULL_BRIGHTNESS_AT_START);
+	_brightness = _devConfig[CONFIG_BRIGHTNESS].toInt(BRI_MAX);
+	int transitionTimeMs = _devConfig[CONFIG_TRANSITIONTIME].toInt(0);
+	_transitionTime = transitionTimeMs / 1000.0;
+
+	Debug(_log, "Hostname/IP       : %s", QSTRING_CSTR(_hostName));
+	Debug(_log, "Port              : %d", _apiPort);
+	Debug(_log, "Use SSL           : %s", _useSsl ? "Yes" : "No");
+
+	Debug(_log, "Overwrite Brightn.: %s", _isBrightnessOverwrite ? "Yes" : "No");
+	Debug(_log, "Set Brightness to : %d", _brightness);
+	Debug(_log, "Full Bri. at start: %s", _isFullBrightnessAtStart ? "Yes" : "No");
+	Debug(_log, "Transition Time   : %d ms", transitionTimeMs);
+
+	_lightEntityIds = _devConfig[CONFIG_ENITYIDS].toVariant().toStringList();
+	auto configuredLightsCount = _lightEntityIds.size();
+
+	if (configuredLightsCount == 0)
+	{
+		this->setInError("No light entity-ids configured");
+		isInitOK = false;
+	}
+	else
+	{
+		Debug(_log, "Lights configured : %d", configuredLightsCount);
+		isInitOK = true;
+	}
+
 
 	return isInitOK;
 }
@@ -168,8 +157,6 @@ bool LedDeviceHomeAssistant::initLedsConfiguration()
 
 bool LedDeviceHomeAssistant::openRestAPI()
 {
-	bool isInitOK{ true };
-
 	if (_hostName.isNull())
 	{
 		Error(_log, "Empty hostname or IP address. REST API cannot be initiatised.");
@@ -182,7 +169,7 @@ bool LedDeviceHomeAssistant::openRestAPI()
 		{
 			_apiPort = API_DEFAULT_PORT;
 		}
-		_restApi = new ProviderRestApi(_useSsl ? "https" : "http", _hostName, _apiPort);
+		_restApi.reset(new ProviderRestApi(_useSsl ? "https" : "http", _hostName, _apiPort));
 
 		_restApi->setLogger(_log);
 		_restApi->setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
@@ -191,27 +178,28 @@ bool LedDeviceHomeAssistant::openRestAPI()
 		//Base-path is api-path
 		_restApi->setBasePath(API_BASE_PATH);
 	}
-	return isInitOK;
+	return true;
 }
 
 int LedDeviceHomeAssistant::open()
 {
-	int retval = -1;
 	_isDeviceReady = false;
-
 	this->setIsRecoverable(true);
-	NetUtils::resolveMdnsHost(_log, _hostName, _apiPort);
-	if (openRestAPI())
+
+	NetUtils::convertMdnsToIp(_log, _hostName, _apiPort);
+	if (!openRestAPI())
 	{
-		// Read LedDevice configuration and validate against device configuration
-		if (initLedsConfiguration())
-		{
-			// Everything is OK, device is ready
-			_isDeviceReady = true;
-			retval = 0;
-		}
+		return -1;
 	}
-	return retval;
+	
+	// Read LedDevice configuration and validate against device configuration
+	if (initLedsConfiguration())
+	{
+		// Everything is OK, device is ready
+		_isDeviceReady = true;
+	}
+	
+	return _isDeviceReady ? 0 : -1;
 }
 
 QJsonArray LedDeviceHomeAssistant::discoverSsdp() const
@@ -238,11 +226,7 @@ QJsonObject LedDeviceHomeAssistant::discover(const QJsonObject& /*params*/)
 
 #ifdef ENABLE_MDNS
 	QString discoveryMethod("mDNS");
-	deviceList = MdnsBrowser::getInstance().data()->getServicesDiscoveredJson(
-		MdnsServiceRegister::getServiceType(_activeDeviceType),
-		MdnsServiceRegister::getServiceNameFilter(_activeDeviceType),
-		DEFAULT_DISCOVER_TIMEOUT
-	);
+	deviceList = NetUtils::getMdnsServicesDiscovered(_activeDeviceType);
 #else
 	QString discoveryMethod("ssdp");
 	deviceList = discoverSsdp();
@@ -251,16 +235,11 @@ QJsonObject LedDeviceHomeAssistant::discover(const QJsonObject& /*params*/)
 	devicesDiscovered.insert("discoveryMethod", discoveryMethod);
 	devicesDiscovered.insert("devices", deviceList);
 
-	DebugIf(verbose, _log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	return devicesDiscovered;
 }
 
 QJsonObject LedDeviceHomeAssistant::getProperties(const QJsonObject& params)
 {
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-	QJsonObject properties;
-
 	_hostName = params[CONFIG_HOST].toString("");
 	_apiPort = params[CONFIG_PORT].toInt(API_DEFAULT_PORT);
 	_useSsl = params[CONFIG_USE_SSL].toBool(false);
@@ -268,68 +247,68 @@ QJsonObject LedDeviceHomeAssistant::getProperties(const QJsonObject& params)
 
 	Info(_log, "Get properties for %s, hostname (%s)", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(_hostName));
 
-	NetUtils::resolveMdnsHost(_log, _hostName, _apiPort);
-	if (openRestAPI())
+	NetUtils::convertMdnsToIp(_log, _hostName, _apiPort);
+	if (!openRestAPI())
 	{
-		QString filter = params["filter"].toString("");
-		_restApi->setPath(filter);
-
-		// Perform request
-		httpResponse response = _restApi->get();
-		if (response.error())
-		{
-			Warning(_log, "%s get properties failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
-		}
-
-		QJsonObject propertiesDetails;
-		const QJsonDocument jsonDoc = response.getBody();
-		if (jsonDoc.isArray()) {
-			const QJsonArray jsonArray = jsonDoc.array();
-			QVector<QJsonValue> filteredVector;
-
-			// Iterate over the array and filter objects with entity_id starting with "light."
-			for (const QJsonValue& value : jsonArray)
-			{
-				QJsonObject obj = value.toObject();
-				QString entityId = obj[ENTITY_ID].toString();
-
-				if (entityId.startsWith("light."))
-				{
-					filteredVector.append(obj);
-				}
-			}
-
-			// Sort the filtered vector by "friendly_name" in ascending order
-			std::sort(filteredVector.begin(), filteredVector.end(), [](const QJsonValue& a, const QJsonValue& b) {
-				QString nameA = a.toObject()["attributes"].toObject()["friendly_name"].toString();
-				QString nameB = b.toObject()["attributes"].toObject()["friendly_name"].toString();
-				return nameA < nameB;  // Ascending order
-				});
-			// Convert the sorted vector back to a QJsonArray
-			QJsonArray sortedArray;
-			for (const QJsonValue& value : filteredVector) {
-				sortedArray.append(value);
-			}
-
-			propertiesDetails.insert("lightEntities", sortedArray);
-
-		}
-
-		if (!propertiesDetails.isEmpty())
-		{
-			propertiesDetails.insert("ledCount", 1);
-		}
-		properties.insert("properties", propertiesDetails);
+		return {};
 	}
 
-	DebugIf(verbose, _log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	QJsonObject properties;
+
+	QString filter = params["filter"].toString("");
+	_restApi->setPath(filter);
+
+	// Perform request
+	httpResponse response = _restApi->get();
+	if (response.error())
+	{
+		Warning(_log, "%s get properties failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
+	}
+
+	QJsonObject propertiesDetails;
+	const QJsonDocument jsonDoc = response.getBody();
+	if (jsonDoc.isArray()) {
+		const QJsonArray jsonArray = jsonDoc.array();
+		QVector<QJsonValue> filteredVector;
+
+		// Iterate over the array and filter objects with entity_id starting with "light."
+		for (const QJsonValue& value : jsonArray)
+		{
+			QJsonObject obj = value.toObject();
+			QString entityId = obj[ENTITY_ID].toString();
+
+			if (entityId.startsWith("light."))
+			{
+				filteredVector.append(obj);
+			}
+		}
+
+		// Sort the filtered vector by "friendly_name" in ascending order
+		std::sort(filteredVector.begin(), filteredVector.end(), [](const QJsonValue& a, const QJsonValue& b) {
+			QString nameA = a.toObject()["attributes"].toObject()["friendly_name"].toString();
+			QString nameB = b.toObject()["attributes"].toObject()["friendly_name"].toString();
+			return nameA < nameB;  // Ascending order
+			});
+		// Convert the sorted vector back to a QJsonArray
+		QJsonArray sortedArray;
+		for (const QJsonValue& value : filteredVector) {
+			sortedArray.append(value);
+		}
+
+		propertiesDetails.insert("lightEntities", sortedArray);
+	}
+
+	if (!propertiesDetails.isEmpty())
+	{
+		propertiesDetails.insert("ledCount", 1);
+	}
+	properties.insert("properties", propertiesDetails);
+	
 	return properties;
 }
 
 void LedDeviceHomeAssistant::identify(const QJsonObject& params)
 {
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	_hostName = params[CONFIG_HOST].toString("");
 	_apiPort = params[CONFIG_PORT].toInt(API_DEFAULT_PORT);
 	_useSsl = params[CONFIG_USE_SSL].toBool(false);
@@ -337,72 +316,78 @@ void LedDeviceHomeAssistant::identify(const QJsonObject& params)
 
 	Info(_log, "Identify %s, hostname (%s)", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(_hostName));
 
-	NetUtils::resolveMdnsHost(_log, _hostName, _apiPort);
-	if (openRestAPI())
+	NetUtils::convertMdnsToIp(_log, _hostName, _apiPort);
+	if ( !openRestAPI() )
 	{
-		QJsonArray lightEntityIds = params[ENTITY_ID].toArray();
+		return;
+	}
 
-		_restApi->setPath(API_LIGHT_TURN_ON);
-		QJsonObject serviceAttributes{ {ENTITY_ID, lightEntityIds} };
-		serviceAttributes.insert(FLASH, "short");
+	QJsonArray lightEntityIds = params[ENTITY_ID].toArray();
 
-		httpResponse response = _restApi->post(serviceAttributes);
-		if (response.error())
-		{
-			Warning(_log, "%s identification failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
-		}
+	_restApi->setPath(API_LIGHT_TURN_ON);
+	QJsonObject serviceAttributes{ {ENTITY_ID, lightEntityIds} };
+	serviceAttributes.insert(FLASH, "short");
+
+	httpResponse response = _restApi->post(serviceAttributes);
+	if (response.error())
+	{
+		Warning(_log, "%s identification failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
 	}
 }
 
 bool LedDeviceHomeAssistant::powerOn()
 {
-	bool isOn = false;
-	if (_isDeviceReady)
+	if ( !_isDeviceReady)
 	{
-		_restApi->setPath(API_LIGHT_TURN_ON);
-		QJsonObject serviceAttributes{ {ENTITY_ID, QJsonArray::fromStringList(_lightEntityIds)} };
-
-		if (_isFullBrightnessAtStart)
-		{
-			serviceAttributes.insert(BRIGHTNESS, BRI_MAX);
-		}
-
-		httpResponse response = _restApi->post(serviceAttributes);
-		if (response.error())
-		{
-			QString errorReason = QString("Power-on request failed with error: '%1'").arg(response.getErrorReason());
-			this->setInError(errorReason);
-			isOn = false;
-		}
-		else {
-			isOn = true;
-		}
+		return false;
 	}
+
+	bool isOn = false;
+
+	_restApi->setPath(API_LIGHT_TURN_ON);
+	QJsonObject serviceAttributes{ {ENTITY_ID, QJsonArray::fromStringList(_lightEntityIds)} };
+
+	if (_isFullBrightnessAtStart)
+	{
+		serviceAttributes.insert(BRIGHTNESS, BRI_MAX);
+	}
+
+	httpResponse response = _restApi->post(serviceAttributes);
+	if (response.error())
+	{
+		QString errorReason = QString("Power-on request failed with error: '%1'").arg(response.getErrorReason());
+		this->setInError(errorReason);
+		isOn = false;
+	}
+	else {
+		isOn = true;
+	}
+
 	return isOn;
 }
 
 bool LedDeviceHomeAssistant::powerOff()
 {
-	bool isOff = true;
-	if (_isDeviceReady)
+	if ( !_isDeviceReady)
 	{
-		_restApi->setPath(API_LIGHT_TURN_OFF);
-		QJsonObject serviceAttributes{ {ENTITY_ID, QJsonArray::fromStringList(_lightEntityIds)} };
-		httpResponse response = _restApi->post(serviceAttributes);
-		if (response.error())
-		{
-			QString errorReason = QString("Power-off request failed with error: '%1'").arg(response.getErrorReason());
-			this->setInError(errorReason);
-			isOff = false;
-		}
+		return false;
+	}
+
+	bool isOff = true;
+	_restApi->setPath(API_LIGHT_TURN_OFF);
+	QJsonObject serviceAttributes{ {ENTITY_ID, QJsonArray::fromStringList(_lightEntityIds)} };
+	httpResponse response = _restApi->post(serviceAttributes);
+	if (response.error())
+	{
+		QString errorReason = QString("Power-off request failed with error: '%1'").arg(response.getErrorReason());
+		this->setInError(errorReason);
+		isOff = false;
 	}
 	return isOff;
 }
 
-int LedDeviceHomeAssistant::write(const std::vector<ColorRgb>& ledValues)
+int LedDeviceHomeAssistant::write(const QVector<ColorRgb>& ledValues)
 {
-	int retVal = 0;
-
 	QJsonObject serviceAttributes{ {ENTITY_ID, QJsonArray::fromStringList(_lightEntityIds)} };
 	ColorRgb ledValue = ledValues.at(0);
 
@@ -415,19 +400,17 @@ int LedDeviceHomeAssistant::write(const std::vector<ColorRgb>& ledValues)
 	_restApi->setPath(API_LIGHT_TURN_ON);
 	serviceAttributes.insert(RGB_COLOR, QJsonArray{ ledValue.red, ledValue.green, ledValue.blue });
 
-	int brightness = _brightness;
-
-	// Some devices cannot deal with a black color and brightness > 0
-	if (ledValue == ColorRgb::BLACK)
+	int brightness;
+	if (!_isBrightnessOverwrite)
 	{
-		brightness = 0;
+		brightness = qBound(0, qRound(0.2126 * ledValue.red + 0.7152 * ledValue.green + 0.0722 * ledValue.blue), 255);
+	}
+	else
+	{
+		brightness = _brightness;
 	}
 
-	// Add brightness attribute if applicable
-	if (brightness == 0 || _isBrightnessOverwrite)
-	{
-		serviceAttributes.insert(BRIGHTNESS, brightness);
-	}
+	serviceAttributes.insert(BRIGHTNESS, brightness);
 
 	if (_transitionTime > 0)
 	{
@@ -438,8 +421,8 @@ int LedDeviceHomeAssistant::write(const std::vector<ColorRgb>& ledValues)
 	if (response.error())
 	{
 		Warning(_log, "Updating lights failed with error: '%s'", QSTRING_CSTR(response.getErrorReason()));
-		retVal = -1;
+		return -1;
 	}
 
-	return retVal;
+	return 0;
 }

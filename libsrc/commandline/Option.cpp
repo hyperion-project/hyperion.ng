@@ -26,7 +26,7 @@ Option::~Option()
 
 }
 
-QString Option::value(Parser &parser) const
+QString Option::value(const Parser &parser) const
 {
 	return parser.value(*this);
 }
@@ -41,7 +41,7 @@ QString Option::getError() const
 	return this->_error;
 }
 
-const char* Option::getCString(Parser &parser) const
+const char* Option::getCString(const Parser& parser) const
 {
 	return value(parser).toLocal8Bit().constData();
 }

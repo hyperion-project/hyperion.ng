@@ -158,19 +158,6 @@
       "maximum": 1000,
       "access": "expert",
       "propertyOrder": 12
-    },
-    "debugLevel": {
-      "type": "string",
-      "title": "edt_dev_spec_debugLevel_title",
-      "enum": [ "0", "1", "2", "3" ],
-      "default": "0",
-      "options": {
-        "enum_titles": [ "edt_conf_enum_dl_nodebug", "edt_conf_enum_dl_verbose1", "edt_conf_enum_dl_verbose2", "edt_conf_enum_dl_verbose3" ]
-      },
-      "minimum": 0,
-      "maximum": 3,
-      "access": "expert",
-      "propertyOrder": 13
     }
   },
   "additionalProperties": true

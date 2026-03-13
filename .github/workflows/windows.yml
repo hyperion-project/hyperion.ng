@@ -29,7 +29,7 @@ jobs:
 
   windows:
     name: ${{ matrix.os.description }}
-    runs-on: ${{ matrix.os.architecture == 'arm64' && 'windows-11-arm' || 'windows-2022' }}
+    runs-on: ${{ matrix.os.architecture == 'arm64' && 'windows-11-arm' || 'windows-2025' }}
     strategy:
       fail-fast: false
       matrix:
@@ -40,9 +40,10 @@ jobs:
 
     steps:
       - name: ⬇ Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
+          fetch-depth: 0  # Ensures all tags are fetched
 
       - name: 🔧 Prepare
         shell: bash
@@ -54,21 +55,31 @@ jobs:
             echo -n "+nightly$(date '+%Y%m%d')" >> .version
           fi
 
-      - name: 📥 Install Python
-        uses: actions/setup-python@v5
+      - name: 💾 Download Pre-Build Dependencies
+        id: dependencies
+        uses: ./.github/actions/download-pre-built-deps
         with:
-          python-version: '3.13.5'
+          os: 'windows'
+          architecture: ${{ matrix.os.architecture }}
+          build_type: ${{ inputs.event_name == 'pull_request' && 'relwithdebinfo' || 'release' }}
+
+      - name: 📥 Install Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
           architecture: ${{ matrix.os.architecture }}
 
-      - name: 📥 Install Qt
+      - name: 📥 Install Qt ${{ env.QT_VERSION }}
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.8.*'
+          version: ${{ env.QT_VERSION }}
           target: 'desktop'
           modules: 'qtserialport qtwebsockets'
           cache: 'true'
           cache-key-prefix: 'cache-qt-windows'
           setup-python: 'false'
+        env:
+          QT_VERSION: ${{ steps.dependencies.outputs.qtVersion != '' && steps.dependencies.outputs.qtVersion || '' }}
 
       - name: 📥 Install latest CMake and Ninja
         uses: lukka/get-cmake@latest
@@ -81,26 +92,34 @@ jobs:
         with:
           arch: ${{ matrix.os.architecture }}
 
-      - name: 💾 Download OpenSSL 3.x
-        uses: ethanjli/cached-download-action@v0.1.2
-        with:
-          url: "https://slproweb.com/download/Win64${{ matrix.os.architecture == 'arm64' && 'ARM' || '' }}OpenSSL-3_5_2.exe"
-          destination: .\installer\openssl.exe
-          cache-key: OpenSSL
-
-      - name: 📥 Install OpenSSL 3.x
-        shell: powershell
+      - name: Download/Install Inno Setup
         run: |
-          Start-Process -FilePath ".\installer\openssl.exe" -ArgumentList "/silent", "/verysilent", "/sp-", "/suppressmsgboxes", "/DIR=C:\OpenSSL" -Wait
-          echo "OPENSSL_ROOT_DIR=C:\OpenSSL" >> $env:GITHUB_ENV
+          echo "Checking pre-installation..."
 
-      - name: 💾 Download Pre-Build Dependencies
-        id: dependencies
-        uses: ./.github/actions/download-pre-built-deps
-        with:
-          os: 'windows'
-          architecture: ${{ matrix.os.architecture }}
-          build_type: ${{ inputs.event_name == 'pull_request' && 'relwithdebinfo' || 'release' }}
+          set "ISCC_PATH=%programfiles(x86)%\Inno Setup 6\ISCC.exe"
+
+          if exist "%ISCC_PATH%" (
+            echo ::warning::Inno Setup is already installed
+            exit /b 0
+          )
+
+          echo "Downloading Inno Setup..."
+
+          set "_url_=https://jrsoftware.org/download.php/is.exe?site=1"
+          set "_file_=innosetup.exe"
+
+          curl -L -o "%tmp%\%_file_%" "%_url_%"
+
+          echo "Installing Inno Setup..."
+          "%tmp%\%_file_%" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-
+
+          if not exist "%ISCC_PATH%" (
+            echo "::error::Inno Setup installation failed"
+            exit 1
+          )
+
+          echo "Inno Setup installed successfully!"
+        shell: cmd
 
       - name: 👷 Build ${{ env.HINT }}
         shell: cmd
@@ -113,7 +132,7 @@ jobs:
 
       - name: 📦 Upload
         if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ inputs.event_name == 'pull_request' && env.NAME || format('artifact-{0}', env.NAME) }}
           path: |

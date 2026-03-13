@@ -12,6 +12,7 @@
 EventScheduler::EventScheduler()
 	: _isEnabled(false)
 {
+	TRACK_SCOPE();
 	qRegisterMetaType<Event>("Event");
 	_log = Logger::getInstance("EVENTS-SCHED");
 
@@ -22,6 +23,7 @@ EventScheduler::EventScheduler()
 
 EventScheduler::~EventScheduler()
 {
+	TRACK_SCOPE();
 	QObject::disconnect(this, &EventScheduler::signalEvent, EventHandler::getInstance().data(), &EventHandler::handleEvent);
 	clearTimers();
 	Info(_log, "Hyperion event scheduler stopped");
@@ -29,55 +31,60 @@ EventScheduler::~EventScheduler()
 
 void EventScheduler::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
-	if(type == settings::SCHEDEVENTS)
+	if(type != settings::SCHEDEVENTS)
 	{
-		const QJsonObject& obj = config.object();
+		return;
+	}
+	const QJsonObject& obj = config.object();
 
-		_isEnabled = obj["enable"].toBool(false);
-		Debug(_log, "Event scheduler is %s", _isEnabled? "enabled" : "disabled");
+	_isEnabled = obj["enable"].toBool(false);
+	Debug(_log, "Event scheduler is %s", _isEnabled? "enabled" : "disabled");
 
-		if (_isEnabled)
+	if (!_isEnabled)
+	{
+		disable();
+		return;
+	}
+
+	if (!obj.contains("actions"))
+	{
+		return;
+	}
+
+	_scheduledEvents.clear();
+
+	const QJsonArray actionItems = obj["actions"].toArray();
+	if (!actionItems.isEmpty())
+	{
+		timeEvent timeEvent;
+		for (const QJsonValue &item : actionItems)
 		{
-			_scheduledEvents.clear();
+			QString action = item.toObject().value("action").toString();
+			timeEvent.action = stringToEvent(action);
 
-			const QJsonArray actionItems = obj["actions"].toArray();
-			if (!actionItems.isEmpty())
+			QString event =  item.toObject().value("event").toString();
+			timeEvent.time = QTime::fromString(event,"hh:mm");
+			if (timeEvent.time.isValid())
 			{
-				timeEvent timeEvent;
-				for (const QJsonValue &item : actionItems)
-				{
-					QString action = item.toObject().value("action").toString();
-					timeEvent.action = stringToEvent(action);
-
-					QString event =  item.toObject().value("event").toString();
-					timeEvent.time = QTime::fromString(event,"hh:mm");
-					if (timeEvent.time.isValid())
-					{
-						_scheduledEvents.append(timeEvent);
-						Debug(_log, "Time-Event : \"%s\" linked to action \"%s\"", QSTRING_CSTR(event), QSTRING_CSTR(action));
-					}
-					else
-					{
-						Error(_log, "Error in configured time : \"%s\" linked to action \"%s\"", QSTRING_CSTR(event), QSTRING_CSTR(action));
-					}
-				}
-			}
-
-			if (!_scheduledEvents.isEmpty())
-			{
-				enable();
+				_scheduledEvents.append(timeEvent);
+				Debug(_log, "Time-Event : \"%s\" linked to action \"%s\"", QSTRING_CSTR(event), QSTRING_CSTR(action));
 			}
 			else
 			{
-				Warning(_log, "No scheduled events to listen to are configured currently.");
+				Error(_log, "Error in configured time : \"%s\" linked to action \"%s\"", QSTRING_CSTR(event), QSTRING_CSTR(action));
 			}
 		}
-		else
-		{
-			disable();
-		}
-
 	}
+
+	if (!_scheduledEvents.isEmpty())
+	{
+		enable();
+	}
+	else
+	{
+		Warning(_log, "No scheduled events to listen to are configured currently.");
+	}
+
 }
 
 bool EventScheduler::enable()
@@ -87,7 +94,7 @@ bool EventScheduler::enable()
 	clearTimers();
 	for (int i = 0; i < _scheduledEvents.size(); ++i)
 	{
-		QTimer* timer = new QTimer(this);
+		auto* timer = new QTimer(this);
 		timer->setTimerType(Qt::PreciseTimer);
 		_timers.append(timer);
 
@@ -132,11 +139,11 @@ void EventScheduler::handleEvent(int timerIndex)
 
 	// Retrigger the timer for the next occurrence
 	QTimer* timer = _timers.at(timerIndex);
-	int milliseconds = getMillisecondsToNextScheduledTime(time);
+	auto milliseconds = getMillisecondsToNextScheduledTime(time);
 	timer->start(milliseconds);
 }
 
-int EventScheduler::getMillisecondsToNextScheduledTime(const QTime& scheduledTime)
+qint64 EventScheduler::getMillisecondsToNextScheduledTime(const QTime& scheduledTime) const
 {
 	QDateTime currentDateTime = QDateTime::currentDateTime();
 	QTime currentTime = currentDateTime.time();
@@ -150,6 +157,6 @@ int EventScheduler::getMillisecondsToNextScheduledTime(const QTime& scheduledTim
 		nextOccurrence = nextOccurrence.addDays(1);
 	}
 
-	int milliseconds = currentDateTime.msecsTo(nextOccurrence);
+	auto milliseconds = currentDateTime.msecsTo(nextOccurrence);
 	return (milliseconds > 0) ? milliseconds : 0;
 }

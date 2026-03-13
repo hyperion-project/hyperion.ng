@@ -26,7 +26,7 @@ VideoWrapper::VideoWrapper()
 
 VideoWrapper::~VideoWrapper()
 {
-	stop();
+	VideoWrapper::stop();
 }
 
 bool VideoWrapper::start()
@@ -42,7 +42,7 @@ void VideoWrapper::stop()
 
 void VideoWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
-	if(type == settings::V4L2 && _grabberName.startsWith("V4L2"))
+	if(type == settings::V4L2 && _grabber.getGrabberName().startsWith("V4L2"))
 	{
 		// extract settings
 		const QJsonObject& obj = config.object();
@@ -113,7 +113,7 @@ void VideoWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument
 			// Device framerate
 			_grabber.setFramerate(obj["fps"].toInt(15));
 
-			updateTimer(_ggrabber->getUpdateInterval());
+			updateTimer(getGrabber()->getUpdateInterval());
 
 			// Reload the Grabber if any settings have been changed that require it
 			_grabber.reload(getV4lGrabberState());
@@ -125,7 +125,7 @@ void VideoWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument
 
 void VideoWrapper::newFrame(const Image<ColorRgb> &image)
 {
-	emit systemImage(_grabberName, image);
+	emit systemImage(_grabber.getGrabberName(), image);
 }
 
 void VideoWrapper::readError(const char* err)

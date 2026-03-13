@@ -65,7 +65,6 @@ const yeelightWizard = (() => {
       d.brightnessFactor = parseFloat(conf_editor.getEditor("root.specificOptions.brightnessFactor").getValue());
 
       d.latchTime = parseInt(conf_editor.getEditor("root.specificOptions.latchTime").getValue());;
-      d.debugLevel = parseInt(conf_editor.getEditor("root.specificOptions.debugLevel").getValue());
 
       d.lights = finalLights;
 

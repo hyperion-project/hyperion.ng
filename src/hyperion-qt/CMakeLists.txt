@@ -21,6 +21,10 @@ else()
 	target_link_libraries(${PROJECT_NAME} ssdp)
 endif()
 
+target_link_libraries(${PROJECT_NAME}
+	hyperion-utils
+)
+
 if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 	install(TARGETS ${PROJECT_NAME} DESTINATION "." COMPONENT "hyperion_qt" OPTIONAL)
 elseif(NOT WIN32)

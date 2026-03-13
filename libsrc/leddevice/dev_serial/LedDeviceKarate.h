@@ -3,6 +3,7 @@
 
 // hyperion includes
 #include "ProviderRs232.h"
+#include <QVector>
 
 ///
 /// Implementation of the LedDevice interface for writing to serial device
@@ -49,7 +50,7 @@ private:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	int write(const std::vector<ColorRgb> &ledValues) override;
+	int write(const QVector<ColorRgb> &ledValues) override;
 };
 
 #endif // LEDEVICEKARATE_H

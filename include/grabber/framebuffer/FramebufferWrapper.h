@@ -22,7 +22,7 @@ public:
 	/// @param[in] deviceIdx Framebuffer device index
 	/// @param[in] pixelDecimation   Decimation factor for image [pixels]
 	///
-	FramebufferWrapper( int updateRate_Hz=GrabberWrapper::DEFAULT_RATE_HZ,
+	explicit FramebufferWrapper( int updateRate_Hz=GrabberWrapper::DEFAULT_RATE_HZ,
 						int deviceIdx = 0,
 						int pixelDecimation=GrabberWrapper::DEFAULT_PIXELDECIMATION
 						);
@@ -30,7 +30,7 @@ public:
 	///
 	/// Constructs the QT frame grabber from configuration settings
 	///
-	FramebufferWrapper(const QJsonDocument& grabberConfig = QJsonDocument());
+	explicit FramebufferWrapper(const QJsonDocument& grabberConfig = QJsonDocument());
 
 public slots:
 	///

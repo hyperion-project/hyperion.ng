@@ -1,9 +1,15 @@
 #pragma once
 
+#include <QLoggingCategory>
+
 #include <utils/Logger.h>
 #include <utils/settings.h>
 #include <utils/Components.h>
 #include <utils/Image.h>
+
+Q_DECLARE_LOGGING_CATEGORY(capturectl_screen_flow);
+Q_DECLARE_LOGGING_CATEGORY(capturectl_video_flow);
+Q_DECLARE_LOGGING_CATEGORY(capturectl_audio_flow);
 
 class Hyperion;
 class QTimer;
@@ -69,17 +75,17 @@ private slots:
 	///
 	/// @brief Sets the video source to inactive
 	///
-	void onVideoIsInactive();
+	void onVideoIsInactive() const;
 
 	///
 	/// @brief Sets the screen source to inactive
 	///
-	void onScreenIsInactive();
+	void onScreenIsInactive() const;
 
 	///
 	/// @brief Sets the audio source to inactive
 	///
-	void onAudioIsInactive();
+	void onAudioIsInactive() const;
 
 
 private:

@@ -12,10 +12,6 @@ LedDeviceFile::LedDeviceFile(const QJsonObject &deviceConfig)
 	_printTimeStamp = false;
 }
 
-LedDeviceFile::~LedDeviceFile()
-{
-}
-
 LedDevice* LedDeviceFile::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceFile(deviceConfig);
@@ -23,7 +19,11 @@ LedDevice* LedDeviceFile::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceFile::init(const QJsonObject &deviceConfig)
 {
-	bool initOK = LedDevice::init(deviceConfig);
+	// Initialise sub-class
+	if (!LedDevice::init(deviceConfig))
+	{
+		return false;
+	}
 
 	_fileName = deviceConfig["output"].toString("/dev/null");
 
@@ -38,7 +38,7 @@ bool LedDeviceFile::init(const QJsonObject &deviceConfig)
 
 	initFile(_fileName);
 
-	return initOK;
+	return true;
 }
 
 void LedDeviceFile::initFile(const QString &fileName)
@@ -51,30 +51,28 @@ void LedDeviceFile::initFile(const QString &fileName)
 
 int LedDeviceFile::open()
 {
-	int retval = -1;
 	_isDeviceReady = false;
 
-	if ( ! _file->isOpen() )
+	if ( _file->isOpen() )
 	{
-		Debug(_log, "QIODevice::WriteOnly, %s", QSTRING_CSTR(_fileName));
-		if ( !_file->open(QIODevice::WriteOnly | QIODevice::Text) )
-		{
-			QString errortext = QString ("(%1) %2, file: (%3)").arg(_file->error()).arg(_file->errorString(),_fileName);
-			this->setInError( errortext );
-		}
-		else
-		{
-			_isDeviceReady = true;
-			retval = 0;
-		}
+		return 0;
 	}
-	return retval;
+
+	Debug(_log, "QIODevice::WriteOnly, %s", QSTRING_CSTR(_fileName));
+	if ( !_file->open(QIODevice::WriteOnly | QIODevice::Text) )
+	{
+		QString errortext = QString ("(%1) %2, file: (%3)").arg(_file->error()).arg(_file->errorString(),_fileName);
+		this->setInError( errortext );
+		return -1;
+	}
+
+	_isDeviceReady = true;
+
+	return 0;
 }
 
 int LedDeviceFile::close()
 {
-	int retval = 0;
-
 	_isDeviceReady = false;
 	if ( _file != nullptr)
 	{
@@ -86,7 +84,7 @@ int LedDeviceFile::close()
 			_file->close();
 		}
 	}
-	return retval;
+	return 0;
 }
 
 bool LedDeviceFile::powerOff()
@@ -100,7 +98,7 @@ bool LedDeviceFile::powerOff()
 	return rc;
 }
 
-int LedDeviceFile::write(const std::vector<ColorRgb> & ledValues)
+int LedDeviceFile::write(const QVector<ColorRgb> & ledValues)
 {
 	QTextStream out(_file.get());
 	if ( _printTimeStamp )

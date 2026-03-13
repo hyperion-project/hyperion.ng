@@ -3,6 +3,7 @@
 
 // Qt includes
 #include <QTimer>
+#include <QVector>
 
 // hyperion include
 #include "ProviderHID.h"
@@ -45,7 +46,7 @@ private:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	int write(const std::vector<ColorRgb> & ledValues) override;
+	int write(const QVector<ColorRgb> & ledValues) override;
 };
 
 #endif // LEDEVICERAWHID_H

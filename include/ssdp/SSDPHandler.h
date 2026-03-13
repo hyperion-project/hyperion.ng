@@ -48,6 +48,11 @@ public slots:
 signals:
 	void descriptionUpdated(const QString& description);
 
+	///
+	/// @emits when the SSDP handler has completed its stop/cleanup
+	///
+	void isStopped();
+
 private:
 	///
 	/// @brief Build http url for current ip:port/desc.xml

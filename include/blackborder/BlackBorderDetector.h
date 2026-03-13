@@ -66,6 +66,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		BlackBorder process(const Image<Pixel_T> & image) const
 		{
+			qCDebug(image_track) << "Image [" << image.id() << "]";
 			// test centre and 33%, 66% of width/height
 			// 33 and 66 will check left and top
 			// centre will check right and bottom sides
@@ -123,6 +124,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		BlackBorder process_classic(const Image<Pixel_T> & image) const
 		{
+			qCDebug(image_track) <<"Image [" << image.id() << "]";
 			// only test the topleft third of the image
 			int width = image.width() /3;
 			int height = image.height() / 3;
@@ -180,6 +182,8 @@ namespace hyperion
 		template <typename Pixel_T>
 		BlackBorder process_osd(const Image<Pixel_T> & image) const
 		{
+			qCDebug(image_track) << "Image [" << image.id() << "]";
+
 			// find X position at height33 and height66 we check from the left side, Ycenter will check from right side
 			// then we try to find a pixel at this X position from top and bottom and right side from top
 			int width = image.width();
@@ -237,6 +241,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		BlackBorder process_letterbox(const Image<Pixel_T> & image) const
 		{
+			qCDebug(image_track) << "Image [" << image.id() << "]";
 			// test center and 25%, 75% of width
 			// 25 and 75 will check both top and bottom
 			// center will only check top (minimise false detection of captions)

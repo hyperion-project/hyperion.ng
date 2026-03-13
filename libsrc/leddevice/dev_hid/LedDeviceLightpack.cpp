@@ -15,21 +15,21 @@
 
 // from commands.h (http://code.google.com/p/light-pack/source/browse/CommonHeaders/commands.h)
 // Commands to device, sends it in first byte of data[]
-enum COMMANDS{
-	CMD_UPDATE_LEDS = 1,
-	CMD_OFF_ALL,
-	CMD_SET_TIMER_OPTIONS,
-	CMD_SET_PWM_LEVEL_MAX_VALUE, /* deprecated */
-	CMD_SET_SMOOTH_SLOWDOWN,
-	CMD_SET_BRIGHTNESS,
+enum class COMMANDS{
+	UPDATE_LEDS = 1,
+	OFF_ALL,
+	SET_TIMER_OPTIONS,
+	SET_PWM_LEVEL_MAX_VALUE, /* deprecated */
+	SET_SMOOTH_SLOWDOWN,
+	SET_BRIGHTNESS,
 
-	CMD_NOP = 0x0F
+	NOP = 0x0F
 };
 
 // from commands.h (http://code.google.com/p/light-pack/source/browse/CommonHeaders/commands.h)
-enum DATA_VERSION_INDEXES{
-	INDEX_FW_VER_MAJOR = 1,
-	INDEX_FW_VER_MINOR
+enum class DATA_VERSION_INDEXES{
+	FW_VER_MAJOR = 1,
+	FW_VER_MINOR
 };
 
 LedDeviceLightpack::LedDeviceLightpack(const QJsonObject &deviceConfig)
@@ -61,118 +61,112 @@ LedDevice* LedDeviceLightpack::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceLightpack::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = false;
-
 	// Initialise sub-class
-	if ( LedDevice::init(deviceConfig) )
+	if (!LedDevice::init(deviceConfig))
 	{
-		_serialNumber = deviceConfig["serial"].toString("");
+		return false;
+	}
 
-		int error;
-		// initialize the USB context
-		if ( (error = libusb_init(&_libusbContext)) != LIBUSB_SUCCESS )
+	_serialNumber = deviceConfig["serial"].toString("");
+
+	int error;
+	// initialize the USB context
+	if ( (error = libusb_init(&_libusbContext)) != LIBUSB_SUCCESS )
+	{
+		_libusbContext = nullptr;
+
+		QString errortext = QString ("Error while initializing USB context(%1):%2").arg(error).arg(libusb_error_name(error));
+		this->setInError(errortext);
+		return false;
+	}
+	
+	Debug(_log, "USB context initialized");
+
+	if ( _log->getMinLevel() == Logger::LogLevel::Debug )
+	{
+		int logLevel = LIBUSB_LOG_LEVEL_INFO;
+		#if LIBUSB_API_VERSION >= 0x01000106
+			libusb_set_option(_libusbContext, LIBUSB_OPTION_LOG_LEVEL, logLevel);
+		#else
+			libusb_set_debug(_libusbContext, logLevel);
+		#endif
+	}
+
+	// retrieve the list of USB devices
+	libusb_device ** deviceList;
+	ssize_t deviceCount = libusb_get_device_list(_libusbContext, &deviceList);
+
+	bool deviceFound = true;
+	// iterate the list of devices
+	for (ssize_t i = 0 ; i < deviceCount; ++i)
+	{
+		// try to open and initialize the device
+		deviceFound = searchDevice(deviceList[i], _serialNumber);
+		if ( deviceFound )
 		{
-			_libusbContext = nullptr;
+			_device = deviceList[i];
+			// a device was successfully opened. break from list
+			break;
+		}
+	}
 
-			QString errortext = QString ("Error while initializing USB context(%1):%2").arg(error).arg(libusb_error_name(error));
-			this->setInError(errortext);
-			isInitOK = false;
+	// free the device list
+	libusb_free_device_list(deviceList, 1);
+
+	if (!deviceFound)
+	{
+		QString errortext;
+		if (_serialNumber.isEmpty())
+		{
+			errortext = QString ("No working Lightpack devices were found");
 		}
 		else
 		{
-			Debug(_log, "USB context initialized");
-
-			if ( _log->getMinLevel() == Logger::LogLevel::LOG_DEBUG )
-			{
-				int logLevel = LIBUSB_LOG_LEVEL_INFO;
-				#if LIBUSB_API_VERSION >= 0x01000106
-					libusb_set_option(_libusbContext, LIBUSB_OPTION_LOG_LEVEL, logLevel);
-				#else
-					libusb_set_debug(_libusbContext, logLevel);
-				#endif
-			}
-
-			// retrieve the list of USB devices
-			libusb_device ** deviceList;
-			ssize_t deviceCount = libusb_get_device_list(_libusbContext, &deviceList);
-
-			bool deviceFound = true;
-			// iterate the list of devices
-			for (ssize_t i = 0 ; i < deviceCount; ++i)
-			{
-				// try to open and initialize the device
-				deviceFound = searchDevice(deviceList[i], _serialNumber);
-				if ( deviceFound )
-				{
-					_device = deviceList[i];
-					// a device was successfully opened. break from list
-					break;
-				}
-			}
-
-			// free the device list
-			libusb_free_device_list(deviceList, 1);
-
-			if (!deviceFound)
-			{
-				QString errortext;
-				if (_serialNumber.isEmpty())
-				{
-					errortext = QString ("No working Lightpack devices were found");
-				}
-				else
-				{
-					errortext = QString ("No working Lightpack device found with serial %1").arg( _serialNumber);
-				}
-				this->setInError( errortext );
-			}
-			else
-			{
-				// set the led buffer size (command + 6 bytes per led)
-				_ledBuffer = std::vector<uint8_t>(1 + _hwLedCount * 6, 0);
-				_ledBuffer[0] = CMD_UPDATE_LEDS;
-
-				isInitOK = true;
-			}
+			errortext = QString ("No working Lightpack device found with serial %1").arg( _serialNumber);
 		}
+		this->setInError( errortext );
+		return false;
 	}
-	return isInitOK;
+
+	// set the led buffer size (command + 6 bytes per led)
+	_ledBuffer = QVector<uint8_t>(1 + _hwLedCount * 6, 0);
+	_ledBuffer[0] = static_cast<uint8_t>(COMMANDS::UPDATE_LEDS);
+
+	return true;
 }
 
 int LedDeviceLightpack::open()
 {
-	int retval = -1;
 	_isDeviceReady = false;
 
-	if ( _device != nullptr)
+	if ( _device == nullptr)
 	{
-		openDevice(_device, &_deviceHandle);
-
-		if ( _deviceHandle == nullptr )
-		{
-			QString errortext = QString ("Failed to open device with serial [%1]").arg(_serialNumber);
-			this->setInError(errortext);
-			retval = -1;
-		}
-		else
-		{
-			disableSmoothing();
-			{
-				// Everything is OK
-				_isDeviceReady = true;
-				_isOpen = true;
-
-				Info(_log, "Lightpack device successfully opened");
-				retval = 0;
-			}
-		}
+		return -1;
 	}
-	return retval;
+
+	openDevice(_device, &_deviceHandle);
+
+	if ( _deviceHandle == nullptr )
+	{
+		QString errortext = QString ("Failed to open device with serial [%1]").arg(_serialNumber);
+		this->setInError(errortext);
+		return -1;
+	}
+
+	disableSmoothing();
+			
+	// Everything is OK
+	_isDeviceReady = true;
+	_isOpen = true;
+
+	Info(_log, "Lightpack device successfully opened");
+
+
+	return 0;
 }
 
 int LedDeviceLightpack::close()
 {
-	int retval = 0;
 	_isDeviceReady = false;
 	_isOpen = false;
 
@@ -182,7 +176,7 @@ int LedDeviceLightpack::close()
 		_deviceHandle = nullptr;
 	}
 
-	return retval;
+	return 0;
 }
 
 bool LedDeviceLightpack::searchDevice(libusb_device * device, const QString & requestedSerialNumber)
@@ -197,102 +191,102 @@ bool LedDeviceLightpack::searchDevice(libusb_device * device, const QString & re
 		return false;
 	}
 
-	if ((deviceDescriptor.idVendor == USB_VENDOR_ID && deviceDescriptor.idProduct == USB_PRODUCT_ID) ||
+	if (!(deviceDescriptor.idVendor == USB_VENDOR_ID && deviceDescriptor.idProduct == USB_PRODUCT_ID) ||
 		 (deviceDescriptor.idVendor == USB_OLD_VENDOR_ID && deviceDescriptor.idProduct == USB_OLD_PRODUCT_ID))
 	{
-		Info(_log, "Found a Lightpack device. Retrieving more information...");
+		return false;
+	}
+	
+	Info(_log, "Found a Lightpack device. Retrieving more information...");
 
-		Debug(_log, "vendorIdentifier : %s", QSTRING_CSTR(QString("0x%1").arg(static_cast<ushort>(deviceDescriptor.idVendor),0,16)));
-		Debug(_log, "productIdentifier: %s", QSTRING_CSTR(QString("0x%1").arg(static_cast<ushort>(deviceDescriptor.idProduct),0,16)));
-		Debug(_log, "release_number   : %s", QSTRING_CSTR(QString("0x%1").arg(static_cast<ushort>(deviceDescriptor.bcdDevice),0,16)));
-		Debug(_log, "manufacturer     : %s", QSTRING_CSTR(getProperty(device, deviceDescriptor.iManufacturer)));
+	Debug(_log, "vendorIdentifier : %s", QSTRING_CSTR(QString("0x%1").arg(static_cast<ushort>(deviceDescriptor.idVendor),0,16)));
+	Debug(_log, "productIdentifier: %s", QSTRING_CSTR(QString("0x%1").arg(static_cast<ushort>(deviceDescriptor.idProduct),0,16)));
+	Debug(_log, "release_number   : %s", QSTRING_CSTR(QString("0x%1").arg(static_cast<ushort>(deviceDescriptor.bcdDevice),0,16)));
+	Debug(_log, "manufacturer     : %s", QSTRING_CSTR(getProperty(device, deviceDescriptor.iManufacturer)));
 
-		// get the hardware address
-		int busNumber = libusb_get_bus_number(device);
-		int addressNumber = libusb_get_device_address(device);
+	// get the hardware address
+	int busNumber = libusb_get_bus_number(device);
+	int addressNumber = libusb_get_device_address(device);
 
-		// get the serial number
-		QString serialNumber = LedDeviceLightpack::getProperty(device, deviceDescriptor.iSerialNumber);
-		Debug(_log,"Lightpack device found: bus=%d address=%d serial=%s", busNumber, addressNumber, QSTRING_CSTR(serialNumber));
+	// get the serial number
+	QString serialNumber = LedDeviceLightpack::getProperty(device, deviceDescriptor.iSerialNumber);
+	Debug(_log,"Lightpack device found: bus=%d address=%d serial=%s", busNumber, addressNumber, QSTRING_CSTR(serialNumber));
 
-		// check if this is the device we are looking for
-		if (requestedSerialNumber.isEmpty() || requestedSerialNumber == serialNumber)
+	// check if this is the device we are looking for
+	if (requestedSerialNumber.isEmpty() || requestedSerialNumber == serialNumber)
+	{
+		libusb_device_handle * deviceHandle;
+		if ( openDevice(device, &deviceHandle ) != 0 )
 		{
-			libusb_device_handle * deviceHandle;
-			if ( openDevice(device, &deviceHandle ) == 0 )
-			{
-				_serialNumber = serialNumber;
-				_busNumber = busNumber;
-				_addressNumber = addressNumber;
-
-				// get the firmware version
-				uint8_t buffer[256];
-				error = libusb_control_transfer(
-							deviceHandle,
-							static_cast<uint8_t>( LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE),
-							0x01,
-							0x0100,
-							0,
-							buffer, sizeof(buffer), 1000);
-				if (error < 3)
-				{
-					Error(_log, "Unable to retrieve firmware version number from Lightpack device(%d): %s", error, libusb_error_name(error));
-				}
-				else
-				{
-					_firmwareVersion.majorVersion = buffer[INDEX_FW_VER_MAJOR];
-					_firmwareVersion.minorVersion = buffer[INDEX_FW_VER_MINOR];
-				}
-
-				#if 0
-				// FOR TESTING PURPOSE: FORCE MAJOR VERSION TO 6
-				_firmwareVersion.majorVersion = 6;
-				#endif
-
-				// determine the number of LEDs
-				if (_firmwareVersion.majorVersion == 4)
-				{
-					_hwLedCount = 8;
-				}
-				else
-				{
-					_hwLedCount = 10;
-				}
-
-				// determine the bits per channel
-				if (_firmwareVersion.majorVersion == 6)
-				{
-					// maybe also or version 7? The firmware suggest this is only for 6... (2013-11-13)
-					_bitsPerChannel = 12;
-				}
-				else
-				{
-					_bitsPerChannel = 8;
-				}
-				closeDevice(deviceHandle);
-
-				Debug(_log, "Lightpack device found: bus=%d address=%d serial=%s version=%d.%d.", _busNumber, _addressNumber, QSTRING_CSTR(_serialNumber), _firmwareVersion.majorVersion, _firmwareVersion.minorVersion );
-				lightPackFound = true;
-
-			}
-			else
-			{
-				Warning(_log, "Unable to open Lightpack device. Searching for other device");
-			}
+			Warning(_log, "Unable to open Lightpack device. Searching for other device");
+			return false;
 		}
+
+		_serialNumber = serialNumber;
+		_busNumber = busNumber;
+		_addressNumber = addressNumber;
+
+		// get the firmware version
+		uint8_t buffer[256];
+		error = libusb_control_transfer(
+					deviceHandle,
+					static_cast<uint8_t>( LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE),
+					0x01,
+					0x0100,
+					0,
+					buffer, sizeof(buffer), 1000);
+		if (error < 3)
+		{
+			Error(_log, "Unable to retrieve firmware version number from Lightpack device(%d): %s", error, libusb_error_name(error));
+		}
+		else
+		{
+			_firmwareVersion.majorVersion = buffer[static_cast<int>(DATA_VERSION_INDEXES::FW_VER_MAJOR)];
+			_firmwareVersion.minorVersion = buffer[static_cast<int>(DATA_VERSION_INDEXES::FW_VER_MINOR)];
+		}
+
+		#if 0
+		// FOR TESTING PURPOSE: FORCE MAJOR VERSION TO 6
+		_firmwareVersion.majorVersion = 6;
+		#endif
+
+		// determine the number of LEDs
+		if (_firmwareVersion.majorVersion == 4)
+		{
+			_hwLedCount = 8;
+		}
+		else
+		{
+			_hwLedCount = 10;
+		}
+
+		// determine the bits per channel
+		if (_firmwareVersion.majorVersion == 6)
+		{
+			// maybe also or version 7? The firmware suggest this is only for 6... (2013-11-13)
+			_bitsPerChannel = 12;
+		}
+		else
+		{
+			_bitsPerChannel = 8;
+		}
+		closeDevice(deviceHandle);
+
+		Debug(_log, "Lightpack device found: bus=%d address=%d serial=%s version=%d.%d.", _busNumber, _addressNumber, QSTRING_CSTR(_serialNumber), _firmwareVersion.majorVersion, _firmwareVersion.minorVersion );
+		lightPackFound = true;
 	}
 
 	return lightPackFound;
 }
 
-int LedDeviceLightpack::write(const std::vector<ColorRgb> &ledValues)
+int LedDeviceLightpack::write(const QVector<ColorRgb> &ledValues)
 {
 	return write(ledValues.data(), static_cast<int>(ledValues.size()));
 }
 
 int LedDeviceLightpack::write(const ColorRgb * ledValues, int size)
 {
-	int count = qMin(_hwLedCount, static_cast<int>( size ));
+	int count = qMin(_hwLedCount,  size );
 
 	for (int i = 0; i < count ; ++i)
 	{
@@ -309,7 +303,7 @@ int LedDeviceLightpack::write(const ColorRgb * ledValues, int size)
 		// switches to determine what to do and some bit shuffling
 	}
 
-	int error = writeBytes(_ledBuffer.data(), _ledBuffer.size());
+	auto error = writeBytes(_ledBuffer.data(), _ledBuffer.size());
 	return error >= 0 ? 0 : error;
 }
 
@@ -317,7 +311,7 @@ bool LedDeviceLightpack::powerOff()
 {
 	bool rc = false;
 
-	unsigned char buf[1] = {CMD_OFF_ALL};
+	unsigned char buf[1] = {static_cast<uint8_t>(COMMANDS::OFF_ALL)};
 	rc = writeBytes(buf, sizeof(buf)) == sizeof(buf);
 
 	return rc;
@@ -336,7 +330,7 @@ int LedDeviceLightpack::writeBytes(uint8_t *data, int size)
 	0x09,
 	(2 << 8),
 	0x00,
-	data, size, 1000);
+	data, static_cast<uint16_t>(size), 1000);
 
 	if (error != size)
 	{
@@ -349,7 +343,7 @@ int LedDeviceLightpack::writeBytes(uint8_t *data, int size)
 
 int LedDeviceLightpack::disableSmoothing()
 {
-	unsigned char buf[2] = {CMD_SET_SMOOTH_SLOWDOWN, 0};
+	unsigned char buf[2] = {static_cast<uint8_t>(COMMANDS::SET_SMOOTH_SLOWDOWN), 0};
 
 	int rc = 0;
 	if (  writeBytes(buf, sizeof(buf)) == sizeof(buf) )
@@ -421,7 +415,7 @@ int LedDeviceLightpack::closeDevice(libusb_device_handle * deviceHandle)
 	return rc;
 }
 
-QString LedDeviceLightpack::getProperty(libusb_device * device, int stringDescriptorIndex)
+QString LedDeviceLightpack::getProperty(libusb_device * device, uint8_t stringDescriptorIndex)
 {
 	QString value;
 

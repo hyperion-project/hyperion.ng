@@ -9,4 +9,5 @@ target_link_libraries(dda-grabber
 	hyperion
 	d3d11.lib
 	dxgi.lib
+	d2d1.lib
 )

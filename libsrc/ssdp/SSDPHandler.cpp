@@ -61,6 +61,7 @@ void SSDPHandler::stop()
 	sendAnnounceList(false);
 	SSDPServer::stop();
 	Info(_log, "SSDP info service stopped");
+	emit isStopped();
 }
 
 void SSDPHandler::handleSettingsUpdate(settings::type type, const QJsonDocument& config)

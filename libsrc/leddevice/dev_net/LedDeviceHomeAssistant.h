@@ -3,18 +3,21 @@
 
 // LedDevice includes
 #include <leddevice/LedDevice.h>
-#include "ProviderRestApi.h"
 
 // Qt includes
 #include <QString>
 #include <QHostAddress>
 #include <QNetworkAccessManager>
+#include <QScopedPointer>
+#include <QVector>
+
+#include "ProviderRestApi.h"
 
 ///
 /// Implementation of the LedDevice interface for sending to
 /// lights made available via the Home Assistant platform.
 ///
-class LedDeviceHomeAssistant : LedDevice
+class LedDeviceHomeAssistant : public LedDevice
 {
 public:
 	///
@@ -114,7 +117,7 @@ protected:
 	/// @param[in] ledValues The RGB-color
 	/// @return Zero on success, else negative
 	//////
-	int write(const std::vector<ColorRgb>& ledValues) override;
+	int write(const QVector<ColorRgb>& ledValues) override;
 
 	///
 	/// @brief Power-/turn on the Home Assistant light.
@@ -153,15 +156,8 @@ private:
 	///
 	QJsonArray discoverSsdp() const;
 
-	// ///
-	// /// @brief Get number of panels that can be used as LEds.
-	// ///
-	// /// @return Number of usable LED panels
-	// ///
-	// int getHwLedCount(const QJsonObject& jsonLayout) const;
-
 	QString _hostName;
-	ProviderRestApi* _restApi;
+	QScopedPointer<ProviderRestApi, QScopedPointerDeleteLater> _restApi;
 	int	_apiPort;
 	bool _useSsl;
 	QString _bearerToken;

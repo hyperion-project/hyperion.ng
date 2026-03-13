@@ -7,7 +7,7 @@
 
 PyThreadState* mainThreadState;
 
-PythonProgram::PythonProgram(const QString& name, Logger* log) :
+PythonProgram::PythonProgram(const QString& name, QSharedPointer<Logger> log) :
 	_name(name)
 	, _log(log)
 	, _tstate(nullptr)

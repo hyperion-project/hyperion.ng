@@ -14,7 +14,7 @@ struct StopWatchItem {
 
 static unsigned int blockCounter = 0;
 static std::map<QString,StopWatchItem> GlobalProfilerMap;
-Logger* Profiler::_logger = nullptr;
+QSharedPointer<Logger> Profiler::_logger = nullptr;
 
 double getClockDelta(clock_t start)
 {

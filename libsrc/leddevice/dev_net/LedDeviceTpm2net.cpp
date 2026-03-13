@@ -27,70 +27,66 @@ LedDevice* LedDeviceTpm2net::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceTpm2net::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK {false};
-
 	// Initialise sub-class
-	if ( ProviderUdp::init(deviceConfig) )
+	if (!ProviderUdp::init(deviceConfig))
 	{
-		_hostName = _devConfig[ CONFIG_HOST ].toString();
-		_port = deviceConfig[CONFIG_PORT].toInt(TPM2_DEFAULT_PORT);
-
-		_tpm2_max  = deviceConfig["max-packet"].toInt(170);
-		_tpm2ByteCount = 3 * _ledCount;
-		_tpm2TotalPackets = (_tpm2ByteCount / _tpm2_max) + ((_tpm2ByteCount % _tpm2_max) != 0);
-
-		_tpm2_buffer = (uint8_t*) malloc(_tpm2_max+7);
-
-		isInitOK = true;
+		return false;
 	}
-	return isInitOK;
+
+	_hostName = _devConfig[ CONFIG_HOST ].toString();
+	_port = deviceConfig[CONFIG_PORT].toInt(TPM2_DEFAULT_PORT);
+
+	_tpm2_max  = deviceConfig["max-packet"].toInt(170);
+	_tpm2ByteCount = 3 * _ledCount;
+	_tpm2TotalPackets = (_tpm2ByteCount / _tpm2_max) + ((_tpm2ByteCount % _tpm2_max) != 0);
+
+	_tpm2_buffer = (uint8_t*) malloc(_tpm2_max+7);
+
+	return true;
 }
 
 int LedDeviceTpm2net::open()
 {
-	int retval = -1;
 	_isDeviceReady = false;
-
 	this->setIsRecoverable(true);
-	if (NetUtils::resolveHostToAddress(_log, _hostName, _address))
+	
+	NetUtils::convertMdnsToIp(_log, _hostName);
+	if (ProviderUdp::open() == 0)
 	{
-		if (ProviderUdp::open() == 0)
-		{
-			// Everything is OK, device is ready
-			_isDeviceReady = true;
-			retval = 0;
-		}
+		// Everything is OK, device is ready
+		_isDeviceReady = true;
+
 	}
-	return retval;
+	return _isDeviceReady ? 0 : -1;
 }
 
-int LedDeviceTpm2net::write(const std::vector<ColorRgb> &ledValues)
+int LedDeviceTpm2net::write(const QVector<ColorRgb> &ledValues)
 {
 	int retVal = 0;
 
 	int _thisPacketBytes = 0;
 	_tpm2ThisPacket = 1;
 
-	const uint8_t * rawdata = reinterpret_cast<const uint8_t *>(ledValues.data());
+	const auto* rawdata = reinterpret_cast<const uint8_t*>(ledValues.data());
 
 	for (int rawIdx = 0; rawIdx < _tpm2ByteCount; rawIdx++)
 	{
 		if (rawIdx % _tpm2_max == 0) // start of new packet
 		{
 			_thisPacketBytes = (_tpm2ByteCount - rawIdx < _tpm2_max) ? _tpm2ByteCount % _tpm2_max : _tpm2_max;
-//			                        is this the last packet?         ?    ^^ last packet          : ^^ earlier packets
+//			                        is this the last packet?         ? ^^ last packet             : ^^ earlier packets
 
 			_tpm2_buffer[0] = 0x9c;	// Packet start byte
 			_tpm2_buffer[1] = 0xda; // Packet type Data frame
 			_tpm2_buffer[2] = (_thisPacketBytes >> 8) & 0xff; // Frame size high
 			_tpm2_buffer[3] = _thisPacketBytes & 0xff; // Frame size low
-			_tpm2_buffer[4] = _tpm2ThisPacket++; // Packet Number
-			_tpm2_buffer[5] = _tpm2TotalPackets; // Number of packets
+			_tpm2_buffer[4] = static_cast<uint8_t>(_tpm2ThisPacket++); // Packet Number
+			_tpm2_buffer[5] = static_cast<uint8_t>(_tpm2TotalPackets); // Number of packets
 		}
 
 		_tpm2_buffer [6 + rawIdx%_tpm2_max] = rawdata[rawIdx];
 
-//     is this the      last byte of last packet    ||   last byte of other packets
+//      this the last byte of last packet || last byte of other packets
 		if ( (rawIdx == _tpm2ByteCount-1) || (rawIdx %_tpm2_max == _tpm2_max-1) )
 		{
 			_tpm2_buffer [6 + rawIdx%_tpm2_max +1] = 0x36;		// Packet end byte

@@ -92,7 +92,7 @@ void EncoderThread::setup(
 		tjFree(_localData);
 		_localData = nullptr;
 	}
-	_localData = static_cast<uint8_t*>(tjAlloc(size + 1));
+	_localData = tjAlloc(size + 1);
 #else
 	if (_localData != nullptr)
 	{

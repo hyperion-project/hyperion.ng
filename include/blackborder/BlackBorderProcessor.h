@@ -26,7 +26,7 @@ namespace hyperion
 	{
 		Q_OBJECT
 	public:
-		BlackBorderProcessor(const QSharedPointer<Hyperion>& hyperionInstance, QObject* parent);
+		BlackBorderProcessor(const QSharedPointer<Hyperion>& hyperionInstance, QObject* parent = nullptr);
 		~BlackBorderProcessor() override;
 
 		///
@@ -66,6 +66,8 @@ namespace hyperion
 		template <typename Pixel_T>
 		bool process(const Image<Pixel_T> & image)
 		{
+			qCDebug(image_track) << "Image [" << image.id() << "]";
+
 			// get the border for the single image
 			BlackBorder imageBorder;
 			imageBorder.horizontalSize = 0;
@@ -116,8 +118,9 @@ namespace hyperion
 	private:
 		/// Hyperion instance
 		QWeakPointer<Hyperion> _hyperionWeak;
+		
 		/// Logger instance
-		Logger* _log;
+		QSharedPointer<Logger> _log;
 
 		///
 		/// Updates the current border based on the newly detected border. Returns true if the

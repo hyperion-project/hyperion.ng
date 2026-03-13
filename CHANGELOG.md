@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.1.1...HEAD)
+## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.2.0...HEAD)
 
 ### ⚠️ Breaking Changes
 
@@ -12,27 +12,125 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### ✨ Added
 
-- HTTPS support for homeassistant LED devices (#1886)
+- Art-Net - Add RGBW support
 
 ---
-
 
 ### 🔧 Changed
 
 - **Fixes:**
-  - UI - Language is not selectable (#1877)
-  - CEC-Handler is not stopped properly
-  - Qt-Grabber (Windows) does not apply pixel ratio (#1882) - _Thanks to @SolberLight_
-  - LED-devices are not retrying to establish connectivity, if supported by the device
-  - LED-devices are resolving IP-addresses for API and UDP two times in sequence
-  - LED-device updates queue up and let Hyperion crash (#1887)
+  - Art-Net device is limited to 108 DMX channels (36 RGB LEDs) instead of 512 channels (170 RGB LEDs)
+  - Image Effect trigger kills Hyperion (#1980)
 
 ---
 
 ### 🗑️ Removed
 
-- Removed the ability to revoke API requests which are not issued from the same network segment. This includes the removal of IP-address white- & blacklisting (#1880)
-Rationale: Such kind of functionality is better to be dealt with via proper network management and setup, e.g. via firewalls, VLANs.
+---
+
+### Technical
+
+- Fixed - Locally installed flatc/protoc compilers were not found
+- ProviderRestAPI - Handle QNetworkAccessManager as direct object 
+
+## [2.2.0](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.2.0) - 2026-02-02
+
+### ⚠️ Breaking Changes
+
+- Align Hue Bridge processing to Philips' guidance on security, i.e. no self-signed certificates for orginal bridges
+
+---
+
+### ✨ Added
+
+- Support of RGBW in **e1.31** LED devices.
+- Support of RGBW in **WLED, UDP-DDP, UDP-RAW** LED devices.
+- HTTPS support for homeassistant LED devices (#1886)
+- Hue Bridge - Use https and certificates for all API calls, support Bridge Pro (V3)
+- Hue Bridge - Alternate certificate support
+- Linux: New DRM/KMS screen grabber with plane-based capture - not feature complete yet
+- Home Assistant: Dynamically set brightness for higher dynamic range (#1922)
+- Add DRM_FORMAT_RGB565 format to DRM frame grabber
+- Add standalone DRM grabber
+- Avoid queuing on image processing for output
+- Validation of RFC 4122 UUID (Universally Unique Identifier) elements and apply it e1.31 devices config screen
+
+---
+
+### 🔧 Changed
+
+  - Hue Bridge - Wizard updates to support bridge-ids, overall code refactoring
+  - USB Grabber - Default hardware control properties are now applied when a new USB grabber is selected (avoids black images)
+  - USB Grabber - Correct garbage default control values to avoid save issues (#1928)
+  - Windows DDA Grabber - Rewritten grabber internals for better performance & stability and fixed various issues, e.g. screen locking, -orientation handling (#1872), sleep (#1893)
+  - Amlogic grabber - Capture image in target size to avoid extra downscaling by CPU
+  - Web UI: Update panel title uses "Hyperion - <version>"; skip showing the "nightly" tag in releases list
+  - Screen grabbers: Commonized base with getDeviceName/getInputDeviceDetails; explicit constructors; improved error handling
+  - Framebuffer grabber: Internal cleanup, consistent device naming, safer mmap usage
+  - Logger internals: use smart pointers and clean-ups
+  - Align instance source settings for new instances with grabber enable state
+  - Forwarder: Clear remote priority 1 when the forwarding instance is stopped
+
+- **Fixes:**
+  - UI - Menu is not opened on small (mobile) screens
+  - UI - Language is not selectable (#1877)
+  - UI - Release were not shown on Update page
+  - UI - Fixes for input/format selection
+  - UI - Fix that gap-length could get negative
+  - UI - Systray Settings is not using the actual port (#1964)
+  - UI - Dashboard, wrap long version text
+  - UI - Non local network connection is dropped without providing a reason (#1970)
+  - CEC-Handler is not stopped  every instance started
+  - Qt-Grabber (Windows) does not apply pixel ratio (#1882) - _Thanks to @SolberLight_
+  - LED-devices are not retrying to establish connectivity, if supported by the device
+  - LED-devices are resolving IP-addresses for API and UDP two times in sequence
+  - LED-device updates queue up and let Hyperion crash (#1887)
+  - LED-device switch-off were not always executed during instance stopping
+  - LED-Device latchTime was not considered correctly 
+  - LED-Device Adalight LightBerry APA102 Mode not working (#1961)
+  - Segfault when turning an LED instance off (#1903)
+  - Fix concurrent mDNS resolution (#1906) - _Thanks to @discordianfish_
+  - The color of the backlight threshold is green, not white/gray (#1899)
+  - Install - Ubuntu 25.10 unable to install due to libcec package (#1934)
+  - hyperion-remote/standalone grabbers cannot resolve local address (#1909)
+  - RAM Leak with hyperiond. Gbytes in a matter of days. (#1792)
+  - Memory Leak with new Hyperion 2.1.1 on Windows 11 (#1892)
+  - JSON-API: Instance Command without proper instances is using wrong instance ID
+  - Import 2.1.1 config via 2.1.2 UI fails validation (#1907)
+  - Memory/Image queuing issue when all instances are stopped but grabber is running
+  - Forwarder was not using the correct target instance IDs for JSON requests
+  - Flatbuffer/Protobuffer sources are not reconnected after (re)starting a hyperion instance
+  - Flatbuffer/Protobuffer breaks, if socket drops while sending a reply 
+  - Adalight.ino changes due to FastLED update (#1942) _Thanks to @JackSwieper_
+  - mdnsBrowser is not stopped properly on shutdown
+  - ColorTypes are not correctly initialised to black
+  - WebSockets are not closed properly when stopping Hyperion
+  - Tracing is not initialized for hyperion remote executables
+  - DDA Grabber is entering permanent error state when elevated or policy deny DDA
+  
+- **Refactors:**
+  - Fixed Image & ImageData and add debug logging (#1792, #1892)
+  - Aligned grabbers with reworked Image handling avoiding extra copies
+  - Moved Image & LEDData throttling to Callback, limit image size
+  - Streamlined LEDDevice code
+  - Removed unnecessary allocations. Recreate imageToLedColors only if a parameter changed
+  - JSON-API add resillance, e.g. reject instance cmds if no instance is running
+  - Logging/Tracing: Introduced qlogging categories to enable dynamic tracing, removed bespoke compile time tracing
+  - Handle singletons consistently
+  - Adressed Linter findings
+
+---
+
+### 🗑️ Removed
+
+  - Amlogic grabber - Removed support to grab DRM & FB-DEV, i.e.Kodi screens on will not be captued on CoreElec
+
+### Technical
+
+- Update mbedTLS to v3.6.4, Update flatbuffers to v25.9.23, Update rpi_ws281x library
+- Have vscode launch configurations working across OS
+- Ensure consistent build timestamp
+- Windows: added more granular stack tracing
 
 ## [2.1.1](https://github.com/hyperion-project/hyperion.ng/compare/2.1.1...HEAD) - 2025-06-14
 

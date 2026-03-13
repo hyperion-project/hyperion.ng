@@ -18,7 +18,7 @@ DirectXWrapper::DirectXWrapper(const QJsonDocument& grabberConfig)
 					 GrabberWrapper::DEFAULT_PIXELDECIMATION,
 					 0,0,0,0)
 {
-	this->handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
+	GrabberWrapper::handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
 }
 
 void DirectXWrapper::action()

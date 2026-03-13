@@ -46,4 +46,5 @@ public:
 	static PyObject* wrapImageCShear           (PyObject *self, PyObject *args);
 	static PyObject* wrapImageResetT           (PyObject *self, PyObject *args);
 	static PyObject* wrapLowestUpdateInterval  (PyObject* self, PyObject* args);
+	static PyObject* wrapImageStackClear       (PyObject* self, PyObject* args);
 };

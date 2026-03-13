@@ -9,11 +9,12 @@
 
 /// construct wrapper with auth table
 AuthTable::AuthTable(QObject* parent)
-	: DBManager(parent)
+	: DBManager("auth", parent)
 {
-	// init Auth table
-	setTable("auth");
-	// create table columns
+	TRACK_SCOPE();	
+	_log = Logger::getInstance("DB-AUTH");
+	
+	// init Auth table and create table columns
 	createTable(QStringList()<<"user TEXT"<<"password BLOB"<<"token BLOB"<<"salt BLOB"<<"comment TEXT"<<"id TEXT"<<"created_at TEXT"<<"last_use TEXT");
 };
 

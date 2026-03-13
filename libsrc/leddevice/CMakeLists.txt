@@ -171,3 +171,7 @@ endif()
 if(ENABLE_DEV_FTDI)
 	target_link_libraries(leddevice libftdi usb-1.0)
 endif()
+
+if(UNIX AND NOT APPLE)
+	target_link_libraries(leddevice atomic)
+endif()

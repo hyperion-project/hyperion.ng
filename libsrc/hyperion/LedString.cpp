@@ -1,46 +1,33 @@
-// STL includes
-
-#include <cstring>
-#include <iostream>
-
-// hyperion includes
 #include <hyperion/LedString.h>
-#include <utils/Logger.h>
 
-// QT includes
 #include <QJsonObject>
 
-std::vector<Led>& LedString::leds()
+#include <utils/Logger.h>
+
+QVector<Led>& LedString::leds()
 {
 	return _leds;
 }
 
-const std::vector<Led>& LedString::leds() const
+const QVector<Led>& LedString::leds() const
 {
 	return _leds;
 }
 
-std::vector<int>& LedString::blacklistedLedIds()
+QVector<int>& LedString::blacklistedLedIds()
 {
 	return _blacklistedLedIds;
 }
 
-const std::vector<int>& LedString::blacklistedLedIds() const
+const QVector<int>& LedString::blacklistedLedIds() const
 {
 	return _blacklistedLedIds;
 }
 
-bool LedString::hasBlackListedLeds()
+bool LedString::hasBlackListedLeds() const
 {
+	return !_blacklistedLedIds.isEmpty();
 
-	if (_blacklistedLedIds.size() > 0)
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
 }
 
 /**
@@ -56,8 +43,8 @@ LedString LedString::createLedString(const QJsonArray& ledConfigArray, const Col
 	LedString ledString;
 	const QString deviceOrderStr = colorOrderToString(deviceOrder);
 
-	int configuredLeds = static_cast<int>(ledConfigArray.size());
-	int ledsUsed = configuredLeds;
+	auto configuredLeds = ledConfigArray.size();
+	auto ledsUsed = configuredLeds;
 
 	if (ledsUsed > maxLeds)
 	{

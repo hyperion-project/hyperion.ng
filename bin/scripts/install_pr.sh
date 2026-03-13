@@ -2,7 +2,7 @@
 # Script for downloading a specific open Pull Request Artifact from Hyperion.NG
 
 # Fixed variables
-api_url="https://api.github.com/repos/hyperion-project/hyperion.ng"
+api_url="https://api.github.com/repos"
 type wget >/dev/null 2>/dev/null
 hasWget=$?
 type curl >/dev/null 2>/dev/null
@@ -12,8 +12,9 @@ hasPython3=$?
 type python >/dev/null 2>/dev/null
 hasPython2=$?
 
+REPOSITORY="hyperion-project/hyperion.ng"
 DISTRIBUTION="debian"
-CODENAME="bullseye"
+CODEBASE=""
 ARCHITECTURE=""
 
 BASE_PATH='.'
@@ -79,10 +80,12 @@ request_call() {
 	echo "$body"
 }
 
-while getopts ":a:c:r:t:" opt; do
+while getopts ":a:b:c:g:r:t:" opt; do
 	case "$opt" in
 	a) ARCHITECTURE=$OPTARG ;;
+	b) CODEBASE=$OPTARG ;;
 	c) CONFIGDIR=$OPTARG ;;
+	g) REPOSITORY=$OPTARG ;;
 	r) run_id=$OPTARG ;;
 	t) PR_TOKEN=$OPTARG ;;
 	esac
@@ -91,7 +94,7 @@ shift $((OPTIND - 1))
 
 # Check for a command line argument (PR number)
 if [ "$1" == "" ] || [ $# -gt 1 ] || [ -z ${PR_TOKEN} ]; then
-	echo "Usage: $0 -t <git_token> -a <architecture> -r <run_id> -c <hyperion config directory> <PR_NUMBER>" >&2
+	echo "Usage: $0 -t <git_token> -a <architecture> -b <codebase> -r <run_id> -c <hyperion config directory> -g <github project/repository> <PR_NUMBER>" >&2
 	exit 1
 else
 	pr_number="$1"
@@ -137,9 +140,17 @@ if [ $? -ne 0 ]; then
 	echo "---> Critical Error: Target architecture $ARCHITECTURE is unknown -> abort"
 	exit 1
 else
-	PACKAGE="${ARCHITECTURE}"
-	echo "---> Download package for identified runtime architecture: $ARCHITECTURE"
+	if [[ -z ${CODEBASE} ]]; then
+		PACKAGE="${ARCHITECTURE}"
+		echo "---> Download package for identified runtime architecture: $ARCHITECTURE"
+	else
+		PACKAGE="${CODEBASE}_${ARCHITECTURE}"
+		echo "---> Download package for identified runtime architecture: $ARCHITECTURE and selected codebase: $CODEBASE"
+	fi
 fi
+
+api_url="${api_url}/${REPOSITORY}"
+
 
 # Determine if PR number exists
 pulls=$(request_call "$api_url/pulls?state=open")

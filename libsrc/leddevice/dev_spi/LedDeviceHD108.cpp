@@ -34,33 +34,32 @@ LedDevice* LedDeviceHD108::construct(const QJsonObject &deviceConfig)
  */
 bool LedDeviceHD108::init(const QJsonObject &deviceConfig)
 {
-    bool isInitOK = false;
-
     // First, let the base SPI provider perform its initialization
-    if (ProviderSpi::init(deviceConfig))
-    {
-        // Read brightnessControlMaxLevel from the config, falling back to a default if absent
-        _brightnessControlMaxLevel = deviceConfig["brightnessControlMaxLevel"].toInt(HD108_BRIGHTNESS_MAX_LEVEL);
+	if ( !ProviderSpi::init(deviceConfig) )
+	{
+		return false;
+	}
 
-        // Log the brightness info
-        Info(_log,
-             "[%s] Setting maximum brightness to [%d] = %d%%",
-             QSTRING_CSTR(_activeDeviceType),
-             _brightnessControlMaxLevel,
-             _brightnessControlMaxLevel * 100 / HD108_BRIGHTNESS_MAX_LEVEL);
+    // Read brightnessControlMaxLevel from the config, falling back to a default if absent
+    _brightnessControlMaxLevel = deviceConfig["brightnessControlMaxLevel"].toInt(HD108_BRIGHTNESS_MAX_LEVEL);
 
-        // Combine the brightness levels into the HD108's 16-bit brightness field.
-        // According to the HD108 spec, this is composed of a control bit plus
-        // the brightness level split into three segments for R, G, B.
-        _global_brightness = (1 << 15)
-                           | (_brightnessControlMaxLevel << 10)
-                           | (_brightnessControlMaxLevel << 5)
-                           | _brightnessControlMaxLevel;
+    // Log the brightness info
+    Info(_log,
+            "[%s] Setting maximum brightness to [%d] = %d%%",
+            QSTRING_CSTR(_activeDeviceType),
+            _brightnessControlMaxLevel,
+            _brightnessControlMaxLevel * 100 / HD108_BRIGHTNESS_MAX_LEVEL);
 
-        isInitOK = true;
-    }
+    // Combine the brightness levels into the HD108's 16-bit brightness field.
+    // According to the HD108 spec, this is composed of a control bit plus
+    // the brightness level split into three segments for R, G, B.
+    _global_brightness = static_cast<uint16_t>((1 << 15)
+                        | (_brightnessControlMaxLevel << 10)
+                        | (_brightnessControlMaxLevel << 5)
+                        | _brightnessControlMaxLevel);
 
-    return isInitOK;
+
+    return true;
 }
 
 /**
@@ -82,7 +81,7 @@ bool LedDeviceHD108::init(const QJsonObject &deviceConfig)
  * @param ledValues A vector of ColorRgb (red, green, blue) structures.
  * @return The result of the SPI write operation (0 for success, or an error code).
  */
-int LedDeviceHD108::write(const std::vector<ColorRgb> & ledValues)
+int LedDeviceHD108::write(const QVector<ColorRgb> & ledValues)
 {
     // Calculate how much space we need in total:
     //  - 8 bytes for the start frame

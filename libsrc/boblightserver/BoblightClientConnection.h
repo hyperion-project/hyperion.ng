@@ -41,7 +41,7 @@ public:
 	///
 	/// @returns IP-address as QString
 	///
-	QString getClientAddress() { return _clientAddress; }
+	QString getClientAddress() const { return _clientAddress; }
 
 signals:
 	///
@@ -137,10 +137,10 @@ private:
 	int _priority;
 
 	/// The latest led color data
-	std::vector<ColorRgb> _ledColors;
+	QVector<ColorRgb> _ledColors;
 
 	/// logger instance
-	Logger * _log;
+	QSharedPointer<Logger> _log;
 
 	/// address of client
 	QString _clientAddress;

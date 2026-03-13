@@ -70,7 +70,7 @@ private:
 	QString _channelName;
 
 	/// Logger instance
-	Logger * _log;
+	QSharedPointer<Logger> _log;
 
 	/// The adjustment of RGB channel
 	ColorRgb _adjust;

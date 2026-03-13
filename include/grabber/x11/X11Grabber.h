@@ -30,7 +30,7 @@ class X11Grabber : public Grabber , public QAbstractNativeEventFilter
 {
 public:
 
-	X11Grabber(int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0);
+	explicit X11Grabber(int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0);
 
 	~X11Grabber() override;
 
@@ -39,7 +39,7 @@ public:
 	///
 	/// @return true, on success (i.e. Window Manager is not Wayland), else false
 	///
-	bool isAvailable(bool logError = true) override;
+	bool isAvailable(bool logError = false) override;
 
 	bool open();
 	bool setupDisplay();

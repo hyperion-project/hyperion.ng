@@ -187,7 +187,7 @@ void AudioGrabber::processAudioFrame(int16_t* buffer, int length)
 	emit newFrame(finalImage);
 }
 
-Logger* AudioGrabber::getLog()
+QSharedPointer<Logger> AudioGrabber::getLog()
 {
 	return _log;
 }

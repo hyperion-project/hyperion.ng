@@ -7,22 +7,31 @@
 #include <utils/Process.h>
 #include <hyperion/HyperionIManager.h>
 
+Q_LOGGING_CATEGORY(event_hyperion, "hyperion.event.hyperion");
+
 QScopedPointer<EventHandler> EventHandler::instance;
 
 EventHandler::EventHandler()
 	: _isSuspended(false)
 	, _isIdle(false)
 {
+	TRACK_SCOPE();
 	qRegisterMetaType<Event>("Event");
 	_log = Logger::getInstance("EVENTS");
-
-	QObject::connect(this, &EventHandler::signalEvent, HyperionIManager::getInstance(), &HyperionIManager::handleEvent);
+	if (auto mgrStrong = HyperionIManager::getInstanceWeak().toStrongRef())
+	{
+		QObject::connect(this, &EventHandler::signalEvent, mgrStrong.get(), &HyperionIManager::handleEvent);
+	}
 	Debug(_log, "Hyperion event handler created");
 }
 
 EventHandler::~EventHandler()
 {
-	QObject::disconnect(this, &EventHandler::signalEvent, HyperionIManager::getInstance(), &HyperionIManager::handleEvent);
+	TRACK_SCOPE();
+	if (auto mgrStrong = HyperionIManager::getInstanceWeak().toStrongRef())
+	{
+		QObject::disconnect(this, &EventHandler::signalEvent, mgrStrong.get(), &HyperionIManager::handleEvent);
+	}
 }
 
 QScopedPointer<EventHandler>& EventHandler::getInstance()
@@ -33,6 +42,14 @@ QScopedPointer<EventHandler>& EventHandler::getInstance()
 	}
 
 	return instance;
+}
+
+void EventHandler::destroyInstance()
+{
+	if (instance)
+	{
+		instance.reset();
+	}
 }
 
 void EventHandler::suspend()
@@ -57,12 +74,11 @@ void EventHandler::suspend(bool sleep)
 	}
 	else
 	{
-		if (_isSuspended || _isIdle)
+		if (_isSuspended)
 		{
 			Info(_log, "Resume event received - Hyperion is going into working mode");
-			emit signalEvent(Event::Resume);
 			_isSuspended = false;
-			_isIdle = false;
+			emit signalEvent(Event::Resume);
 		}
 		else
 		{
@@ -112,8 +128,8 @@ void EventHandler::idle(bool isIdle)
 			if (_isIdle)
 			{
 				Info(_log, "Resume from idle event recevied");
-				emit signalEvent(Event::ResumeIdle);
 				_isIdle = false;
+				emit signalEvent(Event::ResumeIdle);
 			}
 		}
 	}
@@ -190,6 +206,14 @@ void EventHandler::handleEvent(Event event)
 
 	case Event::Quit:
 		emit signalEvent(Event::Quit);
+		break;
+
+	case Event::Lock:
+		emit signalEvent(Event::Lock);
+		break;
+
+	case Event::Unlock:
+		emit signalEvent(Event::Unlock);
 		break;
 
 	default:

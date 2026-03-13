@@ -8,9 +8,11 @@
 #include <QCryptographicHash>
 
 MetaTable::MetaTable(QObject* parent)
-	: DBManager(parent)
+	: DBManager("meta", parent)
 {
-	setTable("meta");
+	TRACK_SCOPE();	
+	_log = Logger::getInstance("DB-META");
+
 	createTable(QStringList()<<"uuid TEXT"<<"created_at TEXT");
 };
 

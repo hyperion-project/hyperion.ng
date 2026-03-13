@@ -41,8 +41,8 @@ bool ProviderHID::init(const QJsonObject &deviceConfig)
 		auto ProductIdString  = deviceConfig["PID"].toString("0x8036").toStdString();
 
 		// Convert HEX values to integer
-		_VendorId = std::stoul(VendorIdString, nullptr, 16);
-		_ProductId = std::stoul(ProductIdString, nullptr, 16);
+		_VendorId = static_cast<unsigned short>(std::stoul(VendorIdString, nullptr, 16));
+		_ProductId = static_cast<unsigned short>(std::stoul(ProductIdString, nullptr, 16));
 
 		// Initialize the USB context
 		if ( hid_init() != 0)
@@ -61,7 +61,6 @@ bool ProviderHID::init(const QJsonObject &deviceConfig)
 
 int ProviderHID::open()
 {
-	int retval = -1;
 	_isDeviceReady = false;
 
 	// Open the device
@@ -71,33 +70,35 @@ int ProviderHID::open()
 	if (_deviceHandle == nullptr)
 	{
 		// Failed to open the device
-		this->setInError( "Failed to open HID device. Maybe your PID/VID setting is wrong? Make sure to add a udev rule/use sudo." );
+		this->setInError("Failed to open HID device. Maybe your PID/VID setting is wrong? Make sure to add a udev rule/use sudo.");
 
-#if 0
-		// http://www.signal11.us/oss/hidapi/
-				std::cout << "Showing a list of all available HID devices:" << std::endl;
-				auto devs = hid_enumerate(0x00, 0x00);
-				auto cur_dev = devs;
-				while (cur_dev) {
-					printf("Device Found\n  type: %04hx %04hx\n  path: %s\n  serial_number: %ls",
-						cur_dev->vendor_id, cur_dev->product_id, cur_dev->path, cur_dev->serial_number);
-					printf("\n");
-					printf("  Manufacturer: %ls\n", cur_dev->manufacturer_string);
-					printf("  Product:      %ls\n", cur_dev->product_string);
-					printf("\n");
-					cur_dev = cur_dev->next;
-				}
-				hid_free_enumeration(devs);
-#endif
+		if (leddevice_properties().isDebugEnabled())
+		{
+			// http://www.signal11.us/oss/hidapi/
+			qCDebug(leddevice_properties()) << "HIDAPI Device List:";
+			auto devs = hid_enumerate(0x00, 0x00);
+			auto cur_dev = devs;
+			while (cur_dev)
+			{
+				qCDebug(leddevice_properties()) << "Device Found";
+				qCDebug(leddevice_properties()) << "  type:"
+												<< QString("%1").arg(cur_dev->vendor_id, 4, 16, QLatin1Char('0'))
+												<< QString("%1").arg(cur_dev->product_id, 4, 16, QLatin1Char('0'));
+				qCDebug(leddevice_properties()) << "  path:" << cur_dev->path;
+				qCDebug(leddevice_properties()) << "  serial_number:" << QString::fromWCharArray(cur_dev->serial_number);
+				qCDebug(leddevice_properties()) << "  Manufacturer:" << QString::fromWCharArray(cur_dev->manufacturer_string);
+				qCDebug(leddevice_properties()) << "  Product:" << QString::fromWCharArray(cur_dev->product_string);
 
+				cur_dev = cur_dev->next;
+			}
+			hid_free_enumeration(devs);
+		}
+		return -1;
 	}
-	else
-	{
-		Info(_log,"Opened HID device successful");
-		// Everything is OK -> enable device
-		_isDeviceReady = true;
-		retval = 0;
-	}
+
+	Info(_log,"Opened HID device successful");
+	// Everything is OK -> enable device
+	_isDeviceReady = true;
 
 	// Wait after device got opened if enabled
 	if (_delayAfterConnect_ms > 0)
@@ -107,12 +108,11 @@ int ProviderHID::open()
 		Debug(_log, "Device blocked for %d  ms", _delayAfterConnect_ms);
 	}
 
-	return retval;
+	return 0;
 }
 
 int ProviderHID::close()
 {
-	int retval = 0;
 	_isDeviceReady = false;
 
 	// LedDevice specific closing activities
@@ -121,12 +121,13 @@ int ProviderHID::close()
 		hid_close(_deviceHandle);
 		_deviceHandle = nullptr;
 	}
-	return retval;
+	return 0;
 }
 
 int ProviderHID::writeBytes(unsigned size, const uint8_t * data)
 {
-	if (_blockedForDelay) {
+	if (_blockedForDelay) 
+	{
 		return 0;
 	}
 
@@ -209,11 +210,11 @@ QJsonObject ProviderHID::discover(const QJsonObject& /*params*/)
 			QJsonObject deviceInfo;
 			deviceInfo.insert("manufacturer",QString::fromWCharArray(cur_dev->manufacturer_string));
 			deviceInfo.insert("path",cur_dev->path);
-			deviceInfo.insert("productIdentifier", QString("0x%1").arg(static_cast<ushort>(cur_dev->product_id),0,16));
-			deviceInfo.insert("release_number",QString("0x%1").arg(static_cast<ushort>(cur_dev->release_number),0,16));
+			deviceInfo.insert("productIdentifier", QString("0x%1").arg(cur_dev->product_id,0,16));
+			deviceInfo.insert("release_number",QString("0x%1").arg(cur_dev->release_number,0,16));
 			deviceInfo.insert("serialNumber",QString::fromWCharArray(cur_dev->serial_number));
-			deviceInfo.insert("usage_page", QString("0x%1").arg(static_cast<ushort>(cur_dev->usage_page),0,16));
-			deviceInfo.insert("vendorIdentifier", QString("0x%1").arg(static_cast<ushort>(cur_dev->vendor_id),0,16));
+			deviceInfo.insert("usage_page", QString("0x%1").arg(cur_dev->usage_page,0,16));
+			deviceInfo.insert("vendorIdentifier", QString("0x%1").arg(cur_dev->vendor_id,0,16));
 			deviceInfo.insert("interface_number",cur_dev->interface_number);
 			deviceList.append(deviceInfo);
 

@@ -19,7 +19,8 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket, bool localConnect
 	_jsonAPI = new JsonAPI(socket->peerAddress().toString(), _log, localConnection, this);
 	// get the callback messages from JsonAPI and send it to the client
 	connect(_jsonAPI, &JsonAPI::callbackReady, this , &JsonClientConnection::sendMessage);
-	connect(_jsonAPI, &JsonAPI::forceClose, this , [&](){ _socket->close(); } );
+	connect(_jsonAPI, &JsonAPI::isForbidden, this , &JsonClientConnection::onForbidden);
+
 	connect(_jsonAPI->getCallBack().get(), &JsonCallbacks::callbackReady, this, &JsonClientConnection::sendMessage);
 
 	_jsonAPI->initialize();
@@ -40,7 +41,7 @@ void JsonClientConnection::readRequest()
 {
 	_receiveBuffer += _socket->readAll();
 	// raw socket data, handling as usual
-	int bytes = _receiveBuffer.indexOf('\n') + 1;
+	auto bytes = _receiveBuffer.indexOf('\n') + 1;
 	while(bytes > 0)
 	{
 		// create message string
@@ -55,6 +56,20 @@ void JsonClientConnection::readRequest()
 		// try too look up '\n' again
 		bytes = _receiveBuffer.indexOf('\n') + 1;
 	}
+}
+
+void JsonClientConnection::onForbidden()
+{
+	qCDebug(api_msg_reply_error) << "Connection is forbidden, closing connection";
+
+	QJsonObject response;
+	response["success"] = false;
+	response["error"] = "password change required";
+	response["errorData"] = QJsonArray{QJsonObject({{"description", "Default password must be changed before accessing the API"}})};
+
+	sendMessage(response);
+
+	_socket->close();
 }
 
 qint64 JsonClientConnection::sendMessage(QJsonObject message)
@@ -76,7 +91,7 @@ void JsonClientConnection::disconnected()
 	emit connectionClosed();
 }
 
-QHostAddress JsonClientConnection::getClientAddress()
+QHostAddress JsonClientConnection::getClientAddress() const
 {
 	return _socket->peerAddress();
 }

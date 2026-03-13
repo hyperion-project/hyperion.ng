@@ -1,6 +1,11 @@
 #ifndef LEDEVICE_H
 #define LEDEVICE_H
 
+// STL includes
+#include <chrono>
+#include <algorithm>
+#include <atomic>
+
 // qt includes
 #include <QObject>
 #include <QString>
@@ -9,14 +14,11 @@
 #include <QJsonDocument>
 #include <QTimer>
 #include <QDateTime>
+#include <QVector>
+#include <QMap>
 #include <QScopedPointer>
-
-
-// STL includes
-#include <vector>
-#include <map>
-#include <algorithm>
-#include <chrono>
+#include <QMutex>
+#include <QLoggingCategory>
 
 // Utility includes
 #include <utils/ColorRgb.h>
@@ -25,11 +27,21 @@
 #include <utils/Logger.h>
 #include <functional>
 #include <utils/Components.h>
+#include <utils/JsonUtils.h>
+
+Q_DECLARE_LOGGING_CATEGORY(leddevice_config);
+Q_DECLARE_LOGGING_CATEGORY(leddevice_control);
+Q_DECLARE_LOGGING_CATEGORY(leddevice_flow);
+Q_DECLARE_LOGGING_CATEGORY(leddevice_properties);
+Q_DECLARE_LOGGING_CATEGORY(leddevice_write);
+
+#define trackDevice(category, ...) \
+    qCDebug(category).noquote() << QString("|%1| %2 device '%3'") \
+        .arg(_log->getSubName(), \
+             (QStringList{__VA_ARGS__}.isEmpty() ? QString("Unknown") : QStringList{__VA_ARGS__}.first()), \
+             _activeDeviceType)
 
 class LedDevice;
-
-typedef LedDevice* ( *LedDeviceCreateFuncType ) ( const QJsonObject& );
-typedef std::map<QString,LedDeviceCreateFuncType> LedDeviceRegistry;
 
 ///
 /// @brief Interface (pure virtual base class) for LED-devices.
@@ -46,7 +58,7 @@ public:
 	/// @param deviceConfig Device's configuration as JSON-Object
 	/// @param parent QT parent
 	///
-	LedDevice(const QJsonObject& deviceConfig = QJsonObject(), QObject* parent = nullptr);
+	explicit LedDevice(const QJsonObject& deviceConfig = QJsonObject(), QObject* parent = nullptr);
 
 	///
 	/// @brief Destructor of the LED-device
@@ -58,7 +70,7 @@ public:
 	///
 	/// @param[in] log The logger to be used
 	///
-	void setLogger(Logger* log);
+	void setLogger(QSharedPointer<Logger> log);
 
 	///
 	/// @brief Set the current active LED-device type.
@@ -149,7 +161,7 @@ public:
 	///
 	/// @param[in] params Parameters to address device
 	///
-	virtual void identify(const QJsonObject& /*params*/) {}
+	virtual void identify(const QJsonObject& params);
 
 	///
 	/// @brief Add an authorization/client-key or token to the device
@@ -158,7 +170,7 @@ public:
 	///
 	/// @param[in] params Parameters to address device
 	/// @return A JSON structure holding the authorization key/token
-	virtual QJsonObject addAuthorization(const QJsonObject& /*params*/) { return QJsonObject(); }
+	virtual QJsonObject addAuthorization(const QJsonObject& params);
 
 	///
 	/// @brief Check, if device is properly initialised
@@ -190,7 +202,7 @@ public:
 	///
 	/// @param[in] ledValues The color per led
 	///
-	static void printLedValues(const std::vector<ColorRgb>& ledValues);
+	static void printLedValues(const QVector<ColorRgb>& ledValues);
 
 public slots:
 
@@ -214,7 +226,7 @@ public slots:
 	/// @param[in] ledValues The color per LED
 	/// @return Zero on success else negative
 	///
-	virtual int updateLeds(std::vector<ColorRgb> ledValues);
+	virtual int updateLeds(const QVector<ColorRgb>& ledValues);
 
 	///
 	/// @brief Get the currently defined LatchTime.
@@ -305,6 +317,9 @@ signals:
 	///
 	void isOnChanged(bool isOn);
 
+	/// @brief Emits once a switchOff() operation completed (used for synchronisation).
+	void switchOffCompleted();
+
 	///
 	/// @brief Emits whenever the LED-Device is stopped.
 	///
@@ -340,7 +355,7 @@ protected:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	virtual int write(const std::vector<ColorRgb>& ledValues) = 0;
+	virtual int write(const QVector<ColorRgb>& ledValues) = 0;
 
 	///
 	/// @brief Writes "BLACK" to the output stream,
@@ -435,10 +450,10 @@ protected:
 	QJsonObject _devConfig;
 
 	/// The common Logger instance for all LED-devices
-	Logger * _log;
+	QSharedPointer<Logger> _log;
 
 	/// The buffer containing the packed RGB values
-	std::vector<uint8_t> _ledBuffer;
+	QVector<uint8_t> _ledBuffer;
 
 	/// Timer object which makes sure that LED data is written at a minimum rate
 	/// e.g. some devices will switch off when they do not receive data at least every 15 seconds
@@ -519,6 +534,30 @@ private slots:
 	void retryEnable();
 
 private:
+	class SwitchOffCompletionGuard final
+	{
+	public:
+		explicit SwitchOffCompletionGuard(LedDevice* device)
+			: _device(device)
+		{
+		}
+
+		~SwitchOffCompletionGuard()
+		{
+			if (_device != nullptr)
+			{
+				_device->endSwitchOff();
+			}
+		}
+
+	private:
+		LedDevice* _device;
+		SwitchOffCompletionGuard(const SwitchOffCompletionGuard&) = delete;
+		SwitchOffCompletionGuard& operator=(const SwitchOffCompletionGuard&) = delete;
+		SwitchOffCompletionGuard(SwitchOffCompletionGuard&&) = delete;
+		SwitchOffCompletionGuard& operator=(SwitchOffCompletionGuard&&) = delete;
+	};
+
 
 	///
 	/// @brief Update the color values of the device's LEDs.
@@ -528,13 +567,28 @@ private:
 	/// @param[in] ledValues The color per LED
 	/// @return Zero on success else negative (i.e. device is not ready)
 	///
-	int writeLedUpdate(const std::vector<ColorRgb>& ledValues);
+	int writeLedUpdate(const QVector<ColorRgb>& ledValues);
 
 	/// @brief Start a new refresh cycle
 	void startRefreshTimer();
 
 	/// @brief Stop refresh cycle
 	void stopRefreshTimer();
+
+	/// @brief Wait until a pending switchOff() operation finishes.
+	void waitForPendingSwitchOff() const;
+
+	/// @brief Try to start a switchOff() sequence.
+	bool beginSwitchOff();
+
+	/// @brief Mark the end of a switchOff() sequence and notify waiters.
+	void endSwitchOff();
+
+	/// @brief Schedule stop() to re-run once the current switchOff completes.
+	void scheduleStopAfterSwitchOff();
+
+	/// @brief Reset any deferred stop state and disconnect helper callbacks.
+	void resetStopDeferral();
 
 	/// Timer that enables a device (used to retry enablement, if enabled failed before)
 	QScopedPointer<QTimer>	_enableAttemptsTimer;
@@ -556,13 +610,16 @@ private:
 	QString	_colorOrder;
 
 	/// Last LED values written
-	std::vector<ColorRgb> _lastLedValues;
+	QVector<ColorRgb> _lastLedValues;
 
 	std::atomic<bool> _isLedUpdatePending{ false };
+	std::atomic<bool> _isSwitchOffInProgress{ false };
+	std::atomic<bool> _isStopDeferred{ false };
+	QMetaObject::Connection _stopDeferredConnection;
 
 	// The mutex now ONLY protects the data buffer.
 	QMutex _ledBufferMutex;
-	std::vector<ColorRgb> _ledUpdateBuffer;
+	QVector<ColorRgb> _ledUpdateBuffer;
 };
 
 #endif // LEDEVICE_H

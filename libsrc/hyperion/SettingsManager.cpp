@@ -15,7 +15,13 @@ SettingsManager::SettingsManager(quint8 instance, QObject* parent)
 	, _instance(instance)
 	, _sTable(new SettingsTable(instance, this))
 {
+	TRACK_SCOPE_SUBCOMPONENT();
 	_sTable->addMissingDefaults();
+}
+
+SettingsManager::~SettingsManager()
+{
+	TRACK_SCOPE_SUBCOMPONENT();
 }
 
 QJsonDocument SettingsManager::getSetting(settings::type type) const

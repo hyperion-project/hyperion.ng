@@ -1,15 +1,34 @@
 #include <utils/NetOrigin.h>
+#include <utils/MemoryTracker.h>
 
 #include <QJsonObject>
 #include <QNetworkInterface>
 
-NetOrigin* NetOrigin::instance = nullptr;
+QSharedPointer<NetOrigin> NetOrigin::_instance;
 
-NetOrigin::NetOrigin(QObject* parent, Logger* log)
+NetOrigin::NetOrigin(QObject* parent, QSharedPointer<Logger> log)
 	: QObject(parent)
 	, _log(log)
+{}
+
+void NetOrigin::createInstance(QObject* parent)
 {
-	NetOrigin::instance = this;
+	CREATE_INSTANCE_WITH_TRACKING(_instance, NetOrigin, parent, nullptr);
+}
+
+QSharedPointer<NetOrigin> NetOrigin::getInstance()
+{
+	return _instance;
+}
+
+bool NetOrigin::isValid()
+{
+	return !_instance.isNull();
+}
+
+void NetOrigin::destroyInstance()
+{
+	_instance.reset();
 }
 
 

@@ -4,6 +4,18 @@
 // hyperion includes
 #include "ProviderUdp.h"
 
+#include <QVector>
+#include <QByteArray>
+#include <QJsonObject>
+
+#include <utils/ColorRgb.h>
+#include "utils/RgbToRgbw.h"
+
+namespace UdpRaw {
+	const int MAX_LED_NUM_RGB = 490;
+	const int MAX_LED_NUM_RGBW = 368;
+}
+
 ///
 /// Implementation of the LedDevice interface for sending LED colors via UDP
 ///
@@ -52,20 +64,14 @@ protected:
 	int open() override;
 
 	///
-	/// @brief Opens the output device for a given host address
-	///
-	/// @param[in] address the device's network address
-	/// @return Zero on success (i.e. device is ready), else negative
-	///
-	int open(const QHostAddress& address);
-
-	///
 	/// @brief Writes the RGB-Color values to the LEDs.
 	///
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	int write(const std::vector<ColorRgb> & ledValues) override;
+	int write(const QVector<ColorRgb> & ledValues) override;
+
+	RGBW::WhiteAlgorithm _whiteAlgorithm;
 };
 
 #endif // LEDEVICEUDPRAW_H

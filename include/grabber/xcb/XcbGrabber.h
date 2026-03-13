@@ -25,7 +25,7 @@ class XcbGrabber : public Grabber, public QAbstractNativeEventFilter
 	Q_OBJECT
 
 public:
-	XcbGrabber(int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0);
+	explicit XcbGrabber(int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0);
 
 	~XcbGrabber() override;
 
@@ -34,7 +34,7 @@ public:
 	///
 	/// @return true, on success (i.e. Window Manager is not Wayland), else false
 	///
-	bool isAvailable(bool logError = true) override;
+	bool isAvailable(bool logError = false) override;
 
 	bool open();
 	bool setupDisplay();

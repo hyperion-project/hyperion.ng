@@ -9,6 +9,7 @@
 #include <QTimer>
 #include <QMap>
 #include <QHostAddress>
+#include <QLoggingCategory>
 
 // hyperion util
 #include <utils/Image.h>
@@ -17,6 +18,8 @@
 #include <utils/Logger.h>
 
 #include <flatbuffers/flatbuffers.h>
+
+Q_DECLARE_LOGGING_CATEGORY(flatbuffer_client_cmd);
 
 const int FLATBUFFER_DEFAULT_PORT = 19400;
 
@@ -40,7 +43,8 @@ public:
 	/// @param port The port of the Hyperion Flatpuffer server (default is 19400)
 	/// @param skipReply  If true skip reply
 	///
-	FlatBufferConnection(const QString& origin, const QHostAddress& host, int priority, bool skipReply, quint16 port = FLATBUFFER_DEFAULT_PORT);
+	FlatBufferConnection(const QString& origin, const QHostAddress& address, int priority, bool skipReply, quint16 port = FLATBUFFER_DEFAULT_PORT);
+	FlatBufferConnection(const QString& origin, const QString& hostname, int priority, bool skipReply, quint16 port = FLATBUFFER_DEFAULT_PORT);
 
 	///
 	/// @brief Destructor
@@ -48,7 +52,7 @@ public:
 	~FlatBufferConnection() override;
 
 	/// @brief Do not read reply messages from Hyperion if set to true
-	void setSkipReply(bool skip);
+	void setSkipReply(bool skip) const;
 
 	///
 	/// @brief Set all leds to the specified color
@@ -137,7 +141,7 @@ private:
 	int _priority;
 
 	/// Host address
-	QHostAddress _host;
+	QString _hostname;
 
 	/// Host port
 	uint16_t _port;
@@ -146,7 +150,7 @@ private:
 	QByteArray _receiveBuffer;
 
 	QTimer _timer;
-	Logger * _log;
+	QSharedPointer<Logger> _log;
 
 	flatbuffers::FlatBufferBuilder _builder;
 	bool _isRegistered;

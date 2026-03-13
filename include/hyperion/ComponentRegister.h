@@ -73,7 +73,7 @@ private:
 	///  Hyperion instance
 	QWeakPointer<Hyperion> _hyperionWeak;
 	/// Logger instance
-	Logger * _log;
+	QSharedPointer<Logger> _log;
 	/// current state of all components
 	std::map<hyperion::Components, bool> _componentStates;
 	/// on hyperion off we save the previous states of all components

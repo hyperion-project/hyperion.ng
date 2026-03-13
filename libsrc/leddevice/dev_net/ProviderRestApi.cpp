@@ -1,7 +1,8 @@
 // Local-Hyperion includes
 #include "ProviderRestApi.h"
 
-// Qt includes
+#include <chrono>
+
 #include <QObject>
 #include <QEventLoop>
 #include <QNetworkReply>
@@ -16,39 +17,33 @@
 
 #include <QSslSocket>
 
-//std includes
-#include <chrono>
+Q_LOGGING_CATEGORY(restapi_msg_request, "hyperion.restapi.msg.request");
+Q_LOGGING_CATEGORY(restapi_msg_reply_success, "hyperion.restapi.msg.reply.success");
+Q_LOGGING_CATEGORY(restapi_msg_reply_error, "hyperion.restapi.msg.reply.error");
 
 // Constants
 namespace {
 
 const QChar ONE_SLASH = '/';
 
-enum HttpStatusCode {
-	NoContent    = 204,
-	BadRequest   = 400,
-	UnAuthorized = 401,
-	Forbidden    = 403,
-	NotFound     = 404,
-	TooManyRequests = 429
-};
-
 } //End of constants
 
 ProviderRestApi::ProviderRestApi(const QString& scheme, const QString& host, int port, const QString& basePath)
 	: _log(Logger::getInstance("LEDDEVICE"))
-	, _networkManager(nullptr)
+	, _networkManager(new QNetworkAccessManager())
 	, _requestTimeout(DEFAULT_REST_TIMEOUT)
-	,_isSeflSignedCertificateAccpeted(false)
+	, _isSelfSignedCertificateAccpeted(false)
 {
-	_networkManager = new QNetworkAccessManager();
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
-	_networkManager->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
-#endif
+	TRACK_SCOPE();
+
 	_apiUrl.setScheme(scheme);
 	_apiUrl.setHost(host);
 	_apiUrl.setPort(port);
 	_basePath = basePath;
+
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
+	_networkManager->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
+#endif
 }
 
 ProviderRestApi::ProviderRestApi(const QString& scheme, const QString& host, int port)
@@ -65,7 +60,7 @@ ProviderRestApi::ProviderRestApi()
 
 ProviderRestApi::~ProviderRestApi()
 {
-	delete _networkManager;
+	TRACK_SCOPE();
 }
 
 void ProviderRestApi::setScheme(const QString& scheme)
@@ -227,7 +222,7 @@ httpResponse ProviderRestApi::executeOperation(QNetworkAccessManager::Operation 
 	request.setOriginatingObject(this);
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
-	_networkManager->setTransferTimeout(_requestTimeout.count());
+	_networkManager->setTransferTimeout(static_cast<int>(_requestTimeout.count()));
 #endif
 
 	QDateTime const start = QDateTime::currentDateTime();
@@ -258,19 +253,29 @@ httpResponse ProviderRestApi::executeOperation(QNetworkAccessManager::Operation 
 
 	// Connect requestFinished signal to quit slot of the loop.
 	QEventLoop loop;
-	QEventLoop::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+	QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
 
 #if (QT_VERSION < QT_VERSION_CHECK(5, 15, 0))
 	ReplyTimeout* timeout = ReplyTimeout::set(reply, _requestTimeout.count());
 #endif
-
+	
 	// Go into the loop until the request is finished.
 	loop.exec();
 	QDateTime const end = QDateTime::currentDateTime();
 
+	TRACK_SCOPE_SUBCOMPONENT_CATEGORY(restapi_msg_request) << "[" << url.toString() << "]," << opCode << "[" << body << "]";
 	httpResponse response = (reply->operation() == operation) ? getResponse(reply) : httpResponse();
 
 	Debug(_log, "%s took %lldms, HTTP %d: [%s] [%s]", QSTRING_CSTR(opCode), start.msecsTo(end), response.getHttpStatusCode(), QSTRING_CSTR(url.toString()), body.constData());
+	if (response.error())
+	{
+		TRACK_SCOPE_SUBCOMPONENT_CATEGORY(restapi_msg_reply_error) << opCode << "took" << start.msecsTo(end) << "ms, Error: " << response.getErrorReason() << ", Response:" << response.getBody().toJson(QJsonDocument::Compact);
+		Debug(_log, "Error reason: %s, Response: %s", QSTRING_CSTR(response.getErrorReason()), response.getBody().toJson(QJsonDocument::Compact).constData());
+	}
+	else
+	{
+		TRACK_SCOPE_SUBCOMPONENT_CATEGORY(restapi_msg_reply_success) << opCode << "took" << start.msecsTo(end) << "ms, Result [" << static_cast<int>(response.getHttpStatusCode()) << "], Response:" << response.getBody().toJson(QJsonDocument::Compact);
+	}
 
 	// Free space.
 	reply->deleteLater();
@@ -278,85 +283,104 @@ httpResponse ProviderRestApi::executeOperation(QNetworkAccessManager::Operation 
 	return response;
 }
 
-httpResponse ProviderRestApi::getResponse(QNetworkReply* const& reply)
+namespace {
+QString getReplyErrorReason(QNetworkReply* const& reply, const httpResponse& response)
+{
+	auto const httpStatusCode = response.getHttpStatusCode();
+
+	//Handle non HTTP network errors
+	if (reply->error() != QNetworkReply::NoError && httpStatusCode == HttpStatusCode::Undefined)
+	{
+		if (reply->error() == QNetworkReply::OperationCanceledError || reply->error() == QNetworkReply::TimeoutError)
+		{
+			return "Network request timeout error";
+		}
+
+		return reply->errorString();
+	}
+
+	if (httpStatusCode != HttpStatusCode::NoContent) {
+		QString const httpReason = reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toString();
+		QString advise;
+		switch ( httpStatusCode ) {
+		case HttpStatusCode::BadRequest:
+			advise = "Check Request Body";
+			break;
+		case HttpStatusCode::UnAuthorized:
+			advise = "Check Authorization Token (API Key)";
+			break;
+		case HttpStatusCode::Forbidden:
+			advise = "No permission to access the given resource";
+			break;
+		case HttpStatusCode::NotFound:
+			advise = "Check Resource given";
+			break;
+		case HttpStatusCode::TooManyRequests:
+		{
+			QString const retryAfterTime = response.getHeader("Retry-After");
+			if (!retryAfterTime.isEmpty())
+			{
+				advise = "Retry-After: " + response.getHeader("Retry-After");
+			}
+		}
+		break;
+		default:
+			advise = httpReason;
+			break;
+		}
+		return QString ("[%1 %2] - %3").arg(static_cast<int>(httpStatusCode)).arg(httpReason, advise);
+	}
+	return reply->errorString();
+}
+}
+
+httpResponse ProviderRestApi::getResponse(QNetworkReply* const& reply) const
 {
 	httpResponse response;
 
-	HttpStatusCode const httpStatusCode = static_cast<HttpStatusCode>(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt());
+	if (reply == nullptr)
+	{
+		response.setError(true);
+		response.setErrorReason("Reply is null");
+		return response;
+	}
+
+	auto httpStatusCode {HttpStatusCode::Undefined};
+	auto const statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+	if ( statusCode.isValid() )
+	{
+		httpStatusCode = static_cast<HttpStatusCode>(statusCode.toInt());
+	}
+
 	response.setHttpStatusCode(httpStatusCode);
 	response.setNetworkReplyError(reply->error());
 	response.setHeaders(reply->rawHeaderPairs());
 
-	if (reply->error() == QNetworkReply::NoError)
+	QByteArray const replyData = reply->readAll();
+	if (!replyData.isEmpty())
 	{
-		QByteArray const replyData = reply->readAll();
-		if (!replyData.isEmpty())
-		{
-			QJsonParseError error;
-			QJsonDocument const jsonDoc = QJsonDocument::fromJson(replyData, &error);
+		QJsonParseError error;
+		QJsonDocument const jsonDoc = QJsonDocument::fromJson(replyData, &error);
 
-			if (error.error != QJsonParseError::NoError)
-			{
-				//Received not valid JSON response
-				response.setError(true);
-				response.setErrorReason(error.errorString());
-			}
-			else
-			{
-				response.setBody(jsonDoc);
-			}
+		if (error.error != QJsonParseError::NoError)
+		{
+			//Received not valid JSON response
+			response.setError(true);
+			response.setErrorReason(error.errorString());
 		}
 		else
-		{	// Create valid body which is empty
-			response.setBody(QJsonDocument());
+		{
+			response.setBody(jsonDoc);
 		}
 	}
 	else
-	{
-		QString errorReason;
-		if (reply->error() == QNetworkReply::OperationCanceledError)
-		{
-			errorReason = "Network request timeout error";
-		}
-		else
-		{
-			if (httpStatusCode > 0) {
-				QString const httpReason = reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toString();
-				QString advise;
-				switch ( httpStatusCode ) {
-				case HttpStatusCode::BadRequest:
-					advise = "Check Request Body";
-					break;
-				case HttpStatusCode::UnAuthorized:
-					advise = "Check Authorization Token (API Key)";
-					break;
-				case HttpStatusCode::Forbidden:
-					advise = "No permission to access the given resource";
-					break;
-				case HttpStatusCode::NotFound:
-					advise = "Check Resource given";
-					break;
-				case HttpStatusCode::TooManyRequests:
-				{
-					QString const retryAfterTime = response.getHeader("Retry-After");
-					if (!retryAfterTime.isEmpty())
-					{
-						advise = "Retry-After: " + response.getHeader("Retry-After");
-					}
-				}
-				break;
-				default:
-					advise = httpReason;
-					break;
-				}
-				errorReason = QString ("[%3 %4] - %5").arg(httpStatusCode).arg(httpReason, advise);
-			}
-			else
-			{
-				errorReason = reply->errorString();
-			}
-		}
+	{	// Create valid body which is empty
+		response.setBody(QJsonDocument());
+	}
 
+	if (reply->error() != QNetworkReply::NoError)
+	{
+		QString errorReason = getReplyErrorReason(reply, response);
 		response.setError(true);
 		response.setErrorReason(errorReason);
 	}
@@ -387,9 +411,9 @@ void ProviderRestApi::setHeader(const QByteArray &headerName, const QByteArray &
 void httpResponse::setHeaders(const QList<QNetworkReply::RawHeaderPair>& pairs)
 {
 	_responseHeaders.clear();
-	for (const auto &item: pairs)
+	for (const auto& [key, value] : pairs)
 	{
-		_responseHeaders[item.first] = item.second;
+		_responseHeaders[key] = value;
 	}
 }
 
@@ -423,7 +447,7 @@ bool ProviderRestApi::setCaCertificate(const QString& caFileName)
 #ifndef QT_NO_SSL
 	if (QSslSocket::supportsSsl())
 	{
-		QObject::connect( _networkManager, &QNetworkAccessManager::sslErrors, this, &ProviderRestApi::onSslErrors );
+		QObject::connect( _networkManager.get(), &QNetworkAccessManager::sslErrors, this, &ProviderRestApi::onSslErrors );
 		_networkManager->connectToHostEncrypted(_apiUrl.host(), static_cast<quint16>(_apiUrl.port()), configuration);
 		rc = true;
 	}
@@ -434,7 +458,7 @@ bool ProviderRestApi::setCaCertificate(const QString& caFileName)
 
 void ProviderRestApi::acceptSelfSignedCertificates(bool isAccepted)
 {
-	_isSeflSignedCertificateAccpeted = isAccepted;
+	_isSelfSignedCertificateAccpeted = isAccepted;
 }
 
 void ProviderRestApi::setAlternateServerIdentity(const QString& serverIdentity)
@@ -528,47 +552,44 @@ bool ProviderRestApi::matchesPinnedCertificate(const QSslCertificate& certificat
 	return isMatching;
 }
 
+bool ProviderRestApi::handleSslError(const QSslError& error, const QSslConfiguration& sslConfig)
+{
+	switch (error.error())
+	{
+		case QSslError::HostNameMismatch:
+			if (checkServerIdentity(sslConfig))
+			{
+				return true;
+			}
+			break;
+		case QSslError::SelfSignedCertificate:
+			if (_isSelfSignedCertificateAccpeted)
+			{
+				const QSslCertificate& certificate = error.certificate();
+				if (matchesPinnedCertificate(certificate))
+				{
+					Debug(_log, "'Trust on first use' - Certificate received matches pinned certificate");
+					return true;
+				}
+				Error(_log, "'Trust on first use' - Certificate received does not match pinned certificate");
+			}
+			break;
+		default:
+			break;
+	}
+
+	Debug(_log, "SSL Error occured: [%d] %s ", error.error(), QSTRING_CSTR(error.errorString()));
+	return false;
+}
+
 void ProviderRestApi::onSslErrors(QNetworkReply* reply, const QList<QSslError>& errors)
 {
 	int ignoredErrorCount {0};
 	for (const QSslError &error : errors)
 	{
-		bool ignoreSslError{false};
-
-		switch (error.error()) {
-		case QSslError::HostNameMismatch :
-			if (checkServerIdentity(reply->sslConfiguration()) )
-			{
-				ignoreSslError = true;
-			}
-			break;
-		case QSslError::SelfSignedCertificate :
-		if (_isSeflSignedCertificateAccpeted)
-		{
-			// Get the peer certificate associated with the error
-			QSslCertificate const certificate = error.certificate();
-			if (matchesPinnedCertificate(certificate))
-			{
-				Debug (_log,"'Trust on first use' - Certificate received matches pinned certificate");
-				ignoreSslError = true;
-			}
-			else
-			{
-				Error (_log,"'Trust on first use' - Certificate received does not match pinned certificate");
-			}
-		}
-		break;
-		default:
-			break;
-		}
-
-		if (ignoreSslError)
+		if (handleSslError(error, reply->sslConfiguration()))
 		{
 			++ignoredErrorCount;
-		}
-		else
-		{
-			Debug (_log,"SSL Error occured: [%d] %s ",error.error(), QSTRING_CSTR(error.errorString()));
 		}
 	}
 

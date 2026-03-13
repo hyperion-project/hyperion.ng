@@ -14,17 +14,18 @@ LedDevice *LedDeviceAPA102_ftdi::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceAPA102_ftdi::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = false;
 	// Initialise sub-class
-	if (ProviderFtdi::init(deviceConfig))
+	if (!ProviderFtdi::init(deviceConfig))
 	{
-        _brightnessControlMaxLevel = deviceConfig["brightnessControlMaxLevel"].toInt(LED_BRIGHTNESS_FULL);
-        Info(_log, "[%s] Setting maximum brightness to [%d] = %d%%", QSTRING_CSTR(_activeDeviceType), _brightnessControlMaxLevel, _brightnessControlMaxLevel * 100 / LED_BRIGHTNESS_FULL);
-
-        CreateHeader();
-		isInitOK = true;
+		return false;
 	}
-	return isInitOK;
+	
+	_brightnessControlMaxLevel = deviceConfig["brightnessControlMaxLevel"].toInt(LED_BRIGHTNESS_FULL);
+	Info(_log, "[%s] Setting maximum brightness to [%d] = %d%%", QSTRING_CSTR(_activeDeviceType), _brightnessControlMaxLevel, _brightnessControlMaxLevel * 100 / LED_BRIGHTNESS_FULL);
+
+	CreateHeader();
+
+	return true;
 }
 
 void LedDeviceAPA102_ftdi::CreateHeader()
@@ -33,11 +34,11 @@ void LedDeviceAPA102_ftdi::CreateHeader()
 	// Endframe, add additional 4 bytes to cover SK9922 Reset frame (in case SK9922 were sold as AP102) -  has no effect on APA102
 	const unsigned int endFrameSize = (_ledCount / 32) * 4 + 4;
 	const unsigned int APAbufferSize = (_ledCount * 4) + startFrameSize + endFrameSize;
-	_ledBuffer.resize(APAbufferSize, 0);
+	_ledBuffer.fill(0x00, APAbufferSize);
 	Debug(_log, "APA102 buffer created for %d LEDs", _ledCount);
 }
 
-int LedDeviceAPA102_ftdi::write(const std::vector<ColorRgb> &ledValues)
+int LedDeviceAPA102_ftdi::write(const QVector<ColorRgb> &ledValues)
 {
 	for (signed iLed = 0; iLed < static_cast<int>(_ledCount); ++iLed)
 	{

@@ -54,6 +54,11 @@ signals:
 	///
 	void publishService(const QString& serviceType, quint16 servicePort, const QByteArray& serviceName = "");
 
+	///
+	/// @emits when the WebServer has completed its stop/cleanup
+	///
+	void isStopped();
+
 public slots:
 	///
 	/// @brief Init server after thread start
@@ -87,7 +92,7 @@ public slots:
 private:
 	QJsonDocument        _config;
 	bool				 _useSsl;
-	Logger*              _log;
+	QSharedPointer<Logger>  _log;
 	QString              _baseUrl;
 	quint16              _port;
 	StaticFileServing*   _staticFileServing;

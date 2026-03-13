@@ -1,5 +1,11 @@
 #pragma once
 
+#include <QJsonObject>
+#include <QString>
+#include <QSharedPointer>
+#include <QScopedPointer>
+#include <QLoggingCategory>
+
 // parent class
 #include <api/API.h>
 #include <api/JsonApiCommand.h>
@@ -12,11 +18,12 @@
 #include <hyperion/HyperionIManager.h>
 #include <utils/RgbChannelAdjustment.h>
 
-// qt includes
-#include <QJsonObject>
-#include <QString>
-#include <QSharedPointer>
-#include <QScopedPointer>
+Q_DECLARE_LOGGING_CATEGORY(api_msg_request);
+Q_DECLARE_LOGGING_CATEGORY(api_msg_reply_success);
+Q_DECLARE_LOGGING_CATEGORY(api_msg_reply_error);
+Q_DECLARE_LOGGING_CATEGORY(api_msg_new);
+Q_DECLARE_LOGGING_CATEGORY(api_inputsource);
+Q_DECLARE_LOGGING_CATEGORY(api_leddevice);
 
 class QTimer;
 class JsonCallbacks;
@@ -27,16 +34,28 @@ class JsonAPI : public API
 	Q_OBJECT
 
 public:
+
 	///
 	/// Constructor
 	///
 	/// @param peerAddress provide the Address of the peer
 	/// @param log         The Logger class of the creator
-	/// @param parent      Parent QObject
 	/// @param localConnection True when the sender has origin home network
 	/// @param noListener  if true, this instance won't listen for hyperion push events
 	///
-	JsonAPI(QString peerAddress, Logger *log, bool localConnection, QObject *parent, bool noListener = false);
+	JsonAPI(QString peerAddress, QSharedPointer<Logger> log, bool localConnection, bool noListener = false);
+
+	///
+	/// Constructor
+	///
+	/// @param peerAddress provide the Address of the peer
+	/// @param log         The Logger class of the creator
+	/// @param localConnection True when the sender has origin home network
+	/// @param parent      Parent QObject
+	/// @param noListener  if true, this instance won't listen for hyperion push events
+	///
+	JsonAPI(QString peerAddress, QSharedPointer<Logger> log, bool localConnection, QObject *parent, bool noListener = false);
+	~JsonAPI() override;
 
 	///
 	/// Handle an incoming JSON message

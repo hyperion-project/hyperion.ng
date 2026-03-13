@@ -4,6 +4,8 @@
 // STL/Qt includes
 #include <QTcpSocket>
 #include <QString>
+#include <QScopedPointer>
+#include <QJsonObject>
 
 // LedDevice includes
 #include <leddevice/LedDevice.h>
@@ -43,11 +45,6 @@ public:
 	explicit LedDeviceFadeCandy(const QJsonObject& deviceConfig);
 
 	///
-	/// @brief Destructor of the LedDevice
-	///
-	~LedDeviceFadeCandy() override;
-
-	///
 	/// @brief Constructs the LED-device
 	///
 	/// @param[in] deviceConfig Device's configuration as JSON-Object
@@ -84,7 +81,7 @@ protected:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	int write(const std::vector<ColorRgb>& ledValues) override;
+	int write(const QVector<ColorRgb>& ledValues) override;
 
 private:
 
@@ -129,7 +126,7 @@ private:
 	///
 	void sendFadeCandyConfiguration();
 
-	QTcpSocket* _client;
+	QScopedPointer<QTcpSocket> _client;
 	QString     _hostName;
 	int    _port;
 	int    _channel;

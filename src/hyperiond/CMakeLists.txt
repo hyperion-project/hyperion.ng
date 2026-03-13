@@ -75,26 +75,33 @@ target_link_libraries(${PROJECT_NAME}
 	Qt${QT_VERSION_MAJOR}::Widgets
 	$<$<BOOL:${Qt${QT_VERSION_MAJOR}DBus_FOUND}>:Qt${QT_VERSION_MAJOR}::DBus>
 	# Grabber
-	$<$<BOOL:${ENABLE_DISPMANX}>:dispmanx-grabber>
-	$<$<BOOL:${ENABLE_FB}>:framebuffer-grabber>
-	$<$<BOOL:${ENABLE_OSX}>:osx-grabber>
-	$<$<BOOL:${ENABLE_V4L2}>:v4l2-grabber>
-	$<$<BOOL:${ENABLE_MF}>:mf-grabber>
-	$<$<BOOL:${ENABLE_AUDIO}>:audio-grabber>
 	$<$<BOOL:${ENABLE_AMLOGIC}>:amlogic-grabber>
-	$<$<BOOL:${ENABLE_X11}>:x11-grabber>
-	$<$<BOOL:${ENABLE_XCB}>:xcb-grabber>
-	$<$<BOOL:${ENABLE_QT}>:qt-grabber>
+	$<$<BOOL:${ENABLE_DISPMANX}>:dispmanx-grabber>
 	$<$<BOOL:${ENABLE_DX}>:directx-grabber>
 	$<$<BOOL:${ENABLE_DDA}>:dda-grabber>
+	$<$<BOOL:${ENABLE_DRM}>:drm-grabber>
+	$<$<BOOL:${ENABLE_FB}>:framebuffer-grabber>
+	$<$<BOOL:${ENABLE_MF}>:mf-grabber>
+	$<$<BOOL:${ENABLE_OSX}>:osx-grabber>
+	$<$<BOOL:${ENABLE_QT}>:qt-grabber>
+	$<$<BOOL:${ENABLE_V4L2}>:v4l2-grabber>
+	$<$<BOOL:${ENABLE_X11}>:x11-grabber>
+	$<$<BOOL:${ENABLE_XCB}>:xcb-grabber>
+	$<$<BOOL:${ENABLE_AUDIO}>:audio-grabber>
 	# Input
 	$<$<BOOL:${ENABLE_FLATBUF_SERVER}>:flatbufserver>
 	$<$<BOOL:${ENABLE_PROTOBUF_SERVER}>:protoserver>
 	$<$<BOOL:${ENABLE_CEC}>:cechandler>
 	# Services
-	$<$<AND:$<BOOL:${ENABLE_EFFECTENGINE}>,$<TARGET_EXISTS:python>>:effectengine python>
 	$<$<BOOL:${ENABLE_MDNS}>:mdns>
 )
+
+if(ENABLE_EFFECTENGINE AND TARGET python)
+	target_link_libraries(${PROJECT_NAME}
+		effectengine
+		python
+	)
+endif()
 
 #####################################
 ########### Install steps ###########
@@ -114,12 +121,14 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 		MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/cmake/macos/Info.plist.in"
 		MACOSX_BUNDLE_BUNDLE_NAME ${MAC_BUNDLE_NAME}
 		MACOSX_BUNDLE_BUNDLE_VERSION ${HYPERION_VERSION}
-		MACOSX_BUNDLE_COPYRIGHT "Copyright(c) 2014-2025 Hyperion Project"
+		MACOSX_BUNDLE_COPYRIGHT "Copyright(c) 2014-2026 Hyperion Project"
 		MACOSX_BUNDLE_GUI_IDENTIFIER "com.hyperion-project.${MAC_BUNDLE_NAME}"
 		MACOSX_BUNDLE_ICON_FILE "Hyperion.icns"
 		MACOSX_BUNDLE_INFO_STRING "${MAC_BUNDLE_NAME} ${HYPERION_VERSION}"
 		MACOSX_BUNDLE_SHORT_VERSION_STRING ${HYPERION_VERSION}
 		MACOSX_BUNDLE_LONG_VERSION_STRING ${HYPERION_VERSION}
+		INSTALL_RPATH_USE_LINK_PATH ON
+		INSTALL_RPATH "@executable_path/../Frameworks"
 	)
 
 	install(TARGETS ${PROJECT_NAME} BUNDLE DESTINATION . COMPONENT "Hyperion")
@@ -147,9 +156,15 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	install(FILES ${CMAKE_SOURCE_DIR}/cmake/linux/desktop/hyperion.desktop DESTINATION "share/hyperion/desktop" COMPONENT "Hyperion")
 
 	# create symlink and copy "updateHyperionUser.sh" script
-	install(CODE "execute_process(COMMAND ln -sf \"../share/hyperion/bin/${PROJECT_NAME}\" \"${CMAKE_BINARY_DIR}/symlink_${PROJECT_NAME}\")" COMPONENT "Hyperion")
-	install(FILES "${CMAKE_BINARY_DIR}/symlink_${PROJECT_NAME}" DESTINATION "bin" RENAME ${PROJECT_NAME} COMPONENT "Hyperion")
-	install(CODE "file (REMOVE ${CMAKE_BINARY_DIR}/symlink_${PROJECT_NAME})" COMPONENT "Hyperion")
+	install(CODE "
+	file(MAKE_DIRECTORY
+	\"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/bin\"
+	)
+	file(CREATE_LINK
+	\"../share/hyperion/bin/${PROJECT_NAME}\"
+	\"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/bin/${PROJECT_NAME}\"
+	SYMBOLIC
+	)" COMPONENT "Hyperion")
 	install(FILES ${CMAKE_SOURCE_DIR}/bin/scripts/updateHyperionUser.sh DESTINATION "share/hyperion/scripts" COMPONENT "Hyperion")
 
 	if(ENABLE_DEPLOY_DEPENDENCIES)

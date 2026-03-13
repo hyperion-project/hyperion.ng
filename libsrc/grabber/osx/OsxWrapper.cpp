@@ -15,7 +15,7 @@ OsxWrapper::OsxWrapper(const QJsonDocument& grabberConfig)
 				 kCGDirectMainDisplay,
 				 GrabberWrapper::DEFAULT_PIXELDECIMATION)
 {
-	this->handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
+	GrabberWrapper::handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
 }
 
 void OsxWrapper::action()

@@ -13,6 +13,7 @@
 #include <utils/ColorRgb.h>
 #include <utils/Image.h>
 #include <utils/Components.h>
+#include <utils/Logger.h>
 
 // global defines
 constexpr auto SMOOTHING_MODE_DEFAULT = 0;
@@ -40,7 +41,7 @@ public:
 		/// The absolute timeout of the channel
 		int64_t timeoutTime_ms;
 		/// The colors for each led of the channel
-		std::vector<ColorRgb> ledColors;
+		QVector<ColorRgb> ledColors;
 		/// The raw Image (size should be preprocessed!)
 		Image<ColorRgb> image;
 		/// The component
@@ -185,7 +186,7 @@ public:
 	/// @param  timeout_ms  The new timeout (defaults to -1 endless)
 	/// @return             True on success, false when priority is not found
 	///
-	bool setInput(int priority, const std::vector<ColorRgb>& ledColors, int64_t timeout_ms = ENDLESS);
+	bool setInput(int priority, const QVector<ColorRgb>& ledColors, int64_t timeout_ms = ENDLESS);
 
 	///
 	/// @brief   Update the current image of a priority (prev registered with registerInput())
@@ -265,7 +266,7 @@ private:
 	hyperion::Components getComponentOfPriority(int priority) const;
 
 	/// Logger instance
-	Logger* _log;
+	QSharedPointer<Logger> _log;
 
 	/// The current priority (lowest value in _activeInputs)
 	int _currentPriority;

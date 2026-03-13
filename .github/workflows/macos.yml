@@ -29,20 +29,21 @@ jobs:
 
   macos:
     name: ${{ matrix.os.description }}
-    runs-on: ${{ matrix.os.architecture == 'arm64' && 'macos-14' || 'macos-13' }}
+    runs-on: ${{ matrix.os.architecture == 'x64' && 'macos-15-intel' || 'macos-15' }}
     strategy:
       fail-fast: false
       matrix:
         os: [
-          { architecture: 'arm64', description: 'macOS 14 (arm64)' },
-          { architecture: 'x64', description: 'macOS 13 (x64)' }
+          { architecture: 'arm64', description: 'macOS 15 (arm64)' },
+          { architecture: 'x64', description: 'macOS 15 (x64)' }
         ]
 
     steps:
       - name: ⬇ Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
+          fetch-depth: 0  # Ensures all tags are fetched
 
       - name: 🔧 Prepare
         shell: bash
@@ -54,12 +55,6 @@ jobs:
             echo -n "+nightly$(date '+%Y%m%d')" >> .version
           fi
 
-      - name: 📥 Install dependencies
-        uses: tecolicom/actions-use-homebrew-tools@v1
-        with:
-          tools: qt@6 coreutils
-          key: ${{ runner.os }}-${{ matrix.os.architecture }}-homebrew-packages
-
       - name: 💾 Download Pre-Build Dependencies
         id: dependencies
         uses: ./.github/actions/download-pre-built-deps
@@ -68,10 +63,20 @@ jobs:
           architecture: ${{ matrix.os.architecture }}
           build_type: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
 
+      - name: 📥 Install Qt ${{ env.QT_VERSION }}
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: ${{ env.QT_VERSION }}
+          target: 'desktop'
+          modules: 'qtserialport qtwebsockets'
+          cache: 'true'
+          cache-key-prefix: 'cache-qt-macos'
+        env:
+          QT_VERSION: ${{ steps.dependencies.outputs.qtVersion != '' && steps.dependencies.outputs.qtVersion || '' }}
+
       - name: 👷 Build ${{ env.HINT }}
         shell: bash
         run: |
-          # Build
           cmake --preset macos-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }}
           cmake --build --preset macos-${{ env.BUILD_TYPE }} --target package
         env:
@@ -80,7 +85,7 @@ jobs:
 
       - name: 📦 Upload
         if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ inputs.event_name == 'pull_request' && env.NAME || format('artifact-{0}', env.NAME) }}
           path: 'build/Hyperion-*'

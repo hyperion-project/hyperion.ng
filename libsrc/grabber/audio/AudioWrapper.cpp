@@ -14,7 +14,7 @@ AudioWrapper::AudioWrapper()
 
 AudioWrapper::~AudioWrapper()
 {
-	stop();
+	AudioWrapper::stop();
 }
 
 bool AudioWrapper::start()
@@ -35,7 +35,7 @@ void AudioWrapper::action()
 
 void AudioWrapper::newFrame(const Image<ColorRgb>& image)
 {
-	emit systemImage(_grabberName, image);
+	emit systemImage(_grabber.getGrabberName(), image);
 }
 
 void AudioWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& config)

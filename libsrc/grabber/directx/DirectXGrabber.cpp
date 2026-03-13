@@ -4,11 +4,6 @@
 #pragma comment(lib, "d3d9.lib")
 #pragma comment(lib,"d3dx9.lib")
 
-// Constants
-namespace {
-	const bool verbose = false;
-} //End of constants
-
 DirectXGrabber::DirectXGrabber(int display, int cropLeft, int cropRight, int cropTop, int cropBottom)
 	: Grabber("GRABBER-DIRECTX", cropLeft, cropRight, cropTop, cropBottom)
 	, _display(unsigned(display))
@@ -142,10 +137,16 @@ bool DirectXGrabber::setupDisplay()
 
 int DirectXGrabber::grabFrame(Image<ColorRgb> & image)
 {
+	if (_isDeviceInError)
+	{
+		Error(_log, "Cannot grab frame, device is in error state");
+		return -1;
+	}
+
 	if (!_isEnabled)
 	{
-		qDebug() << "AUS";
-		return 0;
+		qCDebug(grabber_screen_capture) << "Capture is disabled";
+		return -1;
 	}
 
 	if (_device == nullptr)
@@ -159,7 +160,7 @@ int DirectXGrabber::grabFrame(Image<ColorRgb> & image)
 	if (FAILED(_device->GetFrontBufferData(0, _surface)))
 	{
 		Error(_log, "Unable to get Buffer Surface Data");
-		return 0;
+		return -1;
 	}
 
 	D3DXLoadSurfaceFromSurface(_surfaceDest, nullptr, nullptr, _surface, nullptr, _srcRect, D3DX_DEFAULT, 0);
@@ -168,7 +169,7 @@ int DirectXGrabber::grabFrame(Image<ColorRgb> & image)
 	if (FAILED(_surfaceDest->LockRect(&lockedRect, nullptr, D3DLOCK_NO_DIRTY_UPDATE | D3DLOCK_NOSYSLOCK | D3DLOCK_READONLY)))
 	{
 		Error(_log, "Unable to lock destination Front Buffer Surface");
-		return 0;
+		return -1;
 	}
 
 	for(int i=0 ; i < _height ; i++)
@@ -180,7 +181,7 @@ int DirectXGrabber::grabFrame(Image<ColorRgb> & image)
 	if (FAILED(_surfaceDest->UnlockRect()))
 	{
 		Error(_log, "Unable to unlock destination Front Buffer Surface");
-		return 0;
+		return -1;
 	}
 
 	return 0;
@@ -219,8 +220,6 @@ bool DirectXGrabber::setDisplayIndex(int index)
 
 QJsonObject DirectXGrabber::discover(const QJsonObject& params)
 {
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	QJsonObject inputsDiscovered;
 	if ((_d3d9 = Direct3DCreate9(D3D_SDK_VERSION)) != nullptr)
 	{
@@ -232,7 +231,6 @@ QJsonObject DirectXGrabber::discover(const QJsonObject& params)
 			inputsDiscovered["type"] = "screen";
 
 			QJsonArray video_inputs;
-			QJsonArray fps = { 1, 5, 10, 15, 20, 25, 30, 40, 50, 60 };
 
 			for(int adapter = 0; adapter < adapterCount; adapter++)
 			{
@@ -257,7 +255,7 @@ QJsonObject DirectXGrabber::discover(const QJsonObject& params)
 
 				resolution["width"] = (int)ddm.Width;
 				resolution["height"] = (int)ddm.Height;
-				resolution["fps"] = fps;
+				resolution["fps"] = getFpsSupported();
 
 				resolutionArray.append(resolution);
 				format["resolutions"] = resolutionArray;
@@ -281,11 +279,9 @@ QJsonObject DirectXGrabber::discover(const QJsonObject& params)
 		}
 		else
 		{
-			DebugIf(verbose, _log, "No displays found to capture from!");
+			qcdebug(grabber_screen_properties) << "No displays found to capture from!";
 		}
 	}
-	DebugIf(verbose, _log, "device: [%s]", QString(QJsonDocument(inputsDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return inputsDiscovered;
-
 }

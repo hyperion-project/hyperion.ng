@@ -38,7 +38,7 @@ private:
 	bool enable();
 	void disable();
 
-	int getMillisecondsToNextScheduledTime(const QTime& time);
+	qint64 getMillisecondsToNextScheduledTime(const QTime& time) const;
 
 	void clearTimers();
 
@@ -49,7 +49,7 @@ private:
 	QList<timeEvent> _scheduledEvents;
 	QList<QTimer*> _timers;
 
-	Logger * _log {};
+	QSharedPointer<Logger> _log;
 };
 
 #endif // EVENTSCHEDULER_H

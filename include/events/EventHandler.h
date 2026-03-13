@@ -5,6 +5,11 @@
 #include <events/EventEnum.h>
 
 #include <QObject>
+#include <QSharedPointer>
+#include <QScopedPointer>
+#include <QLoggingCategory>
+
+Q_DECLARE_LOGGING_CATEGORY(event_hyperion);
 
 class Logger;
 
@@ -16,6 +21,10 @@ public:
 	~EventHandler() override;
 
 	static QScopedPointer<EventHandler>& getInstance();
+	static void destroyInstance();
+
+	bool isSuspended() { return _isSuspended; }
+	bool isIdle() { return _isIdle; }
 
 public slots:
 
@@ -36,7 +45,7 @@ signals:
 	void signalEvent(Event event);
 
 protected:
-	Logger * _log {};
+	QSharedPointer<Logger> _log;
 
 private:
 	EventHandler();
