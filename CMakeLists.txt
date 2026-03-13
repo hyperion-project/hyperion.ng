@@ -38,6 +38,17 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 endif()
 
 #=============================================================================
+# Suppress warnings from external dependencies only
+# Note: Project code warnings are NOT suppressed - use SYSTEM includes for external headers
+#=============================================================================
+
+if(MSVC)
+	# Only suppress C4996 deprecation warnings for CRT functions (used across the project)
+	# All other warnings from external headers are suppressed via SYSTEM include directories
+	add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+endif()
+
+#=============================================================================
 # Instruct CMake to run moc automatically when needed and auto prepare .qrc files
 #=============================================================================
 
@@ -81,7 +92,9 @@ if(MSVC)
 	endforeach()
 endif()
 
-include_directories(${CMAKE_SOURCE_DIR}/dependencies/include)
+# Mark external dependencies as SYSTEM to suppress warnings from external headers
+include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/dependencies/include)
+# Project includes - warnings are enabled
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
 #=============================================================================
