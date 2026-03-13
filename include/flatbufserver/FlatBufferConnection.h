@@ -140,6 +140,9 @@ private:
 	QString _origin;
 	int _priority;
 
+	/// service name
+	QString _serviceName;
+
 	/// Host address
 	QString _hostname;
 
