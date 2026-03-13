@@ -26,8 +26,39 @@
       "type": "integer",
       "title": "edt_dev_spec_chanperfixture_title",
       "default": 3,
+      "minimum": 3,
       "propertyOrder": 4
     },
+    "whiteAlgorithm": {
+      "type": "string",
+      "title": "edt_dev_spec_whiteLedAlgor_title",
+      "enum": [
+        "subtract_minimum",
+        "sub_min_cool_adjust",
+        "sub_min_warm_adjust",
+        "cold_white",
+        "neutral_white",
+        "auto",
+        "auto_max",
+        "auto_accurate",
+        "white_off"
+      ],
+      "default": "white_off",
+      "options": {
+        "enum_titles": [
+          "edt_dev_enum_subtract_minimum",
+          "edt_dev_enum_sub_min_cool_adjust",
+          "edt_dev_enum_sub_min_warm_adjust",
+          "edt_dev_enum_cold_white",
+          "edt_dev_enum_neutral_white",
+          "edt_dev_enum_auto",
+          "edt_dev_enum_auto_max",
+          "edt_dev_enum_auto_accurate",
+          "edt_dev_enum_white_off"
+        ]
+      },
+      "propertyOrder": 5
+    },    
     "latchTime": {
       "type": "integer",
       "title": "edt_dev_spec_latchtime_title",
@@ -36,7 +67,7 @@
       "minimum": 0,
       "maximum": 1000,
       "access": "expert",
-      "propertyOrder": 5
+      "propertyOrder": 6
     }
   },
   "additionalProperties": true
