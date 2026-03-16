@@ -142,9 +142,9 @@ void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm, u
 
 			// smallest ratio
 			float fRatio = qMin(fRatioRed, qMin(fRatioGreen, fRatioBlue));
-		
+
 			// typically brigtness of x value on white channel is lower than (x,x,x) RGB. Depends on LED. But 1/3 is a reasonable guess
-			float fWhiteToRGBOutputRatio = 1.0f/3.0f;
+			float fWhiteToRGBOutputRatio = 255.0f/static_cast<float>(white.red + white.green + white.blue);
 			// Make the color with the smallest white ratio to be the output white value
 			uint8_t uScale;
 			if (fRatio == fRatioRed) {
@@ -158,10 +158,10 @@ void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm, u
 			float fUpscale = qBound(1.0f, 255.0f / static_cast<float>(uScale), 3.0f);
 
 			// Calculate the output red, green and blue values, taking into account the white color temperature.
-			output->red = qBound(uint8_t(0), static_cast<u_int8_t>(round(input.red - uScale * (white.red / 255.0f)*fWhiteToRGBOutputRatio)), uint8_t(255));
-			output->green = qBound(uint8_t(0), static_cast<u_int8_t>(round(input.green - uScale * (white.green / 255.0f)*fWhiteToRGBOutputRatio)), uint8_t(255));
-			output->blue = qBound(uint8_t(0), static_cast<u_int8_t>(round(input.blue - uScale * (white.blue / 255.0f)*fWhiteToRGBOutputRatio)), uint8_t(255));
-			output->white = qBound(uint8_t(0), static_cast<u_int8_t>(round(uScale)), uint8_t(255));
+			output->red = static_cast<u_int8_t>(qBound(0.0f, round(input.red - uScale * (white.red / 255.0f)*fWhiteToRGBOutputRatio), 255.0f));
+			output->green = static_cast<u_int8_t>(qBound(0.0f, round(input.green - uScale * (white.green / 255.0f)*fWhiteToRGBOutputRatio), 255.0f));
+			output->blue = static_cast<u_int8_t>(qBound(0.0f, round(input.blue - uScale * (white.blue / 255.0f)*fWhiteToRGBOutputRatio), 255.0f));
+			output->white = static_cast<u_int8_t>(qBound(0.0f, round(uScale), 255.0f));
 
 			break;
 		}
