@@ -32,6 +32,15 @@ if(ENABLE_DEV_USB_HID OR ENABLE_DEV_FTDI)
 	endif()
 
 	if(NOT USE_SYSTEM_LIBUSB_LIBS)
+		# Set compiler flags for libusb to suppress ALL warnings
+		set(LIBUSB_C_FLAGS "${CMAKE_C_FLAGS}")
+		if(MSVC)
+			# Use /w to disable all warnings (stronger than /W0)
+			set(LIBUSB_C_FLAGS "${LIBUSB_C_FLAGS} /w")
+		elseif(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+			set(LIBUSB_C_FLAGS "${LIBUSB_C_FLAGS} -w")
+		endif()
+
 		include(ExternalProject)
 		ExternalProject_Add(libusb
 			PREFIX				${CMAKE_CURRENT_BINARY_DIR}/external/libusb-cmake
@@ -46,7 +55,7 @@ if(ENABLE_DEV_USB_HID OR ENABLE_DEV_FTDI)
 								-DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
 								-DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
 								-DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
-								-DCMAKE_C_FLAGS:STRING=${CMAKE_C_FLAGS}
+								-DCMAKE_C_FLAGS:STRING=${LIBUSB_C_FLAGS}
 								-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
 								-DCMAKE_STATIC_LIBRARY_PREFIX:STRING=lib
 								-DCMAKE_WARN_DEPRECATED:BOOL=OFF # Suppress warnings about "Compatibility with CMake < 3.5 will be removed from a future version of CMake"
@@ -108,6 +117,15 @@ if(ENABLE_DEV_FTDI)
 		getTargetImportedLocation(LIBUSB_LIBRARIES usb-1.0)
 		set(LIBUSB_LIBRARIES ${LIBUSB_LIBRARIES} CACHE INTERNAL "")
 
+		# Set compiler flags for libftdi to suppress ALL warnings
+		set(LIBFTDI_C_FLAGS "")
+		if(MSVC)
+			# Use /w to disable all warnings completely, and set it multiple times to ensure it takes precedence
+			set(LIBFTDI_C_FLAGS "/W0 /w")
+		elseif(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+			set(LIBFTDI_C_FLAGS "-w")
+		endif()
+
 		find_package(Git REQUIRED)
 		include(ExternalProject)
 		ExternalProject_Add(libftdi1
@@ -124,7 +142,9 @@ if(ENABLE_DEV_FTDI)
 								-DLIBUSB_LIBRARIES:PATH=${LIBUSB_LIBRARIES} # LibUSB library location
 								-DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
 								-DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
-								-DCMAKE_C_FLAGS:STRING=${CMAKE_C_FLAGS}
+								-DCMAKE_C_FLAGS:STRING=${LIBFTDI_C_FLAGS}
+								-DCMAKE_C_FLAGS_DEBUG:STRING=${LIBFTDI_C_FLAGS}
+								-DCMAKE_C_FLAGS_RELEASE:STRING=${LIBFTDI_C_FLAGS}
 								-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
 								-DCMAKE_STATIC_LIBRARY_PREFIX_C:STRING=lib
 								-DCMAKE_WARN_DEPRECATED:BOOL=OFF # Suppress warnings about "Compatibility with CMake < 3.5 will be removed from a future version of CMake"
@@ -176,8 +196,30 @@ if(ENABLE_DEV_USB_HID)
 		# Disable build of HIDAPI tests
 		set(HIDAPI_BUILD_HIDTEST OFF CACHE BOOL "Disable small console test application hidtest")
 
+		# Suppress ALL warnings in HIDAPI by adjusting compiler flags
+		if(MSVC)
+			# Use /w to disable all warnings (stronger than /W0)
+			set(CMAKE_C_FLAGS_HIDAPI "${CMAKE_C_FLAGS} /w")
+			set(CMAKE_CXX_FLAGS_HIDAPI "${CMAKE_CXX_FLAGS} /w")
+		elseif(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+			set(CMAKE_C_FLAGS_HIDAPI "${CMAKE_C_FLAGS} -w")
+			set(CMAKE_CXX_FLAGS_HIDAPI "${CMAKE_CXX_FLAGS} -w")
+		endif()
+
+		# Temporarily override flags for HIDAPI subdirectory
+		set(CMAKE_C_FLAGS_SAVE "${CMAKE_C_FLAGS}")
+		set(CMAKE_CXX_FLAGS_SAVE "${CMAKE_CXX_FLAGS}")
+		if(DEFINED CMAKE_C_FLAGS_HIDAPI)
+			set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS_HIDAPI}")
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_HIDAPI}")
+		endif()
+
 		# Add HIDAPI directory to the build
 		add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/external/hidapi")
+
+		# Restore original flags
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS_SAVE}")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_SAVE}")
 	endif()
 
 	if(TARGET hidapi::hidapi AND NOT TARGET hidapi)
@@ -215,6 +257,9 @@ endif()
 #=============================================================================
 
 if(ENABLE_DEV_WS281XPWM)
+	# Suppress warnings about "Compatibility with CMake < 3.5 will be removed from a future version of CMake"
+	set(CMAKE_WARN_DEPRECATED OFF CACHE INTERNAL "")
+
 	# Build rpi_ws281x as static library
 	set(BUILD_SHARED OFF CACHE BOOL "Build statically version of rpi_ws281x")
 
@@ -223,6 +268,9 @@ if(ENABLE_DEV_WS281XPWM)
 
 	# Add rpi_ws281x directory to the build
 	add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/external/rpi_ws281x")
+
+	# Restore CMAKE_WARN_DEPRECATED to its previous value
+	unset(CMAKE_WARN_DEPRECATED CACHE)
 endif()
 
 #=============================================================================
@@ -495,12 +543,62 @@ if(ENABLE_PROTOBUF_SERVER)
 		# Add Protobuf directory to the build
 		add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/external/protobuf")
 
-		# Suppres warnings about deprecated declarations in protobuf generated code, we can't change the files ....
+		# Suppress ALL warnings in protobuf generated code and dependencies
 		if(TARGET libprotobuf)
-			target_compile_options(libprotobuf PRIVATE -Wno-deprecated-declarations)
+			if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+				target_compile_options(libprotobuf PRIVATE -w)
+			elseif(MSVC)
+				target_compile_options(libprotobuf PRIVATE /w)
+			endif()
 		endif()
+
+		if(TARGET libprotobuf-lite)
+			if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+				target_compile_options(libprotobuf-lite PRIVATE -w)
+			elseif(MSVC)
+				target_compile_options(libprotobuf-lite PRIVATE /w)
+			endif()
+		endif()
+
 		if(TARGET libprotoc)
-			target_compile_options(libprotoc PRIVATE -Wno-deprecated-declarations)
+			if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+				target_compile_options(libprotoc PRIVATE -w)
+			elseif(MSVC)
+				target_compile_options(libprotoc PRIVATE /w)
+			endif()
+		endif()
+
+		if(TARGET protoc)
+			if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+				target_compile_options(protoc PRIVATE -w)
+			elseif(MSVC)
+				target_compile_options(protoc PRIVATE /w)
+			endif()
+		endif()
+
+		if(TARGET libupb)
+			if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+				target_compile_options(libupb PRIVATE -w)
+			elseif(MSVC)
+				target_compile_options(libupb PRIVATE /w)
+			endif()
+		endif()
+
+		# Suppress warnings in utf8_range (protobuf third-party dependency)
+		if(TARGET utf8_validity)
+			if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+				target_compile_options(utf8_validity PRIVATE -w)
+			elseif(MSVC)
+				target_compile_options(utf8_validity PRIVATE /w)
+			endif()
+		endif()
+
+		if(TARGET utf8_range)
+			if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+				target_compile_options(utf8_range PRIVATE -w)
+			elseif(MSVC)
+				target_compile_options(utf8_range PRIVATE /w)
+			endif()
 		endif()
 
 		if(CMAKE_CROSSCOMPILING)
@@ -525,6 +623,8 @@ if(ENABLE_PROTOBUF_SERVER)
 												-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
 												-Wno-dev # We don't want to be warned over unused variables
 												-Wno-deprecated-declarations # We don't want to be warned about deprecated declarations
+												-Wno-nonnull # We don't want to be warned about nonnull
+												-Wno-lto-type-mismatch # We don't want to be warned about LTO type mismatches
 					BUILD_BYPRODUCTS    <BINARY_DIR>/protoc${CMAKE_EXECUTABLE_SUFFIX}
 				)
 

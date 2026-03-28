@@ -52,3 +52,9 @@ deploy/*
 #Config database & backups created for testing
 HyperionBackup_*
 hyperion.db
+
+# gemini-cli settings
+.gemini/
+
+# GitHub App credentials
+gha-creds-*.json

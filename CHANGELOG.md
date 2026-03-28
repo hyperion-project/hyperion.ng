@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Fixes:**
   - Art-Net device is limited to 108 DMX channels (36 RGB LEDs) instead of 512 channels (170 RGB LEDs)
   - Image Effect trigger kills Hyperion (#1980)
+  - Nanoleaf UI error
 
 ---
 
@@ -31,7 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Technical
 
 - Fixed - Locally installed flatc/protoc compilers were not found
-- ProviderRestAPI - Handle QNetworkAccessManager as direct object 
+- ProviderRestAPI - Handle QNetworkAccessManager as direct object
+- Update docker compile to reduce prerequisites and allow ninja build
 
 ## [2.2.0](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.2.0) - 2026-02-02
 

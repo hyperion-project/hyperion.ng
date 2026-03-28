@@ -68,7 +68,7 @@ public:
 	int close() override;
 
 	///
-	/// @brief Power-/turn off the Nanoleaf device.
+	/// @brief Power-/turn off the device.
 	///
 	/// @return True if success
 	///
@@ -125,7 +125,6 @@ private:
 		int minorVersion;
 	};
 
-
 	int openDevice(libusb_device *device, libusb_device_handle ** deviceHandle);
 	int closeDevice(libusb_device_handle * deviceHandle);
 
@@ -140,7 +139,7 @@ private:
 	/// libusb device handle
 	libusb_device_handle * _deviceHandle;
 
-	/// harware bus number
+	/// hardware bus number
 	int _busNumber;
 
 	/// hardware address number
