@@ -1289,7 +1289,7 @@ $(document).ready(function () {
           if (hostList !== "SELECT") {
             const host = conf_editor.getEditor("root.specificOptions.host").getValue();
             const token = conf_editor.getEditor("root.specificOptions.token").getValue();
-            if (host !== "" && token !== "" && entityIds) {
+            if (host !== "" && token !== "") {
               canIdentify = true;
               canSave = true;
             }
