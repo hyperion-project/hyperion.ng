@@ -316,6 +316,15 @@ if(ENABLE_MDNS)
 	endif()
 
 	if(TARGET qmdnsengine)
+		# Suppress warnings from external qmdnsengine sources
+		if(NOT USE_SYSTEM_QMDNS_LIBS)
+			if(MSVC)
+				target_compile_options(qmdnsengine PRIVATE /w)
+			elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+				target_compile_options(qmdnsengine PRIVATE -w)
+			endif()
+		endif()
+
 		if(NOT TARGET qmdns)
 			add_library(qmdns INTERFACE IMPORTED GLOBAL)
 			target_link_libraries(qmdns INTERFACE qmdnsengine)

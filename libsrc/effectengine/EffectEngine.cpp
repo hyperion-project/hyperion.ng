@@ -1,4 +1,4 @@
-#include <Python.h>
+#include <python/PythonCompat.h>
 #undef B0
 
 // Qt includes

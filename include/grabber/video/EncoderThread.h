@@ -16,11 +16,10 @@
 	#include <turbojpeg.h>
 	#include <jconfig.h>
 #else
-	// Forward declarations for TurboJPEG types when not available
-	// These are used as opaque pointers to maintain consistent class layout (ODR compliance)
+	// Keep type names stable across translation units when TurboJPEG headers are unavailable.
 	typedef void* tjhandle;
-	typedef void* tjscalingfactor;
-	typedef void* tjtransform;
+	typedef struct tjscalingfactor tjscalingfactor;
+	typedef struct tjtransform tjtransform;
 #endif
 
 constexpr int DEFAULT_THREAD_COUNT {1};
