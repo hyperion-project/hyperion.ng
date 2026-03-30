@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### ✨ Added
 
 - Art-Net - Add RGBW support
+- e1.31 - Add new RGBW white algorithm: **Custom white in Kelvins** (`sub_ktemp_white`). Subtracts a white component at a user-defined color temperature (1000–40000 K) from the RGB signal, allowing accurate RGBW conversion for white LEDs with a known color temperature.
 
 ---
 
