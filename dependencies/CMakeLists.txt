@@ -128,6 +128,17 @@ if(ENABLE_DEV_FTDI)
 
 		find_package(Git REQUIRED)
 		include(ExternalProject)
+
+		# Fedora (and many other Linux distros) link executables as PIE by default.
+		# When linking a static library into a PIE executable, the objects in the
+		# static archive must be position-independent. Ensure libftdi1 is built
+		# with PIC on Linux to avoid:
+		#   relocation R_X86_64_32S ... can not be used when making a PIE object
+		set(LIBFTDI_PIC_CMAKE_ARGS "")
+		if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+			set(LIBFTDI_PIC_CMAKE_ARGS -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON)
+		endif()
+
 		ExternalProject_Add(libftdi1
 			DEPENDS				usb-1.0
 			PREFIX				${CMAKE_CURRENT_BINARY_DIR}/external/libftdi1
@@ -148,6 +159,7 @@ if(ENABLE_DEV_FTDI)
 								-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
 								-DCMAKE_STATIC_LIBRARY_PREFIX_C:STRING=lib
 								-DCMAKE_WARN_DEPRECATED:BOOL=OFF # Suppress warnings about "Compatibility with CMake < 3.5 will be removed from a future version of CMake"
+								${LIBFTDI_PIC_CMAKE_ARGS}
 								${APPLE_CONFIGURATION}
 			BUILD_BYPRODUCTS    <BINARY_DIR>/src/libftdi1${CMAKE_STATIC_LIBRARY_SUFFIX}
 		)
@@ -250,6 +262,13 @@ if(ENABLE_DEV_TINKERFORGE)
 	target_include_directories(tinkerforge PUBLIC
 		"${CMAKE_CURRENT_SOURCE_DIR}/include/tinkerforge"
 	)
+
+	# Suppress ALL warnings for tinkerforge library
+	if(MSVC)
+		target_compile_options(tinkerforge PRIVATE /w)
+	else()
+		target_compile_options(tinkerforge PRIVATE -w)
+	endif()
 endif()
 
 #=============================================================================
@@ -297,6 +316,15 @@ if(ENABLE_MDNS)
 	endif()
 
 	if(TARGET qmdnsengine)
+		# Suppress warnings from external qmdnsengine sources
+		if(NOT USE_SYSTEM_QMDNS_LIBS)
+			if(MSVC)
+				target_compile_options(qmdnsengine PRIVATE /w)
+			elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+				target_compile_options(qmdnsengine PRIVATE -w)
+			endif()
+		endif()
+
 		if(NOT TARGET qmdns)
 			add_library(qmdns INTERFACE IMPORTED GLOBAL)
 			target_link_libraries(qmdns INTERFACE qmdnsengine)
@@ -304,7 +332,7 @@ if(ENABLE_MDNS)
 
 		get_target_property(qmdnsengine_VERSION qmdnsengine VERSION)
 		if(qmdnsengine_VERSION)
-			message(STATUS "FlatBuffers version used: ${qmdnsengine_VERSION}")
+			message(STATUS "QMdnsEngine version used: ${qmdnsengine_VERSION}")
 		endif()
 	endif()
 endif()

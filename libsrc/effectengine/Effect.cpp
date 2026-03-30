@@ -1,17 +1,17 @@
+// python utils (must be included first to avoid Python header issues)
+#include <effectengine/EffectModule.h>
+#include <python/PythonProgram.h>
+
 // Qt includes
 #include <QDateTime>
 #include <QFile>
 #include <QResource>
 
-// effect engin eincludes
+// effect engine includes
 #include <effectengine/Effect.h>
-#include <effectengine/EffectModule.h>
 #include <utils/Logger.h>
 #include <hyperion/Hyperion.h>
 #include <hyperion/PriorityMuxer.h>
-
-// python utils
-#include <python/PythonProgram.h>
 
 
 // Constants

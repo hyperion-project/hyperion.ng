@@ -93,7 +93,7 @@ int LedDeviceUdpRaw::write(const QVector<ColorRgb> &ledValues)
 
 		QVector<ColorRgbw> rgbwLedValues;
 		rgbwLedValues.resize(_ledCount);
-		for (int i = 0; i < _ledCount; ++i)
+		for (uint i = 0; i < _ledCount; ++i)
 		{
 			RGBW::Rgb_to_Rgbw(ledValues[i], &rgbwLedValues[i], _whiteAlgorithm);
 		}
