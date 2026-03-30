@@ -1,8 +1,8 @@
-// utils
-#include <utils/Logger.h>
-
 #include <python/PythonInit.h>
 #include <python/PythonUtils.h>
+
+// utils
+#include <utils/Logger.h>
 
 // qt include
 #include <QCoreApplication>

@@ -15,6 +15,12 @@
 #ifdef HAVE_TURBO_JPEG
 	#include <turbojpeg.h>
 	#include <jconfig.h>
+#else
+	// Forward declarations for TurboJPEG types when not available
+	// These are used as opaque pointers to maintain consistent class layout (ODR compliance)
+	typedef void* tjhandle;
+	typedef void* tjscalingfactor;
+	typedef void* tjtransform;
 #endif
 
 constexpr int DEFAULT_THREAD_COUNT {1};
@@ -78,11 +84,13 @@ private:
 
 	ImageResampler		_imageResampler;
 
-#ifdef HAVE_TURBO_JPEG
+	// TurboJPEG members - always present for ODR compliance
+	// When HAVE_TURBO_JPEG is not defined, these are opaque void pointers
 	tjhandle			_tjInstance;
 	tjscalingfactor*	_scalingFactors;
 	tjtransform*		_xform;
 
+#ifdef HAVE_TURBO_JPEG
 	void processImageMjpeg();
 	bool onError(const QString context) const;
 #endif

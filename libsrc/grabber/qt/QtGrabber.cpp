@@ -239,7 +239,7 @@ QPixmap QtGrabber::grabWindow(quintptr window, int xIn, int yIn, int width, int 
 }
 #endif
 
-int QtGrabber::grabFrame(Image<ColorRgb>& image)
+int QtGrabber::grabFrame(Image<ColorRgb>& image, bool /*forceUpdate*/)
 {
 	if (_isDeviceInError)
 	{

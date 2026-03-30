@@ -262,6 +262,13 @@ if(ENABLE_DEV_TINKERFORGE)
 	target_include_directories(tinkerforge PUBLIC
 		"${CMAKE_CURRENT_SOURCE_DIR}/include/tinkerforge"
 	)
+
+	# Suppress ALL warnings for tinkerforge library
+	if(MSVC)
+		target_compile_options(tinkerforge PRIVATE /w)
+	else()
+		target_compile_options(tinkerforge PRIVATE -w)
+	endif()
 endif()
 
 #=============================================================================
@@ -316,7 +323,7 @@ if(ENABLE_MDNS)
 
 		get_target_property(qmdnsengine_VERSION qmdnsengine VERSION)
 		if(qmdnsengine_VERSION)
-			message(STATUS "FlatBuffers version used: ${qmdnsengine_VERSION}")
+			message(STATUS "QMdnsEngine version used: ${qmdnsengine_VERSION}")
 		endif()
 	endif()
 endif()

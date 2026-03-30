@@ -23,7 +23,7 @@ public:
 	///
 	/// @param[out] image  The snapped screenshot
 	///
-	int grabFrame(Image<ColorRgb> &image) override;
+	int grabFrame(Image<ColorRgb> &image, bool forceUpdate = false) override;
 
 	///
 	/// @brief Apply new width/height values, overwrite Grabber.h implementation
