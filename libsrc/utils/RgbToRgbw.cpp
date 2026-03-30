@@ -136,6 +136,7 @@ void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm, u
 		case WhiteAlgorithm::SUB_KTEMP_WHITE:
 		{
 			ColorRgb white = ColorRgb::white(whiteTemp);
+			const float sumW = static_cast<float>(white.red + white.green + white.blue);
 
 			// Max fraction of white chromaticity we can subtract per channel without going negative
 			auto safeRatio = [](float num, float denom) -> float {
@@ -145,10 +146,11 @@ void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm, u
 			               qMin(safeRatio(input.green, white.green),
 			                    safeRatio(input.blue,  white.blue)));
 
-			// White LED efficiency model: white LED at w produces w*wc/255 on each channel (1:1 efficiency).
-			// Cap at 255, then back-calculate the actual ratio used for RGB subtraction.
-			const float fWhiteDrive  = qBound(0.0f, fRatio * 255.0f, 255.0f);
-			const float fActualRatio = fWhiteDrive / 255.0f;
+			// White LED efficiency model: driving w produces w*wc/sumW on each channel
+			// (equivalent to "1/3 efficiency" for pure white where sumW = 3*255)
+			// Cap at 255, then back-calculate the actual ratio used for RGB subtraction
+			const float fWhiteDrive  = qBound(0.0f, fRatio * sumW, 255.0f);
+			const float fActualRatio = fWhiteDrive / sumW;
 
 			output->white = static_cast<uint8_t>(round(fWhiteDrive));
 			output->red   = static_cast<uint8_t>(qBound(0.0f, round(input.red   - fActualRatio * white.red),   255.0f));
