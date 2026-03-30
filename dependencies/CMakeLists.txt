@@ -128,6 +128,17 @@ if(ENABLE_DEV_FTDI)
 
 		find_package(Git REQUIRED)
 		include(ExternalProject)
+
+		# Fedora (and many other Linux distros) link executables as PIE by default.
+		# When linking a static library into a PIE executable, the objects in the
+		# static archive must be position-independent. Ensure libftdi1 is built
+		# with PIC on Linux to avoid:
+		#   relocation R_X86_64_32S ... can not be used when making a PIE object
+		set(LIBFTDI_PIC_CMAKE_ARGS "")
+		if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+			set(LIBFTDI_PIC_CMAKE_ARGS -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON)
+		endif()
+
 		ExternalProject_Add(libftdi1
 			DEPENDS				usb-1.0
 			PREFIX				${CMAKE_CURRENT_BINARY_DIR}/external/libftdi1
@@ -148,6 +159,7 @@ if(ENABLE_DEV_FTDI)
 								-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
 								-DCMAKE_STATIC_LIBRARY_PREFIX_C:STRING=lib
 								-DCMAKE_WARN_DEPRECATED:BOOL=OFF # Suppress warnings about "Compatibility with CMake < 3.5 will be removed from a future version of CMake"
+								${LIBFTDI_PIC_CMAKE_ARGS}
 								${APPLE_CONFIGURATION}
 			BUILD_BYPRODUCTS    <BINARY_DIR>/src/libftdi1${CMAKE_STATIC_LIBRARY_SUFFIX}
 		)
