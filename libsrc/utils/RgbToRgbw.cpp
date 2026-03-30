@@ -1,3 +1,5 @@
+#include <limits>
+
 #include <utils/ColorRgb.h>
 #include <utils/ColorRgbw.h>
 #include <utils/RgbToRgbw.h>
@@ -52,7 +54,7 @@ WhiteAlgorithm stringToWhiteAlgorithm(const QString& str)
 	return WhiteAlgorithm::INVALID;
 }
 
-void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm, u_int16_t whiteTemp)
+void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm, uint16_t whiteTemp)
 {
 	switch (algorithm)
 	{
@@ -134,34 +136,26 @@ void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm, u
 		case WhiteAlgorithm::SUB_KTEMP_WHITE:
 		{
 			ColorRgb white = ColorRgb::white(whiteTemp);
+			const float sumW = static_cast<float>(white.red + white.green + white.blue);
 
-			// calculating per channel ratio between color we convert and our custom temperature white. Always in range [0,1]
-			float fRatioRed = static_cast<float>(input.red) / static_cast<float>(white.red);
-			float fRatioGreen = static_cast<float>(input.green) / static_cast<float>(white.green);
-			float fRatioBlue = static_cast<float>(input.blue)  / static_cast<float>(white.blue);
+			// Max fraction of white chromaticity we can subtract per channel without going negative
+			auto safeRatio = [](float num, float denom) -> float {
+				return (denom > 0.0f) ? num / denom : std::numeric_limits<float>::infinity();
+			};
+			float fRatio = qMin(safeRatio(input.red,   white.red),
+			               qMin(safeRatio(input.green, white.green),
+			                    safeRatio(input.blue,  white.blue)));
 
-			// smallest ratio
-			float fRatio = qMin(fRatioRed, qMin(fRatioGreen, fRatioBlue));
+			// White LED efficiency model: driving w produces w*wc/sumW on each channel
+			// (equivalent to "1/3 efficiency" for pure white where sumW = 3*255)
+			// Cap at 255, then back-calculate the actual ratio used for RGB subtraction
+			const float fWhiteDrive  = qBound(0.0f, fRatio * sumW, 255.0f);
+			const float fActualRatio = fWhiteDrive / sumW;
 
-			// typically brigtness of x value on white channel is lower than (x,x,x) RGB. Depends on LED. But 1/3 is a reasonable guess
-			float fWhiteToRGBOutputRatio = 255.0f/static_cast<float>(white.red + white.green + white.blue);
-			// Make the color with the smallest white ratio to be the output white value
-			uint8_t uScale;
-			if (fRatio == fRatioRed) {
-				uScale = input.red;
-			} else if (fRatio == fRatioGreen) {
-				uScale = input.green;
-			}else {
-				uScale =  input.blue;
-			}
-
-			float fUpscale = qBound(1.0f, 255.0f / static_cast<float>(uScale), 3.0f);
-
-			// Calculate the output red, green and blue values, taking into account the white color temperature.
-			output->red = static_cast<u_int8_t>(qBound(0.0f, round(input.red - uScale * (white.red / 255.0f)*fWhiteToRGBOutputRatio), 255.0f));
-			output->green = static_cast<u_int8_t>(qBound(0.0f, round(input.green - uScale * (white.green / 255.0f)*fWhiteToRGBOutputRatio), 255.0f));
-			output->blue = static_cast<u_int8_t>(qBound(0.0f, round(input.blue - uScale * (white.blue / 255.0f)*fWhiteToRGBOutputRatio), 255.0f));
-			output->white = static_cast<u_int8_t>(qBound(0.0f, round(uScale), 255.0f));
+			output->white = static_cast<uint8_t>(round(fWhiteDrive));
+			output->red   = static_cast<uint8_t>(qBound(0.0f, round(input.red   - fActualRatio * white.red),   255.0f));
+			output->green = static_cast<uint8_t>(qBound(0.0f, round(input.green - fActualRatio * white.green), 255.0f));
+			output->blue  = static_cast<uint8_t>(qBound(0.0f, round(input.blue  - fActualRatio * white.blue),  255.0f));
 
 			break;
 		}

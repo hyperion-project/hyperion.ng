@@ -161,7 +161,7 @@ private:
 	RGBW::WhiteAlgorithm _whiteAlgorithm;
 	ColorRgbw _temp_rgbw;
 	uint16_t _dmxChannelCount;
-	int _customWhiteTemperature = 5000;
+	uint16_t _customWhiteTemperature = 5000;
 };
 
 #endif // LEDEVICEUDPE131_H
