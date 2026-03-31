@@ -1,5 +1,3 @@
-#include <limits>
-
 #include <utils/ColorRgb.h>
 #include <utils/ColorRgbw.h>
 #include <utils/RgbToRgbw.h>
@@ -140,7 +138,7 @@ void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm, u
 
 			// Max fraction of white chromaticity we can subtract per channel without going negative
 			auto safeRatio = [](float num, float denom) -> float {
-				return (denom > 0.0f) ? num / denom : std::numeric_limits<float>::infinity();
+				return (denom > 0.0f) ? num / denom : static_cast<float>(qInf());
 			};
 			float fRatio = qMin(safeRatio(input.red,   white.red),
 			               qMin(safeRatio(input.green, white.green),
@@ -152,10 +150,10 @@ void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm, u
 			const float fWhiteDrive  = qBound(0.0f, fRatio * sumW, 255.0f);
 			const float fActualRatio = fWhiteDrive / sumW;
 
-			output->white = static_cast<uint8_t>(round(fWhiteDrive));
-			output->red   = static_cast<uint8_t>(qBound(0.0f, round(input.red   - fActualRatio * white.red),   255.0f));
-			output->green = static_cast<uint8_t>(qBound(0.0f, round(input.green - fActualRatio * white.green), 255.0f));
-			output->blue  = static_cast<uint8_t>(qBound(0.0f, round(input.blue  - fActualRatio * white.blue),  255.0f));
+			output->white = static_cast<uint8_t>(qRound(fWhiteDrive));
+			output->red   = static_cast<uint8_t>(qBound(0, qRound(input.red   - fActualRatio * white.red),   255));
+			output->green = static_cast<uint8_t>(qBound(0, qRound(input.green - fActualRatio * white.green), 255));
+			output->blue  = static_cast<uint8_t>(qBound(0, qRound(input.blue  - fActualRatio * white.blue),  255));
 
 			break;
 		}

@@ -8,6 +8,7 @@
 #include <QTextStream>
 #include <QRgb>
 #include <QDebug>
+#include <QtMath>
 
 #include <utils/global_defines.h>
 #include <utils/Packed.h>
@@ -93,12 +94,12 @@ struct ColorRgb
 		ColorRgb result;
 
 		// red channel
-		double r = (t <= 66) ? 255.0 : 329.698727446 * pow(t - 60, -0.1332047592);
+		double r = (t <= 66) ? 255.0 : 329.698727446 * qPow(t - 60, -0.1332047592);
 		result.red = static_cast<uint8_t>(qBound(0.0, r, 255.0));
 
 		// green channel
-		double g = (t <= 66) ? 99.4708025861 * log(t) - 161.1195681661
-		                     : 288.1221695283 * pow(t - 60, -0.0755148492);
+		double g = (t <= 66) ? 99.4708025861 * qLn(t) - 161.1195681661
+		                     : 288.1221695283 * qPow(t - 60, -0.0755148492);
 		result.green = static_cast<uint8_t>(qBound(0.0, g, 255.0));
 
 		// blue channel
