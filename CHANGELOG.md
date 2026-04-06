@@ -4,11 +4,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.2.0...HEAD)
+## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.2.1...HEAD)
 
 ### ⚠️ Breaking Changes
 
 ---
+
+### ✨ Added
+
+---
+
+### 🔧 Changed
+
+---
+
+### 🗑️ Removed
+
+---
+
+### Technical
+
+## [2.2.1](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.2.1) - 2026-04-06
 
 ### ✨ Added
 
@@ -22,10 +38,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Art-Net device is limited to 108 DMX channels (36 RGB LEDs) instead of 512 channels (170 RGB LEDs)
   - Image Effect trigger kills Hyperion (#1980)
   - Nanoleaf UI error
-
----
-
-### 🗑️ Removed
 
 ---
 
