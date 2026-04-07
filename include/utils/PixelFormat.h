@@ -18,6 +18,7 @@ enum class PixelFormat {
 	NV21,
 	P030,
 	I420,
+	I422,
 	MJPEG,
 	NO_CHANGE
 };
@@ -59,9 +60,17 @@ inline PixelFormat parsePixelFormat(const QString& pixelFormat)
 	{
 		return PixelFormat::I420;
 	}
+	else if (format.compare("i422")  == 0)
+	{
+		return PixelFormat::I422;
+	}
 	else if (format.compare("nv12") == 0)
 	{
 		return PixelFormat::NV12;
+	}
+	else if (format.compare("nv21") == 0)
+	{
+		return PixelFormat::NV21;
 	}
 	else if (format.compare("mjpeg")  == 0)
 	{
@@ -107,9 +116,17 @@ inline QString pixelFormatToString(const PixelFormat& pixelFormat)
 	{
 		return "I420";
 	}
+	else if (pixelFormat == PixelFormat::I422)
+	{
+		return "I422";
+	}
 	else if (pixelFormat == PixelFormat::NV12)
 	{
 		return "NV12";
+	}
+	else if (pixelFormat == PixelFormat::NV21)
+	{
+		return "NV21";
 	}
 	else if (pixelFormat == PixelFormat::MJPEG)
 	{
