@@ -213,7 +213,24 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, s
 			break;
 		}
 
-		case PixelFormat::I420:
+		case PixelFormat::NV21:
+		{
+			for (int yDest = yDestStart, ySource = cropTop + (_verticalDecimation >> 1); yDest <= yDestEnd; ySource += _verticalDecimation, ++yDest)
+			{
+				size_t uOffset = (height + ySource / 2) * lineLength;
+				for (int xDest = xDestStart, xSource = cropLeft + (_horizontalDecimation >> 1); xDest <= xDestEnd; xSource += _horizontalDecimation, ++xDest)
+				{
+					ColorRgb & rgb = outputImage(abs(xDest), abs(yDest));
+					uint8_t y = data[lineLength * ySource + xSource];
+					uint8_t v = data[uOffset + ((xSource >> 1) << 1)];
+					uint8_t u = data[uOffset + ((xSource >> 1) << 1) + 1];
+					ColorSys::yuv2rgb(y, u, v, rgb.red, rgb.green, rgb.blue);
+				}
+			}
+			break;
+		}
+
+		case PixelFormat::I420: // YUV 4:2:0 Planar
 		{
 			for (int yDest = yDestStart, ySource = cropTop + (_verticalDecimation >> 1); yDest <= yDestEnd; ySource += _verticalDecimation, ++yDest)
 			{
@@ -230,9 +247,27 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, s
 			}
 			break;
 		}
+
+		case PixelFormat::I422: // YUV 4:2:2 Planar
+		{
+			for (int yDest = yDestStart, ySource = cropTop + (_verticalDecimation >> 1); yDest <= yDestEnd; ySource += _verticalDecimation, ++yDest)
+			{
+				int uOffset = width * height + ySource * (width/2);
+				int vOffset = (width * height) + (width * height / 2) + ySource * (width/2);
+				for (int xDest = xDestStart, xSource = _cropLeft + (_horizontalDecimation >> 1); xDest <= xDestEnd; xSource += _horizontalDecimation, ++xDest)
+				{
+					ColorRgb & rgb = outputImage(abs(xDest), abs(yDest));
+					uint8_t y = data[lineLength * ySource + xSource];
+					uint8_t u = data[uOffset + (xSource >> 1)];
+					uint8_t v = data[vOffset + (xSource >> 1)];
+					ColorSys::yuv2rgb(y, u, v, rgb.red, rgb.green, rgb.blue);
+				}
+			}
+			break;
+		}
+
 		case PixelFormat::MJPEG:
 		break;
-		case PixelFormat::NV21:
 		case PixelFormat::P030:
 			Warning(Logger::getInstance("ImageResampler"), "%s",
 					QSTRING_CSTR(QString("Pixel format %1 not supported yet").arg(pixelFormatToString(pixelFormat))));
