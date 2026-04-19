@@ -61,6 +61,12 @@ private:
 	///
 	bool restartCapture();
 
+	///
+	/// Validates the cursor settings and report,
+	/// if a setting results in that the mouse cursor is part of the capture.
+	///
+	void validateCursorSettings();
+
 	void computeCropBox(int sourceWidth, int sourceHeight, D3D11_BOX& box) const;
 
 private:
