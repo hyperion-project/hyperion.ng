@@ -581,7 +581,7 @@ static bool processBroadcomSandFramebuffer(int deviceFd,
     return untileBroadcomSandToLinear(deviceFd, framebuffer, w, h, pixelFormat, planes, totalSize, imageResampler, log, image);
 }
 
-int DRMFrameGrabber::grabFrame(Image<ColorRgb> &image)
+int DRMFrameGrabber::grabFrame(Image<ColorRgb> &image, bool /*forceUpdate*/)
 {
     if (!_isEnabled || _isDeviceInError)
     {

@@ -1,11 +1,9 @@
 #pragma once
 
+#include <python/PythonCompat.h>
+
 #include <QByteArray>
 #include <QString>
-
-#undef slots
-#include <Python.h>
-#define slots Q_SLOTS
 
 #include <utils/Logger.h>
 #include <python/PythonUtils.h>

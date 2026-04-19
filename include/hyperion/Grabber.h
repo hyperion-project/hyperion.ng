@@ -147,7 +147,7 @@ public:
 	///
 	virtual bool isAvailable(bool logError = false) { return _isAvailable; }
 
-	virtual int grabFrame(Image<ColorRgb> &) { return 0; }
+	virtual int grabFrame(Image<ColorRgb> &, bool forceUpdate = false) { return 0; }
 	virtual bool setupScreen() { return true; }
 	virtual QSize getScreenSize() const { return QSize(); }
 	virtual QJsonArray getInputDeviceDetails() const { return QJsonArray(); }

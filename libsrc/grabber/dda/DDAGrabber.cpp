@@ -404,7 +404,7 @@ bool DDAGrabber::resetDeviceAndCapture()
 	return setupDisplay() && restartCapture();
 }
 
-int DDAGrabber::grabFrame(Image<ColorRgb>& image)
+int DDAGrabber::grabFrame(Image<ColorRgb>& image, bool /*forceUpdate*/)
 {
 	if (_isDeviceInError)
 	{

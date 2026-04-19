@@ -61,7 +61,7 @@ bool FramebufferFrameGrabber::setWidthHeight(int width, int height)
 	return false;
 }
 
-int FramebufferFrameGrabber::grabFrame(Image<ColorRgb> & image)
+int FramebufferFrameGrabber::grabFrame(Image<ColorRgb> & image, bool /*forceUpdate*/)
 {
 	if (!_isEnabled || _isDeviceInError)
 	{

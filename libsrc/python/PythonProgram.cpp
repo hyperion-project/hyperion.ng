@@ -1,6 +1,5 @@
 #include <python/PythonProgram.h>
 #include <python/PythonUtils.h>
-
 #include <utils/Logger.h>
 
 #include <QThread>
