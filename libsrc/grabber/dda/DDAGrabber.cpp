@@ -573,10 +573,7 @@ int DDAGrabber::grabFrame(Image<ColorRgb>& image, bool /*forceUpdate*/)
 		<< ", PointerVisible=" << (int)frameInfo.PointerPosition.Visible
 		<< ", LastPresentTime=" << (qulonglong)frameInfo.LastPresentTime.QuadPart
 		<< ", LastMouseUpdateTime=" << (qulonglong)frameInfo.LastMouseUpdateTime.QuadPart
-		<< " Capture setup: width:" << _width << ", height:" << _height << ", pixelDecimation:" << _pixelDecimation
-		<< "PointerShapeBufferSize: << frameInfo.PointerShapeBufferSize"
-		<< "TotalMetadataBufferSize: " << frameInfo.TotalMetadataBufferSize
-		<< "PointerPosition: " << frameInfo.PointerPosition.Position.x << "x" << frameInfo.PointerPosition.Position.y << "visible:" << frameInfo.PointerPosition.Visible;
+		<< " Capture setup: width:" << _width << ", height:" << _height << ", pixelDecimation:" << _pixelDecimation;
 
 	CComPtr<ID3D11Texture2D> sourceTexture;
 	hr = desktopResource->QueryInterface(&sourceTexture);
