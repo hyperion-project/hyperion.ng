@@ -74,6 +74,7 @@ bool LedDeviceUdpE131::init(const QJsonObject &deviceConfig)
 	// Initialize white algorithm
 	QString whiteAlgorithmStr = deviceConfig["whiteAlgorithm"].toString("white_off");
 	_whiteAlgorithm = RGBW::stringToWhiteAlgorithm(whiteAlgorithmStr);
+	_customWhiteTemperature = deviceConfig["whiteTemperature"].toInt(5000);
 	if (_whiteAlgorithm == RGBW::WhiteAlgorithm::INVALID)
 	{
 		QString errortext = QString("unknown whiteAlgorithm: %1").arg(whiteAlgorithmStr);
@@ -170,7 +171,7 @@ int LedDeviceUdpE131::write(const QVector<ColorRgb> &ledValues)
 		}
 		else
 		{
-			RGBW::Rgb_to_Rgbw(color, &_temp_rgbw, _whiteAlgorithm);
+			RGBW::Rgb_to_Rgbw(color, &_temp_rgbw, _whiteAlgorithm, _customWhiteTemperature);
 			rawDataPtr[currentChannel++] = _temp_rgbw.red;
 			rawDataPtr[currentChannel++] = _temp_rgbw.green;
 			rawDataPtr[currentChannel++] = _temp_rgbw.blue;

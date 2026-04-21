@@ -21,6 +21,10 @@ WhiteAlgorithm stringToWhiteAlgorithm(const QString& str)
 	{
 		return WhiteAlgorithm::SUB_MIN_COOL_ADJUST;
 	}
+	if (str == "sub_ktemp_white")
+	{
+		return WhiteAlgorithm::SUB_KTEMP_WHITE;
+	}
     if (str == "cold_white")
     {
         return WhiteAlgorithm::COLD_WHITE;
@@ -48,7 +52,7 @@ WhiteAlgorithm stringToWhiteAlgorithm(const QString& str)
 	return WhiteAlgorithm::INVALID;
 }
 
-void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm)
+void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm, uint16_t whiteTemp)
 {
 	switch (algorithm)
 	{
@@ -127,6 +131,32 @@ void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm)
             output->white = input.red < input.green ? (input.red < input.blue ? input.red : input.blue) : (input.green < input.blue ? input.green : input.blue);
             break;
         }
+		case WhiteAlgorithm::SUB_KTEMP_WHITE:
+		{
+			ColorRgb white = ColorRgb::white(whiteTemp);
+			const float sumW = static_cast<float>(white.red + white.green + white.blue);
+
+			// Max fraction of white chromaticity we can subtract per channel without going negative
+			auto safeRatio = [](float num, float denom) -> float {
+				return (denom > 0.0f) ? num / denom : static_cast<float>(qInf());
+			};
+			float fRatio = qMin(safeRatio(input.red,   white.red),
+			               qMin(safeRatio(input.green, white.green),
+			                    safeRatio(input.blue,  white.blue)));
+
+			// White LED efficiency model: driving w produces w*wc/sumW on each channel
+			// (equivalent to "1/3 efficiency" for pure white where sumW = 3*255)
+			// Cap at 255, then back-calculate the actual ratio used for RGB subtraction
+			const float fWhiteDrive  = qBound(0.0f, fRatio * sumW, 255.0f);
+			const float fActualRatio = fWhiteDrive / sumW;
+
+			output->white = static_cast<uint8_t>(qRound(fWhiteDrive));
+			output->red   = static_cast<uint8_t>(qBound(0, qRound(input.red   - fActualRatio * white.red),   255));
+			output->green = static_cast<uint8_t>(qBound(0, qRound(input.green - fActualRatio * white.green), 255));
+			output->blue  = static_cast<uint8_t>(qBound(0, qRound(input.blue  - fActualRatio * white.blue),  255));
+
+			break;
+		}
         case WhiteAlgorithm::NEUTRAL_WHITE:
         case WhiteAlgorithm::COLD_WHITE:
         {
