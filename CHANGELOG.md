@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🔧 Changed
 
+- **Fixes:**
+- Windows DDA Grabber - Prevent image updates when mouse is moved. Provide a Warning on incomptible setting. (#2002)
 ---
 
 ### 🗑️ Removed

@@ -117,6 +117,31 @@ DDAGrabber::~DDAGrabber()
 	}
 }
 
+void DDAGrabber::validateCursorSettings()
+{
+	// 1. Check for Mouse Trails (The most common culprit for "baked-in" cursors)
+	int trailLines = 0;
+	if (SystemParametersInfo(SPI_GETMOUSETRAILS, 0, &trailLines, 0))
+	{
+		if (trailLines > 1)
+		{
+			Warning(_log, "Incompatible Setting Detected: 'Display pointer trails' is ENABLED. "
+				"A mouse cursor will appear in your screen capture. Disable this in Windows Mouse settings.");
+		}
+	}
+
+	// 2. Check for Cursor Shadow (Can also trigger software compositing on older drivers/hardware)
+	BOOL shadowEnabled = FALSE;
+	if (SystemParametersInfo(SPI_GETCURSORSHADOW, 0, &shadowEnabled, 0))
+	{
+		if (shadowEnabled)
+		{
+			Info(_log, "Note: 'Pointer shadow' is enabled. If a mouse cursor appears in capture, "
+				"try disabling this setting in Windows.");
+		}
+	}
+}
+
 bool DDAGrabber::setupDisplay()
 {
 	qCDebug(grabber_screen_flow) << "Setting up DDA grabber for display" << d->display;
@@ -202,6 +227,8 @@ bool DDAGrabber::restartCapture()
 		Error(_log, "Cannot restart capture, device is in error state");
 		return false;
 	}
+
+	validateCursorSettings();
 
 	qCDebug(grabber_screen_flow) << "Restarting capture for display" << d->display;
 
@@ -455,6 +482,12 @@ int DDAGrabber::grabFrame(Image<ColorRgb>& image, bool /*forceUpdate*/)
 	if (SUCCEEDED(hr))
 	{
 		d->isFrameAcquired = true;
+		// If no pixels changed, skip immediately. This handles the "Only Mouse Moved" case
+		if (frameInfo.AccumulatedFrames == 0) {
+			SafeReleaseFrame(d->desktopDuplication);
+			d->isFrameAcquired = false;
+			return -1;
+		}
 	}
 
 	// --- Error Handling ---
