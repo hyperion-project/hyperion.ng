@@ -76,7 +76,7 @@ jobs:
           path: all-artifacts
 
       - name: 📦 Upload
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           name: Hyperion ${{ env.VERSION }}
           tag_name: ${{ env.TAG }}
