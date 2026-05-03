@@ -28,6 +28,7 @@
 #include <QStringList>
 #include <QSystemTrayIcon>
 #include <QNetworkInterface>
+#include <QNetworkProxy>
 #include <QHostInfo>
 #include <QScopedPointer>
 
@@ -124,6 +125,13 @@ int main(int argc, char** argv)
 
 	// Initialising QCoreApplication
 	QScopedPointer<QCoreApplication> app(createApplication(argc, argv));
+
+	// Disable system proxy for all of Hyperion's network connections.
+	// Hyperion communicates with local LED devices and should not route
+	// its traffic through any system proxy, which could cause connection
+	// failures or prevent the web interface from being accessible when a
+	// system proxy is configured (e.g. on Windows).
+	QNetworkProxy::setApplicationProxy(QNetworkProxy(QNetworkProxy::NoProxy));
 
 	// check if we are running already an instance
 	// TODO Allow one session per user

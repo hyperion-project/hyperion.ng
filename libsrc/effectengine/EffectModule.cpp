@@ -15,6 +15,7 @@
 #include <QUrl>
 #include <QNetworkReply>
 #include <QNetworkAccessManager>
+#include <QNetworkProxy>
 #include <QEventLoop>
 
 // Define a struct for per-interpreter state
@@ -325,6 +326,7 @@ PyObject* EffectModule::wrapGetImage(PyObject* self, PyObject* args)
 		if (url.isValid())
 		{
 			QNetworkAccessManager* networkManager = new QNetworkAccessManager();
+			networkManager->setProxy(QNetworkProxy(QNetworkProxy::NoProxy));
 			QNetworkReply* networkReply = networkManager->get(QNetworkRequest(url));
 
 			QEventLoop eventLoop;
