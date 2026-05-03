@@ -127,10 +127,11 @@ int main(int argc, char** argv)
 	QScopedPointer<QCoreApplication> app(createApplication(argc, argv));
 
 	// Disable system proxy for all of Hyperion's network connections.
-	// Hyperion communicates with local LED devices and should not route
-	// its traffic through any system proxy, which could cause connection
-	// failures or prevent the web interface from being accessible when a
-	// system proxy is configured (e.g. on Windows).
+	// On Windows, when a system proxy is configured, Qt may perform slow proxy
+	// resolution (WPAD auto-detection, PAC script fetching) the first time any
+	// network operation is attempted.  Setting NoProxy before starting any
+	// Qt network services ensures the web server socket is created and begins
+	// listening immediately, without being delayed by proxy negotiation.
 	QNetworkProxy::setApplicationProxy(QNetworkProxy(QNetworkProxy::NoProxy));
 
 	// check if we are running already an instance

@@ -6,7 +6,6 @@
 #include <QObject>
 #include <QEventLoop>
 #include <QNetworkReply>
-#include <QNetworkProxy>
 #include <QByteArray>
 #include <QJsonObject>
 
@@ -45,9 +44,6 @@ ProviderRestApi::ProviderRestApi(const QString& scheme, const QString& host, int
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
 	_networkManager->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
 #endif
-	// Disable proxy: LED device API calls are to local network devices
-	// and should not be routed through any system proxy.
-	_networkManager->setProxy(QNetworkProxy(QNetworkProxy::NoProxy));
 }
 
 ProviderRestApi::ProviderRestApi(const QString& scheme, const QString& host, int port)
