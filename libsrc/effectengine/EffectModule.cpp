@@ -123,7 +123,6 @@ PyObject* EffectModule::json2python(const QJsonValue& jsonData)
 				// PyList_SetItem steals reference to obj and returns 0 on success
 				if (PyList_SetItem(list, index, obj) != 0)
 				{
-					Py_DECREF(obj);
 					Py_DECREF(list);
 					return nullptr; // Failed to insert item
 				}
@@ -425,7 +424,6 @@ PyObject* EffectModule::wrapGetImage(PyObject* self, PyObject* args)
 				// Replace macro with function to allow error check
 				if (PyList_SetItem(result, i, dict) != 0)
 				{
-					Py_DECREF(dict);
 					Py_DECREF(result);
 					return nullptr; // failed to insert
 				}
