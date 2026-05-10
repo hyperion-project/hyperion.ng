@@ -20,9 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Fixes:**
 - Windows DDA Grabber - Prevent image updates when mouse is moved. Provide a Warning on incomptible setting. (#2002)
 - EffectEngine: Fix Python reference-counting bugs in effect module — null checks after `PyList_New`/`PyDict_New`, version-aware `PyModule_AddObject` cleanup, and null guard on `json2python` return before `PyObject_SetAttrString`
----
-
-### 🗑️ Removed
+- EffectEngine: Fix silent null returns in Python C-API wrappers that caused `SystemError` when argument parsing failed due to incorrect argument counts.
+- EffectEngine: Fix missing null-guards on `Py_BuildValue` returns before calling `PyObject_SetAttrString` for `ledCount` and `latchTime`.
 
 ---
 

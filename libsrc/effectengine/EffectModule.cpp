@@ -471,6 +471,7 @@ PyObject* EffectModule::wrapImageShow(PyObject* self, PyObject* args)
 
 	if (!argsOk || (imgId > -1 && imgId >= getEffect()->_imageStack.size()))
 	{
+		if (!PyErr_Occurred()) { PyErr_SetString(PyExc_TypeError, "Invalid argument count or type."); }
 		return nullptr;
 	}
 
@@ -565,6 +566,8 @@ PyObject* EffectModule::wrapImageLinearGradient(PyObject* self, PyObject* args)
 			return nullptr;
 		}
 	}
+
+	if (!PyErr_Occurred()) { PyErr_SetString(PyExc_TypeError, "Invalid argument count or type."); }
 	return nullptr;
 }
 
@@ -632,6 +635,8 @@ PyObject* EffectModule::wrapImageConicalGradient(PyObject* self, PyObject* args)
 			return nullptr;
 		}
 	}
+
+	if (!PyErr_Occurred()) { PyErr_SetString(PyExc_TypeError, "Invalid argument count or type."); }
 	return nullptr;
 }
 
@@ -717,6 +722,8 @@ PyObject* EffectModule::wrapImageRadialGradient(PyObject* self, PyObject* args)
 			return nullptr;
 		}
 	}
+
+	if (!PyErr_Occurred()) { PyErr_SetString(PyExc_TypeError, "Invalid argument count or type."); }
 	return nullptr;
 }
 
@@ -777,6 +784,8 @@ PyObject* EffectModule::wrapImageDrawPolygon(PyObject* self, PyObject* args)
 			return nullptr;
 		}
 	}
+
+	if (!PyErr_Occurred()) { PyErr_SetString(PyExc_TypeError, "Invalid argument count or type."); }
 	return nullptr;
 }
 
@@ -873,6 +882,8 @@ PyObject* EffectModule::wrapImageDrawPie(PyObject* self, PyObject* args)
 		painter->setPen(oldPen);
 		Py_RETURN_NONE;
 	}
+
+	if (!PyErr_Occurred()) { PyErr_SetString(PyExc_TypeError, "Invalid argument count or type."); }
 	return nullptr;
 }
 
@@ -913,6 +924,8 @@ PyObject* EffectModule::wrapImageSolidFill(PyObject* self, PyObject* args)
 		getEffect()->_painter->fillRect(myQRect, QColor(r, g, b, a));
 		Py_RETURN_NONE;
 	}
+
+	if (!PyErr_Occurred()) { PyErr_SetString(PyExc_TypeError, "Invalid argument count or type."); }
 	return nullptr;
 }
 
@@ -954,6 +967,8 @@ PyObject* EffectModule::wrapImageDrawLine(PyObject* self, PyObject* args)
 
 		Py_RETURN_NONE;
 	}
+
+	if (!PyErr_Occurred()) { PyErr_SetString(PyExc_TypeError, "Invalid argument count or type."); }
 	return nullptr;
 }
 
@@ -991,6 +1006,8 @@ PyObject* EffectModule::wrapImageDrawPoint(PyObject* self, PyObject* args)
 
 		Py_RETURN_NONE;
 	}
+
+	if (!PyErr_Occurred()) { PyErr_SetString(PyExc_TypeError, "Invalid argument count or type."); }
 	return nullptr;
 }
 
@@ -1031,6 +1048,8 @@ PyObject* EffectModule::wrapImageDrawRect(PyObject* self, PyObject* args)
 
 		Py_RETURN_NONE;
 	}
+
+	if (!PyErr_Occurred()) { PyErr_SetString(PyExc_TypeError, "Invalid argument count or type."); }
 	return nullptr;
 }
 
@@ -1050,6 +1069,7 @@ PyObject* EffectModule::wrapImageSetPixel(PyObject* self, PyObject* args)
 		Py_RETURN_NONE;
 	}
 
+	if (!PyErr_Occurred()) { PyErr_SetString(PyExc_TypeError, "Invalid argument count or type."); }
 	return nullptr;
 }
 
@@ -1065,6 +1085,8 @@ PyObject* EffectModule::wrapImageGetPixel(PyObject* self, PyObject* args)
 		QRgb rgb = getEffect()->_image.pixel(x, y);
 		return Py_BuildValue("iii", qRed(rgb), qGreen(rgb), qBlue(rgb));
 	}
+
+	if (!PyErr_Occurred()) { PyErr_SetString(PyExc_TypeError, "Invalid argument count or type."); }
 	return nullptr;
 }
 
@@ -1096,6 +1118,8 @@ PyObject* EffectModule::wrapImageMinSize(PyObject* self, PyObject* args)
 		}
 		return Py_BuildValue("ii", getEffect()->_image.width(), getEffect()->_image.height());
 	}
+
+	if (!PyErr_Occurred()) { PyErr_SetString(PyExc_TypeError, "Invalid argument count or type."); }
 	return nullptr;
 }
 
@@ -1120,6 +1144,8 @@ PyObject* EffectModule::wrapImageCRotate(PyObject* self, PyObject* args)
 		getEffect()->_painter->rotate(angle);
 		Py_RETURN_NONE;
 	}
+
+	if (!PyErr_Occurred()) { PyErr_SetString(PyExc_TypeError, "Invalid argument count or type."); }
 	return nullptr;
 }
 
@@ -1149,6 +1175,8 @@ PyObject* EffectModule::wrapImageCShear(PyObject* self, PyObject* args)
 		getEffect()->_painter->shear(sh, sv);
 		Py_RETURN_NONE;
 	}
+
+	if (!PyErr_Occurred()) { PyErr_SetString(PyExc_TypeError, "Invalid argument count or type."); }
 	return nullptr;
 }
 

@@ -116,7 +116,7 @@ bool Effect::setModuleParameters()
 	int ledCount = 0;
 	QMetaObject::invokeMethod(hyperion.get(), "getLedCount", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, ledCount));
 	PyObject* ledCountObj = Py_BuildValue("i", ledCount);
-	if (PyObject_SetAttrString(module, "ledCount", ledCountObj) < 0) {
+	if (ledCountObj == nullptr || PyObject_SetAttrString(module, "ledCount", ledCountObj) < 0) {
 		PyErr_Print();  // Print error if setting attribute fails
 	}
 	Py_XDECREF(ledCountObj);
@@ -125,7 +125,7 @@ bool Effect::setModuleParameters()
 	int latchTime = 0;
 	QMetaObject::invokeMethod(hyperion.get(), "getLatchTime", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, latchTime));
 	PyObject* latchTimeObj = Py_BuildValue("i", latchTime);
-	if (PyObject_SetAttrString(module, "latchTime", latchTimeObj) < 0) {
+	if (latchTimeObj == nullptr || PyObject_SetAttrString(module, "latchTime", latchTimeObj) < 0) {
 		PyErr_Print();  // Print error if setting attribute fails
 	}
 	Py_XDECREF(latchTimeObj);
