@@ -16,7 +16,7 @@
 
 // Constants
 namespace {
-	int DEFAULT_MAX_UPDATE_RATE_HZ { 200 };
+	constexpr int DEFAULT_MAX_UPDATE_RATE_HZ { 200 };
 } //End of constants
 
 Effect::Effect(const QSharedPointer<Hyperion>& hyperionInstance, int priority, int timeout, const QString &script, const QString &name, const QJsonObject &args, const QString &imageData)
@@ -53,7 +53,7 @@ Effect::Effect(const QSharedPointer<Hyperion>& hyperionInstance, int priority, i
 	// init effect image for image based effects, size is based on led layout
 	_image = QImage(_imageSize, QImage::Format_ARGB32_Premultiplied);
 	_image.fill(Qt::black);
-	_painter = new QPainter(&_image);
+	_painter.reset(new QPainter(&_image));
 
 	Q_INIT_RESOURCE(EffectEngine);
 }
@@ -61,7 +61,6 @@ Effect::Effect(const QSharedPointer<Hyperion>& hyperionInstance, int priority, i
 Effect::~Effect()
 {
 	TRACK_SCOPE_SUBCOMPONENT() << _name;
-	delete _painter;
 	_imageStack.clear();
 }
 
@@ -85,9 +84,9 @@ int Effect::getRemaining() const
 bool Effect::setModuleParameters()
 {
 	// import the buildtin Hyperion module
-	PyObject* module = PyImport_ImportModule("hyperion");
+	PyObject* hyperionModule = PyImport_ImportModule("hyperion");
 
-	if (module == nullptr) {
+	if (hyperionModule == nullptr) {
 		PyErr_Print();  // Print error if module import fails
 		return false;
 	}
@@ -96,17 +95,17 @@ bool Effect::setModuleParameters()
 	PyObject* capsule = PyCapsule_New((void*)this, "hyperion.__effectObj", nullptr);
 	if (capsule == nullptr) {
 		PyErr_Print();  // Print error if capsule creation fails
-		Py_DECREF(module);
+		Py_DECREF(hyperionModule);
 		return false;
 	}
-	if (PyModule_AddObject(module, "__effectObj", capsule) < 0) {
+	if (PyModule_AddObject(hyperionModule, "__effectObj", capsule) < 0) {
 		PyErr_Print();  // Print error if adding capsule fails
 		// PyModule_AddObject steals the reference on success.
 		// On failure: Python < 3.10 steals it unconditionally; 3.10+ does not.
 #if (PY_VERSION_HEX >= 0x030A0000)
 		Py_DECREF(capsule);  // 3.10+: reference not stolen on failure
 #endif
-		Py_XDECREF(module);
+		Py_XDECREF(hyperionModule);
 		return false;
 	}
 
@@ -116,7 +115,7 @@ bool Effect::setModuleParameters()
 	int ledCount = 0;
 	QMetaObject::invokeMethod(hyperion.get(), "getLedCount", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, ledCount));
 	PyObject* ledCountObj = Py_BuildValue("i", ledCount);
-	if (ledCountObj == nullptr || PyObject_SetAttrString(module, "ledCount", ledCountObj) < 0) {
+	if (ledCountObj == nullptr || PyObject_SetAttrString(hyperionModule, "ledCount", ledCountObj) < 0) {
 		PyErr_Print();  // Print error if setting attribute fails
 	}
 	Py_XDECREF(ledCountObj);
@@ -125,20 +124,20 @@ bool Effect::setModuleParameters()
 	int latchTime = 0;
 	QMetaObject::invokeMethod(hyperion.get(), "getLatchTime", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, latchTime));
 	PyObject* latchTimeObj = Py_BuildValue("i", latchTime);
-	if (latchTimeObj == nullptr || PyObject_SetAttrString(module, "latchTime", latchTimeObj) < 0) {
+	if (latchTimeObj == nullptr || PyObject_SetAttrString(hyperionModule, "latchTime", latchTimeObj) < 0) {
 		PyErr_Print();  // Print error if setting attribute fails
 	}
 	Py_XDECREF(latchTimeObj);
 
 	// Add args variable to the interpreter
 	PyObject* argsObj = EffectModule::json2python(_args);
-	if (argsObj == nullptr || PyObject_SetAttrString(module, "args", argsObj) < 0) {
+	if (argsObj == nullptr || PyObject_SetAttrString(hyperionModule, "args", argsObj) < 0) {
 		PyErr_Print();  // Print error if conversion or setting attribute fails
 	}
 	Py_XDECREF(argsObj);
 
 	// Decrement module reference
-	Py_XDECREF(module);
+	Py_XDECREF(hyperionModule);
 
 	return true;
 }

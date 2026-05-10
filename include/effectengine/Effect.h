@@ -12,6 +12,7 @@
 #include <utils/Image.h>
 
 #include <atomic>
+#include <QScopedPointer>
 
 class Hyperion;
 class Logger;
@@ -110,7 +111,7 @@ private:
 
 	QSize           _imageSize;
 	QImage          _image;
-	QPainter*       _painter;
+	QScopedPointer<QPainter> _painter;
 	QVector<QImage> _imageStack;
 
 	double	_lowestUpdateIntervalInSeconds;
