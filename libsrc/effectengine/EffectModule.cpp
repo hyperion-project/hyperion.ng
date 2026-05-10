@@ -39,12 +39,12 @@ static int hyperion_exec(PyObject* hyperionModule) {
 }
 
 // Module deallocation function to clean up per-interpreter state
-static void hyperion_free(PyObject* /* hyperionModule */)
+static void hyperion_free(void* /* hyperionModule */) // NOSONAR - signature mandated by Python C API freefunc typedef
 {
 	// No specific cleanup required in this example
 }
 
-static PyModuleDef_Slot hyperion_slots[] = {
+static PyModuleDef_Slot hyperion_slots[] = { // NOSONAR - C-style array required by PyModuleDef_Slot Python C API
 	{Py_mod_exec, static_cast<void*>(hyperion_exec)},
 #if (PY_VERSION_HEX >= 0x030C0000)
 	{Py_mod_multiple_interpreters, Py_MOD_PER_INTERPRETER_GIL_SUPPORTED},
@@ -123,15 +123,15 @@ static PyObject* json2pythonObject(const QJsonValue& jsonData)
 		PyObject* pyKey = PyUnicode_FromString(it.key().toUtf8().constData());
 		if (!pyKey)
 		{
-			Py_XDECREF(pyDict);
+			Py_DECREF(pyDict);
 			return nullptr; // Error occurred, return null
 		}
 		// Convert value
 		PyObject* pyValue = EffectModule::json2python(it.value());
 		if (!pyValue)
 		{
-			Py_XDECREF(pyKey);
-			Py_XDECREF(pyDict);
+			Py_DECREF(pyKey);
+			Py_DECREF(pyDict);
 			return nullptr; // Error occurred, return null
 		}
 		// Add to dictionary with error check
@@ -187,7 +187,7 @@ PyObject* EffectModule::json2python(const QJsonValue& jsonData)
 }
 
 // Python method table
-PyMethodDef EffectModule::effectMethods[] = {
+PyMethodDef EffectModule::effectMethods[] = { // NOSONAR - C-style array required by PyMethodDef Python C API
 	{"setColor"              , EffectModule::wrapSetColor              , METH_VARARGS, "Set a new color for the leds."},
 	{"setImage"              , EffectModule::wrapSetImage              , METH_VARARGS, "Set a new image to process and determine new led colors."},
 	{"getImage"              , EffectModule::wrapGetImage              , METH_VARARGS, "get image data from file."},
@@ -352,10 +352,10 @@ static bool setupImageSource(PyObject* args, const QString& imageData, QBuffer& 
 		if (url.isValid())
 		{
 			QNetworkAccessManager networkManager;
-			QNetworkReply* networkReply = networkManager.get(QNetworkRequest(url));
+			QScopedPointer<QNetworkReply> networkReply(networkManager.get(QNetworkRequest(url)));
 
 			QEventLoop eventLoop;
-			connect(networkReply, &QNetworkReply::finished, &eventLoop, &QEventLoop::quit);
+			connect(networkReply.data(), &QNetworkReply::finished, &eventLoop, &QEventLoop::quit);
 			eventLoop.exec();
 
 			if (networkReply->error() == QNetworkReply::NoError)
@@ -365,8 +365,7 @@ static bool setupImageSource(PyObject* args, const QString& imageData, QBuffer& 
 				reader.setDecideFormatFromContent(true);
 				reader.setDevice(&buffer);
 			}
-
-			networkReply->deleteLater();
+			// QScopedPointer automatically deletes networkReply here
 		}
 		else
 		{
