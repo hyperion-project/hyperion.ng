@@ -67,7 +67,6 @@ void EffectFileHandler::handleSettingsUpdate(settings::type type, const QJsonDoc
 
 QString EffectFileHandler::deleteEffect(const QString& effectName)
 {
-	QString resultMsg;
 	const auto& effectsDefinition = getEffects();
 	auto it = effectsDefinition.cbegin();
 	for (; it != effectsDefinition.cend(); ++it)
@@ -75,159 +74,140 @@ QString EffectFileHandler::deleteEffect(const QString& effectName)
 		if (it->name == effectName)
 			break;
 	}
-	
-	if (it != effectsDefinition.cend())
+
+	if (it == effectsDefinition.cend())
+		return "Effect " + effectName + " not found";
+
+	QFileInfo effectConfigurationFile(it->file);
+	if (effectConfigurationFile.absoluteFilePath().startsWith(':'))
+		return "Can't delete internal effect: " + effectName;
+
+	return removeEffectFiles(*it, effectConfigurationFile);
+}
+
+QString EffectFileHandler::removeEffectFiles(const EffectDefinition& effect, const QFileInfo& effectConfigurationFile)
+{
+	if (!effectConfigurationFile.exists())
+		return "Can't find effect configuration file: " + effectConfigurationFile.absoluteFilePath();
+
+	if ((effect.script == ":/effects/gif.py") && !effect.args.value("file").toString("").isEmpty())
 	{
-		QFileInfo effectConfigurationFile(it->file);
-		if (!effectConfigurationFile.absoluteFilePath().startsWith(':'))
+		QFileInfo effectImageFile(effect.args.value("file").toString());
+		if (effectImageFile.exists())
 		{
-			if (effectConfigurationFile.exists())
-			{
-				if ((it->script == ":/effects/gif.py") && !it->args.value("file").toString("").isEmpty())
-				{
-					QFileInfo effectImageFile(it->args.value("file").toString());
-					if (effectImageFile.exists())
-					{
-						QFile::remove(effectImageFile.absoluteFilePath());
-					}
-				}
-
-				bool result = QFile::remove(effectConfigurationFile.absoluteFilePath());
-
-				if (result)
-				{
-					updateEffects();
-					resultMsg = "";
-				}
-				else
-				{
-					resultMsg = "Can't delete effect configuration file: " + effectConfigurationFile.absoluteFilePath() + ". Please check permissions";
-				}
-			}
-			else
-			{
-				resultMsg = "Can't find effect configuration file: " + effectConfigurationFile.absoluteFilePath();
-			}
-		}
-		else
-		{
-			resultMsg = "Can't delete internal effect: " + effectName;
+			QFile::remove(effectImageFile.absoluteFilePath());
 		}
 	}
-	else
+
+	if (!QFile::remove(effectConfigurationFile.absoluteFilePath()))
 	{
-		resultMsg = "Effect " + effectName + " not found";
+		return "Can't delete effect configuration file: " + effectConfigurationFile.absoluteFilePath() + ". Please check permissions";
 	}
 
-	return resultMsg;
+	updateEffects();
+	return "";
 }
 
 QString EffectFileHandler::saveEffect(const QJsonObject& message)
 {
-	QString resultMsg;
-	if (!message["args"].toObject().isEmpty())
+	if (message["args"].toObject().isEmpty())
+		return "Missing or empty Object 'args'";
+
+	const QString scriptName = message["script"].toString();
+	const auto& effectsSchemas = getEffectSchemas();
+	auto it = effectsSchemas.cbegin();
+	for (; it != effectsSchemas.cend(); ++it)
 	{
-		QString scriptName = message["script"].toString();
+		if (it->pyFile == scriptName)
+			break;
+	}
 
-		const auto& effectsSchemas = getEffectSchemas();
-		auto it = effectsSchemas.cbegin();
-		for (; it != effectsSchemas.cend(); ++it)
-		{
-			if (it->pyFile == scriptName)
-				break;
-		}
+	if (it == effectsSchemas.cend())
+		return "Missing schema file for Python script " + message["script"].toString();
 
-		if (it != effectsSchemas.cend())
-		{
-			if (!JsonUtils::validate("EffectFileHandler", message["args"], it->schemaFile, _log).first)
-			{
-				return "Error during arg validation against schema, please consult the Hyperion Log";
-			}
+	if (!JsonUtils::validate("EffectFileHandler", message["args"], it->schemaFile, _log).first)
+		return "Error during arg validation against schema, please consult the Hyperion Log";
 
-			QJsonObject effectJson;
-			QJsonArray effectArray;
-			effectArray = _effectConfig["paths"].toArray();
+	const QJsonArray effectArray = _effectConfig["paths"].toArray();
+	if (effectArray.empty())
+		return "Can't save new effect. Effect path empty";
 
-			if (!effectArray.empty())
-			{
-				QString effectName = message["name"].toString();
-				if (effectName.trimmed().isEmpty() || effectName.trimmed().startsWith(":"))
-				{
-					return "Can't save new effect. Effect name is empty or begins with a dot.";
-				}
+	const QString effectName = message["name"].toString();
+	if (effectName.trimmed().isEmpty() || effectName.trimmed().startsWith(":"))
+		return "Can't save new effect. Effect name is empty or begins with a dot.";
 
-				effectJson["name"] = effectName;
-				effectJson["script"] = message["script"].toString();
-				effectJson["args"] = message["args"].toObject();
+	QJsonObject effectJson;
+	effectJson["name"]   = effectName;
+	effectJson["script"] = scriptName;
+	effectJson["args"]   = message["args"].toObject();
 
-				QList<EffectDefinition> availableEffects = getEffects();
-				auto iter = std::find_if(availableEffects.cbegin(), availableEffects.cend(),
-					[&effectName](const EffectDefinition& effectDefinition) { return effectDefinition.name == effectName; }
-				);
+	const QString resultMsg = resolveEffectFilePath(message, effectName, effectArray, effectJson);
+	if (!resultMsg.isEmpty())
+		return resultMsg;
 
-				QFileInfo newFileName;
-				if (iter != availableEffects.cend())
-				{
-					newFileName.setFile(iter->file);
-					if (newFileName.absoluteFilePath().startsWith(':'))
-					{
-						return "The effect name '" + effectName + "' is assigned to an internal effect. Please rename your effect.";
-					}
-				}
-				else
-				{
-					QString f = effectArray[0].toString().replace("$ROOT", _rootPath) + '/' + effectName.replace(QString(" "), QString("")) + QString(".json");
-					newFileName.setFile(f);
-				}
+	Info(_log, "Reload effect list");
+	updateEffects();
+	return "";
+}
 
-				if (!message["imageData"].toString("").isEmpty() && !message["args"].toObject().value("file").toString("").isEmpty())
-				{
-					QJsonObject args = message["args"].toObject();
-					QString imageFilePath = effectArray[0].toString().replace("$ROOT", _rootPath) + '/' + args.value("file").toString();
+QString EffectFileHandler::resolveEffectFilePath(const QJsonObject& message, const QString& effectName, const QJsonArray& effectArray, QJsonObject& effectJson)
+{
+	QList<EffectDefinition> availableEffects = getEffects();
+	auto iter = std::find_if(availableEffects.cbegin(), availableEffects.cend(),
+		[&effectName](const EffectDefinition& effectDefinition) { return effectDefinition.name == effectName; }
+	);
 
-					QFileInfo imageFileName(imageFilePath);
-					if (!FileUtils::writeFile(imageFileName.absoluteFilePath(), QByteArray::fromBase64(message["imageData"].toString("").toUtf8()), _log))
-					{
-						return "Error while saving image file '" + message["args"].toObject().value("file").toString() + ", please check the Hyperion Log";
-					}
-
-					//Update json with image file location
-					args["file"] = imageFilePath;
-					effectJson["args"] = args;
-				}
-
-				if (message["args"].toObject().value("imageSource").toString("") == "url" || message["args"].toObject().value("imageSource").toString("") == "file")
-				{
-					QJsonObject args = message["args"].toObject();
-					args.remove(args.value("imageSource").toString("") == "url" ? "file" : "url");
-					effectJson["args"] = args;
-				}
-
-				if (!JsonUtils::write(newFileName.absoluteFilePath(), effectJson, _log))
-				{
-					return "Error while saving effect, please check the Hyperion Log";
-				}
-
-				Info(_log, "Reload effect list");
-				updateEffects();
-				resultMsg = "";
-			}
-			else
-			{
-				resultMsg = "Can't save new effect. Effect path empty";
-			}
-		}
-		else
-		{
-			resultMsg = "Missing schema file for Python script " + message["script"].toString();
-		}
+	QFileInfo newFileName;
+	if (iter != availableEffects.cend())
+	{
+		newFileName.setFile(iter->file);
+		if (newFileName.absoluteFilePath().startsWith(':'))
+			return "The effect name '" + effectName + "' is assigned to an internal effect. Please rename your effect.";
 	}
 	else
 	{
-		resultMsg = "Missing or empty Object 'args'";
+		QString f = effectArray[0].toString().replace("$ROOT", _rootPath) + '/' + QString(effectName).replace(QString(" "), QString("")) + QString(".json");
+		newFileName.setFile(f);
 	}
 
-	return resultMsg;
+	const QString imgResult = saveEffectImage(message, effectArray, effectJson);
+	if (!imgResult.isEmpty())
+		return imgResult;
+
+	cleanImageSource(message, effectJson);
+
+	if (!JsonUtils::write(newFileName.absoluteFilePath(), effectJson, _log))
+		return "Error while saving effect, please check the Hyperion Log";
+
+	return "";
+}
+
+QString EffectFileHandler::saveEffectImage(const QJsonObject& message, const QJsonArray& effectArray, QJsonObject& effectJson)
+{
+	if (message["imageData"].toString("").isEmpty() || message["args"].toObject().value("file").toString("").isEmpty())
+		return "";
+
+	QJsonObject args = message["args"].toObject();
+	const QString imageFilePath = effectArray[0].toString().replace("$ROOT", _rootPath) + '/' + args.value("file").toString();
+	const QFileInfo imageFileName(imageFilePath);
+
+	if (!FileUtils::writeFile(imageFileName.absoluteFilePath(), QByteArray::fromBase64(message["imageData"].toString("").toUtf8()), _log))
+		return "Error while saving image file '" + message["args"].toObject().value("file").toString() + ", please check the Hyperion Log";
+
+	args["file"] = imageFilePath;
+	effectJson["args"] = args;
+	return "";
+}
+
+void EffectFileHandler::cleanImageSource(const QJsonObject& message, QJsonObject& effectJson) const
+{
+	const QString imageSource = message["args"].toObject().value("imageSource").toString("");
+	if (imageSource != "url" && imageSource != "file")
+		return;
+
+	QJsonObject args = message["args"].toObject();
+	args.remove(imageSource == "url" ? "file" : "url");
+	effectJson["args"] = args;
 }
 
 void EffectFileHandler::updateEffects()
@@ -266,55 +246,14 @@ void EffectFileHandler::updateEffects()
 		if (!directory.exists())
 		{
 			if (directory.mkpath(path))
-			{
 				Info(_log, "New Effect path \"%s\" created successfully", QSTRING_CSTR(path));
-			}
 			else
-			{
 				Warning(_log, "Failed to create Effect path \"%s\", please check permissions", QSTRING_CSTR(path));
-			}
 		}
 		else
 		{
-			int efxCount = 0;
-			const QStringList filenames = directory.entryList(QStringList() << "*.json", QDir::Files, QDir::Name | QDir::IgnoreCase);
-			for (const QString& filename : filenames)
-			{
-				EffectDefinition def;
-				if (loadEffectDefinition(path, filename, def))
-				{
-					InfoIf(availableEffects.find(def.name) != availableEffects.end(), _log,
-						"effect overload effect '%s' is now taken from '%s'", QSTRING_CSTR(def.name), QSTRING_CSTR(path));
-
-					if (disableList.contains(def.name))
-					{
-						Info(_log, "effect '%s' not loaded, because it is disabled in hyperion config", QSTRING_CSTR(def.name));
-					}
-					else
-					{
-						availableEffects[def.name] = def;
-						efxCount++;
-					}
-				}
-			}
-			Info(_log, "%d effects loaded from directory %s", efxCount, QSTRING_CSTR(path));
-
-			// collect effect schemas
-			efxCount = 0;
-
-			QString schemaPath = path + "schema" + '/';
-			directory.setPath(schemaPath);
-			const QStringList schemaFileNames = directory.entryList(QStringList() << "*.json", QDir::Files, QDir::Name | QDir::IgnoreCase);
-			for (const QString& schemaFileName : schemaFileNames)
-			{
-				EffectSchema pyEffect;
-				if (loadEffectSchema(path, directory.filePath(schemaFileName), pyEffect))
-				{
-					_effectSchemas.push_back(pyEffect);
-					efxCount++;
-				}
-			}
-			InfoIf(efxCount > 0, _log, "%d effect schemas loaded from directory %s", efxCount, QSTRING_CSTR(schemaPath));
+			loadEffectsFromDirectory(path, directory, disableList, availableEffects);
+			loadSchemasFromDirectory(path, directory);
 		}
 	}
 
@@ -326,6 +265,50 @@ void EffectFileHandler::updateEffects()
 	ErrorIf(_availableEffects.empty(), _log, "no effects found, check your effect directories");
 
 	emit effectListChanged();
+}
+
+void EffectFileHandler::loadEffectsFromDirectory(const QString& path, const QDir& directory, const QStringList& disableList, QMap<QString, EffectDefinition>& availableEffects)
+{
+	int efxCount = 0;
+	const QStringList filenames = directory.entryList(QStringList() << "*.json", QDir::Files, QDir::Name | QDir::IgnoreCase);
+	for (const QString& filename : filenames)
+	{
+		EffectDefinition def;
+		if (!loadEffectDefinition(path, filename, def))
+			continue;
+
+		InfoIf(availableEffects.find(def.name) != availableEffects.end(), _log,
+			"effect overload effect '%s' is now taken from '%s'", QSTRING_CSTR(def.name), QSTRING_CSTR(path));
+
+		if (disableList.contains(def.name))
+		{
+			Info(_log, "effect '%s' not loaded, because it is disabled in hyperion config", QSTRING_CSTR(def.name));
+		}
+		else
+		{
+			availableEffects[def.name] = def;
+			efxCount++;
+		}
+	}
+	Info(_log, "%d effects loaded from directory %s", efxCount, QSTRING_CSTR(path));
+}
+
+void EffectFileHandler::loadSchemasFromDirectory(const QString& path, QDir& directory)
+{
+	int efxCount = 0;
+	const QString schemaPath = path + "schema" + '/';
+	directory.setPath(schemaPath);
+	const QStringList schemaFileNames = directory.entryList(QStringList() << "*.json", QDir::Files, QDir::Name | QDir::IgnoreCase);
+	for (const QString& schemaFileName : schemaFileNames)
+	{
+		EffectSchema pyEffect;
+		if (loadEffectSchema(path, directory.filePath(schemaFileName), pyEffect))
+		{
+			_effectSchemas.push_back(pyEffect);
+			efxCount++;
+		}
+	}
+	InfoIf(efxCount > 0, _log, "%d effect schemas loaded from directory %s", efxCount, QSTRING_CSTR(schemaPath));
 }
 
 bool EffectFileHandler::loadEffectDefinition(const QString& path, const QString& effectConfigFile, EffectDefinition& effectDefinition)
