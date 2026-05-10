@@ -28,6 +28,12 @@ posBlueGuy = posPinkGuy + diffGuys
 posSlowGuy = posBlueGuy + diffGuys
 posRedGuy = posSlowGuy + diffGuys
 
+# minimum LEDs needed: randint(10, ledCount) requires ledCount >= 10,
+# and posRedGuy + 1 LEDs are needed to show all characters
+minLedCount = max(10, posRedGuy + 1)
+if hyperion.ledCount < minLedCount:
+	raise SystemExit(f"Pac-Man requires at least {minLedCount} LEDs (configured: {hyperion.ledCount}). Increase LED count or reduce 'margin-pos'.")
+
 # initialize the led data
 ledDataEscape = bytearray()
 for i in range(hyperion.ledCount):
