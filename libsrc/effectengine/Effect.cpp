@@ -106,7 +106,7 @@ bool Effect::setModuleParameters()
 #if (PY_VERSION_HEX >= 0x030A0000)
 		Py_DECREF(capsule);  // 3.10+: reference not stolen on failure
 #endif
-		Py_DECREF(module);
+		Py_XDECREF(module);
 		return false;
 	}
 
