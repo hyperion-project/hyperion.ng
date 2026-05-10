@@ -111,16 +111,20 @@ PyObject* EffectModule::json2python(const QJsonValue& jsonData)
 		{
 			QJsonArray arrayData = jsonData.toArray();
 			PyObject* list = PyList_New(arrayData.size());
+			if (!list)
+			{
+				return nullptr; // Allocation failed
+			}
 			int index = 0;
 			for (QJsonArray::iterator i = arrayData.begin(); i != arrayData.end(); ++i, ++index)
 			{
 				PyObject* obj = json2python(*i);
 				if (!obj)
 				{
-					Py_XDECREF(list);
+					Py_DECREF(list);
 					return nullptr; // Error occurred, return null
 				}
-				// PyList_SetItem steals reference to obj and returns 0 on success
+				// PyList_SetItem unconditionally steals the reference to obj, even on failure
 				if (PyList_SetItem(list, index, obj) != 0)
 				{
 					Py_DECREF(list);
@@ -135,6 +139,10 @@ PyObject* EffectModule::json2python(const QJsonValue& jsonData)
 			// Python's dict
 			QJsonObject jsonObject = jsonData.toObject();
 			PyObject* pyDict = PyDict_New();
+			if (!pyDict)
+			{
+				return nullptr; // Allocation failed
+			}
 			for (auto it = jsonObject.begin(); it != jsonObject.end(); ++it)
 			{
 				// Convert key

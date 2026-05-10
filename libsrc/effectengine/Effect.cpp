@@ -94,10 +94,19 @@ bool Effect::setModuleParameters()
 
 	// Add a capsule containing 'this' to the module for callback access
 	PyObject* capsule = PyCapsule_New((void*)this, "hyperion.__effectObj", nullptr);
-	if (capsule == nullptr || PyModule_AddObject(module, "__effectObj", capsule) < 0) {
+	if (capsule == nullptr) {
+		PyErr_Print();  // Print error if capsule creation fails
+		Py_DECREF(module);
+		return false;
+	}
+	if (PyModule_AddObject(module, "__effectObj", capsule) < 0) {
 		PyErr_Print();  // Print error if adding capsule fails
-		Py_XDECREF(module);  // Clean up if capsule addition fails
-		Py_XDECREF(capsule);
+		// PyModule_AddObject steals the reference on success.
+		// On failure: Python < 3.10 steals it unconditionally; 3.10+ does not.
+#if (PY_VERSION_HEX >= 0x030A0000)
+		Py_DECREF(capsule);  // 3.10+: reference not stolen on failure
+#endif
+		Py_DECREF(module);
 		return false;
 	}
 
@@ -123,8 +132,8 @@ bool Effect::setModuleParameters()
 
 	// Add args variable to the interpreter
 	PyObject* argsObj = EffectModule::json2python(_args);
-	if (PyObject_SetAttrString(module, "args", argsObj) < 0) {
-		PyErr_Print();  // Print error if setting attribute fails
+	if (argsObj == nullptr || PyObject_SetAttrString(module, "args", argsObj) < 0) {
+		PyErr_Print();  // Print error if conversion or setting attribute fails
 	}
 	Py_XDECREF(argsObj);
 
