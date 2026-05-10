@@ -45,7 +45,7 @@ static void hyperion_free(void* /* hyperionModule */) // NOSONAR - signature man
 }
 
 static PyModuleDef_Slot hyperion_slots[] = { // NOSONAR - C-style array required by PyModuleDef_Slot Python C API
-	{Py_mod_exec, static_cast<void*>(hyperion_exec)},
+	{Py_mod_exec, reinterpret_cast<void*>(hyperion_exec)},
 #if (PY_VERSION_HEX >= 0x030C0000)
 	{Py_mod_multiple_interpreters, Py_MOD_PER_INTERPRETER_GIL_SUPPORTED},
 #endif
@@ -355,7 +355,7 @@ static bool setupImageSource(PyObject* args, const QString& imageData, QBuffer& 
 			QScopedPointer<QNetworkReply> networkReply(networkManager.get(QNetworkRequest(url)));
 
 			QEventLoop eventLoop;
-			connect(networkReply.data(), &QNetworkReply::finished, &eventLoop, &QEventLoop::quit);
+			QObject::connect(networkReply.get(), &QNetworkReply::finished, &eventLoop, &QEventLoop::quit);
 			eventLoop.exec();
 
 			if (networkReply->error() == QNetworkReply::NoError)

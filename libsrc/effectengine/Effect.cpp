@@ -98,13 +98,18 @@ bool Effect::setModuleParameters()
 		Py_DECREF(hyperionModule);
 		return false;
 	}
-	if (PyModule_AddObject(hyperionModule, "__effectObj", capsule) < 0) {
-		PyErr_Print();  // Print error if adding capsule fails
-		// PyModule_AddObject steals the reference on success.
-		// On failure: Python < 3.10 steals it unconditionally; 3.10+ does not.
 #if (PY_VERSION_HEX >= 0x030A0000)
-		Py_DECREF(capsule);  // 3.10+: reference not stolen on failure
+	// 3.10+: AddObjectRef never steals; module dict acquires its own ref internally.
+	// Caller always owns capsule and must Py_DECREF regardless of success or failure.
+	const int addResult = PyModule_AddObjectRef(hyperionModule, "__effectObj", capsule);
+	Py_DECREF(capsule);
+	if (addResult < 0) {
+#else
+	// Pre-3.10: AddObject steals the reference unconditionally (success AND failure).
+	// Do not Py_DECREF capsule in either branch.
+	if (PyModule_AddObject(hyperionModule, "__effectObj", capsule) < 0) {
 #endif
+		PyErr_Print();  // Print error if adding capsule fails
 		Py_DECREF(hyperionModule);
 		return false;
 	}
@@ -136,8 +141,8 @@ bool Effect::setModuleParameters()
 	}
 	Py_XDECREF(argsObj);
 
-	// Decrement module reference
-	Py_XDECREF(hyperionModule);
+	// Decrement module reference (non-null guaranteed by null-check at top of function)
+	Py_DECREF(hyperionModule);
 
 	return true;
 }
