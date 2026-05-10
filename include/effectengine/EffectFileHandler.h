@@ -1,15 +1,17 @@
 #pragma once
 
+#include <QDir>
+#include <QFileInfo>
+#include <QJsonArray>
+#include <QMap>
+#include <QSharedPointer>
+#include <QWeakPointer>
+
 // util
 #include <utils/Logger.h>
 #include <effectengine/EffectDefinition.h>
 #include <effectengine/EffectSchema.h>
 #include <utils/settings.h>
-
-#include <QDir>
-#include <QFileInfo>
-#include <QJsonArray>
-#include <QMap>
 
 class EffectFileHandler : public QObject
 {

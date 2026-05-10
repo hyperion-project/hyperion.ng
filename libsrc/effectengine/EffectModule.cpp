@@ -328,29 +328,33 @@ static QByteArray imageToRGB(const QImage& qimage, int width, int height, bool g
 
 struct ImageCropParams
 {
-	int cropLeft  = 0;
-	int cropTop   = 0;
-	int cropRight = 0;
+	int cropLeft   = 0;
+	int cropTop    = 0;
+	int cropRight  = 0;
 	int cropBottom = 0;
-	int grayscale = 0;
 };
 
-static bool setupImageSource(PyObject* args, const QString& imageData, QBuffer& buffer, QImageReader& reader, ImageCropParams& crop)
+static bool setupImageSource(PyObject* args, const QString& imageData, QBuffer& buffer, QImageReader& reader, ImageCropParams& crop, bool& grayscale)
 {
 	char* source = nullptr;
+
 	if (imageData.isEmpty())
 	{
+		qCDebug(effect) << "setupImageSource: no embedded imageData, parsing source from args";
 		Q_INIT_RESOURCE(EffectEngine);
 
-		if (!PyArg_ParseTuple(args, "s|iiiip", &source, &crop.cropLeft, &crop.cropTop, &crop.cropRight, &crop.cropBottom, &crop.grayscale))
+		int grayscaleInt = 0;
+		if (!PyArg_ParseTuple(args, "s|iiiip", &source, &crop.cropLeft, &crop.cropTop, &crop.cropRight, &crop.cropBottom, &grayscaleInt))
 		{
 			PyErr_SetString(PyExc_TypeError, "String required");
 			return false;
 		}
+		grayscale = (grayscaleInt != 0);
 
 		const auto url = QUrl(source);
-		if (url.isValid())
+		if (url.isValid() && !url.scheme().isEmpty() && url.scheme() != "file")
 		{
+			qCDebug(effect) << "setupImageSource: fetching via network -" << url.toString();
 			QNetworkAccessManager networkManager;
 			QScopedPointer<QNetworkReply> networkReply(networkManager.get(QNetworkRequest(url)));
 
@@ -364,6 +368,11 @@ static bool setupImageSource(PyObject* args, const QString& imageData, QBuffer& 
 				buffer.open(QBuffer::ReadOnly);
 				reader.setDecideFormatFromContent(true);
 				reader.setDevice(&buffer);
+				qCDebug(effect) << "setupImageSource: network fetch OK, buffer size =" << buffer.size();
+			}
+			else
+			{
+				qCDebug(effect) << "setupImageSource: network error -" << networkReply->errorString();
 			}
 			// QScopedPointer automatically deletes networkReply here
 		}
@@ -374,17 +383,22 @@ static bool setupImageSource(PyObject* args, const QString& imageData, QBuffer& 
 			if (file.mid(0, 1) == ":")
 				file = ":/effects/" + file.mid(1);
 
+			qCDebug(effect) << "setupImageSource: loading from file -" << file;
 			reader.setDecideFormatFromContent(true);
 			reader.setFileName(file);
 		}
 	}
 	else
 	{
-		if (!PyArg_ParseTuple(args, "|siiiip", &source, &crop.cropLeft, &crop.cropTop, &crop.cropRight, &crop.cropBottom, &crop.grayscale))
+		qCDebug(effect) << "setupImageSource: embedded imageData present, size =" << imageData.size();
+		int grayscaleInt = 0;
+		if (!PyArg_ParseTuple(args, "|siiiip", &source, &crop.cropLeft, &crop.cropTop, &crop.cropRight, &crop.cropBottom, &grayscaleInt))
 		{
 			return false;
 		}
-		buffer.setData(QByteArray::fromBase64(imageData.toUtf8()));
+		grayscale = (grayscaleInt != 0);
+		const QByteArray decoded = QByteArray::fromBase64(imageData.toUtf8());
+		buffer.setData(decoded);
 		buffer.open(QBuffer::ReadOnly);
 		reader.setDecideFormatFromContent(true);
 		reader.setDevice(&buffer);
@@ -397,34 +411,52 @@ PyObject* EffectModule::wrapGetImage(PyObject* /*self*/, PyObject* args)
 	QBuffer buffer;
 	QImageReader reader;
 	ImageCropParams crop;
+	bool grayscale = false;
 
-	if (!setupImageSource(args, getEffect()->_imageData, buffer, reader, crop))
+	if (!setupImageSource(args, getEffect()->_imageData, buffer, reader, crop, grayscale))
 	{
 		return nullptr;
 	}
 
 	if (!reader.canRead())
 	{
+		qCDebug(effect) << "wrapGetImage: reader cannot read -" << reader.errorString();
 		PyErr_SetString(PyExc_TypeError, reader.errorString().toUtf8().constData());
 		return nullptr;
 	}
-	
-	PyObject* result = PyList_New(reader.imageCount());
-	if(!result) return nullptr;
 
-	for (int imageNumber = 0; imageNumber < reader.imageCount(); ++imageNumber)
+	// imageCount() returns 0 for non-animated formats (JPEG, PNG, …); treat as 1 frame
+	const int rawImageCount = reader.imageCount();
+	const int imageCount = qMax(rawImageCount, 1);
+	const bool isAnimated = (rawImageCount > 0);
+	qCDebug(effect) << "wrapGetImage: format =" << reader.format()
+	                         << "| imageCount() =" << rawImageCount
+	                         << "| treating as" << imageCount << "frame(s)"
+	                         << "| animated =" << isAnimated;
+
+	PyObject* result = PyList_New(imageCount);
+	if (!result) return nullptr;
+
+	for (int imageNumber = 0; imageNumber < imageCount; ++imageNumber)
 	{
-		reader.jumpToImage(imageNumber);
-		if (!reader.canRead())
+		if (isAnimated)
 		{
-			Py_DECREF(result);
-			PyErr_SetString(PyExc_TypeError, reader.errorString().toUtf8().constData());
-			return nullptr;
+			reader.jumpToImage(imageNumber);
+			if (!reader.canRead())
+			{
+				qCDebug(effect) << "wrapGetImage: frame" << imageNumber << "not readable -" << reader.errorString();
+				Py_DECREF(result);
+				PyErr_SetString(PyExc_TypeError, reader.errorString().toUtf8().constData());
+				return nullptr;
+			}
 		}
 
 		QImage qimage = reader.read();
 		int width = qimage.width();
 		int height = qimage.height();
+		qCDebug(effect) << "wrapGetImage: frame" << imageNumber << "decoded:" << width << "x" << height
+		                         << "| image isNull =" << qimage.isNull()
+		                         << "| grayscale =" << grayscale;
 
 		if (crop.cropLeft > 0 || crop.cropTop > 0 || crop.cropRight > 0 || crop.cropBottom > 0)
 		{
@@ -441,7 +473,7 @@ PyObject* EffectModule::wrapGetImage(PyObject* /*self*/, PyObject* args)
 			height = qimage.height();
 		}
 
-		QByteArray binaryImage = imageToRGB(qimage, width, height, crop.grayscale);
+		QByteArray binaryImage = imageToRGB(qimage, width, height, grayscale);
 
 		PyObject* pyBytes = PyByteArray_FromStringAndSize(binaryImage.constData(), binaryImage.size());
 		if (!pyBytes)
@@ -1104,6 +1136,8 @@ PyObject* EffectModule::wrapImageMinSize(PyObject* /*self*/, PyObject* args)
 	{
 		if (width < w || height < h)
 		{
+			// End the active paint session before scaling (new QPainter must not start while old one is active)
+			getEffect()->_painter.reset();
 			getEffect()->_image = getEffect()->_image.scaled(qMax(width, w), qMax(height, h), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
 			getEffect()->_imageSize = getEffect()->_image.size();
 			getEffect()->_painter.reset(new QPainter(&(getEffect()->_image)));
