@@ -934,7 +934,7 @@ PyObject* EffectModule::wrapImageDrawPie(PyObject* /*self*/, PyObject* args)
 	QPen oldPen = painter->pen();
 	QPen newPen(QColor(r, g, b, a));
 	painter->setPen(newPen);
-	painter->drawPie(centerX - radius, centerY - radius, centerX + radius, centerY + radius, startAngle * 16, spanAngle * 16);
+	painter->drawPie(centerX - radius, centerY - radius, radius * 2, radius * 2, startAngle * 16, spanAngle * 16);
 	painter->setPen(oldPen);
 	Py_RETURN_NONE;
 }
