@@ -13,20 +13,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### ✨ Added
 
 - V4L2/ImageResampler: add support for pixelformats YUV422P and NV21
+- New Jugger Effect
 ---
 
 ### 🔧 Changed
 
 - **Fixes:**
   - Windows DDA Grabber - Prevent image updates when mouse is moved. Provide a Warning on incompatible setting. (#2002)
-  - EffectModule - Reference Counting (Use-After-Free) bugs (#2010) - _Thanks to @wr-web
-
+  - EffectModule - Reference Counting (Use-After-Free) bugs (#2010) - _Thanks to @wr-web_
+  - EffectEngine - Follow-up Python C-API null-pointer and stability fixes (#2011)
+  - EffectFileHandler - Path traversal vulnerability when saving user-defined effects (#2011)
+  - Effect scripts: Minor stability and style fixes in `pacman.py`, `traces.py`, `trails.py`(#2011)
 ---
 ### Technical
 
 - EffectEngine: Refactor Python C-extension module to reduce nesting depth and cognitive complexity.
 - EffectModule - Refactor and stablising
-- EffectFileHandler: Refactor and fix path traversal vulnerabilities
+- EffectFileHandler: Refactor effect file management
+- EffectEngine: Added dedicated `hyperion.effect` debug logging category
+- Empty image consistency applied. An image sized 1x1 is not treated as an empty one any longer, only 0x0 is empty.
 
 ## [2.2.1](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.2.1) - 2026-04-06
 
