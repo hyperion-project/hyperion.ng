@@ -190,15 +190,18 @@ QString EffectFileHandler::saveEffectImage(const QJsonObject& message, const QJs
 		return "";
 
 	QJsonObject args = message["args"].toObject();
-	const QString effectsDirPath = effectArray[0].toString().replace("$ROOT", _rootPath);
-	const QString effectsDirAbs = QFileInfo(effectsDirPath).absoluteFilePath();
-	const QString imageFilePath = effectsDirPath + '/' + args.value("file").toString();
-	const QFileInfo imageFileName(imageFilePath);
-	if (!imageFileName.absoluteFilePath().startsWith(effectsDirAbs + '/'))
-		return QString("Invalid image file path '%1'.").arg(args.value("file").toString());
+	const QString requestedFile = args.value("file").toString();
+	if (requestedFile.contains('/') || requestedFile.contains('\\') || requestedFile.contains(".."))
+		return QString("Invalid image file path '%1'.").arg(requestedFile);
 
-	if (!FileUtils::writeFile(imageFileName.absoluteFilePath(), QByteArray::fromBase64(message["imageData"].toString("").toUtf8()), _log))
-		return QString("Error while saving image file '%1', please check the Hyperion Log").arg(message["args"].toObject().value("file").toString());
+	const QDir effectsDir(effectArray[0].toString().replace("$ROOT", _rootPath));
+	const QString effectsDirAbs = QDir::cleanPath(effectsDir.absolutePath());
+	const QString imageFilePath = QDir::cleanPath(effectsDir.absoluteFilePath(requestedFile));
+	if (!imageFilePath.startsWith(effectsDirAbs + QDir::separator()))
+		return QString("Invalid image file path '%1'.").arg(requestedFile);
+
+	if (!FileUtils::writeFile(imageFilePath, QByteArray::fromBase64(message["imageData"].toString("").toUtf8()), _log))
+		return QString("Error while saving image file '%1', please check the Hyperion Log").arg(requestedFile);
 
 	args["file"] = imageFilePath;
 	effectJson["args"] = args;

@@ -1,4 +1,5 @@
 #include <cmath>
+#include <limits>
 
 #include <effectengine/Effect.h>
 #include <effectengine/EffectModule.h>
@@ -277,12 +278,26 @@ PyObject* EffectModule::wrapSetImage(PyObject* /*self*/, PyObject* args)
 	{
 		if (PyByteArray_Check(bytearray))
 		{
+			if (width <= 0 || height <= 0)
+			{
+				PyErr_SetString(PyExc_ValueError, "Image width and height must be positive");
+				return nullptr;
+			}
+
 			Py_ssize_t length = PyByteArray_Size(bytearray);
-			if (length == 3 * width * height)
+			const uint64_t pixelCount = static_cast<uint64_t>(width) * static_cast<uint64_t>(height);
+			if (pixelCount > static_cast<uint64_t>(std::numeric_limits<Py_ssize_t>::max()) / 3U)
+			{
+				PyErr_SetString(PyExc_OverflowError, "Image dimensions are too large");
+				return nullptr;
+			}
+
+			const Py_ssize_t expectedLength = static_cast<Py_ssize_t>(pixelCount * 3U);
+			if (length == expectedLength)
 			{
 				Image<ColorRgb> image(width, height);
 				const char* data = PyByteArray_AS_STRING(bytearray);
-				memcpy(image.memptr(), data, length);
+				memcpy(image.memptr(), data, static_cast<size_t>(length));
 				emit getEffect()->setInputImage(getEffect()->_priority, image, getEffect()->getRemaining(), false);
 				Py_RETURN_NONE;
 			}
@@ -906,7 +921,12 @@ PyObject* EffectModule::wrapImageDrawPie(PyObject* /*self*/, PyObject* args)
 					(uint8_t)(data[idx + 4])
 				));
 		}
+
 		painter->setBrush(gradient);
+		QPen oldPen = painter->pen();
+		painter->setPen(Qt::NoPen);
+		painter->drawPie(centerX - radius, centerY - radius, radius * 2, radius * 2, startAngle * 16, spanAngle * 16);
+		painter->setPen(oldPen);
 		Py_RETURN_NONE;
 	}
 
@@ -1185,11 +1205,10 @@ PyObject* EffectModule::wrapImageCOffset(PyObject* /*self*/, PyObject* args)
 {
 	int offsetX = 0;
 	int offsetY = 0;
-	Py_ssize_t argCount = PyTuple_Size(args);
-
-	if (argCount == 2)
+	if (!PyArg_ParseTuple(args, "ii", &offsetX, &offsetY))
 	{
-		PyArg_ParseTuple(args, "ii", &offsetX, &offsetY);
+		if (!PyErr_Occurred()) { PyErr_SetString(PyExc_TypeError, "Invalid argument count or type."); }
+		return nullptr;
 	}
 
 	getEffect()->_painter->translate(QPoint(offsetX, offsetY));

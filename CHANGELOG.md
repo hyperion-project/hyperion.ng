@@ -31,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - EffectModule - Refactor and stablising
 - EffectFileHandler: Refactor effect file management
 - EffectEngine: Added dedicated `hyperion.effect` debug logging category
-- Empty image consistency applied. An image sized 1x1 is not treated as an empty one any longer, only 0x0 is empty.
+- Empty image consistency applied. 0×0 is now the canonical empty image; 1×1 is no longer treated as empty
 
 ## [2.2.1](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.2.1) - 2026-04-06
 
