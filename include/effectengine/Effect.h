@@ -12,6 +12,7 @@
 #include <utils/Image.h>
 
 #include <atomic>
+#include <QScopedPointer>
 
 class Hyperion;
 class Logger;
@@ -42,7 +43,7 @@ public:
 	/// @brief Set manual interruption to true,
 	///        Note: DO NOT USE QThread::interruption!
 	///
-	void requestInterruption() { _interupt = true; }
+	void requestInterruption() { _interupt = true; } // NOSONAR - QThread::requestInterruption is not used to avoid confusion with the effect's own interruption mechanism
 
 	///
 	/// @brief Check an interruption was requested.
@@ -51,7 +52,7 @@ public:
 	///
 	/// @return    The flag state
 	///
-	bool isInterruptionRequested();
+	bool isInterruptionRequested() const; // NOSONAR - QThread::requestInterruption is not used to avoid confusion with the effect's own interruption mechanism
 
 	///
 	/// @brief Get the remaining timeout, or indication it is endless
@@ -110,7 +111,7 @@ private:
 
 	QSize           _imageSize;
 	QImage          _image;
-	QPainter*       _painter;
+	QScopedPointer<QPainter> _painter;
 	QVector<QImage> _imageStack;
 
 	double	_lowestUpdateIntervalInSeconds;

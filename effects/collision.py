@@ -6,9 +6,14 @@ trailLength   = max(3, int(hyperion.args.get('trailLength', 5)))
 explodeRadius = int(hyperion.args.get('explodeRadius', 8))
 
 # Ensure that the range for pixel indices stays within bounds
-maxPixelIndex = hyperion.ledCount - 1
-if trailLength > maxPixelIndex or explodeRadius > maxPixelIndex:
-    exit(f"Error: Color length ({trailLength}) and detonation range ({explodeRadius}) must be less than number of LEDs configured ({hyperion.ledCount})")
+# trailLength and explodeRadius must each be less than hyperion.ledCount
+minLedCount = max(trailLength, explodeRadius) + 1
+if hyperion.ledCount < minLedCount:
+    raise SystemExit(
+        f"Collision requires at least {minLedCount} LEDs (configured: {hyperion.ledCount}). "
+        f"'trailLength' must be < ledCount (currently {trailLength}, max allowed {hyperion.ledCount - 1}), "
+        f"'explodeRadius' must be < ledCount (currently {explodeRadius}, max allowed {hyperion.ledCount - 1})."
+    )
 
 # Create additional variables
 increment = None

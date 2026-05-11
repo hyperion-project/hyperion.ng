@@ -180,12 +180,7 @@ void ImageData<Pixel_T>::clear(const pixel_type background)
 template <typename Pixel_T>
 void ImageData<Pixel_T>::reset()
 {
-	if (_width != 1 || _height != 1)
-	{
-		resize(1, 1);
-	}
-	// Set the single pixel to the default background
-	_pixels[0] = pixel_type();
+	resize(0, 0);
 }
 
 template <typename Pixel_T>

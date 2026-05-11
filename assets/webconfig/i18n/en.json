@@ -832,6 +832,8 @@
   "edt_eff_url": "Image adress",
   "edt_eff_initial_blink": "Flash for attention",
   "edt_eff_interval": "Interval",
+  "edt_eff_juggler_header": "Juggler",
+  "edt_eff_juggler_header_desc": "Colored balls are juggled across the screen",
   "edt_eff_knightrider_header": "Knight Rider",
   "edt_eff_knightrider_header_desc": "K.I.T.T is back! The front-scanner of the well-known car, this time not just in red.",
   "edt_eff_ledlist": "LED List",

@@ -254,7 +254,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, s
 			{
 				int uOffset = width * height + ySource * (width/2);
 				int vOffset = (width * height) + (width * height / 2) + ySource * (width/2);
-				for (int xDest = xDestStart, xSource = _cropLeft + (_horizontalDecimation >> 1); xDest <= xDestEnd; xSource += _horizontalDecimation, ++xDest)
+				for (int xDest = xDestStart, xSource = cropLeft + (_horizontalDecimation >> 1); xDest <= xDestEnd; xSource += _horizontalDecimation, ++xDest)
 				{
 					ColorRgb & rgb = outputImage(abs(xDest), abs(yDest));
 					uint8_t y = data[lineLength * ySource + xSource];

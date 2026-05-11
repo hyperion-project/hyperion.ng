@@ -219,6 +219,8 @@ int EffectEngine::runEffect(const QString &effectName, const QJsonObject &args, 
 
 int EffectEngine::runEffectScript(const QString &script, const QString &name, const QJsonObject &args, int priority, int timeout, const QString &origin, unsigned smoothCfg, const QString &imageData)
 {
+	qCDebug(effect) << "Run effect script:" << script << "with name:" << name << "args:" << args << "priority:" << priority << "timeout:" << timeout << "origin:" << origin << "smoothCfg:" << smoothCfg << "imageData:" << imageData.size() << "bytes";
+
 	// clear current effect on the channel
 	channelCleared(priority);
 

@@ -1,0 +1,8 @@
+{
+    "name" : "Juggler",
+    "script" : "juggler.py",
+    "args" :
+    {
+        "brightness" : 100
+    }
+}

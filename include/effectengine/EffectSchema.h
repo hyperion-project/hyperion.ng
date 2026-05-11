@@ -6,6 +6,7 @@
 
 struct EffectSchema
 {
-	QString pyFile, schemaFile;
+	QString pyFile;
+	QString schemaFile;
 	QJsonObject pySchema;
 };
