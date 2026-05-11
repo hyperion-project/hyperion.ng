@@ -28,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Technical
 
 - EffectEngine: Refactor Python C-extension module to reduce nesting depth and cognitive complexity.
-- EffectModule - Refactor and stablising
+- EffectModule - Refactor and stabilising
 - EffectFileHandler: Refactor effect file management
 - EffectEngine: Added dedicated `hyperion.effect` debug logging category
 - Empty image consistency applied. 0×0 is now the canonical empty image; 1×1 is no longer treated as empty
