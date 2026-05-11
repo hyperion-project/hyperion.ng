@@ -34,7 +34,7 @@ class trail:
 
 		self.data.extend([(0,0,0)]*(_h-y))
 		if len(self.data) < _h:
-			for i in range (_h-len(self.data)):
+			for _ in range (_h-len(self.data)):
 				self.data.insert(0, (0,0,0))
 
 	def getdata(self):
