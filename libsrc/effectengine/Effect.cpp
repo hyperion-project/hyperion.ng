@@ -64,7 +64,7 @@ Effect::~Effect()
 	_imageStack.clear();
 }
 
-bool Effect::isInterruptionRequested()
+bool Effect::isInterruptionRequested() const
 {
 	return _interupt || (!_isEndless && getRemaining() <= 0);
 }

@@ -2,6 +2,7 @@
 
 #include <effectengine/Effect.h>
 #include <effectengine/EffectModule.h>
+#include <effectengine/EffectDefinition.h>
 
 // hyperion
 #include <hyperion/Hyperion.h>
@@ -378,7 +379,12 @@ static bool setupImageSource(PyObject* args, const QString& imageData, QBuffer& 
 		}
 		else
 		{
-			QString file = QString::fromUtf8(source);
+			QString file;
+
+			if (url.isLocalFile())
+				file = url.toLocalFile();
+			else
+				file = QString::fromUtf8(source);
 
 			if (file.mid(0, 1) == ":")
 				file = ":/effects/" + file.mid(1);

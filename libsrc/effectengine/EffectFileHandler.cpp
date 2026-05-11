@@ -53,8 +53,6 @@ void EffectFileHandler::handleSettingsUpdate(settings::type type, const QJsonDoc
 		_effectConfig = config.object();
 
 		QJsonArray effectPathArray = _effectConfig["paths"].toArray();
-
-		// TODO: Remove workaround and move effect config to global settings
 		if (effectPathArray.empty())
 		{
 			effectPathArray.append("$ROOT/custom-effects");
@@ -167,7 +165,10 @@ QString EffectFileHandler::resolveEffectFilePath(const QJsonObject& message, con
 	}
 	else
 	{
-		QString f = effectArray[0].toString().replace("$ROOT", _rootPath) + '/' + QString(effectName).replace(QString(" "), QString("")) + QString(".json");
+		const QString sanitizedName = QString(effectName).replace(QString(" "), QString(""));
+		if (sanitizedName.contains('/') || sanitizedName.contains('\\') || sanitizedName.contains(".."))
+			return QString("The effect name '%1' contains invalid characters.").arg(effectName);
+		const QString f = effectArray[0].toString().replace("$ROOT", _rootPath) + '/' + sanitizedName + QString(".json");
 		newFileName.setFile(f);
 	}
 
@@ -189,8 +190,12 @@ QString EffectFileHandler::saveEffectImage(const QJsonObject& message, const QJs
 		return "";
 
 	QJsonObject args = message["args"].toObject();
-	const QString imageFilePath = effectArray[0].toString().replace("$ROOT", _rootPath) + '/' + args.value("file").toString();
+	const QString effectsDirPath = effectArray[0].toString().replace("$ROOT", _rootPath);
+	const QString effectsDirAbs = QFileInfo(effectsDirPath).absoluteFilePath();
+	const QString imageFilePath = effectsDirPath + '/' + args.value("file").toString();
 	const QFileInfo imageFileName(imageFilePath);
+	if (!imageFileName.absoluteFilePath().startsWith(effectsDirAbs + '/'))
+		return QString("Invalid image file path '%1'.").arg(args.value("file").toString());
 
 	if (!FileUtils::writeFile(imageFileName.absoluteFilePath(), QByteArray::fromBase64(message["imageData"].toString("").toUtf8()), _log))
 		return QString("Error while saving image file '%1', please check the Hyperion Log").arg(message["args"].toObject().value("file").toString());

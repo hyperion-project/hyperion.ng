@@ -19,12 +19,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Fixes:**
   - Windows DDA Grabber - Prevent image updates when mouse is moved. Provide a Warning on incompatible setting. (#2002)
-  - EffectEngine: Fix Python C-API reference-counting and null-pointer bugs — null guards after allocations, version-aware `PyModule_AddObject` cleanup, and correct ownership on `PyList_SetItem`/`PyModule_AddObject` failures. (#2011)
+  - EffectModule - Reference Counting (Use-After-Free) bugs (#2010) - _Thanks to @wr-web
 
 ---
 ### Technical
 
 - EffectEngine: Refactor Python C-extension module to reduce nesting depth and cognitive complexity.
+- EffectModule - Refactor and stablising
+- EffectFileHandler: Refactor and fix path traversal vulnerabilities
 
 ## [2.2.1](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.2.1) - 2026-04-06
 
