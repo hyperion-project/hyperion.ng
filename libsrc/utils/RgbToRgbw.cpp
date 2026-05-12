@@ -1,6 +1,7 @@
 #include <utils/ColorRgb.h>
 #include <utils/ColorRgbw.h>
 #include <utils/RgbToRgbw.h>
+
 #include <utils/Logger.h>
 
 #define ROUND_DIVIDE(number, denom) (((number) + (denom) / 2) / (denom))
@@ -20,6 +21,10 @@ WhiteAlgorithm stringToWhiteAlgorithm(const QString& str)
 	if (str == "sub_min_cool_adjust")
 	{
 		return WhiteAlgorithm::SUB_MIN_COOL_ADJUST;
+	}
+	if (str == "sub_ktemp_white")
+	{
+		return WhiteAlgorithm::SUB_KTEMP_WHITE;
 	}
     if (str == "cold_white")
     {
@@ -48,7 +53,7 @@ WhiteAlgorithm stringToWhiteAlgorithm(const QString& str)
 	return WhiteAlgorithm::INVALID;
 }
 
-void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm)
+void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm, int whiteTemp)
 {
 	switch (algorithm)
 	{
@@ -105,13 +110,13 @@ void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm)
             output->red = input.red;
             output->green = input.green;
             output->blue = input.blue;
-            output->white = input.red > input.green ? (input.red > input.blue ? input.red : input.blue) : (input.green > input.blue ? input.green : input.blue);
+            output->white = qMax(input.red, qMax(input.green, input.blue));
             break;
         }
 
         case WhiteAlgorithm::AUTO_ACCURATE:
         {
-            output->white = input.red < input.green ? (input.red < input.blue ? input.red : input.blue) : (input.green < input.blue ? input.green : input.blue);
+            output->white = qMin(input.red, qMin(input.green, input.blue));
             output->red = input.red - output->white;
             output->green = input.green - output->white;
             output->blue = input.blue - output->white;
@@ -124,10 +129,31 @@ void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm)
             output->red = input.red;
             output->green = input.green;
             output->blue = input.blue;
-            output->white = input.red < input.green ? (input.red < input.blue ? input.red : input.blue) : (input.green < input.blue ? input.green : input.blue);
+            output->white = qMin(input.red, qMin(input.green, input.blue));
             break;
         }
-        case WhiteAlgorithm::NEUTRAL_WHITE:
+		case WhiteAlgorithm::SUB_KTEMP_WHITE:
+		{
+			ColorRgb white = getRgbFromTemperature(whiteTemp);
+
+			// Max fraction of white chromaticity we can subtract per channel without going negative
+			auto safeRatio = [](double num, double denom) {
+				return (denom > 0.0) ? num / denom : qInf();
+			};
+			const double whiteLevel = qBound(0.0,
+				qMin(safeRatio(input.red,   white.red),
+				     qMin(safeRatio(input.green, white.green),
+				          safeRatio(input.blue,  white.blue))),
+				1.0);
+
+			output->white = static_cast<uint8_t>(qRound(whiteLevel * 255.0));
+			output->red   = static_cast<uint8_t>(qBound(0, qRound(input.red   - whiteLevel * white.red),   255));
+			output->green = static_cast<uint8_t>(qBound(0, qRound(input.green - whiteLevel * white.green), 255));
+			output->blue  = static_cast<uint8_t>(qBound(0, qRound(input.blue  - whiteLevel * white.blue),  255));
+
+			break;
+		}
+		case WhiteAlgorithm::NEUTRAL_WHITE:
         case WhiteAlgorithm::COLD_WHITE:
         {
             //cold white config
@@ -143,16 +169,16 @@ void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm)
                 blue = 0x70;
             }
 
-            uint8_t _r = qMin((uint32_t)(ROUND_DIVIDE(red * input.red,  0xFF)), (uint32_t)0xFF);
-            uint8_t _g = qMin((uint32_t)(ROUND_DIVIDE(green * input.green,  0xFF)), (uint32_t)0xFF);
-            uint8_t _b = qMin((uint32_t)(ROUND_DIVIDE(blue * input.blue,  0xFF)), (uint32_t)0xFF);
+            auto _r = static_cast<uint8_t>(qMin((uint32_t)(ROUND_DIVIDE(red * input.red,  0xFF)), (uint32_t)0xFF));
+            auto _g = static_cast<uint8_t>(qMin((uint32_t)(ROUND_DIVIDE(green * input.green,  0xFF)), (uint32_t)0xFF));
+            auto _b = static_cast<uint8_t>(qMin((uint32_t)(ROUND_DIVIDE(blue * input.blue,  0xFF)), (uint32_t)0xFF));
 
             output->white = qMin(_r, qMin(_g, _b));
             output->red = input.red - _r;
             output->green = input.green - _g;
             output->blue = input.blue - _b;
 
-            uint8_t _w = qMin((uint32_t)(ROUND_DIVIDE(gain * output->white,  0xFF)), (uint32_t)0xFF);
+            auto _w = static_cast<uint8_t>(qMin((uint32_t)(ROUND_DIVIDE(gain * output->white,  0xFF)), (uint32_t)0xFF));
             output->white = _w;
             break;
         }

@@ -11,6 +11,8 @@ namespace ColorTemperature {
 	constexpr int MAXIMUM {40000};
 	constexpr int DEFAULT {6600};
 }
+
+constexpr int RGB_MAX = UINT8_MAX;
 //End of constants
 
 inline ColorRgb getRgbFromTemperature(int temperature)
@@ -29,31 +31,31 @@ inline ColorRgb getRgbFromTemperature(int temperature)
 	// red
 	if (temperature <= 66)
 	{
-		red = UINT8_MAX;
+		red = RGB_MAX;
 	}
 	else
 	{
 		// Note: the R-squared value for this approximation is 0.988.
-		red = static_cast<int>(329.698727446 * (pow(temperature - 60, -0.1332047592)));
+		red = static_cast<int>(329.698727446 * (qPow(temperature - 60, -0.1332047592)));
 	}
 
 	// green
 	if (temperature <= 66)
 	{
 		// Note: the R-squared value for this approximation is 0.996.
-		green = static_cast<int>(99.4708025861 * log(temperature) - 161.1195681661);
+		green = static_cast<int>(99.4708025861 * qLn(temperature) - 161.1195681661);
 
 	}
 	else
 	{
 		// Note: the R-squared value for this approximation is 0.987.
-		green = static_cast<int>(288.1221695283 * (pow(temperature - 60, -0.0755148492)));
+		green = static_cast<int>(288.1221695283 * (qPow(temperature - 60, -0.0755148492)));
 	}
 
 	// blue
 	if (temperature >= 66)
 	{
-		blue = UINT8_MAX;
+		blue = RGB_MAX;
 	}
 	else if (temperature <= 19)
 	{
@@ -62,13 +64,13 @@ inline ColorRgb getRgbFromTemperature(int temperature)
 	else
 	{
 		// Note: the R-squared value for this approximation is 0.998.
-		blue = static_cast<int>(138.5177312231 * log(temperature - 10) - 305.0447927307);
+		blue = static_cast<int>(138.5177312231 * qLn(temperature - 10) - 305.0447927307);
 	}
 
 	return {
-		static_cast<uint8_t>(qBound(0,   red, static_cast<int>(UINT8_MAX))),
-		static_cast<uint8_t>(qBound(0, green, static_cast<int>(UINT8_MAX))),
-		static_cast<uint8_t>(qBound(0,  blue, static_cast<int>(UINT8_MAX))),
+		static_cast<uint8_t>(qBound(0,   red, RGB_MAX)),
+		static_cast<uint8_t>(qBound(0, green, RGB_MAX)),
+		static_cast<uint8_t>(qBound(0,  blue, RGB_MAX)),
 	};
 }
 

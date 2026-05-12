@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### ✨ Added
 
 - Art-Net - Add RGBW support
+- e1.31 - Add new RGBW white algorithm: **Custom white in Kelvins** (`sub_ktemp_white`). Subtracts a white component at a user-defined color temperature (1000–40000 K) from the RGB signal, allowing accurate RGBW conversion for white LEDs with a known color temperature.
 
 ---
 
@@ -103,7 +104,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - LED-devices are resolving IP-addresses for API and UDP two times in sequence
   - LED-device updates queue up and let Hyperion crash (#1887)
   - LED-device switch-off were not always executed during instance stopping
-  - LED-Device latchTime was not considered correctly 
+  - LED-Device latchTime was not considered correctly
   - LED-Device Adalight LightBerry APA102 Mode not working (#1961)
   - Segfault when turning an LED instance off (#1903)
   - Fix concurrent mDNS resolution (#1906) - _Thanks to @discordianfish_
@@ -117,14 +118,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Memory/Image queuing issue when all instances are stopped but grabber is running
   - Forwarder was not using the correct target instance IDs for JSON requests
   - Flatbuffer/Protobuffer sources are not reconnected after (re)starting a hyperion instance
-  - Flatbuffer/Protobuffer breaks, if socket drops while sending a reply 
+  - Flatbuffer/Protobuffer breaks, if socket drops while sending a reply
   - Adalight.ino changes due to FastLED update (#1942) _Thanks to @JackSwieper_
   - mdnsBrowser is not stopped properly on shutdown
   - ColorTypes are not correctly initialised to black
   - WebSockets are not closed properly when stopping Hyperion
   - Tracing is not initialized for hyperion remote executables
   - DDA Grabber is entering permanent error state when elevated or policy deny DDA
-  
+
+
 - **Refactors:**
   - Fixed Image & ImageData and add debug logging (#1792, #1892)
   - Aligned grabbers with reworked Image handling avoiding extra copies
@@ -156,7 +158,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Fixes:**
   - WebUI unreachable via IPv6 (#1871)
   - Align install_pr script working with default Qt6 builds & show authentication failures (#1871)
-  
+
 - **Build:**
     - Added Debian Trixie to PR-builds for early testing
 
