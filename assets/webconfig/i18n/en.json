@@ -773,7 +773,7 @@
   "edt_dev_spec_verbose_title": "Log all Hue commands",
   "edt_dev_spec_vid_title": "VID",
   "edt_dev_spec_whiteLedAlgor_title": "White LED algorithm",
-  "edt_dev_spec_whiteLedKTemp_title": "White Color temperature (K)",
+  "edt_dev_spec_whiteLedKTemp_title": "White Color temperature",
   "edt_dev_spec_whitepoint_title": "Whitepoint",
   "edt_eff_alarmcolor": "Alarm color",
   "edt_eff_backgroundColor": "Background Color",
