@@ -110,13 +110,13 @@ void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm, i
             output->red = input.red;
             output->green = input.green;
             output->blue = input.blue;
-            output->white = input.red > input.green ? (input.red > input.blue ? input.red : input.blue) : (input.green > input.blue ? input.green : input.blue);
+            output->white = qMax(input.red, qMax(input.green, input.blue));
             break;
         }
 
         case WhiteAlgorithm::AUTO_ACCURATE:
         {
-            output->white = input.red < input.green ? (input.red < input.blue ? input.red : input.blue) : (input.green < input.blue ? input.green : input.blue);
+            output->white = qMin(input.red, qMin(input.green, input.blue));
             output->red = input.red - output->white;
             output->green = input.green - output->white;
             output->blue = input.blue - output->white;
@@ -129,7 +129,7 @@ void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm, i
             output->red = input.red;
             output->green = input.green;
             output->blue = input.blue;
-            output->white = input.red < input.green ? (input.red < input.blue ? input.red : input.blue) : (input.green < input.blue ? input.green : input.blue);
+            output->white = qMin(input.red, qMin(input.green, input.blue));
             break;
         }
 		case WhiteAlgorithm::SUB_KTEMP_WHITE:
@@ -169,16 +169,16 @@ void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm, i
                 blue = 0x70;
             }
 
-            uint8_t _r = qMin((uint32_t)(ROUND_DIVIDE(red * input.red,  0xFF)), (uint32_t)0xFF);
-            uint8_t _g = qMin((uint32_t)(ROUND_DIVIDE(green * input.green,  0xFF)), (uint32_t)0xFF);
-            uint8_t _b = qMin((uint32_t)(ROUND_DIVIDE(blue * input.blue,  0xFF)), (uint32_t)0xFF);
+            auto _r = static_cast<uint8_t>(qMin((uint32_t)(ROUND_DIVIDE(red * input.red,  0xFF)), (uint32_t)0xFF));
+            auto _g = static_cast<uint8_t>(qMin((uint32_t)(ROUND_DIVIDE(green * input.green,  0xFF)), (uint32_t)0xFF));
+            auto _b = static_cast<uint8_t>(qMin((uint32_t)(ROUND_DIVIDE(blue * input.blue,  0xFF)), (uint32_t)0xFF));
 
             output->white = qMin(_r, qMin(_g, _b));
             output->red = input.red - _r;
             output->green = input.green - _g;
             output->blue = input.blue - _b;
 
-            uint8_t _w = qMin((uint32_t)(ROUND_DIVIDE(gain * output->white,  0xFF)), (uint32_t)0xFF);
+            auto _w = static_cast<uint8_t>(qMin((uint32_t)(ROUND_DIVIDE(gain * output->white,  0xFF)), (uint32_t)0xFF));
             output->white = _w;
             break;
         }
