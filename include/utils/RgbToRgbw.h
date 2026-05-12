@@ -3,6 +3,7 @@
 
 #include <utils/ColorRgb.h>
 #include <utils/ColorRgbw.h>
+#include <utils/KelvinToRgb.h>
 
 namespace RGBW {
 
@@ -21,5 +22,5 @@ namespace RGBW {
 	};
 
 	WhiteAlgorithm stringToWhiteAlgorithm(const QString& str);
-	void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm, uint16_t whiteTemp = 5000);
+	void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm, int whiteTemp = ColorTemperature::DEFAULT);
 }

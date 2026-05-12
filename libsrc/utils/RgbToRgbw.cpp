@@ -1,7 +1,6 @@
 #include <utils/ColorRgb.h>
 #include <utils/ColorRgbw.h>
 #include <utils/RgbToRgbw.h>
-#include <utils/KelvinToRgb.h>
 
 #include <utils/Logger.h>
 
@@ -54,7 +53,7 @@ WhiteAlgorithm stringToWhiteAlgorithm(const QString& str)
 	return WhiteAlgorithm::INVALID;
 }
 
-void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm, uint16_t whiteTemp)
+void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm, int whiteTemp)
 {
 	switch (algorithm)
 	{
@@ -136,27 +135,21 @@ void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm, u
 		case WhiteAlgorithm::SUB_KTEMP_WHITE:
 		{
 			ColorRgb white = getRgbFromTemperature(whiteTemp);
-			const auto sumW = static_cast<double>(white.red + white.green + white.blue);
 
 			// Max fraction of white chromaticity we can subtract per channel without going negative
-			auto safeRatio = [](double num, double denom)
-			{
+			auto safeRatio = [](double num, double denom) {
 				return (denom > 0.0) ? num / denom : qInf();
 			};
-			double fRatio = qMin(safeRatio(input.red, white.red),
-							qMin(safeRatio(input.green, white.green),
-								 safeRatio(input.blue, white.blue)));
+			const double whiteLevel = qBound(0.0,
+				qMin(safeRatio(input.red,   white.red),
+				     qMin(safeRatio(input.green, white.green),
+				          safeRatio(input.blue,  white.blue))),
+				1.0);
 
-			// White LED efficiency model: driving w produces w*wc/sumW on each channel
-			// (equivalent to "1/3 efficiency" for pure white where sumW = 3*255)
-			// Cap at 255, then back-calculate the actual ratio used for RGB subtraction
-			const double fWhiteDrive = qBound(0.0, fRatio * sumW, 255.0);
-			const double fActualRatio = fWhiteDrive / sumW;
-
-			output->white = static_cast<uint8_t>(qRound(fWhiteDrive));
-			output->red = static_cast<uint8_t>(qBound(0, qRound(input.red - fActualRatio * white.red), 255));
-			output->green = static_cast<uint8_t>(qBound(0, qRound(input.green - fActualRatio * white.green), 255));
-			output->blue = static_cast<uint8_t>(qBound(0, qRound(input.blue - fActualRatio * white.blue), 255));
+			output->white = static_cast<uint8_t>(qRound(whiteLevel * 255.0));
+			output->red   = static_cast<uint8_t>(qBound(0, qRound(input.red   - whiteLevel * white.red),   255));
+			output->green = static_cast<uint8_t>(qBound(0, qRound(input.green - whiteLevel * white.green), 255));
+			output->blue  = static_cast<uint8_t>(qBound(0, qRound(input.blue  - whiteLevel * white.blue),  255));
 
 			break;
 		}
