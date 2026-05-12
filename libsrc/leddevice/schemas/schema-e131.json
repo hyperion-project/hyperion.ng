@@ -83,6 +83,7 @@
       "type": "integer",
       "title": "edt_dev_spec_whiteLedKTemp_title",
       "default": 5000,
+      "append": "edt_append_kelvin",      
       "minimum": 1000,
       "maximum": 40000,
       "options": {
