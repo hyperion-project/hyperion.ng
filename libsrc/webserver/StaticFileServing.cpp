@@ -14,6 +14,37 @@
 
 #include <exception>
 
+namespace {
+
+QByteArray resolveMimeType(const QString &fileName, const QMimeDatabase *mimeDb)
+{
+	const QMimeType mime = mimeDb->mimeTypeForFile(fileName);
+
+	#if ((QT_VERSION >= QT_VERSION_CHECK(5, 15, 0) && QT_VERSION < QT_VERSION_CHECK(5, 15, 11)) || \
+		 (QT_VERSION >= QT_VERSION_CHECK(6, 2, 0) && QT_VERSION < QT_VERSION_CHECK(6, 5, 0)))
+	// Workaround https://bugreports.qt.io/browse/QTBUG-97392 for affected Qt versions
+	if (mime.name() == QStringLiteral("application/x-extension-html"))
+	{
+		return QByteArrayLiteral("text/html");
+	}
+	#endif
+
+	const QByteArray mimeName = mime.name().toLocal8Bit();
+	if (mime.isValid() && !mime.isDefault() && !mimeName.isEmpty())
+	{
+		return mimeName;
+	}
+
+	const QString suffix = QFileInfo(fileName).suffix().toLower();
+	if (suffix == QStringLiteral("js") || suffix == QStringLiteral("mjs") || suffix == QStringLiteral("cjs"))
+	{
+		return QByteArrayLiteral("text/javascript");
+	}
+
+	return QByteArrayLiteral("application/octet-stream");
+}
+}
+
 StaticFileServing::StaticFileServing (QObject * parent)
 	:  QObject   (parent)
 	, _baseUrl ()
@@ -133,25 +164,16 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 		QFile file(_baseUrl % "/" % path);
 		if (file.exists())
 		{
-			QMimeType mime = _mimeDb->mimeTypeForFile (file.fileName ());
-			if (file.open (QFile::ReadOnly)) {
-				QByteArray data = file.readAll ();
-
-				// Workaround https://bugreports.qt.io/browse/QTBUG-97392
-				if (mime.name() == QStringLiteral("application/x-extension-html"))
-				{
-					reply->addHeader ("Content-Type", "text/html");
-				}
-				else
-				{
-					reply->addHeader ("Content-Type", mime.name().toLocal8Bit());
-				}
-				reply->appendRawData (data);
-				file.close ();
+			if (file.open(QFile::ReadOnly))
+			{
+				QByteArray data = file.readAll();
+				reply->addHeader("Content-Type", resolveMimeType(file.fileName(), _mimeDb));
+				reply->appendRawData(data);
+				file.close();
 			}
 			else
 			{
-				printErrorToReply (reply, QtHttpReply::Forbidden ,"Requested file: " % path);
+				printErrorToReply(reply, QtHttpReply::Forbidden, "Requested file: " % path);
 			}
 		}
 		else
