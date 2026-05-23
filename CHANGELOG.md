@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - EffectEngine - Follow-up Python C-API null-pointer and stability fixes (#2011)
   - EffectFileHandler - Path traversal vulnerability when saving user-defined effects (#2011)
   - Effect scripts: Minor stability and style fixes in `pacman.py`, `traces.py`, `trails.py`(#2011)
+  - WebUI - Return a valid Content-Type for static assets to prevent module loading failures
+
 ---
 ### Technical
 
