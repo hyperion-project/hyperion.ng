@@ -430,18 +430,26 @@ QByteArray httpResponse::getHeader(const QByteArray& header) const
 
 bool ProviderRestApi::setCaCertificate(const QString& caFileName)
 {
-	// Temporary debug line	
-	Warning(_log, "Built against: \"%s\", runtime version: \"%s\".",
-			QSTRING_CSTR(QSslSocket::sslLibraryBuildVersionString()),
-			QSTRING_CSTR(QSslSocket::sslLibraryVersionString()));
-
 #ifndef QT_NO_SSL
 	if (!QSslSocket::supportsSsl())
 	{
+		QString buildVersion = QSslSocket::sslLibraryBuildVersionString();
+		QString runtimeVersion = QSslSocket::sslLibraryVersionString();
+
+        if (buildVersion.isEmpty())
+        {
+            buildVersion = QStringLiteral("not available");
+        }
+
+        if (runtimeVersion.isEmpty())
+        {
+            runtimeVersion = QStringLiteral("not available");
+        }
+
 		Error(_log, "SSL support is compiled into Qt, but the underlying SSL libraries failed to load at runtime. "
 		            "Built against: \"%s\", runtime version: \"%s\".",
-		            QSTRING_CSTR(QSslSocket::sslLibraryBuildVersionString()),
-		            QSTRING_CSTR(QSslSocket::sslLibraryVersionString()));
+		            QSTRING_CSTR(buildVersion),
+		            QSTRING_CSTR(runtimeVersion));
 		return false;
 	}
 #else
@@ -455,9 +463,6 @@ bool ProviderRestApi::setCaCertificate(const QString& caFileName)
 		Error(_log, "Unable to open CA-Certificate file: %s", QSTRING_CSTR(caFileName));
 		return false;
 	}
-	
-	// Temporary debug line
-	Warning(_log, "DEBUG: Resource file size is %lld bytes", caFile.size());
 
 	// Load all PEM certificates from the bundle (handles concatenated/multi-cert bundles)
 	QList<QSslCertificate> newCerts = QSslCertificate::fromDevice(&caFile, QSsl::Pem);
