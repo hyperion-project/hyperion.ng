@@ -13,6 +13,7 @@
 #include <HyperionConfig.h>
 #include <utils/Logger.h>
 
+#include <mdns/MdnsUtils.h>
 #ifdef ENABLE_MDNS
 #include <mdns/MdnsBrowser.h>
 #include <mdns/MdnsServiceRegister.h>
@@ -219,13 +220,13 @@ inline bool resolveMdnsHostToAddress(QSharedPointer<Logger> log, QString &hostna
 		return false;
 	}
 
-#ifdef ENABLE_MDNS
-	if (!MdnsBrowser::isMdns(hostname))
+	if (!MdnsUtils::isMdns(hostname))
 	{
 		Debug(log, "Given name [%s] is not an mDNS hostname, no mDNS resolution is required", QSTRING_CSTR(hostname));
 		return true;
 	}
 
+#ifdef ENABLE_MDNS
 	MdnsBrowser *browser = MdnsBrowser::getInstance().get();
 	QEventLoop loop;
 
@@ -261,7 +262,8 @@ inline bool resolveMdnsHostToAddress(QSharedPointer<Logger> log, QString &hostna
 	}
 	return true;
 #else
-	return false;
+	Debug(log, "mDNS resolution is disabled, let the operation system handle hostname [%s]!", QSTRING_CSTR(hostname));
+	return true;
 #endif
 }
 
@@ -274,13 +276,14 @@ inline bool resolveMdnsHostToAddress(QSharedPointer<Logger> log, QString &hostna
 ///
 inline bool convertMdnsToIp(QSharedPointer<Logger> log, QString& mdnsName, int& port, QAbstractSocket::NetworkLayerProtocol protocol = QAbstractSocket::AnyIPProtocol)
 {
-#ifdef ENABLE_MDNS
-	if (!MdnsBrowser::isMdns(mdnsName))
+
+	if (!MdnsUtils::isMdns(mdnsName))
 	{
 		Debug(log, "Given name [%s] is not an mDNS name, no mDNS resolution is required", QSTRING_CSTR(mdnsName));
 		return true;
 	}
 
+#ifdef ENABLE_MDNS
 	// 1. Treat mdnsName as service instance name that requires to be resolved into an mDNS-Hostname
 	QString mdnsHostname{mdnsName};
 	if (MdnsBrowser::isMdnsService(mdnsName))
@@ -320,7 +323,16 @@ inline bool convertMdnsToIp(QSharedPointer<Logger> log, QString& mdnsName, int& 
 
 	return true;
 #else
-	return false;
+	// Without ENABLE_MDNS, service instance names (e.g. "foo._hyperion._tcp.local") cannot
+	// be resolved at all — the OS has no way to look up the SRV record.
+	if (MdnsUtils::isMdnsService(mdnsName))
+	{
+		Error(log, "mDNS support is disabled: cannot resolve service instance [%s]. Enable MDNS support.", QSTRING_CSTR(mdnsName));
+		return false;
+	}
+	// Plain .local hostnames may still be handled by the OS (Avahi, Bonjour, etc.).
+	Debug(log, "mDNS support is disabled, letting the OS resolve .local hostname [%s].", QSTRING_CSTR(mdnsName));
+	return true;
 #endif
 }
 
