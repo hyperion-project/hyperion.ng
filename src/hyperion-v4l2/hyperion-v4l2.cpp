@@ -265,7 +265,10 @@ int main(int argc, char** argv)
 
 		Info(log, "Connecting to Hyperion host: %s, port: %u", QSTRING_CSTR(hostName), port);
 
-		NetUtils::discoverMdnsServices("flatbuffer");
+		if (MdnsUtils::isMdns(hostName))
+		{
+			NetUtils::discoverMdnsServices("flatbuffer");
+		}
 		if (!NetUtils::convertMdnsToIp(log, hostName, port))
 		{
 			emit errorManager.errorOccurred(QString("IP-address cannot be resolved for the given mDNS service- or hostname: \"%1\"").arg(QSTRING_CSTR(hostName)));
