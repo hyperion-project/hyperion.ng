@@ -262,7 +262,7 @@ inline bool resolveMdnsHostToAddress(QSharedPointer<Logger> log, QString &hostna
 	}
 	return true;
 #else
-	Debug(log, "mDNS resolution is disabled, let the operation system handle hostname [%s]!", QSTRING_CSTR(hostname));
+	Debug(log, "mDNS resolution is disabled, letting the operating system handle hostname [%s]!", QSTRING_CSTR(hostname));
 	return true;
 #endif
 }
