@@ -15,13 +15,6 @@
 #include <utils/ColorRgb.h>
 #include <utils/Image.h>
 
-#ifdef ENABLE_MDNS
-// mDNS discover
-#include <mdns/MdnsBrowser.h>
-#else
-// ssdp discover
-#include <ssdp/SSDPDiscover.h>
-#endif
 #include <utils/NetUtils.h>
 
 #include <flatbufserver/FlatBufferConnection.h>
@@ -153,11 +146,7 @@ int main(int argc, char ** argv)
 
 		Info(log, "Connecting to Hyperion host: %s, port: %u", QSTRING_CSTR(hostName), port);
 
-		if (MdnsBrowser::isMdns(hostName))
-		{
-			NetUtils::discoverMdnsServices("flatbuffer");
-		}
-
+		NetUtils::discoverMdnsServices("flatbuffer");
 		if (!NetUtils::convertMdnsToIp(log, hostName, port))
 		{
 			emit errorManager.errorOccurred(QString("IP-address cannot be resolved for the given mDNS service- or hostname: \"%1\"").arg(QSTRING_CSTR(hostName)));
