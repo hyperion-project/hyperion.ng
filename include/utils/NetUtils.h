@@ -331,7 +331,7 @@ inline bool convertMdnsToIp(QSharedPointer<Logger> log, QString& mdnsName, int& 
 		return false;
 	}
 	// Plain .local hostnames may still be handled by the OS (Avahi, Bonjour, etc.).
-	Debug(log, "mDNS support is disabled, letting the OS resolve .local hostname [%s].", QSTRING_CSTR(mdnsName));
+	Debug(log, "mDNS support is disabled, letting the operating system handle hostname [%s].", QSTRING_CSTR(mdnsName));
 	return true;
 #endif
 }
