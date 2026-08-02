@@ -64,7 +64,7 @@ jobs:
           build_type: ${{ inputs.event_name == 'pull_request' && 'relwithdebinfo' || 'release' }}
 
       - name: 📥 Install Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: '3.13'
           architecture: ${{ matrix.os.architecture }}
