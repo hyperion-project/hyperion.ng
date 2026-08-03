@@ -3,8 +3,11 @@ project(hyperion-xcb)
 
 add_executable(${PROJECT_NAME}
 	XcbWrapper.h
-	hyperion-xcb.cpp
 	XcbWrapper.cpp
+	XcbGrabberOptions.h
+	XcbGrabberTraits.h
+	XcbGrabberTraits.cpp
+	hyperion-xcb.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
