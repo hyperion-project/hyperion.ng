@@ -9,6 +9,7 @@
 #endif
 
 #include <flatbufserver/FlatBufferConnection.h>
+#include <utils/ErrorManager.h>
 #include <utils/Logger.h>
 #include <utils/NetUtils.h>
 
