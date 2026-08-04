@@ -41,6 +41,11 @@ if(ENABLE_DEV_USB_HID OR ENABLE_DEV_FTDI)
 			set(LIBUSB_C_FLAGS "${LIBUSB_C_FLAGS} -w")
 		endif()
 
+		set(LIBUSB_PIC_CMAKE_ARGS "")
+		if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+			set(LIBUSB_PIC_CMAKE_ARGS -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON)
+		endif()
+
 		include(ExternalProject)
 		ExternalProject_Add(libusb
 			PREFIX				${CMAKE_CURRENT_BINARY_DIR}/external/libusb-cmake
@@ -59,6 +64,7 @@ if(ENABLE_DEV_USB_HID OR ENABLE_DEV_FTDI)
 								-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
 								-DCMAKE_STATIC_LIBRARY_PREFIX:STRING=lib
 								-DCMAKE_WARN_DEPRECATED:BOOL=OFF # Suppress warnings about "Compatibility with CMake < 3.5 will be removed from a future version of CMake"
+								${LIBUSB_PIC_CMAKE_ARGS}
 								${APPLE_CONFIGURATION}
 			BUILD_BYPRODUCTS    <BINARY_DIR>/libusb-1.0${CMAKE_STATIC_LIBRARY_SUFFIX}
 		)
@@ -140,13 +146,13 @@ if(ENABLE_DEV_FTDI)
 		endif()
 
 		ExternalProject_Add(libftdi1
-			DEPENDS				usb-1.0
-			PREFIX				${CMAKE_CURRENT_BINARY_DIR}/external/libftdi1
-			GIT_REPOSITORY		git://developer.intra2net.com/libftdi
-			GIT_TAG				de9f01ece34d2fe6e842e0250a38f4b16eda2429
-			PATCH_COMMAND		git reset --hard HEAD && git apply ${CMAKE_CURRENT_SOURCE_DIR}/patch/libftdi/linkage.diff
-			INSTALL_COMMAND		""
-			CMAKE_ARGS			-DSTATICLIBS:BOOL=ON # Build LibFTDI as static library
+			DEPENDS             usb-1.0
+			PREFIX              ${CMAKE_CURRENT_BINARY_DIR}/external/libftdi1
+			URL                 https://www.intra2net.com/en/developer/libftdi/download/libftdi1-1.5.tar.bz2
+			URL_HASH            SHA256=7c7091e9c86196148bd41177b4590dccb1510bfe6cea5bf7407ff194482eb049
+			PATCH_COMMAND       ${GIT_EXECUTABLE} apply ${CMAKE_CURRENT_SOURCE_DIR}/patch/libftdi/linkage.diff
+			INSTALL_COMMAND     ""
+			CMAKE_ARGS          -DSTATICLIBS:BOOL=ON # Build LibFTDI as static library
 								-DEXAMPLES:BOOL=OFF #  Disable build of LibFTDI example programs
 								-DFTDI_EEPROM:BOOL=OFF # Disable building ftdi_eeprom
 								-DLIBUSB_INCLUDE_DIR:PATH=${LIBUSB_INCLUDE_DIR} # LibUSB include directory
