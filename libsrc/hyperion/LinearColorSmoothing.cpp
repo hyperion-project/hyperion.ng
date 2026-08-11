@@ -680,7 +680,7 @@ bool LinearColorSmoothing::selectConfig(int cfgID, bool force)
 		_settlingTime = _cfgList[cfgID]._settlingTime;
 		_outputDelay = _cfgList[cfgID]._outputDelay;
 		_pause = _cfgList[cfgID]._pause;
-		_outputIntervalMicros = int64_t(1000000.0 / _updateInterval); // 1s = 1e6 µs
+		_outputIntervalMicros = int64_t(MS_PER_MICRO) * _cfgList[cfgID]._updateInterval; // ms -> µs
 		_interpolationRate = _cfgList[cfgID]._interpolationRate;
 		_interpolationIntervalMicros = int64_t(1000000.0 / _interpolationRate);
 		_dithering = _cfgList[cfgID]._dithering;
