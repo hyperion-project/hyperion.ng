@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - V4L2/ImageResampler: add support for pixelformats YUV422P and NV21
 - New Juggler Effect
+- Support for **Robobloq** devices
 ---
 
 ### 🔧 Changed

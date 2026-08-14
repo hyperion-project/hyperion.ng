@@ -24,7 +24,7 @@ var devRPiPWM = ['ws281x'];
 var devRPiGPIO = ['piblaster'];
 var devNET = ['atmoorb', 'cololight', 'fadecandy', 'homeassistant', 'philipshue', 'nanoleaf', 'razer', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udpddp', 'udph801', 'udpraw', 'wled', 'yeelight'];
 var devSerial = ['adalight', 'dmx', 'atmo', 'sedu', 'skydimo', 'tpm2', 'karate'];
-var devHID = ['hyperionusbasp', 'lightpack', 'paintpack', 'rawhid'];
+var devHID = ['hyperionusbasp', 'lightpack', 'paintpack', 'rawhid', 'robobloq'];
 
 var infoTextDefault = '<span>' + $.i18n("conf_leds_device_info_log") + ' </span><a href="" onclick="SwitchToMenuItem(\'MenuItemLogging\')" style="cursor:pointer">' + $.i18n("main_menu_logging_token") + '</a>';
 
@@ -1137,6 +1137,9 @@ $(document).ready(function () {
         case "sk6812_ftdi":
         case "ws2812_ftdi":
 
+        //HID devices
+        case "robobloq":
+
           if (storedAccess === 'expert') {
             filter.discoverAll = true;
           }
@@ -1472,6 +1475,10 @@ $(document).ready(function () {
           case "atmo":
           case "karate":
             params = { serialPort: output };
+            getProperties_device(ledType, output, params);
+            break;
+          case "robobloq":
+            params = { output };
             getProperties_device(ledType, output, params);
             break;
           case "adalight":
@@ -2099,6 +2106,8 @@ var updateOutputSelectList = function (ledType, discoveryInfo) {
     ledTypeGroup = "devNET";
   } else if ($.inArray(ledType, devSerial) != -1) {
     ledTypeGroup = "devSerial";
+  } else if ($.inArray(ledType, devHID) != -1) {
+    ledTypeGroup = "devHID";
   } else if ($.inArray(ledType, devSPI) != -1) {
     ledTypeGroup = "devSPI";
   } else if ($.inArray(ledType, devFTDI) != -1) {
@@ -2222,6 +2231,44 @@ var updateOutputSelectList = function (ledType, discoveryInfo) {
             }
 
             break;
+          default:
+        }
+      }
+      break;
+
+    case "devHID":
+      key = "output";
+
+      if (discoveryInfo.devices.length === 0) {
+        enumVals.push("NONE");
+        enumTitleVals.push($.i18n('edt_dev_spec_devices_discovered_none'));
+        $('#btn_submit_controller').prop('disabled', true);
+        showAllDeviceInputOptions(key, false);
+      }
+      else {
+        switch (ledType) {
+          case "robobloq": {
+            for (const device of discoveryInfo.devices) {
+              enumVals.push(device.path);
+              enumTitleVals.push(device.displayName || device.path);
+            }
+
+            const configuredDeviceType = window.serverConfig.device.type;
+            const configuredOutput = window.serverConfig.device.output;
+            if (ledType === configuredDeviceType) {
+              if ($.inArray(configuredOutput, enumVals) != -1) {
+                enumDefaultVal = configuredOutput;
+              } else if (configuredOutput) {
+                enumVals.push(configuredOutput);
+                enumTitleVals.push(configuredOutput);
+                enumDefaultVal = configuredOutput;
+              }
+            }
+            else {
+              addSelect = true;
+            }
+            break;
+          }
           default:
         }
       }
@@ -2426,6 +2473,13 @@ function updateElements(ledType, key) {
         }
         conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(hardwareLedCount);
         break;
+
+      case "robobloq":
+        if (ledProperties && ledProperties.ledCount > 0) {
+          conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(ledProperties.ledCount);
+        }
+        break;
+
       case "wled":
         updateElementsWled(ledType, key);
         break;

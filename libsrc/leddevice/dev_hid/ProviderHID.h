@@ -7,6 +7,8 @@
 // Leddevice includes
 #include <leddevice/LedDevice.h>
 
+#include <QJsonArray>
+
 ///
 /// The ProviderHID implements an abstract base-class for LedDevices using an HID-device.
 ///
@@ -70,6 +72,18 @@ protected:
 	///
 	int writeBytes(unsigned size, const uint8_t *data);
 
+	/// @brief Enumerate HID interfaces, optionally filtered by VID/PID.
+	QJsonArray enumerateHidDevices(
+		unsigned short vendorId = 0, unsigned short productId = 0) const;
+
+	/// @brief Enumerate HID interfaces filtered by VID/PID and usage.
+	QJsonArray enumerateHidDevices(
+		unsigned short vendorId, unsigned short productId,
+		unsigned short usagePage, unsigned short usage) const;
+
+	/// @brief Convert an optional HID wide string to a QString.
+	static QString fromWide(const wchar_t* value);
+
 	// HID VID and PID
 	unsigned short _VendorId;
 	unsigned short _ProductId;
@@ -82,6 +96,11 @@ protected:
 	int _delayAfterConnect_ms;
 
 	bool _blockedForDelay;
+
+private:
+	QJsonArray enumerateHidDevices(
+		unsigned short vendorId, unsigned short productId,
+		unsigned short usagePage, unsigned short usage, bool filterByUsage) const;
 
 private slots:
 	/// Unblock the device after a connection delay

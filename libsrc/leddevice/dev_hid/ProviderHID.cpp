@@ -9,6 +9,19 @@
 // Local Hyperion includes
 #include "ProviderHID.h"
 
+namespace
+{
+	QString formatHexValue(unsigned short value)
+	{
+		return QStringLiteral("0x%1").arg(value, 4, 16, QLatin1Char('0'));
+	}
+}
+
+QString ProviderHID::fromWide(const wchar_t* value)
+{
+	return value == nullptr ? QString() : QString::fromWCharArray(value);
+}
+
 ProviderHID::ProviderHID(const QJsonObject &deviceConfig)
 	:   LedDevice(deviceConfig)
 	  , _VendorId(0)
@@ -85,9 +98,9 @@ int ProviderHID::open()
 												<< QString("%1").arg(cur_dev->vendor_id, 4, 16, QLatin1Char('0'))
 												<< QString("%1").arg(cur_dev->product_id, 4, 16, QLatin1Char('0'));
 				qCDebug(leddevice_properties()) << "  path:" << cur_dev->path;
-				qCDebug(leddevice_properties()) << "  serial_number:" << QString::fromWCharArray(cur_dev->serial_number);
-				qCDebug(leddevice_properties()) << "  Manufacturer:" << QString::fromWCharArray(cur_dev->manufacturer_string);
-				qCDebug(leddevice_properties()) << "  Product:" << QString::fromWCharArray(cur_dev->product_string);
+				qCDebug(leddevice_properties()) << "  serial_number:" << fromWide(cur_dev->serial_number);
+				qCDebug(leddevice_properties()) << "  Manufacturer:" << fromWide(cur_dev->manufacturer_string);
+				qCDebug(leddevice_properties()) << "  Product:" << fromWide(cur_dev->product_string);
 
 				cur_dev = cur_dev->next;
 			}
@@ -196,33 +209,51 @@ QJsonObject ProviderHID::discover(const QJsonObject& /*params*/)
 {
 	QJsonObject devicesDiscovered;
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );
+	devicesDiscovered.insert("devices", enumerateHidDevices());
+	return devicesDiscovered;
+}
 
+QJsonArray ProviderHID::enumerateHidDevices(unsigned short vendorId, unsigned short productId) const
+{
+	return enumerateHidDevices(vendorId, productId, 0, 0, false);
+}
+
+QJsonArray ProviderHID::enumerateHidDevices(
+	unsigned short vendorId, unsigned short productId,
+	unsigned short usagePage, unsigned short usage) const
+{
+	return enumerateHidDevices(vendorId, productId, usagePage, usage, true);
+}
+
+QJsonArray ProviderHID::enumerateHidDevices(
+	unsigned short vendorId, unsigned short productId,
+	unsigned short usagePage, unsigned short usage, bool filterByUsage) const
+{
 	QJsonArray deviceList;
+	hid_device_info* devices = hid_enumerate(vendorId, productId);
 
-	// Discover HID Devices
-	auto devs = hid_enumerate(0x00, 0x00);
-
-	if ( devs != nullptr )
+	for (const hid_device_info* current = devices; current != nullptr; current = current->next)
 	{
-		auto cur_dev = devs;
-		while (cur_dev)
+		if (current->path == nullptr ||
+			(filterByUsage && (current->usage_page != usagePage || current->usage != usage)))
 		{
-			QJsonObject deviceInfo;
-			deviceInfo.insert("manufacturer",QString::fromWCharArray(cur_dev->manufacturer_string));
-			deviceInfo.insert("path",cur_dev->path);
-			deviceInfo.insert("productIdentifier", QString("0x%1").arg(cur_dev->product_id,0,16));
-			deviceInfo.insert("release_number",QString("0x%1").arg(cur_dev->release_number,0,16));
-			deviceInfo.insert("serialNumber",QString::fromWCharArray(cur_dev->serial_number));
-			deviceInfo.insert("usage_page", QString("0x%1").arg(cur_dev->usage_page,0,16));
-			deviceInfo.insert("vendorIdentifier", QString("0x%1").arg(cur_dev->vendor_id,0,16));
-			deviceInfo.insert("interface_number",cur_dev->interface_number);
-			deviceList.append(deviceInfo);
-
-			cur_dev = cur_dev->next;
+			continue;
 		}
-		hid_free_enumeration(devs);
+
+		QJsonObject device;
+		device.insert("manufacturer", fromWide(current->manufacturer_string));
+		device.insert("product", fromWide(current->product_string));
+		device.insert("serialNumber", fromWide(current->serial_number));
+		device.insert("path", QString::fromUtf8(current->path));
+		device.insert("vendorIdentifier", formatHexValue(current->vendor_id));
+		device.insert("productIdentifier", formatHexValue(current->product_id));
+		device.insert("release_number", formatHexValue(current->release_number));
+		device.insert("usage_page", formatHexValue(current->usage_page));
+		device.insert("usage", formatHexValue(current->usage));
+		device.insert("interface_number", current->interface_number);
+		deviceList.append(device);
 	}
 
-	devicesDiscovered.insert("devices", deviceList);
-	return devicesDiscovered;
+	hid_free_enumeration(devices);
+	return deviceList;
 }
