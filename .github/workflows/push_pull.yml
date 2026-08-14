@@ -15,35 +15,6 @@ on:
 
 jobs:
 
-  # Build Debian Artifacts
-  linux:
-    name: 🐧 Debian ${{ matrix.debian.codename[1] }}
-    strategy:
-      fail-fast: false
-      matrix:
-        debian: [
-          { codename: [ 'bullseye', 'Bullseye' ] },
-          { codename: [ 'bookworm', 'Bookworm' ] },
-          { codename: [ 'trixie', 'Trixie' ] }
-        ]
-    uses: ./.github/workflows/debian.yml
-    secrets: inherit
-    with:
-      codename: ${{ matrix.debian.codename[0] }}
-      event_name: ${{ github.event_name }}
-      pull_request_number: ${{ github.event.pull_request.number }}
-      publish: ${{ startsWith(github.event.ref, 'refs/tags') && matrix.debian.codename[0] == 'bullseye' }}
-
-  # Build macOS Artifacts
-  macos:
-    name: 🍏 macOS
-    uses: ./.github/workflows/macos.yml
-    secrets: inherit
-    with:
-      event_name: ${{ github.event_name }}
-      pull_request_number: ${{ github.event.pull_request.number }}
-      publish: ${{ startsWith(github.event.ref, 'refs/tags') }}
-
   # Build Windows Artifacts
   windows:
     name: 🪟 Windows
