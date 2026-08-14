@@ -125,7 +125,7 @@ jobs:
         shell: cmd
         timeout-minutes: 45
         run: |
-           cmake --preset windows-%BUILD_TYPE% %CMAKE_ARGS%
+           cmake --preset windows-%BUILD_TYPE% %CMAKE_ARGS% -DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=Embedded
            cmake --build --preset windows-%BUILD_TYPE%
         env:
           BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'relwithdebinfo' || 'release' }}
@@ -137,7 +137,7 @@ jobs:
         shell: cmd
         timeout-minutes: 15
         run: |
-           cpack --config build/windows-%BUILD_TYPE%/CPackConfig.cmake -C %BUILD_TYPE%
+           cmake --build --preset windows-%BUILD_TYPE% --target package
         env:
           BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'relwithdebinfo' || 'release' }}
           QT_QPA_PLATFORM: offscreen
