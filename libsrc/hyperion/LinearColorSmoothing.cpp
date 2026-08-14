@@ -30,6 +30,9 @@ namespace {
 /// The number of microseconds per millisecond = 1000.
 const int64_t MS_PER_MICRO = 1000;
 
+/// The number of microseconds per second = 1000000.
+const int64_t MICROS_PER_SECOND = MS_PER_MICRO * MS_PER_MICRO;
+
 /// The number of bits that are used for shifting the fixed point values
 const int FPShift = (sizeof(uint64_t)*8 - (12 + 9));
 
@@ -54,6 +57,29 @@ const int DEFAULT_UPDATEFREQUENCY = 25;		// in Hz
 
 constexpr std::chrono::milliseconds DEFAULT_UPDATEINTERVALL{MS_PER_MICRO/ DEFAULT_UPDATEFREQUENCY};
 const unsigned DEFAULT_OUTPUTDEPLAY = 0;	// in frames
+
+int updateIntervalMsFromFrequency(const double frequencyHz)
+{
+	return static_cast<int>(MS_PER_MICRO / frequencyHz);
+}
+
+int64_t outputIntervalMicrosFromFrequency(const double frequencyHz)
+{
+	return static_cast<int64_t>(std::llround(MICROS_PER_SECOND / frequencyHz));
+}
+
+void sleepUntilNextAction(const int64_t now, const int64_t nextActionExpected)
+{
+	const int64_t microsTillNextAction = nextActionExpected - now;
+	const int64_t SLEEP_MAX_MICROS = 1000L; // We want to use usleep for up to 1ms
+	const int64_t SLEEP_RES_MICROS = 100L; // Expected resolution is >= 100µs on stock linux
+
+	if (microsTillNextAction > SLEEP_RES_MICROS)
+	{
+		const int64_t wait = std::min(microsTillNextAction - SLEEP_RES_MICROS, SLEEP_MAX_MICROS);
+		std::this_thread::sleep_for(std::chrono::microseconds(wait));
+	}
+}
 }
 
 using namespace hyperion;
@@ -69,6 +95,7 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonObject &config, const QSha
 	, _timer(nullptr)
 	, _outputDelay(DEFAULT_OUTPUTDEPLAY)
 	, _pause(false)
+	, _outputIntervalMicros(DEFAULT_UPDATEINTERVALL.count() * MS_PER_MICRO)
 	, _currentConfigId(SmoothingConfigID::SYSTEM)
 	, _enabled(false)
 	, _enabledSystemCfg(false)
@@ -133,9 +160,11 @@ void LinearColorSmoothing::updateSettings(const QJsonObject &config)
 		_enabledSystemCfg = _enabled;
 
 		int64_t settlingTime_ms = static_cast<int64_t>(config[SETTINGS_KEY_SETTLING_TIME].toInt(DEFAULT_SETTLINGTIME));
-		int _updateInterval_ms =static_cast<int>(MS_PER_MICRO / config[SETTINGS_KEY_UPDATE_FREQUENCY].toDouble(DEFAULT_UPDATEFREQUENCY));
+		const double updateFrequencyHz = config[SETTINGS_KEY_UPDATE_FREQUENCY].toDouble(DEFAULT_UPDATEFREQUENCY);
+		int _updateInterval_ms = updateIntervalMsFromFrequency(updateFrequencyHz);
 
 		SmoothingCfg cfg(false, settlingTime_ms, _updateInterval_ms);
+		cfg._outputIntervalMicros = outputIntervalMicrosFromFrequency(updateFrequencyHz);
 
 		const QString typeString = config[SETTINGS_KEY_SMOOTHING_TYPE].toString();
 
@@ -437,14 +466,7 @@ void LinearColorSmoothing::performDecay(const int64_t now) {
 	// we have to do µsec-sleep to free CPU time; otherwise the thread would consume 100% CPU time.
 	if(_updateInterval <= 0 && !(interpolatePending || writePending)) {
 		const int64_t nextActionExpected = std::min(interpolationTarget, writeTarget);
-		const int64_t microsTillNextAction = nextActionExpected - now;
-		const int64_t SLEEP_MAX_MICROS = 1000L; // We want to use usleep for up to 1ms
-		const int64_t SLEEP_RES_MICROS = 100L; // Expected resolution is >= 100µs on stock linux
-
-		if(microsTillNextAction > SLEEP_RES_MICROS) {
-			const int64_t wait = std::min(microsTillNextAction - SLEEP_RES_MICROS, SLEEP_MAX_MICROS);
-			std::this_thread::sleep_for(std::chrono::microseconds(wait));
-		}
+		sleepUntilNextAction(now, nextActionExpected);
 	}
 
 	// Write stats every 30 sec
@@ -464,6 +486,18 @@ void LinearColorSmoothing::performDecay(const int64_t now) {
 }
 
 void LinearColorSmoothing::performLinear(const int64_t now) {
+	const int64_t writeTarget = _previousWriteTime + _outputIntervalMicros;
+	const bool writePending = now > writeTarget;
+
+	if (!writePending)
+	{
+		if (_updateInterval <= 0)
+		{
+			sleepUntilNextAction(now, writeTarget);
+		}
+		return;
+	}
+
 	const int64_t deltaTime = _targetTime - now;
 	const float k = 1.0F - 1.0F * deltaTime / (_targetTime - _previousWriteTime);
 	const size_t N = _previousValues.size();
@@ -631,11 +665,12 @@ unsigned LinearColorSmoothing::addConfig(int settlingTime_ms, double ledUpdateFr
 	SmoothingCfg cfg {
 		false,
 		settlingTime_ms,
-		static_cast<int>(MS_PER_MICRO / ledUpdateFrequency_hz),
+		updateIntervalMsFromFrequency(ledUpdateFrequency_hz),
 		SmoothingType::Linear,
 		ledUpdateFrequency_hz,
 		updateDelay
 	};
+	cfg._outputIntervalMicros = outputIntervalMicrosFromFrequency(ledUpdateFrequency_hz);
 	_cfgList.append(std::move(cfg));
 	auto cfgID = static_cast<unsigned>(_cfgList.count() - 1);
 
@@ -652,11 +687,12 @@ unsigned LinearColorSmoothing::updateConfig(int cfgID, int settlingTime_ms, doub
 		SmoothingCfg cfg {
 			false,
 			settlingTime_ms,
-			static_cast<int>(MS_PER_MICRO / ledUpdateFrequency_hz),
+			updateIntervalMsFromFrequency(ledUpdateFrequency_hz),
 			SmoothingType::Linear,
 			ledUpdateFrequency_hz,
 			updateDelay
 		};
+		cfg._outputIntervalMicros = outputIntervalMicrosFromFrequency(ledUpdateFrequency_hz);
 		_cfgList[updatedCfgID] = cfg;
 		Debug(_log,"%s", QSTRING_CSTR(getConfig(updatedCfgID)));
 	}
@@ -680,9 +716,9 @@ bool LinearColorSmoothing::selectConfig(int cfgID, bool force)
 		_settlingTime = _cfgList[cfgID]._settlingTime;
 		_outputDelay = _cfgList[cfgID]._outputDelay;
 		_pause = _cfgList[cfgID]._pause;
-		_outputIntervalMicros = int64_t(MS_PER_MICRO) * _cfgList[cfgID]._updateInterval; // ms -> µs
+		_outputIntervalMicros = _cfgList[cfgID]._outputIntervalMicros;
 		_interpolationRate = _cfgList[cfgID]._interpolationRate;
-		_interpolationIntervalMicros = int64_t(1000000.0 / _interpolationRate);
+		_interpolationIntervalMicros = int64_t(MICROS_PER_SECOND / _interpolationRate);
 		_dithering = _cfgList[cfgID]._dithering;
 		_decay = _cfgList[cfgID]._decay;
 		_invWindow = 1.0F / (MS_PER_MICRO * _settlingTime);
@@ -778,10 +814,12 @@ QString LinearColorSmoothing::getConfig(int cfgID)
 
 		case SmoothingType::Linear:
 		{
+			const double updateIntervalMs = static_cast<double>(cfg._outputIntervalMicros) / MS_PER_MICRO;
+			const double updateFrequencyHz = static_cast<double>(MICROS_PER_SECOND) / cfg._outputIntervalMicros;
 			configText += QString (", Settling time: %1ms, Interval: %2ms (%3Hz)")
 						  .arg(cfg._settlingTime)
-						  .arg(cfg._updateInterval)
-						  .arg(int(MS_PER_MICRO/cfg._updateInterval));
+					  .arg(updateIntervalMs, 0, 'f', 2)
+					  .arg(updateFrequencyHz, 0, 'f', 2);
 			break;
 		}
 		}
@@ -796,7 +834,8 @@ QString LinearColorSmoothing::getConfig(int cfgID)
 LinearColorSmoothing::SmoothingCfg::SmoothingCfg() :
 	_pause(false),
 	_settlingTime(DEFAULT_SETTLINGTIME),
-	_updateInterval(DEFAULT_UPDATEFREQUENCY),
+	_updateInterval(DEFAULT_UPDATEINTERVALL.count()),
+	_outputIntervalMicros(DEFAULT_UPDATEINTERVALL.count() * MS_PER_MICRO),
 	_type(SmoothingType::Linear)
 {
 }
@@ -805,6 +844,7 @@ LinearColorSmoothing::SmoothingCfg::SmoothingCfg(bool pause, int64_t settlingTim
 	_pause(pause),
 	_settlingTime(settlingTime),
 	_updateInterval(updateInterval),
+	_outputIntervalMicros(updateInterval * MS_PER_MICRO),
 	_type(type),
 	_interpolationRate(interpolationRate),
 	_outputDelay(outputDelay),

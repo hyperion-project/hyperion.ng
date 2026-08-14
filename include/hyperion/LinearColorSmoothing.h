@@ -285,6 +285,9 @@ private:
 		/// The interval time in milliseconds of the timer used for scheduling LED update operations. A value of 0 indicates sub-millisecond timing.
 		int _updateInterval;
 
+		/// The exact interval time in microseconds for scheduling LED update operations.
+		int64_t _outputIntervalMicros;
+
 		/// The type of smoothing to perform
 		SmoothingType _type;
 

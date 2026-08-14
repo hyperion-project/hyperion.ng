@@ -28,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Effect scripts: Minor stability and style fixes in `pacman.py`, `traces.py`, `trails.py`(#2011)
   - WebUI - Return a valid Content-Type for static assets to prevent module loading failures
   - MdnsBrowser compile errors when ENABLE_MDNS is false (#2024)
-  - LinearColorSmoothing - fix incorrect output interval calculation
+  - LinearColorSmoothing - fix incorrect output interval calculation, fix handling for update frequency >= 1000Hz
 
 ---
 ### Technical
