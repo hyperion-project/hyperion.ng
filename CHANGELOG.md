@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - EffectFileHandler - Path traversal vulnerability when saving user-defined effects (#2011)
   - Effect scripts: Minor stability and style fixes in `pacman.py`, `traces.py`, `trails.py`(#2011)
   - WebUI - Return a valid Content-Type for static assets to prevent module loading failures
+  - MdnsBrowser compile errors when ENABLE_MDNS is false (#2024)
 
 ---
 ### Technical
@@ -37,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - EffectEngine: Added dedicated `hyperion.effect` debug logging category
 - Empty image consistency applied. 0×0 is now the canonical empty image; 1×1 is no longer treated as empty
 - ProviderRestAPI - Add error when failing to load Qt SSL
+- NetUtils: Improve handling when ENABLE_MDNS is false
 
 ## [2.2.1](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.2.1) - 2026-04-06
 
