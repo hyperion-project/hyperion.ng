@@ -27,7 +27,7 @@ on:
 
 jobs:
 
-windows:
+  windows:
     name: ${{ matrix.os.description }}
     runs-on: ${{ matrix.os.runner }}
     strategy:
