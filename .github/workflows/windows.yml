@@ -123,12 +123,26 @@ jobs:
 
       - name: 👷 Build ${{ env.HINT }}
         shell: cmd
+        timeout-minutes: 45
         run: |
-           cmake --preset windows-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }}
-           cmake --build --preset windows-${{ env.BUILD_TYPE }} --target package
+           cmake --preset windows-%BUILD_TYPE% %CMAKE_ARGS%
+           cmake --build --preset windows-%BUILD_TYPE%
         env:
           BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'relwithdebinfo' || 'release' }}
           HINT: ${{ steps.dependencies.outputs.cmakeArgs != '' && '(with pre-built dependencies)' || '(full build)' }}
+          CMAKE_ARGS: ${{ steps.dependencies.outputs.cmakeArgs }}
+          QT_QPA_PLATFORM: offscreen
+
+      - name: 📦 Package
+        shell: cmd
+        timeout-minutes: 15
+        run: |
+           cpack --config build/windows-%BUILD_TYPE%/CPackConfig.cmake -C %BUILD_TYPE%
+        env:
+          BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'relwithdebinfo' || 'release' }}
+          QT_QPA_PLATFORM: offscreen
+          QT_LOGGING_RULES: "*.debug=true"
+          PYTHONUNBUFFERED: "1"
 
       - name: 📦 Upload
         if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
