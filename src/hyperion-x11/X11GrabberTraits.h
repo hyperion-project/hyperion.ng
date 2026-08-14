@@ -14,7 +14,7 @@ struct X11GrabberTraits
 
 	static constexpr const char* Name = "X11-Grabber";
 
-	static X11GrabberOptions parseOptions(QCoreApplication& app);
+	static X11GrabberOptions parseOptions(const QCoreApplication& app);
 
 	static int run(QCoreApplication& app,
 	               const X11GrabberOptions& opts,

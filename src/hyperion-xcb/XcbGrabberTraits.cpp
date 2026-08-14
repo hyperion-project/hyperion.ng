@@ -15,6 +15,7 @@
 #include <commandline/Parser.h>
 #include <flatbufserver/FlatBufferConnection.h>
 #include <hyperion/GrabberWrapper.h>
+#include <utils/ErrorManager.h>
 #include <utils/Logger.h>
 #include <utils/NetUtils.h>
 
@@ -27,7 +28,7 @@ void XcbGrabberTraits::handleError(QSharedPointer<Logger> log, const QString& er
 	Error(log, "Error occured: %s", QSTRING_CSTR(error));
 }
 
-XcbGrabberOptions XcbGrabberTraits::parseOptions(QCoreApplication& app)
+XcbGrabberOptions XcbGrabberTraits::parseOptions(const QCoreApplication& app)
 {
 	Parser parser(QStringLiteral("XCB-Grabber capture application for Hyperion. Will automatically search a Hyperion server if -a option is not used. Please note that if you have more than one server running it's more or less random which one will be used."));
 
@@ -120,7 +121,7 @@ int XcbGrabberTraits::run(QCoreApplication& /*app*/,
 	{
 		// Capture a single screenshot and finish
 		const Image<ColorRgb>& screenshot = grabber.getScreenshot();
-		QString const fileName = QStringLiteral("screenshot.png");
+		auto const fileName = QStringLiteral("screenshot.png");
 		QImage const pngImage(
 			reinterpret_cast<const uint8_t*>(screenshot.memptr()),
 			screenshot.width(),

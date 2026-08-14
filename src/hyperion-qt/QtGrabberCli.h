@@ -4,4 +4,4 @@
 
 #include "QtGrabberOptions.h"
 
-QtGrabberOptions parseQtGrabberOptions(QCoreApplication& app);
+QtGrabberOptions parseQtGrabberOptions(const QCoreApplication& app);

@@ -14,7 +14,7 @@ struct XcbGrabberTraits
 
 	static constexpr const char* Name = "XCB-Grabber";
 
-	static XcbGrabberOptions parseOptions(QCoreApplication& app);
+	static XcbGrabberOptions parseOptions(const QCoreApplication& app);
 
 	static int run(QCoreApplication& app,
 	               const XcbGrabberOptions& opts,

@@ -14,7 +14,7 @@ struct QtGrabberTraits
 
 	static constexpr const char* Name = "Qt-Grabber";
 
-	static QtGrabberOptions parseOptions(QCoreApplication& app);
+	static QtGrabberOptions parseOptions(const QCoreApplication& app);
 
 	static int run(QCoreApplication& app,
 	               const QtGrabberOptions& opts,

@@ -30,7 +30,7 @@ int runGrabberApp(int argc, char** argv)
 {
 	setTracingLogPattern();
 
-	QSharedPointer<Logger> log = Logger::getInstance(QStringLiteral(Traits::Name).toUpper());
+	QSharedPointer<Logger> log = Logger::getInstance(QString::fromUtf8(Traits::Name).toUpper());
 	Logger::setLogLevel(Logger::LogLevel::Info);
 
 	DefaultSignalHandler::install();

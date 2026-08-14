@@ -22,7 +22,7 @@ void QtGrabberTraits::handleError(QSharedPointer<Logger> log, const QString& err
 	Error(log, "Error occured: %s", QSTRING_CSTR(error));
 }
 
-QtGrabberOptions QtGrabberTraits::parseOptions(QCoreApplication& app)
+QtGrabberOptions QtGrabberTraits::parseOptions(const QCoreApplication& app)
 {
 	return parseQtGrabberOptions(app);
 }
@@ -61,7 +61,7 @@ int QtGrabberTraits::run(QCoreApplication& /*app*/,
 	{
 		// Capture a single screenshot and finish
 		const Image<ColorRgb>& screenshot = grabber.getScreenshot();
-		QString const fileName = QStringLiteral("screenshot.png");
+		auto const fileName = QStringLiteral("screenshot.png");
 		saveScreenshot(fileName, screenshot);
 		Info(log, "Screenshot saved as: \"%s\"", QSTRING_CSTR(fileName));
 		return 0;
