@@ -21,7 +21,7 @@ Q_LOGGING_CATEGORY(smoothing, "hyperion.smoothing")
 
 /// Clamps the rounded values to the byte-interval of [0, 255].
 ALWAYS_INLINE long clampRounded(const floatT x) {
-	return std::min(255L, std::max(0L, std::lroundf(x)));
+	return static_cast<long>(qBound(0, qRound(x), 255));
 }
 
 // Constants
@@ -42,15 +42,15 @@ const int SmallShiftBis = sizeof(uint8_t)*8;
 /// The number of bits that are used for shifting the fixed point values plus SmallShiftBis
 const int FPShiftSmall = (sizeof(uint64_t)*8 - (12 + 9 + SmallShiftBis));
 
-const char* SETTINGS_KEY_SMOOTHING_TYPE = "type";
+const char SETTINGS_KEY_SMOOTHING_TYPE[] = "type";
 
-const char* SETTINGS_KEY_SETTLING_TIME = "time_ms";
-const char* SETTINGS_KEY_UPDATE_FREQUENCY = "updateFrequency";
-const char* SETTINGS_KEY_OUTPUT_DELAY = "updateDelay";
+const char SETTINGS_KEY_SETTLING_TIME[] = "time_ms";
+const char SETTINGS_KEY_UPDATE_FREQUENCY[] = "updateFrequency";
+const char SETTINGS_KEY_OUTPUT_DELAY[] = "updateDelay";
 
-const char* SETTINGS_KEY_DECAY = "decay";
-const char* SETTINGS_KEY_INTERPOLATION_RATE = "interpolationRate";
-const char* SETTINGS_KEY_DITHERING = "dithering";
+const char SETTINGS_KEY_DECAY[] = "decay";
+const char SETTINGS_KEY_INTERPOLATION_RATE[] = "interpolationRate";
+const char SETTINGS_KEY_DITHERING[] = "dithering";
 
 const int64_t DEFAULT_SETTLINGTIME = 200;	// in ms
 const int DEFAULT_UPDATEFREQUENCY = 25;		// in Hz
@@ -159,7 +159,7 @@ void LinearColorSmoothing::updateSettings(const QJsonObject &config)
 		setEnable(config["enable"].toBool(_enabled));
 		_enabledSystemCfg = _enabled;
 
-		int64_t settlingTime_ms = static_cast<int64_t>(config[SETTINGS_KEY_SETTLING_TIME].toInt(DEFAULT_SETTLINGTIME));
+		auto settlingTime_ms = static_cast<int64_t>(config[SETTINGS_KEY_SETTLING_TIME].toInt(DEFAULT_SETTLINGTIME));
 		const double updateFrequencyHz = config[SETTINGS_KEY_UPDATE_FREQUENCY].toDouble(DEFAULT_UPDATEFREQUENCY);
 		int _updateInterval_ms = updateIntervalMsFromFrequency(updateFrequencyHz);
 
@@ -319,9 +319,9 @@ void LinearColorSmoothing::assembleAndDitherFrame()
 		prev.blue = static_cast<uint8_t>(ib);
 
 		// Determine the component errors
-		residualErrors[3 * i + 0] = fr - ir;
-		residualErrors[3 * i + 1] = fg - ig;
-		residualErrors[3 * i + 2] = fb - ib;
+		residualErrors[3 * i + 0] = fr - static_cast<floatT>(ir);
+		residualErrors[3 * i + 1] = fg - static_cast<floatT>(ig);
+		residualErrors[3 * i + 2] = fb - static_cast<floatT>(ib);
 	}
 }
 
@@ -352,7 +352,7 @@ void LinearColorSmoothing::assembleFrame()
 
 ALWAYS_INLINE void LinearColorSmoothing::aggregateComponents(const QVector<ColorRgb>& colors, std::vector<uint64_t>& weighted, const floatT weight) {
 	// Determine the integer-scale by converting the weight to fixed point
-	const uint64_t scale = (static_cast<uint64_t>(1L)<<FPShift) * static_cast<double>(weight);
+	const auto scale = static_cast<uint64_t>((static_cast<uint64_t>(1L)<<FPShift) * static_cast<double>(weight));
 
 	const size_t N = colors.size();
 
@@ -413,12 +413,12 @@ void LinearColorSmoothing::interpolateFrame()
 	}
 
 	/// The inverse scaling factor for the color components, clamped to (0, 1.0]; 1.0 for fs < 1, 1 : fs otherwise
-	const floatT inv_fs = ((fs < 1.0F) ? 1.0F : 1.0F / fs) / (1 << SmallShiftBis);
+	const floatT inv_fs = ((fs < static_cast<floatT>(1.0)) ? static_cast<floatT>(1.0) : static_cast<floatT>(1.0) / fs) / (1 << SmallShiftBis);
 
 	// Normalize the mean component values for the window (fs)
 	for (size_t i = 0; i < 3 * N; ++i)
 	{
-		meanValues[i] = (tempValues[i] >> FPShiftSmall) * inv_fs;
+		meanValues[i] = static_cast<floatT>(tempValues[i] >> FPShiftSmall) * inv_fs;
 	}
 
 	_previousInterpolationTime = now;
@@ -474,10 +474,10 @@ void LinearColorSmoothing::performDecay(const int64_t now) {
 	{
 		Debug(_log, "decay - rendered frames [%d] (%f/s), interpolated frames [%d] (%f/s) in [%f ms]"
 			  , _renderedCounter - _renderedStatCounter
-			  , (1.0F * (_renderedCounter - _renderedStatCounter) / ((now - _renderedStatTime) / 1000000.0F))
+			  , (static_cast<floatT>(1.0) * (_renderedCounter - _renderedStatCounter) / ((now - _renderedStatTime) / 1000000.0F))
 			  , _interpolationCounter - _interpolationStatCounter
-			  , (1.0F * (_interpolationCounter - _interpolationStatCounter) / ((now - _renderedStatTime) / 1000000.0F))
-			  , (now - _renderedStatTime) / 1000.0F
+			  , (static_cast<floatT>(1.0) * (_interpolationCounter - _interpolationStatCounter) / ((now - _renderedStatTime) / 1000000.0F))
+			  , (now - _renderedStatTime) / static_cast<floatT>(1000.0)
 			  );
 		_renderedStatTime = now;
 		_renderedStatCounter = _renderedCounter;
@@ -499,7 +499,7 @@ void LinearColorSmoothing::performLinear(const int64_t now) {
 	}
 
 	const int64_t deltaTime = _targetTime - now;
-	const float k = 1.0F - 1.0F * deltaTime / (_targetTime - _previousWriteTime);
+	const floatT k = static_cast<floatT>(1.0) - static_cast<floatT>(1.0) * static_cast<floatT>(deltaTime) / static_cast<floatT>(_targetTime - _previousWriteTime);
 	const size_t N = _previousValues.size();
 
 	for (size_t i = 0; i < N; ++i)
@@ -511,9 +511,9 @@ void LinearColorSmoothing::performLinear(const int64_t now) {
 		const int greendif = target.green - prev.green;
 		const int bluedif  = target.blue  - prev.blue;
 
-		prev.red   += (reddif   < 0 ? -1:1) * std::ceil(k * std::abs(reddif));
-		prev.green += (greendif < 0 ? -1:1) * std::ceil(k * std::abs(greendif));
-		prev.blue  += (bluedif  < 0 ? -1:1) * std::ceil(k * std::abs(bluedif));
+		prev.red   = static_cast<uint8_t>(prev.red   + (reddif   < 0 ? -1:1) * static_cast<int>(std::ceil(k * static_cast<float>(std::abs(reddif)))));
+		prev.green = static_cast<uint8_t>(prev.green + (greendif < 0 ? -1:1) * static_cast<int>(std::ceil(k * static_cast<float>(std::abs(greendif)))));
+		prev.blue  = static_cast<uint8_t>(prev.blue  + (bluedif  < 0 ? -1:1) * static_cast<int>(std::ceil(k * static_cast<float>(std::abs(bluedif)))));
 	}
 
 	writeFrame();
@@ -530,16 +530,13 @@ void LinearColorSmoothing::updateLeds()
 		return;
 	}
 
-	switch (_smoothingType)
+	if (_smoothingType == SmoothingType::Decay)
 	{
-	case SmoothingType::Decay:
 		performDecay(now);
-	break;
-
-	case SmoothingType::Linear:
-	default:
+	}
+	else
+	{
 		performLinear(now);
-	break;
 	}
 }
 
@@ -564,7 +561,7 @@ void LinearColorSmoothing::rememberFrame(const QVector<ColorRgb> &ledColors)
 	}
 
 	// Append the latest frame at back of the queue
-	const REMEMBERED_FRAME frame = REMEMBERED_FRAME(now, ledColors);
+	const auto frame = REMEMBERED_FRAME(now, ledColors);
 	_frameQueue.push_back(frame);
 }
 
@@ -594,29 +591,27 @@ void LinearColorSmoothing::queueColors(const QVector<ColorRgb> &ledColors)
 				emit hyperion->ledDeviceData(ledColors);
 			}
 		}
+		return;
 	}
-	else
-	{
-		// Push new colors in the delay-buffer
-		_outputQueue.push_back(ledColors);
 
-		// If the delay-buffer is filled pop the front and write to device
-		if (!_outputQueue.empty())
+	// Push new colors in the delay-buffer
+	_outputQueue.push_back(ledColors);
+
+	// If the delay-buffer is filled pop the front and write to device
+	if (_outputQueue.size() <= _outputDelay)
+	{
+		return;
+	}
+
+	if (!_pause)
+	{
+		QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
+		if (hyperion)
 		{
-			if (_outputQueue.size() > _outputDelay)
-			{
-				if (!_pause)
-				{
-					QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-					if (hyperion)
-					{
-						emit hyperion->ledDeviceData(_outputQueue.front());
-					}
-				}
-				_outputQueue.pop_front();
-			}
+			emit hyperion->ledDeviceData(_outputQueue.front());
 		}
 	}
+	_outputQueue.pop_front();
 }
 
 void LinearColorSmoothing::clearQueuedColors()
@@ -710,82 +705,80 @@ bool LinearColorSmoothing::selectConfig(int cfgID, bool force)
 		return true;
 	}
 
-	if (cfgID < _cfgList.count() )
+	if (cfgID >= _cfgList.count() )
 	{
-		_smoothingType = _cfgList[cfgID]._type;
-		_settlingTime = _cfgList[cfgID]._settlingTime;
-		_outputDelay = _cfgList[cfgID]._outputDelay;
-		_pause = _cfgList[cfgID]._pause;
-		_outputIntervalMicros = _cfgList[cfgID]._outputIntervalMicros;
-		_interpolationRate = _cfgList[cfgID]._interpolationRate;
-		_interpolationIntervalMicros = int64_t(MICROS_PER_SECOND / _interpolationRate);
-		_dithering = _cfgList[cfgID]._dithering;
-		_decay = _cfgList[cfgID]._decay;
-		_invWindow = 1.0F / (MS_PER_MICRO * _settlingTime);
-
-		// Set _weightFrame based on the given decay
-		const float decay = _decay;
-		const floatT inv_window = _invWindow;
-
-		// For decay != 1 use power-based approach for calculating the moving average values
-		if(std::abs(decay - 1.0F) > std::numeric_limits<float>::epsilon()) {
-			// Exponential Decay
-			_weightFrame = [inv_window,decay](const int64_t fs, const int64_t fe, const int64_t ws) {
-				const floatT s = (fs - ws) * inv_window;
-				const floatT t = (fe - ws) * inv_window;
-
-				return (decay + 1) * (std::pow(t, decay) - std::pow(s, decay));
-			};
-		} else {
-			// For decay == 1 use linear interpolation of the moving average values
-			// Linear Decay
-			_weightFrame = [inv_window](const int64_t fs, const int64_t fe, const int64_t /*ws*/) {
-				// Linear weighting = (end - start) * scale
-				return static_cast<floatT>((fe - fs) * inv_window);
-			};
-		}
-
-		_renderedStatTime = micros();
-		_renderedCounter = 0;
-		_renderedStatCounter = 0;
-		_interpolationCounter = 0;
-		_interpolationStatCounter = 0;
-
-		//Enable smoothing for effects with smoothing
-		if (cfgID >= SmoothingConfigID::EFFECT_DYNAMIC)
-		{
-			Debug(_log,"Run Effect with Smoothing enabled");
-			_enabledSystemCfg = _enabled;
-			setEnable(true);
-		}
-		else
-		{
-			// Restore enabled state after running an effect with smoothing
-			setEnable(_enabledSystemCfg);
-		}
-
-		if (_cfgList[cfgID]._updateInterval != _updateInterval)
-		{
-
-			_timer->stop();
-			_updateInterval = _cfgList[cfgID]._updateInterval;
-			if (this->enabled())
-			{
-				if (!_pause && !_targetValues.empty())
-				{
-					_timer->start(_updateInterval);
-				}
-			}
-		}
-		_currentConfigId = cfgID;
-		DebugIf(_enabled, _log,"%s", QSTRING_CSTR(getConfig(_currentConfigId)));
-
-		return true;
+		// reset to default
+		_currentConfigId = SmoothingConfigID::SYSTEM;
+		return false;
 	}
 
-	// reset to default
-	_currentConfigId = SmoothingConfigID::SYSTEM;
-	return false;
+	_smoothingType = _cfgList[cfgID]._type;
+	_settlingTime = _cfgList[cfgID]._settlingTime;
+	_outputDelay = _cfgList[cfgID]._outputDelay;
+	_pause = _cfgList[cfgID]._pause;
+	_outputIntervalMicros = _cfgList[cfgID]._outputIntervalMicros;
+	_interpolationRate = _cfgList[cfgID]._interpolationRate;
+	_interpolationIntervalMicros = int64_t(MICROS_PER_SECOND / _interpolationRate);
+	_dithering = _cfgList[cfgID]._dithering;
+	_decay = static_cast<floatT>(_cfgList[cfgID]._decay);
+	_invWindow = static_cast<floatT>(1.0) / (MS_PER_MICRO * static_cast<floatT>(_settlingTime));
+
+	// Set _weightFrame based on the given decay
+	const floatT decay = _decay;
+	const floatT inv_window = _invWindow;
+
+	// For decay != 1 use power-based approach for calculating the moving average values
+	if(std::abs(decay - static_cast<floatT>(1.0)) > std::numeric_limits<floatT>::epsilon()) {
+		// Exponential Decay
+		_weightFrame = [inv_window,decay](const int64_t fs, const int64_t fe, const int64_t ws) {
+			const floatT s = static_cast<floatT>(fs - ws) * inv_window;
+			const floatT t = static_cast<floatT>(fe - ws) * inv_window;
+
+			return (decay + floatT(1)) * (std::pow(t, decay) - std::pow(s, decay));
+		};
+	} 
+	else 
+	{
+		// For decay == 1 use linear interpolation of the moving average values
+		// Linear Decay
+		_weightFrame = [inv_window](const int64_t fs, const int64_t fe, const int64_t /*ws*/) {
+			// Linear weighting = (end - start) * scale
+			return (static_cast<floatT>(fe) - static_cast<floatT>(fs)) * inv_window;
+		};
+	}
+
+	_renderedStatTime = micros();
+	_renderedCounter = 0;
+	_renderedStatCounter = 0;
+	_interpolationCounter = 0;
+	_interpolationStatCounter = 0;
+
+	//Enable smoothing for effects with smoothing
+	if (cfgID >= SmoothingConfigID::EFFECT_DYNAMIC)
+	{
+		Debug(_log,"Run Effect with Smoothing enabled");
+		_enabledSystemCfg = _enabled;
+		setEnable(true);
+	}
+	else
+	{
+		// Restore enabled state after running an effect with smoothing
+		setEnable(_enabledSystemCfg);
+	}
+
+	if (_cfgList[cfgID]._updateInterval != _updateInterval)
+	{
+		_timer->stop();
+		_updateInterval = _cfgList[cfgID]._updateInterval;
+		if (this->enabled() && !_pause && _targetValues.empty())
+		{
+			_timer->start(_updateInterval);
+		}
+	}
+	_currentConfigId = cfgID;
+	DebugIf(_enabled, _log,"%s", QSTRING_CSTR(getConfig(_currentConfigId)));
+
+	return true;
 }
 
 QString LinearColorSmoothing::getConfig(int cfgID)
@@ -803,7 +796,7 @@ QString LinearColorSmoothing::getConfig(int cfgID)
 		switch (cfg._type) {
 		case SmoothingType::Decay:
 		{
-			const double thalf = (1.0-std::pow(1.0/2, 1.0/_decay))*_settlingTime;
+			const double thalf = (1.0-std::pow(1.0/2, 1.0/_decay))*static_cast<double>(_settlingTime);
 			configText += QString (", Interpolation rate: %1Hz, Dithering: %2, decay: %3 -> Halftime: %4ms")
 						  .arg(cfg._interpolationRate,0,'f',2)
 						  .arg((cfg._dithering) ? "true" : "false")
@@ -815,7 +808,7 @@ QString LinearColorSmoothing::getConfig(int cfgID)
 		case SmoothingType::Linear:
 		{
 			const double updateIntervalMs = static_cast<double>(cfg._outputIntervalMicros) / MS_PER_MICRO;
-			const double updateFrequencyHz = static_cast<double>(MICROS_PER_SECOND) / cfg._outputIntervalMicros;
+			const double updateFrequencyHz = static_cast<double>(MICROS_PER_SECOND) / static_cast<double>(cfg._outputIntervalMicros);
 			configText += QString (", Settling time: %1ms, Interval: %2ms (%3Hz)")
 						  .arg(cfg._settlingTime)
 					  .arg(updateIntervalMs, 0, 'f', 2)
