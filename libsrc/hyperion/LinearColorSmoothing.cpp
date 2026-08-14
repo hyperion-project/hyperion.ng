@@ -770,7 +770,7 @@ bool LinearColorSmoothing::selectConfig(int cfgID, bool force)
 	{
 		_timer->stop();
 		_updateInterval = _cfgList[cfgID]._updateInterval;
-		if (this->enabled() && !_pause && _targetValues.empty())
+		if (this->enabled() && !_pause && !_targetValues.empty())
 		{
 			_timer->start(_updateInterval);
 		}
