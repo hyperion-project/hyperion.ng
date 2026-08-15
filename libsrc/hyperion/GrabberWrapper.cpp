@@ -225,6 +225,14 @@ QStringList GrabberWrapper::availableGrabbers(GrabberTypeFilter type)
 		#ifdef ENABLE_DRM
 				grabbers << "drm";
 		#endif
+
+		#ifdef ENABLE_GAMESCOPE
+				grabbers << "gamescope";
+		#endif
+
+		#ifdef ENABLE_DESKTOP_PORTAL
+				grabbers << "desktop-portal";
+		#endif
 	}
 
 	if (type == GrabberTypeFilter::VIDEO || type == GrabberTypeFilter::ALL)

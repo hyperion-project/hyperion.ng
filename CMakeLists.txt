@@ -139,6 +139,8 @@ set(DEFAULT_V4L2                        OFF)
 set(DEFAULT_AUDIO                       ON)
 set(DEFAULT_X11                         OFF)
 set(DEFAULT_XCB                         OFF)
+set(DEFAULT_GAMESCOPE                    OFF)
+set(DEFAULT_DESKTOP_PORTAL              OFF)
 
 # Input
 set(DEFAULT_BOBLIGHT_SERVER             ON)
@@ -201,6 +203,8 @@ if(${CMAKE_SYSTEM} MATCHES "Linux")
 	set(DEFAULT_DEV_SPI         ON)
 	set(DEFAULT_DEV_TINKERFORGE ON)
 	set(DEFAULT_CEC             ON)
+	set(DEFAULT_GAMESCOPE        ON)
+	set(DEFAULT_DESKTOP_PORTAL  ON)
 elseif (WIN32)
 	set(DEFAULT_DDA             ON)
 	set(DEFAULT_MF              ON)
@@ -331,6 +335,8 @@ if(HYPERION_LIGHT)
 	set(DEFAULT_V4L2                        OFF)
 	set(DEFAULT_X11                         OFF)
 	set(DEFAULT_XCB                         OFF)
+	set(DEFAULT_GAMESCOPE                    OFF)
+	set(DEFAULT_DESKTOP_PORTAL              OFF)
 
 	# Disable Audio Grabbers
 	set(DEFAULT_AUDIO                       OFF)
@@ -401,6 +407,12 @@ message(STATUS "ENABLE_X11 = ${ENABLE_X11}")
 
 option(ENABLE_XCB "Enable the XCB grabber" ${DEFAULT_XCB})
 message(STATUS "ENABLE_XCB = ${ENABLE_XCB}")
+
+option(ENABLE_GAMESCOPE "Enable the Gamescope grabber (direct gamescope capture via Pipewire)" ${DEFAULT_GAMESCOPE})
+message(STATUS "ENABLE_GAMESCOPE = ${ENABLE_GAMESCOPE}")
+
+option(ENABLE_DESKTOP_PORTAL "Enable the Desktop Portal grabber (xdg-desktop-portal ScreenCast via Pipewire)" ${DEFAULT_DESKTOP_PORTAL})
+message(STATUS "ENABLE_DESKTOP_PORTAL = ${ENABLE_DESKTOP_PORTAL}")
 
 option(ENABLE_AUDIO "Enable the AUDIO grabber" ${DEFAULT_AUDIO})
 message(STATUS "ENABLE_AUDIO = ${ENABLE_AUDIO}")
