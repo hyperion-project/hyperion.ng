@@ -218,5 +218,78 @@
       "name": "release-qt6-all-linux",
       "inherits": [ "linux-release", "qt6-env-linux-wrapper" ]
     }
+  ],
+  "buildPresets": [
+    {
+      "name": "release-package-qt5-all-windows",
+      "displayName": "Windows (Release package - Qt5)",
+      "configuration": "Release",
+      "targets": [ "package" ],
+      "configurePreset": "release-qt5-all-windows",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "debug-build-qt6-all-windows",
+      "displayName": "Windows (Debug build - Qt6)",
+      "configuration": "Debug",
+      "configurePreset": "debug-qt6-all-windows",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "debug-package-qt6-all-windows",
+      "displayName": "Windows (Debug package - Qt6)",
+      "configuration": "Debug",
+      "targets": [ "package" ],
+      "configurePreset": "debug-qt6-all-windows",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "relwithdebinfo-package-qt6-light-windows",
+      "displayName": "Windows (RelWithDebInfo package - Qt6 - Light)",
+      "configuration": "Debug",
+      "targets": [ "package" ],
+      "configurePreset": "relwithdebinfo-qt6-light-windows",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "relwithdebinfo-package-qt6-all-windows",
+      "displayName": "Windows (RelWithDebInfo package - Qt6)",
+      "configuration": "Debug",
+      "targets": [ "package" ],
+      "configurePreset": "relwithdebinfo-qt6-all-windows",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "release-package-qt6-all-windows",
+      "displayName": "Windows (Release package - Qt6)",
+      "configuration": "Release",
+      "targets": [ "package" ],
+      "configurePreset": "release-qt6-all-windows",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    }
   ]
 }
