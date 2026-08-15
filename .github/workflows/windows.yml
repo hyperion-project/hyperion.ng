@@ -29,13 +29,13 @@ jobs:
 
   windows:
     name: ${{ matrix.os.description }}
-    runs-on: ${{ matrix.os.architecture == 'arm64' && 'windows-11-arm' || 'windows-2025' }}
+    runs-on: ${{ matrix.os.runner }}
     strategy:
       fail-fast: false
       matrix:
         os: [
-          { architecture: 'arm64', description: 'Windows 11 (arm64)' },
-          { architecture: 'x64', description: 'Windows 11 (x64)' }
+          { runner: 'windows-11-arm', architecture: 'arm64', description: 'Windows 11 (arm64)' },
+          { runner: 'windows-2025',   architecture: 'x64',   description: 'Windows 2025 (x64)' }
         ]
 
     steps:
@@ -125,10 +125,17 @@ jobs:
         shell: cmd
         run: |
            cmake --preset windows-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }}
-           cmake --build --preset windows-${{ env.BUILD_TYPE }} --target package
+           cmake --build --preset windows-${{ env.BUILD_TYPE }}
         env:
           BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'relwithdebinfo' || 'release' }}
           HINT: ${{ steps.dependencies.outputs.cmakeArgs != '' && '(with pre-built dependencies)' || '(full build)' }}
+
+      - name: 📦 Package
+        shell: cmd
+        run: |
+           cmake --build --preset windows-${{ env.BUILD_TYPE }} --target package
+        env:
+          BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'relwithdebinfo' || 'release' }}
 
       - name: 📦 Upload
         if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
