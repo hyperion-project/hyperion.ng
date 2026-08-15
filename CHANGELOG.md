@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Empty image consistency applied. 0×0 is now the canonical empty image; 1×1 is no longer treated as empty
 - ProviderRestAPI - Add error when failing to load Qt SSL
 - NetUtils: Improve handling when ENABLE_MDNS is false
+- Configure CCache only if explicitly requested
 
 ## [2.2.1](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.2.1) - 2026-04-06
 
