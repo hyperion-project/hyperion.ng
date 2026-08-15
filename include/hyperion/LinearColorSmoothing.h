@@ -22,7 +22,7 @@
 Q_DECLARE_LOGGING_CATEGORY(smoothing);
 
 // The type of float
-#define floatT float // Select double, float or __fp16
+using floatT = double; // Select double, float or __fp16
 
 class QTimer;
 class Logger;
@@ -266,7 +266,7 @@ private:
 	bool _dithering;
 
 	/// The decay power > 0. A value of exactly 1 is linear decay, higher numbers indicate a faster decay rate.
-	double _decay;
+	floatT _decay;
 
 	/// Value of 1.0 / settlingTime; inverse of the window size used for weighting of frames.
 	floatT _invWindow;
@@ -284,6 +284,9 @@ private:
 
 		/// The interval time in milliseconds of the timer used for scheduling LED update operations. A value of 0 indicates sub-millisecond timing.
 		int _updateInterval;
+
+		/// The exact interval time in microseconds for scheduling LED update operations.
+		int64_t _outputIntervalMicros;
 
 		/// The type of smoothing to perform
 		SmoothingType _type;
