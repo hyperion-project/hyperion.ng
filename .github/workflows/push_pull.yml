@@ -15,6 +15,35 @@ on:
 
 jobs:
 
+  # Build Debian Artifacts
+  linux:
+    name: 🐧 Debian ${{ matrix.debian.codename[1] }}
+    strategy:
+      fail-fast: false
+      matrix:
+        debian: [
+          { codename: [ 'bullseye', 'Bullseye' ] },
+          { codename: [ 'bookworm', 'Bookworm' ] },
+          { codename: [ 'trixie', 'Trixie' ] }
+        ]
+    uses: ./.github/workflows/debian.yml
+    secrets: inherit
+    with:
+      codename: ${{ matrix.debian.codename[0] }}
+      event_name: ${{ github.event_name }}
+      pull_request_number: ${{ github.event.pull_request.number }}
+      publish: ${{ startsWith(github.event.ref, 'refs/tags') && matrix.debian.codename[0] == 'bullseye' }}
+
+  # Build macOS Artifacts
+  macos:
+    name: 🍏 macOS
+    uses: ./.github/workflows/macos.yml
+    secrets: inherit
+    with:
+      event_name: ${{ github.event_name }}
+      pull_request_number: ${{ github.event.pull_request.number }}
+      publish: ${{ startsWith(github.event.ref, 'refs/tags') }}
+
   # Build Windows Artifacts
   windows:
     name: 🪟 Windows
@@ -24,3 +53,52 @@ jobs:
       event_name: ${{ github.event_name }}
       pull_request_number: ${{ github.event.pull_request.number }}
       publish: ${{ startsWith(github.event.ref, 'refs/tags') }}
+
+  # Publish to GitHub
+  github_publish:
+    name: 🚀 Publish to GitHub
+    if: startsWith(github.event.ref, 'refs/tags')
+    needs: [linux, macos, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇ Checkout
+        uses: actions/checkout@v7
+
+      - name: 🔧 Prepare
+        run: |
+          echo "TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
+          echo "VERSION=$(tr -d '\n' < .version)" >> $GITHUB_ENV
+
+      - name: 💾 Download artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: artifact-*
+          path: all-artifacts
+
+      - name: 📦 Upload
+        uses: softprops/action-gh-release@v3
+        with:
+          name: Hyperion ${{ env.VERSION }}
+          tag_name: ${{ env.TAG }}
+          files: "all-artifacts/**"
+          draft: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Build DEB/RPM Packages for APT/DNF Repository (runs only on tagged commits)
+  repo_build:
+    name: 🚀 Let Hyperion build its own repository (APT/DNF)
+    if: startsWith(github.event.ref, 'refs/tags')
+    needs: [ github_publish ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📲 Dispatch APT/DNF build
+        if: ${{ env.SECRET_HYPERION_BOT_TOKEN != null }}
+        uses: peter-evans/repository-dispatch@v4.0.1
+        with:
+          repository: hyperion-project/hyperion.releases-ci
+          token: ${{ secrets.HYPERION_BOT_TOKEN }}
+          event-type: releases_repo_build
+          client-payload: '{ "head_sha": "${{ github.sha }}", "repo_checkout": "hyperion-project/hyperion.ng" }'
+        env:
+          SECRET_HYPERION_BOT_TOKEN: ${{ secrets.HYPERION_BOT_TOKEN }}

@@ -34,9 +34,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [
-          { runner: 'windows-11-vs2026-arm', architecture: 'arm64', description: 'Windows 11 (arm64)' },
-          { runner: 'windows-2025',          architecture: 'x64',   description: 'Windows 2025 (x64)' },
-          { runner: 'windows-2022',          architecture: 'x64',   description: 'Windows 2022 (x64)' }
+          { runner: 'windows-11-arm', architecture: 'arm64', description: 'Windows 11 (arm64)' },
+          { runner: 'windows-2025',   architecture: 'x64',   description: 'Windows 2025 (x64)' }
         ]
 
     steps:
@@ -124,35 +123,19 @@ jobs:
 
       - name: 👷 Build ${{ env.HINT }}
         shell: cmd
-        timeout-minutes: 45
         run: |
-           powershell -Command "Start-Job -ScriptBlock { while ($true) { Get-CimInstance Win32_Process | Select-Object ProcessId, ParentProcessId, Name, CommandLine | Format-Table -AutoSize | Out-File -FilePath process_trace.log -Append; Start-Sleep -Seconds 30 } }"
-           cmake --preset windows-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }} -DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=Embedded
-           cmake --build --preset windows-${{ env.BUILD_TYPE }} -v
+           cmake --preset windows-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }}
+           cmake --build --preset windows-${{ env.BUILD_TYPE }}
         env:
           BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'relwithdebinfo' || 'release' }}
           HINT: ${{ steps.dependencies.outputs.cmakeArgs != '' && '(with pre-built dependencies)' || '(full build)' }}
-          QT_QPA_PLATFORM: offscreen
-
-      - name: 🔍 Process Diagnostic Output (Runs on Failure / Timeout)
-        if: always()
-        shell: powershell
-        run: |
-           if (Test-Path process_trace.log) {
-             Write-Host "=== LAST KNOWN PROCESS TREE BEFORE TIMEOUT/HANG ==="
-             Get-Content process_trace.log -Tail 100
-           }
 
       - name: 📦 Package
         shell: cmd
-        timeout-minutes: 15
         run: |
-           cmake --build --preset windows-%BUILD_TYPE% --target package
+           cmake --build --preset windows-${{ env.BUILD_TYPE }} --target package
         env:
           BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'relwithdebinfo' || 'release' }}
-          QT_QPA_PLATFORM: offscreen
-          QT_LOGGING_RULES: "*.debug=true"
-          PYTHONUNBUFFERED: "1"
 
       - name: 📦 Upload
         if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
