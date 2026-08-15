@@ -204,7 +204,7 @@
     },
     {
       "name": "relwithdebinfo-qt6-light-windows",
-      "inherits": [ "windows-relwithdebinfo", "qt6-env-windows-wrapper" ]
+      "inherits": [ "windows-relwithdebinfo", "qt6-env-windows-wrapper", "hyperion-light" ]
     },        
     {
       "name": "release-qt6-all-windows",
