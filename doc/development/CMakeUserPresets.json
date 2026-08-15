@@ -70,7 +70,7 @@
       },
       "environment": {
         "LINUX_QT_ROOT_DIR": "$env{HOME}/Qt",
-        "LINUX_PRE_BUILT_DEPS_ROOT_DIR": "$env{HOME}/development/repos/hyperion_prebuild_deps"
+        "LINUX_PRE_BUILT_DEPS_ROOT_DIR": "$env{HOME}/hyperion_prebuild_deps"
       }
     },
     {
@@ -166,7 +166,7 @@
       "inherits": [ "windows-debug", "qt5-env-windows-wrapper", "hyperion-bare-minimum", "buildcache" ]
     },
     {
-      "name": "release-qt5-all",
+      "name": "release-qt5-all-windows",
       "inherits": [ "windows-release", "qt5-env-windows-wrapper"]
     },
     {
@@ -258,9 +258,9 @@
     {
       "name": "relwithdebinfo-package-qt6-light-windows",
       "displayName": "Windows (RelWithDebInfo package - Qt6 - Light)",
-      "configuration": "Debug",
+      "configuration": "RelWithDebInfo",
       "targets": [ "package" ],
-      "configurePreset": "relwithdebinfo-qt6-light-windows",
+      "configurePreset": "debug-qt6-light-windows",
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
@@ -270,9 +270,9 @@
     {
       "name": "relwithdebinfo-package-qt6-all-windows",
       "displayName": "Windows (RelWithDebInfo package - Qt6)",
-      "configuration": "Debug",
+      "configuration": "RelWithDebInfo",
       "targets": [ "package" ],
-      "configurePreset": "relwithdebinfo-qt6-all-windows",
+      "configurePreset": "debug-qt6-all-windows",
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
