@@ -65,19 +65,21 @@ include(HelperMacros)
 include(HelperFunctions)
 
 #=============================================================================
-# Use ccache as compiler launcher
+# Use compiler cache (ccache or buildcache) as compiler launcher
 #=============================================================================
 
-# Configure CCache if explicitly requested via -DUSE_COMPILER_CACHE=ON
-option(USE_COMPILER_CACHE "Enable compiler cache (ccache)" OFF)
+option(USE_COMPILER_CACHE "Enable compiler cache (ccache or buildcache)" OFF)
 if(USE_COMPILER_CACHE)
 	find_program(CACHE_PROG ccache)
+	if(NOT CACHE_PROG)
+		find_program(CACHE_PROG buildcache)
+	endif()
 	if(CACHE_PROG)
-		message(STATUS "Building with ccache: ${CACHE_PROG}")
-		set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${CACHE_PROG})
-		set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ${CACHE_PROG})
+		message(STATUS "Building with compiler cache: ${CACHE_PROG}")
+		set(CMAKE_C_COMPILER_LAUNCHER   ${CACHE_PROG})
+		set(CMAKE_CXX_COMPILER_LAUNCHER ${CACHE_PROG})
 	else()
-		message(STATUS "ccache not found; building without compiler cache")
+		message(STATUS "No compiler cache found (ccache/buildcache); building without")
 	endif()
 endif()
 
