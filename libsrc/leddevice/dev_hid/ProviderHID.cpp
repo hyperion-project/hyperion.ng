@@ -22,15 +22,10 @@ namespace {
 	}
 }
 
-ProviderHID::ProviderHID(
-	const QJsonObject& deviceConfig,
-	const unsigned short vendorId, const unsigned short productId,
-	const unsigned short usagePage, const unsigned short usage)
+ProviderHID::ProviderHID(const QJsonObject& deviceConfig, const unsigned short vendorId, const unsigned short productId)
 	: LedDevice(deviceConfig)
 	, _vendorId(vendorId)
 	, _productId(productId)
-	, _usagePage(usagePage)
-	, _usage(usage)
 	, _useFeature(false)
 	, _deviceHandle(nullptr)
 	, _delayAfterConnect_ms(0)
@@ -51,8 +46,8 @@ QJsonObject ProviderHID::discover(const QJsonObject& params)
 {
 	const auto vendorId = _vendorId != 0 ? _vendorId : parseHexValue(params.value("VID"));
 	const auto productId = _productId != 0 ? _productId : parseHexValue(params.value("PID"));
-	const auto usagePage = _usagePage != 0 ? _usagePage : parseHexValue(params.value("usagePage"));
-	const auto usage = _usage != 0 ? _usage : parseHexValue(params.value("usage"));
+	const auto usagePage = parseHexValue(params.value("usagePage"));
+	const auto usage = parseHexValue(params.value("usage"));
 
 	QJsonObject devicesDiscovered;
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );

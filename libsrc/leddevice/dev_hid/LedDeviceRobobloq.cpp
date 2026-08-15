@@ -30,7 +30,7 @@ namespace
 }
 
 LedDeviceRobobloq::LedDeviceRobobloq(const QJsonObject& deviceConfig)
-	: ProviderHID(deviceConfig, VENDOR_ID, PRODUCT_ID, USAGE_PAGE, USAGE)
+	: ProviderHID(deviceConfig, VENDOR_ID, PRODUCT_ID)
 	, _hardwareBrightness(255)
 	, _nextMessageId(INITIAL_MESSAGE_ID)
 {
@@ -39,6 +39,14 @@ LedDeviceRobobloq::LedDeviceRobobloq(const QJsonObject& deviceConfig)
 LedDevice* LedDeviceRobobloq::construct(const QJsonObject& deviceConfig)
 {
 	return new LedDeviceRobobloq(deviceConfig);
+}
+
+QJsonObject LedDeviceRobobloq::discover(const QJsonObject& params)
+{
+	QJsonObject discoveryParams(params);
+	discoveryParams.insert("usagePage", formatHexValue(USAGE_PAGE));
+	discoveryParams.insert("usage", formatHexValue(USAGE));
+	return ProviderHID::discover(discoveryParams);
 }
 
 QJsonObject LedDeviceRobobloq::getProperties(const QJsonObject& params)

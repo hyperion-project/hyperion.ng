@@ -24,13 +24,8 @@ public:
 	/// @param deviceConfig Device's configuration as JSON-Object
 	/// @param vendorId Default HID vendor identifier
 	/// @param productId Default HID product identifier
-	/// @param usagePage Default HID usagePage
-	/// @param usage Default HID usage
 	///
-	explicit ProviderHID(
-		const QJsonObject& deviceConfig,
-		unsigned short vendorId = 0, unsigned short productId = 0,
-		unsigned short usagePage = 0, unsigned short usage = 0);
+	explicit ProviderHID(const QJsonObject& deviceConfig, unsigned short vendorId = 0, unsigned short productId = 0);
 
 	///
 	/// @brief Destructor of the LedDevice
@@ -88,8 +83,6 @@ protected:
 	// HID VID and PID
 	unsigned short _vendorId;
 	unsigned short _productId;
-	unsigned short _usagePage;
-	unsigned short _usage;
 	bool           _useFeature;
 	QString        _devicePath;
 

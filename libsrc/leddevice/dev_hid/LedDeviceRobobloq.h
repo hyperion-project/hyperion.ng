@@ -18,6 +18,8 @@ public:
 
 	static LedDevice* construct(const QJsonObject& deviceConfig);
 
+	QJsonObject discover(const QJsonObject& params) override;
+
 	QJsonObject getProperties(const QJsonObject& params) override;
 
 protected:
