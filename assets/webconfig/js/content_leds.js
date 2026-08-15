@@ -1462,6 +1462,10 @@ $(document).ready(function () {
       const output = conf_editor.getEditor("root.specificOptions.output").getValue();
       if (output === "NONE" || output === "SELECT" || output === "") {
 
+        if (ledType === "robobloq") {
+          updateRobobloqDeviceInfo();
+        }
+
         $('#btn_submit_controller').prop('disabled', true);
         $('#btn_test_controller').prop('disabled', true);
         $('#btn_test_controller').hide();
@@ -1478,6 +1482,7 @@ $(document).ready(function () {
             getProperties_device(ledType, output, params);
             break;
           case "robobloq":
+            updateRobobloqDeviceInfo();
             params = { output };
             getProperties_device(ledType, output, params);
             break;
@@ -2236,7 +2241,7 @@ var updateOutputSelectList = function (ledType, discoveryInfo) {
       }
       break;
 
-    case "devHID":
+    case "devHID": {
       key = "output";
 
       if (discoveryInfo.devices.length === 0) {
@@ -2246,33 +2251,38 @@ var updateOutputSelectList = function (ledType, discoveryInfo) {
         showAllDeviceInputOptions(key, false);
       }
       else {
-        switch (ledType) {
-          case "robobloq": {
-            for (const device of discoveryInfo.devices) {
-              enumVals.push(device.path);
-              enumTitleVals.push(device.displayName || device.path);
-            }
+        for (const device of discoveryInfo.devices) {
+          enumVals.push(device.path);
 
-            const configuredDeviceType = window.serverConfig.device.type;
-            const configuredOutput = window.serverConfig.device.output;
-            if (ledType === configuredDeviceType) {
-              if ($.inArray(configuredOutput, enumVals) != -1) {
-                enumDefaultVal = configuredOutput;
-              } else if (configuredOutput) {
-                enumVals.push(configuredOutput);
-                enumTitleVals.push(configuredOutput);
-                enumDefaultVal = configuredOutput;
-              }
-            }
-            else {
-              addSelect = true;
-            }
-            break;
+          let title = device.product || device.manufacturer || "HID";
+          if (device.serialNumber) {
+            title += " - " + device.serialNumber;
           }
-          default:
+
+          const identifiers = [device.vendorIdentifier, device.productIdentifier].filter(Boolean);
+          if (identifiers.length > 0) {
+            title += " (" + identifiers.join("|") + ")";
+          }
+          enumTitleVals.push(title);
+        }
+
+        const configuredDeviceType = window.serverConfig.device.type;
+        const configuredOutput = window.serverConfig.device.output;
+        if (ledType === configuredDeviceType) {
+          if ($.inArray(configuredOutput, enumVals) != -1) {
+            enumDefaultVal = configuredOutput;
+          } else if (configuredOutput) {
+            enumVals.push(configuredOutput);
+            enumTitleVals.push(configuredOutput);
+            enumDefaultVal = configuredOutput;
+          }
+        }
+        else {
+          addSelect = true;
         }
       }
       break;
+    }
 
     case "devFTDI":
       key = "output";
@@ -2475,9 +2485,13 @@ function updateElements(ledType, key) {
         break;
 
       case "robobloq":
+        if (conf_editor.getEditor("root.specificOptions.output").getValue() !== key) {
+          break;
+        }
         if (ledProperties && ledProperties.ledCount > 0) {
           conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(ledProperties.ledCount);
         }
+        updateRobobloqDeviceInfo(ledProperties);
         break;
 
       case "wled":
@@ -2549,6 +2563,65 @@ function updateElements(ledType, key) {
     $('#btn_layout_controller').prop('disabled', true);
     $('#btn_submit_controller').attr('disabled', true);
   }
+}
+
+function updateRobobloqDeviceInfo(deviceProperties) {
+  if (!deviceProperties || jQuery.isEmptyObject(deviceProperties)) {
+    $("#info_container_text").html(infoTextDefault);
+    return;
+  }
+
+  const formatIdentifier = value => typeof value === "string"
+    ? value.replace(/^0x/i, "").toUpperCase()
+    : "";
+  const details = [];
+  if (deviceProperties.physicalSize > 0) {
+    details.push({
+      label: $.i18n("conf_leds_device_info_screen_diagonal"),
+      value: deviceProperties.physicalSize + "\u2033"
+    });
+  }
+  if (deviceProperties.ledCount > 0) {
+    details.push({
+      label: $.i18n("conf_leds_device_info_led_count"),
+      value: deviceProperties.ledCount
+    });
+  }
+  if (deviceProperties.deviceId) {
+    details.push({
+      label: $.i18n("conf_leds_device_info_device_id"),
+      value: formatIdentifier(deviceProperties.deviceId)
+    });
+  }
+  if (deviceProperties.uuid) {
+    details.push({
+      label: "UUID",
+      value: deviceProperties.uuid
+    });
+  }
+  if (deviceProperties.firmwareVersion) {
+    details.push({
+      label: $.i18n("conf_leds_device_info_firmware_version"),
+      value: deviceProperties.firmwareVersion
+    });
+  }
+  if (deviceProperties.serialNumber) {
+    details.push({
+      label: $.i18n("edt_dev_spec_serial_title"),
+      value: deviceProperties.serialNumber
+    });
+  }
+
+  const infoContainer = $("#info_container_text").empty();
+  if (details.length > 0) {
+    const detailsList = $("<dl>").addClass("dl-horizontal").appendTo(infoContainer);
+    for (const detail of details) {
+      $("<dt>").text(detail.label + ":").appendTo(detailsList);
+      $("<dd>").text(detail.value).appendTo(detailsList);
+    }
+  }
+
+  infoContainer.append(infoTextDefault);
 }
 
 function showAllDeviceInputOptions(showForKey, state) {

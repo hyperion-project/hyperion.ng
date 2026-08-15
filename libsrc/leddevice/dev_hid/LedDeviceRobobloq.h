@@ -18,7 +18,6 @@ public:
 
 	static LedDevice* construct(const QJsonObject& deviceConfig);
 
-	QJsonObject discover(const QJsonObject& params) override;
 	QJsonObject getProperties(const QJsonObject& params) override;
 
 protected:
@@ -47,10 +46,9 @@ private:
 	int sendRb(uint8_t action, const QVector<uint8_t>& payload = {});
 	int sendSc(uint8_t action, const QVector<uint8_t>& payload);
 
-	static QJsonObject buildDeviceProperties(QJsonObject properties);
 	static QJsonObject buildDeviceProperties(QJsonObject properties, hid_device* handle);
 	/// The caller owns the counter: the active connection passes _nextMessageId,
-	/// while discovery and property queries use an independent local sequence.
+	/// while property queries use an independent local sequence.
 	static bool readDeviceInfo(hid_device* handle, uint8_t& nextMessageId, DeviceInfo& deviceInfo);
 	static bool isExpectedDevice(const hid_device_info& deviceInfo);
 	static bool parseDeviceInfoReply(const uint8_t* data, int size, DeviceInfo& deviceInfo, uint8_t& messageId);
@@ -58,7 +56,6 @@ private:
 	static QVector<uint8_t> createRbMessage(uint8_t action, const QVector<uint8_t>& payload, uint8_t messageId);
 	static QVector<uint8_t> encodeColors(const QVector<ColorRgb>& ledValues);
 	static uint8_t checksum(const uint8_t* data, int size);
-	static QString formatDisplayName(const QJsonObject& properties);
 };
 
 #endif // LEDEVICEROBOBLOQ_H

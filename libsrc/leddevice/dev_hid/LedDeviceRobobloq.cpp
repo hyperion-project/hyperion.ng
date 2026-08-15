@@ -1,13 +1,10 @@
 #include "LedDeviceRobobloq.h"
 
 #include <QByteArray>
-#include <QJsonArray>
-#include <QStringList>
 #include <QtGlobal>
 
 #include <algorithm>
 #include <limits>
-#include <utility>
 
 namespace
 {
@@ -42,19 +39,6 @@ LedDeviceRobobloq::LedDeviceRobobloq(const QJsonObject& deviceConfig)
 LedDevice* LedDeviceRobobloq::construct(const QJsonObject& deviceConfig)
 {
 	return new LedDeviceRobobloq(deviceConfig);
-}
-
-QJsonObject LedDeviceRobobloq::discover(const QJsonObject& params)
-{
-	QJsonObject result = ProviderHID::discover(params);
-	QJsonArray enrichedDevices;
-	for (const auto device : result["devices"].toArray())
-	{
-		enrichedDevices.append(buildDeviceProperties(device.toObject()));
-	}
-
-	result.insert("devices", enrichedDevices);
-	return result;
 }
 
 QJsonObject LedDeviceRobobloq::getProperties(const QJsonObject& params)
@@ -289,37 +273,18 @@ int LedDeviceRobobloq::sendSc(const uint8_t action, const QVector<uint8_t>& payl
 	return 0;
 }
 
-QJsonObject LedDeviceRobobloq::buildDeviceProperties(QJsonObject properties)
-{
-	const QByteArray encodedPath = properties["path"].toString().toUtf8();
-	if (hid_device* handle = hid_open_path(encodedPath.constData()); handle != nullptr)
-	{
-		properties = buildDeviceProperties(std::move(properties), handle);
-		hid_close(handle);
-	}
-	else
-	{
-		properties.insert("displayName", formatDisplayName(properties));
-	}
-	return properties;
-}
-
 QJsonObject LedDeviceRobobloq::buildDeviceProperties(QJsonObject properties, hid_device* handle)
 {
-	if (handle != nullptr)
+	uint8_t nextMessageId = INITIAL_MESSAGE_ID;
+	if (DeviceInfo deviceInfo; readDeviceInfo(handle, nextMessageId, deviceInfo))
 	{
-		uint8_t nextMessageId = INITIAL_MESSAGE_ID;
-		if (DeviceInfo deviceInfo; readDeviceInfo(handle, nextMessageId, deviceInfo))
+		const QJsonObject deviceProperties = deviceInfo.toJson();
+		for (auto property = deviceProperties.constBegin(); property != deviceProperties.constEnd(); ++property)
 		{
-			const QJsonObject deviceProperties = deviceInfo.toJson();
-			for (auto property = deviceProperties.constBegin(); property != deviceProperties.constEnd(); ++property)
-			{
-				properties.insert(property.key(), property.value());
-			}
+			properties.insert(property.key(), property.value());
 		}
 	}
 
-	properties.insert("displayName", formatDisplayName(properties));
 	return properties;
 }
 
@@ -490,58 +455,4 @@ uint8_t LedDeviceRobobloq::checksum(const uint8_t* data, const int size)
 		sum += data[index];
 	}
 	return static_cast<uint8_t>(sum & 0xFFU);
-}
-
-QString LedDeviceRobobloq::formatDisplayName(const QJsonObject& properties)
-{
-	QStringList identifiers{
-		formatHexValue(VENDOR_ID).mid(2),
-		formatHexValue(PRODUCT_ID).mid(2)
-	};
-	if (const QString deviceId = properties["deviceId"].toString(); !deviceId.isEmpty())
-	{
-		identifiers.append(deviceId);
-	}
-
-	QString displayName = QStringLiteral("[%1]").arg(identifiers.join(QLatin1Char(':')));
-
-	const int physicalSize = properties["physicalSize"].toInt();
-	const int ledCount = properties["ledCount"].toInt();
-	if (physicalSize > 0 && ledCount > 0)
-	{
-		displayName += QStringLiteral(" %1\", %2 LEDs").arg(physicalSize).arg(ledCount);
-	}
-	else
-	{
-		QString productName = properties["product"].toString();
-		if (productName.isEmpty())
-		{
-			productName = properties["manufacturer"].toString();
-		}
-		if (productName.isEmpty())
-		{
-			productName = QStringLiteral("USB HID");
-		}
-		displayName += QLatin1Char(' ') + productName;
-	}
-
-	QStringList details;
-	if (const QString uuid = properties["uuid"].toString(); !uuid.isEmpty())
-	{
-		details.append(QStringLiteral("UUID %1").arg(uuid));
-	}
-	if (const QString firmwareVersion = properties["firmwareVersion"].toString(); !firmwareVersion.isEmpty())
-	{
-		details.append(QStringLiteral("FW %1").arg(firmwareVersion));
-	}
-	if (const QString serialNumber = properties["serialNumber"].toString(); !serialNumber.isEmpty())
-	{
-		details.append(QStringLiteral("S/N %1").arg(serialNumber));
-	}
-	if (!details.isEmpty())
-	{
-		displayName += QStringLiteral(" (%1)").arg(details.join(QStringLiteral(", ")));
-	}
-
-	return displayName;
 }
