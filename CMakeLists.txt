@@ -68,12 +68,17 @@ include(HelperFunctions)
 # Use ccache as compiler launcher
 #=============================================================================
 
-# Configure CCache if available
-find_program(CACHE_PROG ccache)
-if(CACHE_PROG)
-message(STATUS "Building with ccache: ${CACHE_PROG}")
-	set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${CACHE_PROG})
-	set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ${CACHE_PROG})
+# Configure CCache if explicitly requested via -DUSE_COMPILER_CACHE=ON
+option(USE_COMPILER_CACHE "Enable compiler cache (ccache)" OFF)
+if(USE_COMPILER_CACHE)
+	find_program(CACHE_PROG ccache)
+	if(CACHE_PROG)
+		message(STATUS "Building with ccache: ${CACHE_PROG}")
+		set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${CACHE_PROG})
+		set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ${CACHE_PROG})
+	else()
+		message(STATUS "ccache not found; building without compiler cache")
+	endif()
 endif()
 
 #=============================================================================
