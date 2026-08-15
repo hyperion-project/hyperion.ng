@@ -199,6 +199,14 @@
       "inherits": [ "windows-debug", "qt6-env-windows-wrapper", "hyperion-bare-minimum", "buildcache" ]
     },
     {
+      "name": "relwithdebinfo-qt6-all-windows",
+      "inherits": [ "windows-relwithdebinfo", "qt6-env-windows-wrapper" ]
+    },
+    {
+      "name": "relwithdebinfo-qt6-light-windows",
+      "inherits": [ "windows-relwithdebinfo", "qt6-env-windows-wrapper" ]
+    },        
+    {
       "name": "release-qt6-all-windows",
       "inherits": [ "windows-release", "qt6-env-windows-wrapper" ]
     },
@@ -260,7 +268,7 @@
       "displayName": "Windows (RelWithDebInfo package - Qt6 - Light)",
       "configuration": "RelWithDebInfo",
       "targets": [ "package" ],
-      "configurePreset": "debug-qt6-light-windows",
+      "configurePreset": "relwithdebinfo-qt6-light-windows",
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
@@ -272,7 +280,7 @@
       "displayName": "Windows (RelWithDebInfo package - Qt6)",
       "configuration": "RelWithDebInfo",
       "targets": [ "package" ],
-      "configurePreset": "debug-qt6-all-windows",
+      "configurePreset": "relwithdebinfo-qt6-all-windows",
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
