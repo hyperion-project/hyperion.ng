@@ -4,7 +4,10 @@
 #include <QtGlobal>
 
 #include <algorithm>
+#include <chrono>
 #include <limits>
+
+#include <utils/WaitTime.h>
 
 namespace
 {
@@ -17,6 +20,10 @@ namespace
 	constexpr int DEVICE_INFO_ATTEMPTS = 3;
 	constexpr int DEVICE_INFO_READ_ATTEMPTS = 3;
 	constexpr int DEVICE_INFO_READ_TIMEOUT_MS = 200;
+
+	constexpr int IDENTIFY_BLINK_COUNT = 2;
+	constexpr std::chrono::milliseconds IDENTIFY_INTERVAL{500};
+
 	// Reverse-engineered clients start at 2. RB and SC share one uint8_t
 	// sequence, whose wrap from 255 to 0 is intentional.
 	constexpr uint8_t INITIAL_MESSAGE_ID = 2;
@@ -70,6 +77,40 @@ QJsonObject LedDeviceRobobloq::getProperties(const QJsonObject& params)
 
 	result.insert("properties", properties);
 	return result;
+}
+
+void LedDeviceRobobloq::identify(const QJsonObject& params)
+{
+	if (!init(params))
+	{
+		return;
+	}
+
+	Info(_log, "Identify %s, HID path '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(_devicePath));
+	if (open() < 0)
+	{
+		return;
+	}
+
+	if (powerOn())
+	{
+		for (int blink = 0; blink < IDENTIFY_BLINK_COUNT; ++blink)
+		{
+			if (writeColor(ColorRgb::RED) < 0)
+			{
+				break;
+			}
+			wait(IDENTIFY_INTERVAL);
+
+			if (writeColor(ColorRgb::BLACK) < 0)
+			{
+				break;
+			}
+			wait(IDENTIFY_INTERVAL);
+		}
+	}
+
+	close();
 }
 
 bool LedDeviceRobobloq::init(const QJsonObject& deviceConfig)

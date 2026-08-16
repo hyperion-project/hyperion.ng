@@ -1261,6 +1261,15 @@ $(document).ready(function () {
         }
           break;
 
+        case "robobloq": {
+          const output = conf_editor.getEditor("root.specificOptions.output").getValue();
+          if (output !== "" && output !== "NONE" && output !== "SELECT") {
+            canIdentify = true;
+            canSave = true;
+          }
+        }
+          break;
+
         case "philipshue": {
           const host = conf_editor.getEditor("root.specificOptions.host").getValue();
           const username = conf_editor.getEditor("root.specificOptions.username").getValue();
@@ -1895,6 +1904,14 @@ $(document).ready(function () {
           const token = conf_editor.getEditor("root.specificOptions.token").getValue();
           params = { host, token };
         }
+        break;
+
+      case "robobloq":
+        params = Object.assign(
+          {},
+          conf_editor.getEditor("root.generalOptions").getValue(),
+          conf_editor.getEditor("root.specificOptions").getValue()
+        );
         break;
 
       case "adalight":

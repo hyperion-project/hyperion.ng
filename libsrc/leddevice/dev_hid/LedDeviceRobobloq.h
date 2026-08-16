@@ -22,6 +22,8 @@ public:
 
 	QJsonObject getProperties(const QJsonObject& params) override;
 
+	void identify(const QJsonObject& params) override;
+
 protected:
 	bool init(const QJsonObject& deviceConfig) override;
 	int open() override;
