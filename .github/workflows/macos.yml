@@ -74,11 +74,11 @@ jobs:
         env:
           QT_VERSION: ${{ steps.dependencies.outputs.qtVersion != '' && steps.dependencies.outputs.qtVersion || '' }}
 
-      - name: � Setup ccache
+      - name: 🔧 Setup ccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
-          key: ccache-macos-${{ matrix.os.architecture }}-${{ env.BUILD_TYPE }}
-          restore-keys: ccache-macos-${{ matrix.os.architecture }}-
+          key: ccache-macos-${{ matrix.os.architecture }}-${{ env.BUILD_TYPE }}-qt${{ steps.dependencies.outputs.qtVersion }}
+          restore-keys: ccache-macos-${{ matrix.os.architecture }}-${{ env.BUILD_TYPE }}-
           max-size: 500M
         env:
           BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
