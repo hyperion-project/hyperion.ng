@@ -8,6 +8,7 @@
 #include <QTextStream>
 #include <QRgb>
 #include <QDebug>
+#include <QtMath>
 
 #include <utils/global_defines.h>
 #include <utils/Packed.h>
