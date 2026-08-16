@@ -74,10 +74,19 @@ jobs:
         env:
           QT_VERSION: ${{ steps.dependencies.outputs.qtVersion != '' && steps.dependencies.outputs.qtVersion || '' }}
 
+      - name: � Setup ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ccache-macos-${{ matrix.os.architecture }}-${{ env.BUILD_TYPE }}
+          restore-keys: ccache-macos-${{ matrix.os.architecture }}-
+          max-size: 500M
+        env:
+          BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
+
       - name: 👷 Build ${{ env.HINT }}
         shell: bash
         run: |
-          cmake --preset macos-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }}
+          cmake --preset macos-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }} -DUSE_COMPILER_CACHE=ON
           cmake --build --preset macos-${{ env.BUILD_TYPE }} --target package
         env:
           BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}

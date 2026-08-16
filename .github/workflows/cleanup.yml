@@ -1,12 +1,35 @@
-name: 🧹 Cleanup old artifacts
+name: 🧹 Cleanup old artifacts and caches
 
-# Run cleanup workflow at the end of every day
 on:
   schedule:
     - cron: '0 0 * * *'
+  pull_request:
+    types: [ closed ]
+  workflow_dispatch:
+    inputs:
+      clear_compiler_caches:
+        type: boolean
+        description: Delete all compiler caches (sccache/ccache) — use after toolchain upgrades
+        default: false
+        required: false
 
 jobs:
+  clean_pr:
+    name: 🧹 Cleanup closed PR caches
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🧹 Delete caches for PR branch
+        run: |
+          gh cache list --repo ${{ github.repository }} --ref refs/pull/${{ github.event.pull_request.number }}/merge \
+            --json id --jq '.[].id' \
+            | xargs -I{} gh cache delete {} --repo ${{ github.repository }} || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   clean:
+    name: 🧹 Cleanup old artifacts and compiler caches
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: 🧹 Cleanup old workflow artifacts
@@ -14,3 +37,11 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           expire-in: 14days # all artifacts at least 14 days old
+
+      - name: 🧹 Cleanup stale compiler caches
+        if: inputs.clear_compiler_caches
+        run: |
+          gh cache list --repo ${{ github.repository }} --json id,key --jq '.[] | select(.key | startswith("sccache-") or startswith("ccache-")) | .id' \
+            | xargs -I{} gh cache delete {} --repo ${{ github.repository }} || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
