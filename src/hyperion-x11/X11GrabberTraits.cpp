@@ -147,8 +147,6 @@ int X11GrabberTraits::run(QCoreApplication& /*app*/,
 
 	Info(log, "Connecting to Hyperion host: %s, port: %u", QSTRING_CSTR(hostName), port);
 
-	Info(log, "Code change test");
-
 #ifdef ENABLE_MDNS
 	if (MdnsBrowser::isMdns(hostName))
 	{
