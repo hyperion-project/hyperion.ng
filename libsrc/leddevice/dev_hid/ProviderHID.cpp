@@ -9,16 +9,13 @@
 #include "ProviderHID.h"
 
 namespace {
-	constexpr unsigned short DEFAULT_VENDOR_ID = 0x2341;
-	constexpr unsigned short DEFAULT_PRODUCT_ID = 0x8036;
-
 	constexpr int WRITE_DELAY_MS = 3000;
 
-	unsigned short parseHexValue(const QJsonValue& value, const unsigned short fallback = 0)
+	unsigned short parseHexValue(const QJsonValue& value)
 	{
 		bool ok = false;
 		const unsigned short result = value.toString().toUShort(&ok, 0);
-		return ok ? result : fallback;
+		return ok ? result : 0;
 	}
 }
 
@@ -67,10 +64,8 @@ bool ProviderHID::init(const QJsonObject& deviceConfig)
 		_devicePath = deviceConfig["output"].toString();
 
 		// Read configurable identifiers only when the subclass did not provide fixed values.
-		_vendorId = _vendorId != 0 ? _vendorId : parseHexValue(
-			deviceConfig.value("VID"), DEFAULT_VENDOR_ID);
-		_productId = _productId != 0 ? _productId : parseHexValue(
-			deviceConfig.value("PID"), DEFAULT_PRODUCT_ID);
+		_vendorId = _vendorId != 0 ? _vendorId : parseHexValue(deviceConfig.value("VID"));
+		_productId = _productId != 0 ? _productId : parseHexValue(deviceConfig.value("PID"));
 
 		// Initialize the USB context
 		if (hid_init() != 0)
@@ -91,16 +86,21 @@ int ProviderHID::open()
 {
 	close();
 
-	if (_devicePath.isEmpty())
+	if (!_devicePath.isEmpty())
+	{
+		Info(_log, "Opening HID device at path '%s'", QSTRING_CSTR(_devicePath));
+		const QByteArray encodedPath = _devicePath.toUtf8();
+		_deviceHandle = hid_open_path(encodedPath.constData());
+	}
+	else if (_vendorId != 0 && _productId != 0)
 	{
 		Info(_log, "Opening device: VID %04hx PID %04hx", _vendorId, _productId);
 		_deviceHandle = hid_open(_vendorId, _productId, nullptr);
 	}
 	else
 	{
-		Info(_log, "Opening HID device at path '%s'", QSTRING_CSTR(_devicePath));
-		const QByteArray encodedPath = _devicePath.toUtf8();
-		_deviceHandle = hid_open_path(encodedPath.constData());
+		setInError("HID device path is empty; VID and PID must be configured and non-zero", false);
+		return -1;
 	}
 
 	if (_deviceHandle == nullptr)
@@ -221,7 +221,7 @@ int ProviderHID::writeBytes(const unsigned size, const uint8_t* data)
 		}
 
 		// Writing failed again, device might have disconnected
-		if (ret < 0){
+		if (ret < 0) {
 			Error(_log,"Failed to write to HID device.");
 
 			hid_close(_deviceHandle);

@@ -128,8 +128,7 @@ int LedDeviceRobobloq::open()
 		hidInfo->interface_number, hidInfo->usage_page, hidInfo->usage);
 
 	// Device metadata is optional; keep using the configured LED count if it cannot be read
-	DeviceInfo deviceInfo;
-	if (readDeviceInfo(_deviceHandle, _nextMessageId, deviceInfo))
+	if (DeviceInfo deviceInfo; readDeviceInfo(_deviceHandle, _nextMessageId, deviceInfo))
 	{
 		Info(_log, "Robobloq device info: size=%d\", LEDs=%d, firmware=%s, deviceId=%s, uuid=%s",
 			static_cast<int>(deviceInfo.physicalSize), static_cast<int>(deviceInfo.hardwareLedCount),

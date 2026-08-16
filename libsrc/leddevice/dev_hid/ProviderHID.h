@@ -22,8 +22,8 @@ public:
 	/// @brief Constructs a HID (USB) LED-device
 	///
 	/// @param deviceConfig Device's configuration as JSON-Object
-	/// @param vendorId Default HID vendor identifier
-	/// @param productId Default HID product identifier
+	/// @param vendorId Fixed HID vendor identifier, or 0 to read it from the configuration
+	/// @param productId Fixed HID product identifier, or 0 to read it from the configuration
 	///
 	explicit ProviderHID(const QJsonObject& deviceConfig, unsigned short vendorId = 0, unsigned short productId = 0);
 
