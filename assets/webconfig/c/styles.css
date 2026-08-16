@@ -1,0 +1,201 @@
+* {
+	border: 0;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	outline: none;
+	background: none;
+	font-size: 0;
+	line-height: 0;
+}
+
+html, body {
+	background: #111;
+	color: fff;
+}
+
+#camera {
+	position: relative;
+}
+
+#wall,
+#tv {
+	position: absolute;
+	top: 50%;
+	width: 32px;
+	height: 332px;
+	border-radius: 8px;
+	border: 4px solid #fff;
+
+	transform: translate(-50%, -50%);
+
+	opacity: .5;
+}
+
+#tv {
+	left: 30%;
+	width: 136px;
+}
+
+#wall {
+	left: 70%;
+	width: 136px;
+	border-style: dotted;
+}
+
+#tv ins {
+	left: 40%;
+	height: 32px;
+}
+#tv ins#tv_white,
+#tv ins#tv_black {
+	left: calc(40% - 60px);
+	height: 332px;
+}
+#tv ins#tv_red {
+	top: 90px;
+}
+#tv ins#tv_green {
+	top: 150px;
+}
+#tv ins#tv_blue {
+	top: 210px;
+}
+#tv ins#tv_cyan {
+	top: 270px;
+}
+#tv ins#tv_magenta {
+	top: 330px;
+}
+#tv ins#tv_yellow {
+	top: 390px;
+}
+#tv ins#tv_black {
+	left: calc(40% - 120px);
+}
+
+.lock {
+	opacity: 1;
+}
+
+#calibration {
+	max-width: 640px;
+	margin: 0 auto;
+	position: relative;
+}
+#canvas {
+	display: block;
+
+	width: 640px;
+	height: 480px;
+	border-radius: 4px;
+	background: #333;
+}
+
+#source {
+	display: none;
+}
+
+#tv_color_led,
+#wall_color_led {
+	display: inline-block;
+	width: 50%;
+	height: 32px;
+	background: #222;
+
+	color: #fff;
+	text-transform: uppercase;
+	text-align: center;
+	font: normal 12px/32px Monospace;
+}
+
+#color_leds {
+	display: block;
+	height: 64px;
+}
+#color_leds ins {
+	width: calc(100% / 8);
+	display: inline-block;
+	height: 32px;
+}
+#color_leds ins#led_wall {
+	width: 100%;
+}
+
+#tv ins#tv_red {
+	border-color: red;
+}
+#tv ins#tv_green {
+	border-color: green;
+}
+#tv ins#tv_blue {
+	border-color: blue;
+}
+#tv ins#tv_cyan {
+	border-color: cyan;
+}
+#tv ins#tv_magenta {
+	border-color: magenta;
+}
+#tv ins#tv_yellow {
+	border-color: yellow;
+}
+#tv ins#tv_black {
+	border-color: black;
+}
+v
+#tv ins#tv_white {
+	border-color: white;
+}
+
+#tv_wall_devider {
+	position: absolute;
+	width: 0;
+	border-radius: 0;
+	border: 2px dashed #fff;
+	height: 100vh;
+	top: 0;
+	bottom: 0;
+	left: 50%;
+	opacity: .5;
+}
+
+#color_text {
+	display: inline-block;
+	font: normal 10px/24px Monospace;
+	color: #fff;
+
+	display: none;
+
+}
+
+button {
+	padding: 0 16px;
+	background: #666;
+	color: #fff;
+	text-transform: uppercase;
+	min-width: 60px;
+
+	font: normal 10px/24px Monospace;
+	margin: 8px 0;
+
+	transition: background .2s;
+}
+button.auto {
+	background: #aaa;
+}
+
+#controls {
+	align-items: baseline;
+	display: flex;
+	justify-content: space-between;
+}
+
+#calibrate_init {
+	margin-left: 0;
+}
+#calibrate_apply {
+	margin: 8px 0;
+	width: 100%;
+	padding: 0;
+}
