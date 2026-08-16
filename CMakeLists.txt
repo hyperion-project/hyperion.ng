@@ -409,9 +409,31 @@ option(ENABLE_XCB "Enable the XCB grabber" ${DEFAULT_XCB})
 message(STATUS "ENABLE_XCB = ${ENABLE_XCB}")
 
 option(ENABLE_GAMESCOPE "Enable the Gamescope grabber (direct gamescope capture via Pipewire)" ${DEFAULT_GAMESCOPE})
-message(STATUS "ENABLE_GAMESCOPE = ${ENABLE_GAMESCOPE}")
-
 option(ENABLE_DESKTOP_PORTAL "Enable the Desktop Portal grabber (xdg-desktop-portal ScreenCast via Pipewire)" ${DEFAULT_DESKTOP_PORTAL})
+
+# Both grabbers need libpipewire-0.3, and ENABLE_DESKTOP_PORTAL also needs Qt::DBus. Neither is
+# guaranteed to be present just because this defaults ON on Linux (e.g. build images that predate
+# these grabbers won't have pipewire-devel/libpipewire-0.3-dev installed) - probe for them here and
+# quietly disable rather than letting pkg_check_modules(REQUIRED) in the grabber subdirectories
+# hard-fail the entire CMake configure over an optional feature nobody explicitly asked for.
+if(ENABLE_GAMESCOPE OR ENABLE_DESKTOP_PORTAL)
+	find_package(PkgConfig)
+	if(PkgConfig_FOUND)
+		pkg_check_modules(PIPEWIRE_PROBE QUIET libpipewire-0.3)
+	endif()
+	if(NOT PIPEWIRE_PROBE_FOUND)
+		if(ENABLE_GAMESCOPE)
+			message(WARNING "ENABLE_GAMESCOPE requested but libpipewire-0.3 (pkg-config) was not found - disabling")
+		endif()
+		if(ENABLE_DESKTOP_PORTAL)
+			message(WARNING "ENABLE_DESKTOP_PORTAL requested but libpipewire-0.3 (pkg-config) was not found - disabling")
+		endif()
+		set(ENABLE_GAMESCOPE OFF)
+		set(ENABLE_DESKTOP_PORTAL OFF)
+	endif()
+endif()
+
+message(STATUS "ENABLE_GAMESCOPE = ${ENABLE_GAMESCOPE}")
 message(STATUS "ENABLE_DESKTOP_PORTAL = ${ENABLE_DESKTOP_PORTAL}")
 
 option(ENABLE_AUDIO "Enable the AUDIO grabber" ${DEFAULT_AUDIO})
@@ -727,6 +749,14 @@ endif()
 find_package(Qt${QT_VERSION_MAJOR} ${QT_VERSION} COMPONENTS Core Gui Network Sql Widgets REQUIRED)
 
 message(STATUS "Qt version used: ${QT_VERSION}")
+
+if(ENABLE_DESKTOP_PORTAL)
+	find_package(Qt${QT_VERSION_MAJOR} COMPONENTS DBus QUIET)
+	if(NOT Qt${QT_VERSION_MAJOR}DBus_FOUND)
+		message(WARNING "ENABLE_DESKTOP_PORTAL requested but Qt${QT_VERSION_MAJOR}DBus was not found - disabling")
+		set(ENABLE_DESKTOP_PORTAL OFF)
+	endif()
+endif()
 
 if(CMAKE_SYSTEM_NAME MATCHES "Darwin" AND (${QT_VERSION_MAJOR} GREATER_EQUAL 6))
 	set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
