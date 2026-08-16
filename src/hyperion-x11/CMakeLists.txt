@@ -8,6 +8,9 @@ endif()
 add_executable(${PROJECT_NAME}
 	X11Wrapper.h
 	X11Wrapper.cpp
+	X11GrabberOptions.h
+	X11GrabberTraits.h
+	X11GrabberTraits.cpp
 	hyperion-x11.cpp
 )
 

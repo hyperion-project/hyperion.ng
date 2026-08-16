@@ -4,6 +4,13 @@ project(hyperion-qt)
 add_executable(${PROJECT_NAME}
 	QtWrapper.h
 	QtWrapper.cpp
+	ScreenshotUtil.h
+	ScreenshotUtil.cpp
+	QtGrabberOptions.h
+	QtGrabberCli.h
+	QtGrabberCli.cpp
+	QtGrabberTraits.h
+	QtGrabberTraits.cpp
 	hyperion-qt.cpp
 	$<$<BOOL:${WIN32}>:${CMAKE_BINARY_DIR}/win.rc>
 )
