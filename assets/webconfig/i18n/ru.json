@@ -38,7 +38,6 @@
   "conf_leds_config_error": "Ошибка со светодиодами или в настройке их расположения",
   "conf_leds_config_warning": "Проверьте свои светодиоды или настройку их расположения",
   "conf_leds_contr_label_contrtype": "Тип контроллера:",
-  "conf_leds_device_info_device_id": "Идентификатор устройства",
   "conf_leds_device_info_firmware_version": "Версия прошивки",
   "conf_leds_device_info_led_count": "Количество светодиодов",
   "conf_leds_device_info_log": "Если ваши светодиоды не работают, проверьте здесь наличие ошибок:",

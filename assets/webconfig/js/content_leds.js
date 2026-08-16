@@ -2588,9 +2588,6 @@ function updateRobobloqDeviceInfo(deviceProperties) {
     return;
   }
 
-  const formatIdentifier = value => typeof value === "string"
-    ? value.replace(/^0x/i, "").toUpperCase()
-    : "";
   const details = [];
   if (deviceProperties.physicalSize > 0) {
     details.push({
@@ -2604,34 +2601,16 @@ function updateRobobloqDeviceInfo(deviceProperties) {
       value: deviceProperties.ledCount
     });
   }
-  if (deviceProperties.deviceId) {
-    details.push({
-      label: $.i18n("conf_leds_device_info_device_id"),
-      value: formatIdentifier(deviceProperties.deviceId)
-    });
-  }
-  if (deviceProperties.uuid) {
-    details.push({
-      label: "UUID",
-      value: deviceProperties.uuid
-    });
-  }
   if (deviceProperties.firmwareVersion) {
     details.push({
       label: $.i18n("conf_leds_device_info_firmware_version"),
       value: deviceProperties.firmwareVersion
     });
   }
-  if (deviceProperties.serialNumber) {
-    details.push({
-      label: $.i18n("edt_dev_spec_serial_title"),
-      value: deviceProperties.serialNumber
-    });
-  }
 
   const infoContainer = $("#info_container_text").empty();
   if (details.length > 0) {
-    const detailsList = $("<dl>").addClass("dl-horizontal").appendTo(infoContainer);
+    const detailsList = $("<dl>").addClass("device-info-list").appendTo(infoContainer);
     for (const detail of details) {
       $("<dt>").text(detail.label + ":").appendTo(detailsList);
       $("<dd>").text(detail.value).appendTo(detailsList);

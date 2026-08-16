@@ -57,7 +57,6 @@
   "conf_leds_config_error": "Error in LED/LED layout configuration",
   "conf_leds_config_warning": "Check your LED/LED layout configuration",
   "conf_leds_contr_label_contrtype": "Controller type:",
-  "conf_leds_device_info_device_id": "Device ID",
   "conf_leds_device_info_firmware_version": "Firmware version",
   "conf_leds_device_info_led_count": "LED count",
   "conf_leds_device_info_log": "In case your LEDs do not work, check here for errors:",
@@ -1252,4 +1251,3 @@
   "ws_not_supported": "Websocket is not supported by your browser",
   "ws_processing_exception": "Exception during Websocket message processing"
 }
-
