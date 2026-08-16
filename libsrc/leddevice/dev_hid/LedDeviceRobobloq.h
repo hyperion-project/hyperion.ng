@@ -49,6 +49,7 @@ private:
 
 	int sendRb(uint8_t action, const QVector<uint8_t>& payload = {});
 	int sendSc(uint8_t action, const QVector<uint8_t>& payload);
+	int writeColor(const ColorRgb& color);
 
 	static QJsonObject buildDeviceProperties(QJsonObject properties, hid_device* handle);
 	/// The caller owns the counter: the active connection passes _nextMessageId,

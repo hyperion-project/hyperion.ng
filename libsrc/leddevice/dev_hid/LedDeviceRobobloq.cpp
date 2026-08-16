@@ -240,8 +240,7 @@ bool LedDeviceRobobloq::powerOn()
 
 bool LedDeviceRobobloq::powerOff()
 {
-	trackDevice(leddevice_flow, "Power OFF")
-		<< ", is device ready: " << (_isDeviceReady ? "YES" : "NO");
+	trackDevice(leddevice_flow, "Power OFF") << ", is device ready: " << (_isDeviceReady ? "YES" : "NO");
 
 	if (_isStayOnAfterStreaming)
 	{
@@ -256,13 +255,7 @@ bool LedDeviceRobobloq::powerOff()
 	// The protocol-specific shutdown stops the current effect and clears both
 	// the configured LEDs and the remaining addressable range through 0xFE.
 	const bool effectStopped = sendRb(ACTION_TURN_OFF_LIGHT) == 0;
-	const auto lastLed = static_cast<uint8_t>(_ledCount);
-	QVector<uint8_t> blackRanges{1, 0, 0, 0, lastLed};
-	if (lastLed < MAX_LED_COUNT)
-	{
-		blackRanges.append({static_cast<uint8_t>(lastLed + 1), 0, 0, 0, MAX_LED_COUNT});
-	}
-	const bool colorsCleared = sendRb(ACTION_SET_COLOR_RANGES, blackRanges) == 0;
+	const bool colorsCleared = writeColor(ColorRgb::BLACK) == 0;
 	return effectStopped && colorsCleared;
 }
 
@@ -319,6 +312,19 @@ int LedDeviceRobobloq::sendSc(const uint8_t action, const QVector<uint8_t>& payl
 	}
 
 	return 0;
+}
+
+int LedDeviceRobobloq::writeColor(const ColorRgb& color)
+{
+	const auto lastLed = static_cast<uint8_t>(_ledCount);
+	QVector<uint8_t> colorRanges{1, color.red, color.green, color.blue, lastLed};
+	if (lastLed < MAX_LED_COUNT)
+	{
+		// Match the device software: clear the unused addressable range after
+		// setting the configured LEDs to the requested color.
+		colorRanges.append({static_cast<uint8_t>(lastLed + 1), 0, 0, 0, MAX_LED_COUNT});
+	}
+	return sendRb(ACTION_SET_COLOR_RANGES, colorRanges);
 }
 
 QJsonObject LedDeviceRobobloq::buildDeviceProperties(QJsonObject properties, hid_device* handle)
