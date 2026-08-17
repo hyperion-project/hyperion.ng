@@ -12,7 +12,7 @@
 			"type": "integer",
 			"title": "edt_dev_spec_brightness_title",
 			"default": 255,
-			"minimum": 1,
+			"minimum": 5,
 			"maximum": 255,
 			"access": "advanced",
 			"propertyOrder": 2

@@ -17,6 +17,10 @@ namespace
 	constexpr unsigned short USAGE = 0x0001;
 	constexpr int HID_REPORT_SIZE = 64;
 	constexpr int MAX_LED_COUNT = 254;
+	// The original SyncLight application limits the raw 0x87 brightness value
+	// to 5..255; switching the device off is handled by the 0x97 command.
+	constexpr int MIN_HARDWARE_BRIGHTNESS = 5;
+	constexpr int MAX_HARDWARE_BRIGHTNESS = 255;
 	constexpr int DEVICE_INFO_ATTEMPTS = 3;
 	constexpr int DEVICE_INFO_READ_ATTEMPTS = 3;
 	constexpr int DEVICE_INFO_READ_TIMEOUT_MS = 200;
@@ -24,8 +28,10 @@ namespace
 	constexpr int IDENTIFY_BLINK_COUNT = 2;
 	constexpr std::chrono::milliseconds IDENTIFY_INTERVAL{500};
 
-	// Reverse-engineered clients start at 2. RB and SC share one uint8_t
-	// sequence, whose wrap from 255 to 0 is intentional.
+	// The original SyncLight application starts at 2. RB and SC share one
+	// sequence, which wraps from 254 to 1 without emitting 0 or 255.
+	constexpr uint8_t MIN_MESSAGE_ID = 1;
+	constexpr uint8_t MAX_MESSAGE_ID = 254;
 	constexpr uint8_t INITIAL_MESSAGE_ID = 2;
 
 	constexpr uint8_t ACTION_SET_SYNC_SCREEN = 0x80;
@@ -38,7 +44,7 @@ namespace
 
 LedDeviceRobobloq::LedDeviceRobobloq(const QJsonObject& deviceConfig)
 	: ProviderHID(deviceConfig, VENDOR_ID, PRODUCT_ID)
-	, _hardwareBrightness(255)
+	, _hardwareBrightness(MAX_HARDWARE_BRIGHTNESS)
 	, _nextMessageId(INITIAL_MESSAGE_ID)
 {
 }
@@ -126,7 +132,10 @@ bool LedDeviceRobobloq::init(const QJsonObject& deviceConfig)
 		return false;
 	}
 
-	_hardwareBrightness = qBound(1, deviceConfig["hardwareBrightness"].toInt(255), 255);
+	_hardwareBrightness = qBound(
+		MIN_HARDWARE_BRIGHTNESS,
+		deviceConfig["hardwareBrightness"].toInt(MAX_HARDWARE_BRIGHTNESS),
+		MAX_HARDWARE_BRIGHTNESS);
 	_nextMessageId = INITIAL_MESSAGE_ID;
 
 	if (_ledCount == 0 || _ledCount > MAX_LED_COUNT)
@@ -267,6 +276,8 @@ QJsonObject LedDeviceRobobloq::DeviceInfo::toJson() const
 
 int LedDeviceRobobloq::sendRb(const uint8_t action, const QVector<uint8_t>& payload)
 {
+	// RB messages may technically span multiple HID reports, but every RB
+	// command used by this driver fits in one, so multi-report RB is omitted.
 	if (payload.size() > HID_REPORT_SIZE - 6)
 	{
 		Error(_log, "Robobloq RB payload is too large: %d bytes", static_cast<int>(payload.size()));
@@ -455,9 +466,10 @@ bool LedDeviceRobobloq::parseDeviceInfoReply(const uint8_t* data, const int size
 
 uint8_t LedDeviceRobobloq::allocateMessageId(uint8_t& nextMessageId)
 {
-	// RB commands and SC frames consume the same modulo-256 sequence.
 	const uint8_t messageId = nextMessageId;
-	++nextMessageId;
+	nextMessageId = messageId == MAX_MESSAGE_ID
+		? MIN_MESSAGE_ID
+		: static_cast<uint8_t>(messageId + 1);
 	return messageId;
 }
 
