@@ -242,11 +242,6 @@ bool LedDeviceRobobloq::powerOff()
 {
 	trackDevice(leddevice_flow, "Power OFF") << ", is device ready: " << (_isDeviceReady ? "YES" : "NO");
 
-	if (_isStayOnAfterStreaming)
-	{
-		return true;
-	}
-
 	if (!_isDeviceReady)
 	{
 		return false;
