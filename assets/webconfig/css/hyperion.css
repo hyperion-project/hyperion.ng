@@ -467,6 +467,18 @@ li a:active:after {
     color: #993399;
 }
 
+.device-info-list {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    column-gap: 15px;
+    row-gap: 4px;
+    margin-bottom: 20px;
+}
+.device-info-list dt,
+.device-info-list dd {
+    margin: 0;
+}
+
 /**add a dditional width defintion for bootstrap**/
 @media (min-width: 1500px) {
   .col-xxl-1, .col-xxl-2, .col-xxl-3, .col-xxl-4, .col-xxl-5, .col-xxl-6, .col-xxl-7, .col-xxl-8, .col-xxl-9, .col-xxl-10, .col-xxl-11, .col-xxl-12 {

@@ -1,0 +1,32 @@
+{
+	"type": "object",
+	"required": true,
+	"properties": {
+		"output": {
+			"type": "string",
+			"title": "Robobloq HID device",
+			"default": "",
+			"propertyOrder": 1
+		},
+		"hardwareBrightness": {
+			"type": "integer",
+			"title": "edt_dev_spec_brightness_title",
+			"default": 255,
+			"minimum": 5,
+			"maximum": 255,
+			"access": "advanced",
+			"propertyOrder": 2
+		},
+		"latchTime": {
+			"type": "integer",
+			"title": "edt_dev_spec_latchtime_title",
+			"default": 0,
+			"minimum": 0,
+			"maximum": 1000,
+			"append": "edt_append_ms",
+			"access": "expert",
+			"propertyOrder": 3
+		}
+	},
+	"additionalProperties": true
+}

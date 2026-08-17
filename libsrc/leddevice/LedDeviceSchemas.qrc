@@ -17,6 +17,7 @@
 		<file alias="schema-philipshue">schemas/schema-philipshue.json</file>
 		<file alias="schema-piblaster">schemas/schema-piblaster.json</file>
 		<file alias="schema-rawhid">schemas/schema-rawhid.json</file>
+		<file alias="schema-robobloq">schemas/schema-robobloq.json</file>
 		<file alias="schema-sedu">schemas/schema-sedu.json</file>
 		<file alias="schema-sk6812spi">schemas/schema-sk6812spi.json</file>
 		<file alias="schema-sk6822spi">schemas/schema-sk6822spi.json</file>
