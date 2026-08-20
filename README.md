@@ -29,6 +29,12 @@
 * A scriptable (Python) effect engine with 39 build-in effects for your inspiration
 * A multi language web interface to configure and remote control hyperion
 
+### Recent Changes:
+
+* **Persistent Startup Source**: Save the active color or effect as a startup source via the web UI remote control. Hyperion restores it automatically on every start (priority 100), even without opening the web page.
+* **Redesigned System Tray Menu** (Windows): Inline icon buttons for Color/Effects/Clear and Suspend/Resume/Restart/Quit. Active source is indicated by a colored strip below the buttons. Dark theme support.
+* **Autorun Toggle Fix**: The Enable/Disable autostart button now correctly reflects the current Windows registry state in real time.
+
 ### Supported Hardware
 
 You can find a list of supported hardware [here](https://docs.hyperion-project.org/user/leddevices/Overview.html).

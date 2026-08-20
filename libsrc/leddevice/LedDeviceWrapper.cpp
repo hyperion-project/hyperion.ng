@@ -7,6 +7,7 @@
 #include <QDir>
 #include <QEventLoop>
 #include <QDebug>
+#include <QMetaObject>
 
 #include <leddevice/LedDevice.h>
 #include <leddevice/LedDeviceFactory.h>
@@ -62,6 +63,13 @@ void LedDeviceWrapper::createLedDevice(const QJsonObject& config)
 
 	_ledDevice->moveToThread(_ledDeviceThread.get());
 
+	// Apply start-enabled flag before thread starts (affects LedDevice::start())
+	if (!_startEnabled)
+	{
+		_ledDevice->setStartEnabled(false);
+		_startEnabled = true; // reset for potential future re-creates
+	}
+
 	connect(_ledDeviceThread.get(), &QThread::started, _ledDevice.get(), &LedDevice::start);
 	connect(this, &LedDeviceWrapper::updateLeds, _ledDevice.get(), &LedDevice::updateLeds);
 	connect(this, &LedDeviceWrapper::switchOn, _ledDevice.get(), &LedDevice::switchOn);
@@ -91,6 +99,11 @@ void LedDeviceWrapper::handleComponentState(hyperion::Components component, bool
 			emit disable();
 		}
 	}
+}
+
+void LedDeviceWrapper::setStartEnabled(bool enabled)
+{
+	_startEnabled = enabled;
 }
 
 void LedDeviceWrapper::onIsEnabledChanged(bool isEnabled)
@@ -129,6 +142,14 @@ void LedDeviceWrapper::onIsOnChanged(bool isOn)
 		{
 			hyperion->refreshUpdate();
 		}
+	}
+}
+
+void LedDeviceWrapper::disableDevice()
+{
+	if (_ledDevice)
+	{
+		QMetaObject::invokeMethod(_ledDevice.get(), "disable", Qt::BlockingQueuedConnection);
 	}
 }
 

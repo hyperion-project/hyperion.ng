@@ -33,6 +33,7 @@ public:
 		SourceSelect,
 		SysInfo,
 		System,
+		StartupSource,
 		Temperature,
 		Transform,
 		VideoMode
@@ -67,6 +68,7 @@ public:
 		case Transform: return "transform";
 		case VideoMode: return "videomode";
 		case Service: return "service";
+		case StartupSource: return "startupsource";
 		default: return "unknown";
 		}
 	}
@@ -113,6 +115,7 @@ public:
 		Resume,
 		SaveName,
 		SetConfig,
+		SetStartupSource,
 		Start,
 		StartInstance,
 		Stop,
@@ -165,6 +168,7 @@ public:
 		case Resume: return "resume";
 		case SaveName: return "saveName";
 		case SetConfig: return "setconfig";
+		case SetStartupSource: return "set";
 		case Start: return "start";
 		case StartInstance: return "startInstance";
 		case Stop: return "stop";
@@ -348,6 +352,9 @@ public:
 			{ {"serverinfo", "getSubscriptions"},        { Command::ServerInfo,     SubCommand::GetSubscriptions,        Authorization::Yes,    InstanceCmd::No_or_Single, InstanceCmd::MustRun_Yes,    NoListenerCmd::No  } },
 			{ {"serverinfo", "getSubscriptionCommands"}, { Command::ServerInfo,     SubCommand::GetSubscriptionCommands, Authorization::No,     InstanceCmd::No,           InstanceCmd::MustRun_No,     NoListenerCmd::No  } },
 			{ {"service", "discover"},                   { Command::Service,        SubCommand::Discover,                Authorization::Yes,    InstanceCmd::No,           InstanceCmd::MustRun_No,     NoListenerCmd::Yes } },
+			{ {"startupsource", "get"},                  { Command::StartupSource,  SubCommand::Empty,                   Authorization::Yes,    InstanceCmd::No,           InstanceCmd::MustRun_No,     NoListenerCmd::Yes } },
+			{ {"startupsource", ""},                     { Command::StartupSource,  SubCommand::Empty,                   Authorization::Yes,    InstanceCmd::No,           InstanceCmd::MustRun_No,     NoListenerCmd::Yes } },
+			{ {"startupsource", "set"},                  { Command::StartupSource,  SubCommand::SetStartupSource,       Authorization::Yes,    InstanceCmd::No,           InstanceCmd::MustRun_No,     NoListenerCmd::Yes } },
 			{ {"sourceselect", ""},                      { Command::SourceSelect,   SubCommand::Empty,                   Authorization::Yes,    InstanceCmd::Multi,        InstanceCmd::MustRun_Yes,    NoListenerCmd::Yes } },
 			{ {"sysinfo", ""},                           { Command::SysInfo,        SubCommand::Empty,                   Authorization::Yes,    InstanceCmd::No,           InstanceCmd::MustRun_No,     NoListenerCmd::Yes } },
 			{ {"system", "restart"},                     { Command::System,         SubCommand::Restart,                 Authorization::Yes,    InstanceCmd::No,           InstanceCmd::MustRun_No,     NoListenerCmd::Yes } },
