@@ -42,6 +42,14 @@ if(ENABLE_XCB)
 	add_subdirectory(xcb)
 endif(ENABLE_XCB)
 
+if(ENABLE_GAMESCOPE)
+	add_subdirectory(gamescope)
+endif(ENABLE_GAMESCOPE)
+
+if(ENABLE_DESKTOP_PORTAL)
+	add_subdirectory(desktopportal)
+endif(ENABLE_DESKTOP_PORTAL)
+
 if(ENABLE_AUDIO)
 	add_subdirectory(audio)
 endif()

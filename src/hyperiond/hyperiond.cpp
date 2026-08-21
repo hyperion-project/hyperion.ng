@@ -814,6 +814,18 @@ void HyperionDaemon::updateScreenGrabbers(const QJsonDocument& grabberConfig)
 			startGrabber<XcbWrapper>(_screenGrabber, grabberConfig);
 		}
 #endif
+#ifdef ENABLE_GAMESCOPE
+		else if (type == "gamescope")
+		{
+			startGrabber<GamescopeWrapper>(_screenGrabber, grabberConfig);
+		}
+#endif
+#ifdef ENABLE_DESKTOP_PORTAL
+		else if (type == "desktop-portal")
+		{
+			startGrabber<DesktopPortalWrapper>(_screenGrabber, grabberConfig);
+		}
+#endif
 		else
 		{
 			_screenGrabber.reset();
@@ -866,11 +878,49 @@ QString HyperionDaemon::evalScreenGrabberType()
 {
 	QString type;
 
+#ifdef ENABLE_GAMESCOPE
+	// gamescope -> GAMESCOPE_WAYLAND_DISPLAY is set for processes running inside a
+	// gamescope session, even though gamescope also sets XDG_SESSION_TYPE=x11 for
+	// legacy X11 game compatibility. Check this first: the x11/xcb grabbers below
+	// would otherwise capture the wrong (nested Xwayland root) window.
+	if (!qEnvironmentVariableIsEmpty("GAMESCOPE_WAYLAND_DISPLAY"))
+	{
+		type = "gamescope";
+	}
+#ifdef ENABLE_DESKTOP_PORTAL
+	// desktop-portal -> a real (non-gamescope) Wayland session. x11/xcb/qt below all
+	// refuse to run under Wayland, so this is the only grabber that can actually work here.
+	else if (!qEnvironmentVariableIsEmpty("WAYLAND_DISPLAY"))
+	{
+		type = "desktop-portal";
+	}
+#endif
+	// dispmanx -> on raspi
+	else if (QFile::exists("/dev/vchiq"))
+	{
+		type = "dispmanx";
+	}
+#else
+#ifdef ENABLE_DESKTOP_PORTAL
+	// desktop-portal -> a real (non-gamescope) Wayland session. x11/xcb/qt below all
+	// refuse to run under Wayland, so this is the only grabber that can actually work here.
+	if (!qEnvironmentVariableIsEmpty("WAYLAND_DISPLAY"))
+	{
+		type = "desktop-portal";
+	}
+	// dispmanx -> on raspi
+	else if (QFile::exists("/dev/vchiq"))
+	{
+		type = "dispmanx";
+	}
+#else
 	// dispmanx -> on raspi
 	if (QFile::exists("/dev/vchiq"))
 	{
 		type = "dispmanx";
 	}
+#endif
+#endif
 	// amlogic -> /dev/amvideo exists
 	else
 	{
