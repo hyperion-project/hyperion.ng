@@ -486,6 +486,13 @@ void DesktopPortalGrabber::onStreamParamChanged(void* userdata, uint32_t id, con
 	self->_width = std::max(1, static_cast<int>(self->_format.info.raw.size.width) / READ_STRIDE_FACTOR);
 	self->_height = std::max(1, static_cast<int>(self->_format.info.raw.size.height) / READ_STRIDE_FACTOR);
 	self->_connected = true;
+
+	// One-time note of which format alternative won and whether it's a tiled/compressed
+	// DMA-BUF - useful to know on a GPU/driver combo nobody's tested this against yet, since
+	// the two alternatives above behave very differently (see the comment there).
+	Info(self->_log, "[desktop-portal] Negotiated %ux%u, modifier=%lld",
+		 self->_format.info.raw.size.width, self->_format.info.raw.size.height,
+		 static_cast<long long>(self->_format.info.raw.modifier));
 }
 
 void DesktopPortalGrabber::onStreamProcess(void* userdata)
@@ -562,6 +569,19 @@ void DesktopPortalGrabber::onStreamProcess(void* userdata)
 	// frame). mmap()ing and munmap()ing a large region on every single frame measured at
 	// ~110%+ sustained CPU for a 3840x1600 stream; caching the mapping per fd (torn down only
 	// on disconnect, via clearDmaBufMappings()) removes that syscall/page-fault churn entirely.
+	// One-time note of the actual delivered buffer type - see the params[] comment in
+	// runStream(): this can legitimately be DmaBuf (AMD/Mesa) or MemFd (seen on NVIDIA, via the
+	// no-modifier fallback format), and both are handled below.
+	{
+		static bool loggedBufferType = false;
+		if (!loggedBufferType)
+		{
+			loggedBufferType = true;
+			Info(self->_log, "[desktop-portal] Buffer data type=%u (MemFd=%d DmaBuf=%d MemPtr=%d)",
+				 spaBuffer->datas[0].type, SPA_DATA_MemFd, SPA_DATA_DmaBuf, SPA_DATA_MemPtr);
+		}
+	}
+
 	void* readPtr = spaBuffer->datas[0].data;
 	const bool needsMapping = readPtr == nullptr
 		&& (spaBuffer->datas[0].type == SPA_DATA_MemFd || spaBuffer->datas[0].type == SPA_DATA_DmaBuf)
@@ -716,7 +736,23 @@ void DesktopPortalGrabber::runStream()
 	// never needs for ambient lighting) if given the room to.
 	spa_fraction rateMax = SPA_FRACTION(30, 1);
 
-	const spa_pod* params[1] = {
+	// Two format alternatives, most-preferred first. params[0] is the original DMA-BUF request
+	// with a mandatory LINEAR modifier - cheap for this code to decode, and what AMD/Mesa
+	// (Framework desktop, Strix Halo APU - see FINDINGS.md) happily grants. On NVIDIA's
+	// proprietary driver, KWin's screencast source only ever offers its own tiled/compressed
+	// modifiers for that path, never LINEAR, so params[0] never negotiates there - confirmed via
+	// `pw.link: negotiating -> error no more input formats (-22)` in the journal every retry.
+	// params[1] is the same format/size/framerate constraints with NO modifier property at all,
+	// which tells PipeWire this client will also accept a non-DMA-BUF (plain memory) buffer.
+	// Confirmed via `pw-dump` after adding this: on the NVIDIA machine, negotiation now succeeds
+	// through params[1] - the resulting Format param has no "modifier" key at all (plain BGRx,
+	// 3840x1600), and the PipeWire link shows state "active", not stuck retrying. So KWin's
+	// NVIDIA-backed screencast implementation *does* support handing back a non-tiled buffer,
+	// it just won't do it unless a client explicitly signals it'll accept one.
+	uint8_t buffer2[1024];
+	spa_pod_builder podBuilder2 = SPA_POD_BUILDER_INIT(buffer2, sizeof(buffer2));
+
+	const spa_pod* params[2] = {
 		static_cast<spa_pod*>(spa_pod_builder_add_object(&podBuilder,
 			SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat,
 			SPA_FORMAT_mediaType,    SPA_POD_Id(SPA_MEDIA_TYPE_video),
@@ -733,12 +769,26 @@ void DesktopPortalGrabber::runStream()
 			// composited output can be a tiled/compressed DMA-BUF just as easily as
 			// gamescope's, and this code has no way to decode that layout.
 			SPA_POD_Propf(SPA_FORMAT_VIDEO_modifier, SPA_POD_PROP_FLAG_MANDATORY, SPA_POD_CHOICE_ENUM_Long(2, 0L, 0L))
+		)),
+		static_cast<spa_pod*>(spa_pod_builder_add_object(&podBuilder2,
+			SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat,
+			SPA_FORMAT_mediaType,    SPA_POD_Id(SPA_MEDIA_TYPE_video),
+			SPA_FORMAT_mediaSubtype, SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw),
+			SPA_FORMAT_VIDEO_format, SPA_POD_CHOICE_ENUM_Id(4,
+				SPA_VIDEO_FORMAT_BGRx,
+				SPA_VIDEO_FORMAT_BGRx,
+				SPA_VIDEO_FORMAT_RGBx,
+				SPA_VIDEO_FORMAT_BGRA
+			),
+			SPA_FORMAT_VIDEO_size, SPA_POD_CHOICE_RANGE_Rectangle(&rectDefault, &rectMin, &rectMax),
+			SPA_FORMAT_VIDEO_framerate, SPA_POD_CHOICE_RANGE_Fraction(&rateDefault, &rateMin, &rateMax)
+			// Deliberately no modifier property - see the comment above params[] for why.
 		))
 	};
 
 	pw_stream_connect(_stream, PW_DIRECTION_INPUT, _portalNodeId,
 		static_cast<pw_stream_flags>(PW_STREAM_FLAG_AUTOCONNECT | PW_STREAM_FLAG_MAP_BUFFERS),
-		params, 1);
+		params, 2);
 
 	// Blocks until either the stream errors/disconnects (onStreamStateChanged quits the loop
 	// so we can renegotiate) or stop() quits it for good.
