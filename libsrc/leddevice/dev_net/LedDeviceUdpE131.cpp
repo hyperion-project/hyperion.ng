@@ -9,6 +9,7 @@
 #include <QHostInfo>
 
 #include <utils/NetUtils.h>
+#include <utils/KelvinToRgb.h>
 
 // Constants
 namespace {
@@ -17,6 +18,7 @@ const char CONFIG_HOST[] = "host";
 const char CONFIG_PORT[] = "port";
 
 const ushort E131_DEFAULT_PORT = 5568;
+const int DEFAULT_WHITE_TEMPERATURE = 5000;
 
 /* defined parameters from http://tsp.esta.org/tsp/documents/docs/BSR_E1-31-20xx_CP-2014-1009r2.pdf */
 const uint32_t VECTOR_ROOT_E131_DATA = 0x00000004;
@@ -74,11 +76,17 @@ bool LedDeviceUdpE131::init(const QJsonObject &deviceConfig)
 	// Initialize white algorithm
 	QString whiteAlgorithmStr = deviceConfig["whiteAlgorithm"].toString("white_off");
 	_whiteAlgorithm = RGBW::stringToWhiteAlgorithm(whiteAlgorithmStr);
+	const int configuredWhiteTemperature = deviceConfig["whiteTemperature"].toInt(DEFAULT_WHITE_TEMPERATURE);
+	_customWhiteTemperature = static_cast<uint16_t>(qBound(ColorTemperature::MINIMUM, configuredWhiteTemperature, ColorTemperature::MAXIMUM));
 	if (_whiteAlgorithm == RGBW::WhiteAlgorithm::INVALID)
 	{
 		QString errortext = QString("unknown whiteAlgorithm: %1").arg(whiteAlgorithmStr);
 		this->setInError(errortext);
 		return false;
+	}
+	if (_whiteAlgorithm == RGBW::WhiteAlgorithm::SUB_KTEMP_WHITE && configuredWhiteTemperature != _customWhiteTemperature)
+	{
+		Warning(_log, "whiteTemperature [%d] is outside the supported range [%d, %d]. Corrected to %d K.", configuredWhiteTemperature, ColorTemperature::MINIMUM, ColorTemperature::MAXIMUM, _customWhiteTemperature);
 	}
 	Debug(_log, "whiteAlgorithm : %s", QSTRING_CSTR(whiteAlgorithmStr));
 	_dmxChannelCount = (_whiteAlgorithm == RGBW::WhiteAlgorithm::WHITE_OFF) ? _ledRGBCount : _ledRGBWCount;
@@ -170,7 +178,7 @@ int LedDeviceUdpE131::write(const QVector<ColorRgb> &ledValues)
 		}
 		else
 		{
-			RGBW::Rgb_to_Rgbw(color, &_temp_rgbw, _whiteAlgorithm);
+			RGBW::Rgb_to_Rgbw(color, &_temp_rgbw, _whiteAlgorithm, _customWhiteTemperature);
 			rawDataPtr[currentChannel++] = _temp_rgbw.red;
 			rawDataPtr[currentChannel++] = _temp_rgbw.green;
 			rawDataPtr[currentChannel++] = _temp_rgbw.blue;
