@@ -118,6 +118,27 @@ namespace {
 	}
 }
 
+static QString getStreamState(enum pw_stream_state state)
+{
+	switch (state)
+	{
+	case PW_STREAM_STATE_ERROR:
+		return "IN ERROR";
+	case PW_STREAM_STATE_UNCONNECTED:
+		return "UNCONNECTED";
+	case PW_STREAM_STATE_CONNECTING:
+		return "CONNECTING";
+	case PW_STREAM_STATE_PAUSED:
+		return "PAUSED";
+	case PW_STREAM_STATE_STREAMING:
+		return "STREAMING";
+	default:
+		break;
+	}
+	// Return a default string if the state is unrecognized
+	return "UNKNOWN";
+}
+
 ///
 /// Private QObject helper: subscribes to a single org.freedesktop.portal.Request's Response
 /// signal and quits its own QEventLoop once it fires. Defined here (not in the header) and
@@ -144,6 +165,8 @@ public slots:
 DesktopPortalGrabber::DesktopPortalGrabber(int cropLeft, int cropRight, int cropTop, int cropBottom)
 	: Grabber("DESKTOP-PORTAL", cropLeft, cropRight, cropTop, cropBottom)
 {
+	TRACK_SCOPE() << "Creating Desktop Portal grabber";
+
 	// Always available: the actual portal session is negotiated lazily and can come and go
 	// (permission revoked, portal restarted, etc.) - see GamescopeGrabber for why this grabber
 	// shape reports availability unconditionally rather than deciding it once at construction.
@@ -167,11 +190,13 @@ DesktopPortalGrabber::DesktopPortalGrabber(int cropLeft, int cropRight, int crop
 
 DesktopPortalGrabber::~DesktopPortalGrabber()
 {
+	TRACK_SCOPE();	
 	stop();
 }
 
 void DesktopPortalGrabber::stop()
 {
+	qCDebug(grabber_screen_flow) << "Stopping Pipewire main loop";
 	_stopping = true;
 	_retryCv.wakeAll();
 
@@ -185,20 +210,28 @@ void DesktopPortalGrabber::stop()
 		_thread->join();
 		_thread.reset();
 	}
+	qCDebug(grabber_screen_flow) << "Pipewire main loop stopped";
 }
 
 int DesktopPortalGrabber::grabFrame(Image<ColorRgb>& image, bool /*forceUpdate*/)
 {
 	if (!_connected.load())
 	{
+		qCDebug(grabber_screen_flow) << "Grabber is not connected, skipping frame grab";
 		return -1;
 	}
 
 	QMutexLocker locker(&_bufferMutex);
 	if (!_frontBuffer.valid)
 	{
+		qCDebug(grabber_screen_flow) << "Capture buffer not ready";
 		return -1;
 	}
+
+	qCDebug(grabber_screen_capture) << QString("Frontbuffer; Width: %1, Height: %2, PixelFormat: %3")
+			.arg(_frontBuffer.width)
+			.arg(_frontBuffer.height)
+			.arg(pixelFormatToString(_frontBuffer.pixelFormat));
 
 	_imageResampler.processImage(_frontBuffer.data.data(), _frontBuffer.width, _frontBuffer.height,
 		_frontBuffer.stride, _frontBuffer.pixelFormat, image);
@@ -275,6 +308,8 @@ QString DesktopPortalGrabber::readRestoreToken() const
 		return {};
 	}
 
+	qCDebug(grabber_screen_flow) << "Reading restore token from" << file.fileName();
+
 	return QString::fromUtf8(file.readAll()).trimmed();
 }
 
@@ -294,6 +329,8 @@ void DesktopPortalGrabber::writeRestoreToken(const QString& token) const
 		Warning(_log, "[desktop-portal] Failed to save restore token to %s", QSTRING_CSTR(tokenPath));
 		return;
 	}
+
+	qCDebug(grabber_screen_flow) << "Writing restore token to" << tokenPath;
 
 	file.write(token.toUtf8());
 }
@@ -352,6 +389,7 @@ DesktopPortalGrabber::PortalResponse DesktopPortalGrabber::callPortalRequest(con
 
 bool DesktopPortalGrabber::negotiatePortalSession()
 {
+	qCDebug(grabber_screen_flow) << "Negotiating portal session";
 	QDBusConnection bus = QDBusConnection::sessionBus();
 	if (!bus.isConnected())
 	{
@@ -443,6 +481,7 @@ void DesktopPortalGrabber::closePortalSession()
 {
 	if (!_sessionHandle.isEmpty())
 	{
+		qCDebug(grabber_screen_flow) << "Closing portal session";
 		QDBusMessage closeMsg = QDBusMessage::createMethodCall(PORTAL_SERVICE, _sessionHandle, SESSION_IFACE, QStringLiteral("Close"));
 		QDBusConnection::sessionBus().call(closeMsg, QDBus::NoBlock);
 		_sessionHandle.clear();
@@ -458,6 +497,7 @@ void DesktopPortalGrabber::onCoreError(void* userdata, uint32_t id, int seq, int
 
 void DesktopPortalGrabber::onStreamStateChanged(void* userdata, enum pw_stream_state /*old*/, enum pw_stream_state state, const char* error)
 {
+	qCDebug(grabber_screen_flow) << "Stream state changed to" << getStreamState(state) << ", error:" << (error ? error : "(none)");
 	auto* self = static_cast<DesktopPortalGrabber*>(userdata);
 
 	if (state == PW_STREAM_STATE_ERROR || state == PW_STREAM_STATE_UNCONNECTED)
@@ -497,6 +537,7 @@ void DesktopPortalGrabber::onStreamStateChanged(void* userdata, enum pw_stream_s
 
 void DesktopPortalGrabber::onStreamParamChanged(void* userdata, uint32_t id, const struct spa_pod* param)
 {
+	qCDebug(grabber_screen_flow) << "Stream param changed, id=" << id << ", param=" << (param ? "valid" : "null");
 	auto* self = static_cast<DesktopPortalGrabber*>(userdata);
 
 	if (param == nullptr || id != SPA_PARAM_Format)
@@ -531,9 +572,10 @@ void DesktopPortalGrabber::onStreamParamChanged(void* userdata, uint32_t id, con
 	// One-time note of which format alternative won and whether it's a tiled/compressed
 	// DMA-BUF - useful to know on a GPU/driver combo nobody's tested this against yet, since
 	// the two alternatives above behave very differently (see the comment there).
-	Info(self->_log, "[desktop-portal] Negotiated %ux%u, modifier=%lld",
-		 self->_format.info.raw.size.width, self->_format.info.raw.size.height,
-		 static_cast<long long>(self->_format.info.raw.modifier));
+	qCDebug(grabber_screen_flow) << "Stream format changed to" << self->_format.info.raw.size.width
+			<< "x" << self->_format.info.raw.size.height
+			<< ", modifier:" << self->_format.info.raw.modifier
+			<< ", format:" << self->_format.info.raw.format;
 }
 
 void DesktopPortalGrabber::onStreamProcess(void* userdata)
@@ -592,6 +634,12 @@ void DesktopPortalGrabber::onStreamProcess(void* userdata)
 			break;
 	}
 
+	qCDebug(grabber_screen_capture) << QString("Processing frame, Width: %1, Height: %2, SpaFormat: %3, PixelFormat: %4")
+			.arg(width)
+			.arg(height)
+			.arg(spaFormat)
+			.arg(pixelFormatToString(pixelFormat));
+
 	if (width == 0 || height == 0 || chunk == nullptr || chunk->size == 0 || pixelFormat == PixelFormat::NO_CHANGE)
 	{
 		pw_stream_queue_buffer(self->_stream, pwBuffer);
@@ -618,8 +666,11 @@ void DesktopPortalGrabber::onStreamProcess(void* userdata)
 		if (!loggedBufferType)
 		{
 			loggedBufferType = true;
-			Info(self->_log, "[desktop-portal] Buffer data type=%u (MemFd=%d DmaBuf=%d MemPtr=%d)",
-				 spaBuffer->datas[0].type, SPA_DATA_MemFd, SPA_DATA_DmaBuf, SPA_DATA_MemPtr);
+			qCDebug(grabber_screen_capture) << QString("Buffer data type=%1 (MemFd=%2 DmaBuf=%3 MemPtr=%4)")
+					.arg(spaBuffer->datas[0].type)
+					.arg(SPA_DATA_MemFd)
+					.arg(SPA_DATA_DmaBuf)
+					.arg(SPA_DATA_MemPtr);
 		}
 	}
 
@@ -711,6 +762,7 @@ void DesktopPortalGrabber::onStreamProcess(void* userdata)
 
 bool DesktopPortalGrabber::connectCore()
 {
+	qCDebug(grabber_screen_flow) << "Connecting to Pipewire core";
 	// _coreEvents is a member (not a local) because Pipewire's listener registration stores a
 	// pointer to it rather than copying it - see GamescopeGrabber's connectCore() for the full
 	// explanation (a real crash was hit and fixed there before this grabber existed).
@@ -740,6 +792,7 @@ bool DesktopPortalGrabber::connectCore()
 
 void DesktopPortalGrabber::runStream()
 {
+	qCDebug(grabber_screen_flow) << "Running Pipewire stream";
 	pw_stream_events streamEvents{};
 	streamEvents.version = PW_VERSION_STREAM_EVENTS;
 	streamEvents.param_changed = &DesktopPortalGrabber::onStreamParamChanged;
@@ -869,6 +922,7 @@ void DesktopPortalGrabber::runStream()
 
 void DesktopPortalGrabber::clearDmaBufMappings()
 {
+	qCDebug(grabber_screen_flow) << "Clearing DMA-BUF mappings";
 	for (auto& [fd, mapping] : _dmaBufMappings)
 	{
 		munmap(mapping.first, mapping.second);
@@ -878,6 +932,7 @@ void DesktopPortalGrabber::clearDmaBufMappings()
 
 void DesktopPortalGrabber::waitBeforeRetry()
 {
+	qCDebug(grabber_screen_flow) << "Waiting before retrying portal session";
 	QMutexLocker locker(&_retryMutex);
 	QDeadlineTimer deadline(RETRY_INTERVAL_MS);
 	while (!_stopping.load() && !deadline.hasExpired())
@@ -888,6 +943,7 @@ void DesktopPortalGrabber::waitBeforeRetry()
 
 void DesktopPortalGrabber::portalThreadMain()
 {
+	qCDebug(grabber_screen_flow) << "Initializing Pipewire";
 	pw_init(nullptr, nullptr);
 
 	while (!_stopping.load())
@@ -941,7 +997,9 @@ void DesktopPortalGrabber::portalThreadMain()
 		waitBeforeRetry();
 	}
 
+	qCDebug(grabber_screen_flow) << "Pipewire deinit";
 	pw_deinit();
+	qCDebug(grabber_screen_flow) << "Portal thread exiting";
 }
 
 #include "DesktopPortalGrabber.moc"
