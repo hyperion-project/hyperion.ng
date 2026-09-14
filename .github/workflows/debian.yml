@@ -7,7 +7,7 @@ on:
       codename:
         type: string
         description: The Debian codename
-        default: 'bullseye'
+        default: 'bookworm'
         required: false
       event_name:
         type: string

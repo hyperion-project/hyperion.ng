@@ -5,11 +5,14 @@ SUDO="sudo"
 # Git repo url of Hyperion
 GIT_REPO_URL="https://github.com/hyperion-project/hyperion.ng.git"
 # GitHub Container Registry url
-REGISTRY_URL="ghcr.io/hyperion-project"
+REGISTRY_URL="ghcr.io"
+GHCR_USER="hyperion-project"
+GHCR_PAT=""
+
 # cmake build type
 BUILD_TYPE="Release"
 DISTRIBUTION="debian"
-CODENAME="bullseye"
+CODENAME="bookworm"
 ARCHITECTURE="amd64"
 # build packages (.deb .zip ...)
 BUILD_PACKAGES=true
@@ -53,6 +56,8 @@ echo "########################################################
 # -l, --local         # Use local code
 # -i, --incremental   # Incremental build
 # -v, --verbose       # Verbose output
+# -u, --gituser       # GitHub-user, default hyperion-project
+# -t, --gitpat        # GitHub access token, in case requried for git user
 # -- args             # Additional cmake arguments, e.g. -DHYPERION_LIGHT=ON"
 }
 
@@ -63,44 +68,52 @@ log() {
 }
 
 check_distribution() {
-    local image="$1"
-    local arch="$2"
-    local url="${REGISTRY_URL}/${image}:${CODENAME}"
+    image="$1"
+    arch="$2"
+    url="${REGISTRY_URL}/${GHCR_USER}/${image}:${CODENAME}"
 
     log "Check for distribution at: $url for architecture: $arch"
 
-    # Attempt a minimal pull (Docker handles GHCR auth if logged in)
-    if docker pull --platform "$arch" --quiet "$url" >/dev/null 2>&1; then
-        return 0
+    # Authenticate to registry if credentials are set
+    if [ -n "$GHCR_USER" ] && [ -n "$GHCR_PAT" ]; then
+        if ! printf "%s" "$GHCR_PAT" | $DOCKER login "${REGISTRY_URL}" -u "${GHCR_USER}" --password-stdin >/dev/null 2>&1; then
+            log "Warning: Docker login to ${REGISTRY_URL}/${GHCR_USER} failed."
+        fi
+    fi
+
+    # Attempt the pull based on _VERBOSE setting
+    if [ "${_VERBOSE:-0}" -eq 1 ]; then
+        # Live progress output to terminal
+        if $DOCKER pull --platform "$arch" "$url"; then
+            return 0
+        else
+            log "Pull failed for: $url"
+            return 1
+        fi
     else
-        return 1
+        # Silent pull, capture output for failure log
+        if pull_output=$($DOCKER pull --platform "$arch" "$url" 2>&1); then
+            return 0
+        else
+            log "Pull failed: $pull_output"
+            return 1
+        fi
     fi
 }
 
-#check sudo availability
-set +e
-${SUDO} -n true >/dev/null 2>&1
-if [ $? -ne 0 ]; then
-	SUDO=""
-fi
 set -e
 
-# Check Docker availability
-set +e
-${DOCKER} ps >/dev/null 2>&1
-if [ $? -ne 0 ]; then
-    DOCKER="${SUDO} docker"
+# Check if docker needs sudo and if sudo binary exists
+if ! docker ps >/dev/null 2>&1; then
+    if command -v sudo >/dev/null 2>&1; then
+        SUDO="sudo"
+    else
+        echo "Error: docker requires root privileges and sudo is not installed." >&2
+        exit 1
+    fi
+else
+    SUDO=""
 fi
-
-echo $DOCKER
-
-if ! ${DOCKER} ps >/dev/null 2>&1; then
-    echo "Error connecting to docker:"
-    ${DOCKER} ps
-    printHelp
-    exit 1
-fi
-set -e
 
 echo "Compile Hyperion using Docker"
 
@@ -139,6 +152,14 @@ while [ "$#" -gt 0 ]; do
             BUILD_INCREMENTAL=true
             shift
             ;;
+        -u|--gituser)
+            GHCR_USER="$2"
+            shift 2
+            ;;
+        -t|--gitpat)
+            GHCR_PAT="$2"
+            shift 2
+            ;;            
         -v|--verbose)
             _VERBOSE=1
             shift
@@ -258,7 +279,7 @@ ${SUDO} mkdir -p "${DEPLOY_PATH}" >/dev/null 2>&1
 # Cleanup build folder if not incremental
 if [ "${BUILD_INCREMENTAL}" != "true" ]; then
     ${SUDO} rm -fr "${BUILD_PATH}" >/dev/null 2>&1
-    CMAKE_CMD="cmake -G Ninja -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${PLATFORM} ${BUILD_ARGS} .. &&"
+    CMAKE_CMD="cmake -G Ninja -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${PLATFORM} ${BUILD_ARGS} .."
 else
     echo "---> Incremental build, keep existing build folder: ${BUILD_PATH}"
     CMAKE_CMD="true"
@@ -268,19 +289,17 @@ ${SUDO} mkdir -p "${BUILD_PATH}" >/dev/null 2>&1
 NPROC=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || echo 1)
 echo "---> Compiling Hyperion from source code at ${CODE_PATH} using ${NPROC} CPU cores"
 
-$DOCKER run --rm --platform=${PLATFORM_ARCHITECTURE} \
+$DOCKER run --rm --platform="${PLATFORM_ARCHITECTURE}" \
     ${ENTRYPOINT_OPTION} \
     -v "${DEPLOY_PATH}:/deploy" \
     -v "${CODE_PATH}/:/source:rw" \
     -e LANG="C.UTF-8" \
     -e LC_ALL="C.UTF-8" \
-    "${REGISTRY_URL}/${DISTRIBUTION}:${CODENAME}" \
-	/bin/bash -c "mkdir -p /source/${BUILD_DIR} && cd /source/${BUILD_DIR} &&
-		${CMAKE_CMD} || exit 2 &&
-		cmake --build . ${PACKAGES} -- -j ${NPROC} || exit 3 || : &&
-		exit 0;
-		exit 1 " \
-	|| { echo "---> Hyperion compilation failed! Abort"; exit 4; }
+    "${REGISTRY_URL}/${GHCR_USER}/${DISTRIBUTION}:${CODENAME}" \
+    /bin/bash -c "set -e; \
+        mkdir -p /source/${BUILD_DIR} && cd /source/${BUILD_DIR}; \
+        ${CMAKE_CMD} || exit 2; \
+        cmake --build . ${PACKAGES} -- -j ${NPROC} || exit 3"
 
 DOCKERRC=$?
 
@@ -288,17 +307,27 @@ DOCKERRC=$?
 OWNER=$(id -u):$(id -g)
 ${SUDO} chown -fR "$OWNER" "${BUILD_PATH}"
 
-if [ ${DOCKERRC} -eq 0 ]; then
-    if [ "${BUILD_LOCAL}" = "true" ]; then
+if [ "$DOCKERRC" -eq 0 ]; then
+    if [ "$BUILD_LOCAL" = "true" ]; then
         echo "---> Find compiled binaries in: ${BUILD_PATH}/bin"
     fi
-    if [ "${BUILD_PACKAGES}" = "true" ]; then
+
+    if [ "$BUILD_PACKAGES" = "true" ]; then
         echo "---> Copying packages to host folder: ${DEPLOY_PATH}"
-        ${SUDO} cp ${BUILD_PATH}/Hyperion-* "${DEPLOY_PATH}" 2>/dev/null
+        
+        # Safely copy matching packages if they exist
+        for pkg in "${BUILD_PATH}"/Hyperion-*; do
+            if [ -e "$pkg" ]; then
+                ${SUDO} cp -R "$pkg" "${DEPLOY_PATH}/"
+            fi
+        done
+
         echo "---> Find deployment packages in: ${DEPLOY_PATH}"
         ${SUDO} chown -fR "$OWNER" "${DEPLOY_PATH}"
     fi
+else
+    echo "---> Hyperion compilation failed with exit code [${DOCKERRC}]! Abort"
 fi
 
 echo "---> Script finished [${DOCKERRC}]"
-exit ${DOCKERRC}
+exit "$DOCKERRC"
