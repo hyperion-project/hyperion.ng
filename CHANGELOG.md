@@ -42,6 +42,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ProviderRestAPI - Add error when failing to load Qt SSL
 - NetUtils: Improve handling when ENABLE_MDNS is false
 - Configure ccache or buildcache only if explicitly requested
+- Fixed - docker-compile script, plus support private git package builds
+- Update Mbed TLS to v4.2.0, Update protobuf to v36.0,  HID-API to master (v0.16.0), libusb-cmake to v1.0.30-0, rpi_ws281x
+- Housekeeping - GitHub builds
 
 ## [2.2.1](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.2.1) - 2026-04-06
 

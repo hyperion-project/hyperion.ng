@@ -566,14 +566,6 @@ if(ENABLE_PROTOBUF_SERVER)
 			set(protobuf_BUILD_PROTOC_BINARIES OFF CACHE BOOL "Build protobuf libraries and protoc compiler")
 		endif()
 
-		# Apply patches to Protobuf
-		execute_process(
-			COMMAND git apply "${CMAKE_CURRENT_SOURCE_DIR}/patch/protobuf/atomic.diff"
-			WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/external/protobuf"
-			OUTPUT_QUIET
-			ERROR_QUIET
-		)
-
 		# Add Protobuf directory to the build
 		add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/external/protobuf")
 
@@ -804,12 +796,19 @@ if(ENABLE_DEV_NETWORK)
 		# Enable export
 		set(DISABLE_PACKAGE_CONFIG_AND_INSTALL OFF CACHE INTERNAL "Disable package configuration, target export and installation")
 
-		# Add MbedTLS directory to the build
+		# Add MbedTLS directory to the build (disable AUTOMOC to prevent moc warnings/builds for pure C libraries)
+		set(_CMAKE_AUTOMOC_BACKUP ${CMAKE_AUTOMOC})
+		set(CMAKE_AUTOMOC OFF)
 		add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/external/mbedtls")
+		set(CMAKE_AUTOMOC ${_CMAKE_AUTOMOC_BACKUP})
 
 		# Can be removed when the issue is resolved: https://github.com/Mbed-TLS/mbedtls/issues/9875
-		if(CMAKE_C_COMPILER_ID MATCHES "GNU" AND TARGET mbedcrypto)
-			target_compile_options(mbedcrypto PRIVATE -fomit-frame-pointer)
+		if(CMAKE_C_COMPILER_ID MATCHES "GNU")
+			if(TARGET mbedcrypto)
+				target_compile_options(mbedcrypto PRIVATE -fomit-frame-pointer)
+			elseif(TARGET tfpsacrypto)
+				target_compile_options(tfpsacrypto PRIVATE -fomit-frame-pointer)
+			endif()
 		endif()
 	endif()
 
@@ -820,14 +819,22 @@ if(ENABLE_DEV_NETWORK)
 		endif()
 
 		# static mbedtls version detection
-		get_build_interface_include_directory(TARGET MbedTLS::mbedtls OUTPUT MBEDTLS_INCLUDE_DIR)
-		if(EXISTS "${MBEDTLS_INCLUDE_DIR}/mbedtls/build_info.h")
-			file(STRINGS ${MBEDTLS_INCLUDE_DIR}/mbedtls/build_info.h _MBEDTLS_VERSION_LINE REGEX "^#define[ \t]+MBEDTLS_VERSION_STRING[\t ].*")
-			string(REGEX REPLACE ".*MBEDTLS_VERSION_STRING[\t ]+\"(.*)\"" "\\1" MbedTLS_VERSION ${_MBEDTLS_VERSION_LINE})
-		elseif(EXISTS "${MBEDTLS_INCLUDE_DIR}/mbedtls/version.h")
-			file(STRINGS "${MBEDTLS_INCLUDE_DIR}/mbedtls/version.h" _MBEDTLS_VERSION_STRING REGEX "^#[\t ]*define[\t ]+MBEDTLS_VERSION_STRING[\t ]+\"[0-9]+.[0-9]+.[0-9]+\"")
-			string(REGEX REPLACE "^.*MBEDTLS_VERSION_STRING.*([0-9]+.[0-9]+.[0-9]+).*" "\\1" MbedTLS_VERSION "${_MBEDTLS_VERSION_STRING}")
-		endif()
+		get_build_interface_include_directory(TARGET MbedTLS::mbedtls OUTPUT MBEDTLS_INCLUDE_DIRS)
+		foreach(MBEDTLS_INCLUDE_DIR IN LISTS MBEDTLS_INCLUDE_DIRS)
+			if(EXISTS "${MBEDTLS_INCLUDE_DIR}/mbedtls/build_info.h")
+				file(STRINGS "${MBEDTLS_INCLUDE_DIR}/mbedtls/build_info.h" _MBEDTLS_VERSION_LINE REGEX "^#define[ \t]+MBEDTLS_VERSION_STRING[\t ].*")
+				string(REGEX REPLACE ".*MBEDTLS_VERSION_STRING[\t ]+\"(.*)\"" "\\1" MbedTLS_VERSION ${_MBEDTLS_VERSION_LINE})
+				if(MbedTLS_VERSION)
+					break()
+				endif()
+			elseif(EXISTS "${MBEDTLS_INCLUDE_DIR}/mbedtls/version.h")
+				file(STRINGS "${MBEDTLS_INCLUDE_DIR}/mbedtls/version.h" _MBEDTLS_VERSION_STRING REGEX "^#[\t ]*define[\t ]+MBEDTLS_VERSION_STRING[\t ]+\"[0-9]+.[0-9]+.[0-9]+\"")
+				string(REGEX REPLACE "^.*MBEDTLS_VERSION_STRING.*([0-9]+.[0-9]+.[0-9]+).*" "\\1" MbedTLS_VERSION "${_MBEDTLS_VERSION_STRING}")
+				if(MbedTLS_VERSION)
+					break()
+				endif()
+			endif()
+		endforeach()
 
 		if(MbedTLS_VERSION)
 			message(STATUS "MbedTLS version used: ${MbedTLS_VERSION}")

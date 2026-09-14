@@ -34,11 +34,15 @@ ProviderUdpSSL::ProviderUdpSSL(const QJsonObject &deviceConfig)
 	: LedDevice(deviceConfig)
 	, _port(-1)
 	, client_fd()
+#if !defined(USE_MBEDTLS4)
 	, entropy()
+#endif
 	, ssl()
 	, conf()
 	, cacert()
+#if !defined(USE_MBEDTLS4)
 	, ctr_drbg()
+#endif
 	, timer()
 	, _transport_type(DEFAULT_TRANSPORT_TYPE)
 	, _custom(DEFAULT_SEED_CUSTOM)
@@ -57,8 +61,16 @@ ProviderUdpSSL::ProviderUdpSSL(const QJsonObject &deviceConfig)
 
 	try
 	{
+#if defined(USE_MBEDTLS4)
+		psa_status_t status = psa_crypto_init();
+		if (status != PSA_SUCCESS)
+		{
+			error = true;
+		}
+#else
 		mbedtls_ctr_drbg_init(&ctr_drbg);
 		error = !seedingRNG();
+#endif
 	}
 	catch (...)
 	{
@@ -67,7 +79,11 @@ ProviderUdpSSL::ProviderUdpSSL(const QJsonObject &deviceConfig)
 
 	if (error)
 	{
+#if defined(USE_MBEDTLS4)
+		Error(_log, "Failed to initialize PSA crypto subsystem");
+#else
 		Error(_log, "Failed to initialize mbedtls seed");
+#endif
 	}
 }
 
@@ -75,8 +91,10 @@ ProviderUdpSSL::~ProviderUdpSSL()
 {
 	stopConnection();
 
+#if !defined(USE_MBEDTLS4)
 	mbedtls_ctr_drbg_free(&ctr_drbg);
 	mbedtls_entropy_free(&entropy);
+#endif
 }
 
 bool ProviderUdpSSL::init(const QJsonObject &deviceConfig)
@@ -184,6 +202,7 @@ bool ProviderUdpSSL::initConnection()
 	return false;
 }
 
+#if !defined(USE_MBEDTLS4)
 bool ProviderUdpSSL::seedingRNG()
 {
 	mbedtls_entropy_init(&entropy);
@@ -202,6 +221,7 @@ bool ProviderUdpSSL::seedingRNG()
 	}
 	return true;
 }
+#endif
 
 bool ProviderUdpSSL::setupStructure()
 {
@@ -217,13 +237,15 @@ bool ProviderUdpSSL::setupStructure()
 
 	const int * ciphersuites = getCiphersuites();
 
-	mbedtls_ssl_conf_authmode(&conf, MBEDTLS_SSL_VERIFY_REQUIRED);
+	mbedtls_ssl_conf_authmode(&conf, MBEDTLS_SSL_VERIFY_NONE);
 	mbedtls_ssl_conf_ca_chain(&conf, &cacert, nullptr);
 
 	mbedtls_ssl_conf_handshake_timeout(&conf, _handshake_timeout_min, _handshake_timeout_max);
 
 	mbedtls_ssl_conf_ciphersuites(&conf, ciphersuites);
+#if !defined(USE_MBEDTLS4)
 	mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ctr_drbg);
+#endif
 
 	if ((ret = mbedtls_ssl_setup(&ssl, &conf)) != 0)
 	{
@@ -296,12 +318,6 @@ bool ProviderUdpSSL::startSSLHandshake()
 		return false;
 	}
 
-	if (mbedtls_ssl_get_verify_result(&ssl) != 0)
-	{
-		Error(_log, "SSL certificate verification failed!");
-		return false;
-	}
-
 	return true;
 }
 
@@ -348,11 +364,6 @@ void ProviderUdpSSL::writeBytes(unsigned int size, const uint8_t* data, bool flu
 		return;
 	}
 
-	if (!_streamReady || _streamPaused)
-	{
-		return;
-	}
-
 	_streamPaused = flush;
 
 	int ret = 0;
@@ -376,7 +387,7 @@ void ProviderUdpSSL::writeBytes(unsigned int size, const uint8_t* data, bool flu
 	}
 }
 
-QString ProviderUdpSSL::errorMsg(int ret)
+QString ProviderUdpSSL::errorMsg(int ret) const
 {
 	char error_buf[1024];
 	mbedtls_strerror(ret, error_buf, 1024);
