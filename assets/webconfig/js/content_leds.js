@@ -2594,12 +2594,7 @@ function updateRobobloqDeviceInfo(deviceProperties) {
       value: deviceProperties.physicalSize + "\u2033"
     });
   }
-  if (deviceProperties.ledCount > 0) {
-    details.push({
-      label: $.i18n("conf_leds_device_info_led_count"),
-      value: deviceProperties.ledCount
-    });
-  }
+
   if (deviceProperties.firmwareVersion) {
     details.push({
       label: $.i18n("conf_leds_device_info_firmware_version"),

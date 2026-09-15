@@ -58,7 +58,6 @@
   "conf_leds_config_warning": "Check your LED/LED layout configuration",
   "conf_leds_contr_label_contrtype": "Controller type:",
   "conf_leds_device_info_firmware_version": "Firmware version",
-  "conf_leds_device_info_led_count": "LED count",
   "conf_leds_device_info_log": "In case your LEDs do not work, check here for errors:",
   "conf_leds_device_info_screen_diagonal": "Screen diagonal",
   "conf_leds_device_intro": "Hyperion supports a lot of controllers to transmit data to your target device. Select a LED controller out of the sorted list and configure it. We have chosen the best default settings for each device.",
