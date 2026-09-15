@@ -1471,9 +1471,8 @@ $(document).ready(function () {
       const output = conf_editor.getEditor("root.specificOptions.output").getValue();
       if (output === "NONE" || output === "SELECT" || output === "") {
 
-        if (ledType === "robobloq") {
-          updateRobobloqDeviceInfo();
-        }
+        // Reset info container to default text when output is NONE, SELECT, or empty
+        $("#info_container_text").html(infoTextDefault);
 
         $('#btn_submit_controller').prop('disabled', true);
         $('#btn_test_controller').prop('disabled', true);
@@ -1491,7 +1490,6 @@ $(document).ready(function () {
             getProperties_device(ledType, output, params);
             break;
           case "robobloq":
-            updateRobobloqDeviceInfo();
             params = { output };
             getProperties_device(ledType, output, params);
             break;
