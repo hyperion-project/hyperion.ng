@@ -263,7 +263,11 @@ QJsonObject ProviderHID::hidDeviceInfoToJson(const hid_device_info& deviceInfo)
 
 QJsonArray ProviderHID::enumerateHidDevices(
 	const unsigned short vendorId, const unsigned short productId,
+#if defined(MACOS) || defined(WINDOWS)	
 	const unsigned short usagePage, const unsigned short usage, const bool filterByUsage)
+#else
+	const unsigned short /*usagePage*/, const unsigned short /*usage*/, const bool /*filterByUsage*/)
+#endif
 {
 	QJsonArray deviceList;
 	hid_device_info* devices = hid_enumerate(vendorId, productId);
