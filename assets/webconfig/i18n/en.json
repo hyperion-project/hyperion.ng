@@ -743,6 +743,7 @@
   "edt_dev_spec_rgbw_calibration_red": "Red/White channel aspect",
   "edt_dev_spec_rgbw_calibration_green": "Green/White channel aspect",
   "edt_dev_spec_rgbw_calibration_blue": "Blue/White channel aspect",
+  "edt_dev_spec_robobloq_device_title": "Robobloq Device",
   "edt_dev_spec_segments_disabled_title": "Segment streaming disabled at WLED.",
   "edt_dev_spec_segments_title": "Stream to segment",
   "edt_dev_spec_segmentId_title": "Segment-ID",
