@@ -274,7 +274,7 @@ QJsonArray ProviderHID::enumerateHidDevices(
 
 	if (devices == nullptr)
 	{
-		qDebug(leddevice_properties) << "No HID devices found for Vendor ID:" << formatHexValue(vendorId)
+		qCDebug(leddevice_properties) << "No HID devices found for Vendor ID:" << formatHexValue(vendorId)
 				 << "Product ID:" << formatHexValue(productId);
 		return deviceList;	
 	}
