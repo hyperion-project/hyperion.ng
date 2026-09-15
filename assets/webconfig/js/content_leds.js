@@ -2507,6 +2507,7 @@ function updateElements(ledType, key) {
         }
         if (ledProperties && ledProperties.ledCount > 0) {
           conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(ledProperties.ledCount);
+          disableAutoResolvedGeneralOptions();
         }
         updateRobobloqDeviceInfo(ledProperties);
         break;
