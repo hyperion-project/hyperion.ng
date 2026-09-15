@@ -50,6 +50,9 @@ QJsonObject ProviderHID::discover(const QJsonObject& params)
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );
 	devicesDiscovered.insert("devices", enumerateHidDevices(
 		vendorId, productId, usagePage, usage, usagePage != 0 && usage != 0));
+
+	Debug(_log, "HID devices discovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+
 	return devicesDiscovered;
 }
 
@@ -246,9 +249,15 @@ QJsonObject ProviderHID::hidDeviceInfoToJson(const hid_device_info& deviceInfo)
 	properties.insert("vendorIdentifier", formatHexValue(deviceInfo.vendor_id));
 	properties.insert("productIdentifier", formatHexValue(deviceInfo.product_id));
 	properties.insert("release_number", formatHexValue(deviceInfo.release_number));
+#if defined(MACOS) || defined(WINDOWS)
 	properties.insert("usage_page", formatHexValue(deviceInfo.usage_page));
 	properties.insert("usage", formatHexValue(deviceInfo.usage));
+#endif
 	properties.insert("interface_number", deviceInfo.interface_number);
+
+	qCDebug(leddevice_properties).noquote()
+		<< "HID device:" 
+		<< QJsonDocument(properties).toJson(QJsonDocument::Indented);
 	return properties;
 }
 
@@ -259,14 +268,26 @@ QJsonArray ProviderHID::enumerateHidDevices(
 	QJsonArray deviceList;
 	hid_device_info* devices = hid_enumerate(vendorId, productId);
 
+	if (devices == nullptr)
+	{
+		qDebug(leddevice_properties) << "No HID devices found for Vendor ID:" << formatHexValue(vendorId)
+				 << "Product ID:" << formatHexValue(productId);
+		return deviceList;	
+	}
+
 	for (const hid_device_info* current = devices; current != nullptr; current = current->next)
 	{
-		if (current->path == nullptr ||
-			(filterByUsage && (current->usage_page != usagePage || current->usage != usage)))
+
+		if (current->path == nullptr)
 		{
 			continue;
 		}
-
+#if defined(MACOS) || defined(WINDOWS)
+		if (filterByUsage && (current->usage_page != usagePage || current->usage != usage))
+		{
+			continue;
+		}
+#endif
 		deviceList.append(hidDeviceInfoToJson(*current));
 	}
 
