@@ -94,7 +94,7 @@ void LedDevice::start()
 		// Everything is OK -> enable device
 		_isDeviceInitialised = true;
 
-		if (_isAutoStart && !_isDeviceInError)
+		if (_isAutoStart && _startEnabled && !_isDeviceInError)
 		{
 				Debug(_log, "Not enabled -> enable device");
 				enable();

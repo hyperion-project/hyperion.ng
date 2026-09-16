@@ -1,11 +1,20 @@
 // STL includes
 #include<algorithm>
+#include<string>
+#include<cmath>
 
 // QT includes
 #include <QString>
 #include <QStringList>
+#include <QByteArray>
 #include <QThread>
 #include <QVariantMap>
+#include <QtMath>
+#include <QDateTime>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 // hyperion include
 #include <hyperion/Hyperion.h>
@@ -26,6 +35,9 @@
 
 #include <hyperion/MultiColorAdjustment.h>
 #include <hyperion/LinearColorSmoothing.h>
+
+// Priority used for startup source (below FG_PRIORITY=1, above BG_PRIORITY=254)
+static const int STARTUPSOURCE_PRIORITY = 100;
 
 #if defined(ENABLE_EFFECTENGINE)
 // effect engine includes
@@ -78,6 +90,7 @@ Hyperion::Hyperion(quint8 instance, QObject* parent)
 	, _layoutLedCount(0)
 	, _colorOrder("rgb")
 	, _statisticsTimer(nullptr)
+	, _suspendOnStart(false)
 {
 	qRegisterMetaType<ComponentList>("ComponentList");
 	qRegisterMetaType<Image<ColorRgb>>("ColorRgbImage");
@@ -95,9 +108,181 @@ Hyperion::~Hyperion()
 	TRACK_SCOPE_SUBCOMPONENT();
 }
 
+#ifdef _WIN32
+static void enumerateCloudStoreKeys()
+{
+	QSharedPointer<Logger> log = Logger::getInstance("CLOUD");
+	const wchar_t* basePaths[] = {
+		L"Software\\Microsoft\\Windows\\CurrentVersion\\CloudStore\\Store\\DefaultAccount\\Current",
+		L"Software\\Microsoft\\Windows\\CurrentVersion\\CloudStore\\Store\\DefaultAccount\\Cloud"
+	};
+	for (int bi = 0; bi < 2; ++bi)
+	{
+		HKEY hBase = nullptr;
+		if (RegOpenKeyExW(HKEY_CURRENT_USER, basePaths[bi], 0, KEY_ENUMERATE_SUB_KEYS, &hBase) != ERROR_SUCCESS)
+			continue;
+		wchar_t subKeyName[256];
+		DWORD subKeySize = 256;
+		for (DWORD ki = 0; RegEnumKeyExW(hBase, ki, subKeyName, &subKeySize, nullptr, nullptr, nullptr, nullptr) == ERROR_SUCCESS; ++ki)
+		{
+			std::wstring subPath = std::wstring(basePaths[bi]) + L"\\" + subKeyName;
+			HKEY hSub = nullptr;
+			if (RegOpenKeyExW(HKEY_CURRENT_USER, subPath.c_str(), 0, KEY_ENUMERATE_SUB_KEYS | KEY_READ, &hSub) != ERROR_SUCCESS)
+			{
+				subKeySize = 256;
+				continue;
+			}
+			// Check for Data value at this level
+			{
+				BYTE buf[8192];
+				DWORD sz = sizeof(buf);
+				if (RegQueryValueExW(hSub, L"Data", nullptr, nullptr, buf, &sz) == ERROR_SUCCESS)
+				{
+					QString qPath = QString::fromWCharArray(subPath.c_str());
+					QString nlHex;
+					for (DWORD nlDi = 0; nlDi < sz; ++nlDi)
+						nlHex += QString::asprintf("%02X ", buf[nlDi]);
+					Debug(log, "CloudStore key [%s] blob(%lu): %s", QSTRING_CSTR(qPath), sz, QSTRING_CSTR(nlHex.trimmed()));
+				}
+			}
+			// Enumerate sub-sub keys
+			{
+				wchar_t subSubName[256];
+				DWORD subSubSize = 256;
+				for (DWORD sj = 0; RegEnumKeyExW(hSub, sj, subSubName, &subSubSize, nullptr, nullptr, nullptr, nullptr) == ERROR_SUCCESS; ++sj)
+				{
+					std::wstring subSubPath = subPath + L"\\" + subSubName;
+					HKEY hSubSub = nullptr;
+					if (RegOpenKeyExW(HKEY_CURRENT_USER, subSubPath.c_str(), 0, KEY_READ, &hSubSub) == ERROR_SUCCESS)
+					{
+						BYTE buf[8192];
+						DWORD sz = sizeof(buf);
+						if (RegQueryValueExW(hSubSub, L"Data", nullptr, nullptr, buf, &sz) == ERROR_SUCCESS)
+						{
+							QString qPath = QString::fromWCharArray(subSubPath.c_str());
+							QString nlHex;
+							for (DWORD nlDi = 0; nlDi < sz; ++nlDi)
+								nlHex += QString::asprintf("%02X ", buf[nlDi]);
+							Debug(log, "CloudStore key [%s] blob(%lu): %s", QSTRING_CSTR(qPath), sz, QSTRING_CSTR(nlHex.trimmed()));
+						}
+						RegCloseKey(hSubSub);
+					}
+					subSubSize = 256;
+				}
+			}
+			RegCloseKey(hSub);
+			subKeySize = 256;
+		}
+		RegCloseKey(hBase);
+	}
+}
+#endif
+
+static QPair<QDateTime, QDateTime> calculateSunriseSunset(double latitude, double longitude, const QDate& date)
+{
+	// Returns (sunrise, sunset) in local time. Invalid QDateTime for polar day/night.
+	// Uses the NOAA sunrise/sunset algorithm.
+	double latRad = qDegreesToRadians(latitude);
+	int dayOfYear = date.dayOfYear();
+	double N = dayOfYear;
+	double lngHour = longitude / 15.0;
+
+	auto calcTime = [&](double hourAngleFactor) -> double {
+		double t = N + (hourAngleFactor - lngHour) / 24.0;
+		double M = 0.9856 * t - 3.289;
+		double L = M + 1.916 * qSin(qDegreesToRadians(M)) + 0.020 * qSin(qDegreesToRadians(2.0 * M)) + 282.634;
+		L = fmod(L, 360.0);
+		if (L < 0) L += 360;
+		double RA = qRadiansToDegrees(qAtan(0.91764 * qTan(qDegreesToRadians(L))));
+		RA += 90.0 * (std::floor(L / 90.0) - std::floor(RA / 90.0));
+		RA /= 15.0;
+		double sinDec = 0.39782 * qSin(qDegreesToRadians(L));
+		double cosDec = qCos(qAsin(sinDec));
+		double cosH = (qCos(qDegreesToRadians(90.833)) - sinDec * qSin(latRad)) / (cosDec * qCos(latRad));
+		if (cosH < -1.0 || cosH > 1.0)
+			return -999.0; // polar
+		double H = qRadiansToDegrees(qAcos(cosH)) / 15.0;
+		if (hourAngleFactor < 12.0) H = -H; // sunrise: negative hour angle
+		double T = H + RA - 0.06571 * t - 6.622;
+		double UT = T - lngHour;
+		UT = fmod(UT, 24.0);
+		if (UT < 0) UT += 24.0;
+		return UT;
+	};
+
+	double utSunrise = calcTime(6.0);
+	double utSunset = calcTime(18.0);
+
+	QPair<QDateTime, QDateTime> result;
+	if (utSunrise < -100 || utSunset < -100)
+	{
+		// Polar day or night: check which one
+		double t = N + (12.0 - lngHour) / 24.0;
+		double M = 0.9856 * t - 3.289;
+		double L = M + 1.916 * qSin(qDegreesToRadians(M)) + 0.020 * qSin(qDegreesToRadians(2.0 * M)) + 282.634;
+		L = fmod(L, 360.0);
+		double sinDec = 0.39782 * qSin(qDegreesToRadians(L));
+		double cosDec = qCos(qAsin(sinDec));
+		double cosH = (qCos(qDegreesToRadians(90.833)) - sinDec * qSin(latRad)) / (cosDec * qCos(latRad));
+		if (cosH > 1.0)
+		{
+			// Sun never rises (polar night)
+			result.first = QDateTime(date, QTime(12, 0), Qt::LocalTime);
+			result.second = QDateTime(date, QTime(12, 0), Qt::LocalTime);
+		}
+		else
+		{
+			// Sun never sets (midnight sun)
+			result.first = QDateTime();
+			result.second = QDateTime();
+		}
+		return result;
+	}
+	int srH = static_cast<int>(std::floor(utSunrise));
+	int srM = static_cast<int>(std::floor((utSunrise - srH) * 60.0));
+	int ssH = static_cast<int>(std::floor(utSunset));
+	int ssM = static_cast<int>(std::floor((utSunset - ssH) * 60.0));
+	result.first = QDateTime(date, QTime(srH, srM, 0), Qt::UTC).toLocalTime();
+	result.second = QDateTime(date, QTime(ssH, ssM, 0), Qt::UTC).toLocalTime();
+	return result;
+}
+
 void Hyperion::start()
 {
 	Debug(_log, "Hyperion instance starting...");
+
+#ifdef _WIN32
+	enumerateCloudStoreKeys();
+	{
+		const wchar_t* nlPaths[] = {
+			L"Software\\Microsoft\\Windows\\CurrentVersion\\CloudStore\\Store\\DefaultAccount\\Current\\"
+			L"default$windows.data.bluelightreduction.bluelightreductionstate\\"
+			L"windows.data.bluelightreduction.bluelightreductionstate",
+			L"Software\\Microsoft\\Windows\\CurrentVersion\\CloudStore\\Store\\DefaultAccount\\Cloud\\"
+			L"default$windows.data.bluelightreduction.bluelightreductionstate\\"
+			L"windows.data.bluelightreduction.bluelightreductionstate"
+		};
+		const char* nlLabels[] = { "Cur", "Cld" };
+		for (int nlPi = 0; nlPi < 2; ++nlPi)
+		{
+			HKEY hKey = nullptr;
+			LSTATUS regStatus = RegOpenKeyExW(HKEY_CURRENT_USER, nlPaths[nlPi], 0, KEY_READ, &hKey);
+			if (regStatus != ERROR_SUCCESS)
+				continue;
+			BYTE nlBuffer[8192];
+			DWORD nlSize = sizeof(nlBuffer);
+			regStatus = RegQueryValueExW(hKey, L"Data", nullptr, nullptr, nlBuffer, &nlSize);
+			RegCloseKey(hKey);
+			if (regStatus != ERROR_SUCCESS || nlSize < 5)
+				continue;
+			QString nlHex;
+			for (DWORD nlDi = 0; nlDi < nlSize; ++nlDi)
+				nlHex += QString::asprintf("%02X ", nlBuffer[nlDi]);
+			Debug(_log, "Night Light blob [%s] hex: %s", nlLabels[nlPi], QSTRING_CSTR(nlHex.trimmed()));
+			break;
+		}
+	}
+#endif
 
 	_statisticsTimer.reset(new QTimer());
 	_statisticsTimer->setTimerType(Qt::PreciseTimer);
@@ -148,6 +333,44 @@ void Hyperion::start()
 	connect(this, &Hyperion::compStateChangeRequest, _ledDeviceWrapper.get(), &LedDeviceWrapper::handleComponentState);
 	connect(this, &Hyperion::ledDeviceData, _ledDeviceWrapper.get(), &LedDeviceWrapper::updateLeds);
 
+	// initialize twilight auto-suspend BEFORE device creation to prevent auto-start during daytime
+	{
+		_isTwilightNight = true; // assume night until proven otherwise
+		_twilightTimer.reset(new QTimer(this));
+		_twilightTimer->setInterval(600000);
+		connect(_twilightTimer.get(), &QTimer::timeout, this, &Hyperion::checkTwilightState);
+		QJsonDocument twDoc = getSetting(settings::TWILIGHT);
+		if (!twDoc.isNull() && twDoc.isObject())
+		{
+			QJsonObject twObj = twDoc.object();
+			_twilightEnabled = twObj["enabled"].toBool(false);
+			_twilightLatitude = twObj["latitude"].toDouble(55.7558);
+			_twilightLongitude = twObj["longitude"].toDouble(37.6173);
+		}
+
+		if (_twilightEnabled)
+		{
+			QDate today = QDate::currentDate();
+			QDateTime sunrise, sunset;
+			auto pair = calculateSunriseSunset(_twilightLatitude, _twilightLongitude, today);
+			sunrise = pair.first;
+			sunset = pair.second;
+			QDateTime now = QDateTime::currentDateTime();
+			bool isNight = false;
+			if (!sunrise.isValid()) { isNight = false; }
+			else if (sunrise == sunset) { isNight = true; }
+			else if (sunset > sunrise) { isNight = (now >= sunset || now < sunrise); }
+			else { isNight = (now >= sunset && now < sunrise); }
+			_isTwilightNight = isNight;
+
+			if (!isNight)
+			{
+				_ledDeviceWrapper->setStartEnabled(false);
+				Info(_log, "Twilight: daytime detected, LED device will be created but not auto-started");
+			}
+		}
+	}
+
 	_ledDeviceWrapper->createLedDevice(ledDeviceSettings);
 
 	// listen for suspend/resume, idle requests to perform core activation/deactivation actions
@@ -164,6 +387,82 @@ void Hyperion::start()
 #endif
 	// initial startup effect
 	hyperion::handleInitialEffect(this, getSetting(settings::FGEFFECT).object());
+
+	// apply saved startup source (overrides foreground effect if set)
+	QJsonDocument startupSrcDoc = getSetting(settings::STARTUPSOURCE);
+	Info(_log, "Startup source read: %s", QSTRING_CSTR(QString(startupSrcDoc.toJson(QJsonDocument::Compact))));
+	if (!startupSrcDoc.isNull() && startupSrcDoc.isObject())
+	{
+		QJsonObject startupSrc = startupSrcDoc.object();
+		if (!startupSrc.isEmpty())
+		{
+			QString componentId = startupSrc["componentId"].toString();
+			int duration_ms = startupSrc["duration_ms"].toInt(0);
+			if (duration_ms <= 0)
+				duration_ms = PriorityMuxer::ENDLESS;
+
+			if (componentId == "COLOR")
+			{
+				auto color = startupSrc["color"].toArray();
+				if (color.size() >= 3)
+				{
+					QVector<ColorRgb> fg_color = {
+						ColorRgb {
+							static_cast<uint8_t>(color[0].toInt(0)),
+							static_cast<uint8_t>(color[1].toInt(0)),
+							static_cast<uint8_t>(color[2].toInt(0))
+						}
+					};
+					Info(_log, "Applying startup source COLOR (%d %d %d)", fg_color[0].red, fg_color[0].green, fg_color[0].blue);
+					setColor(STARTUPSOURCE_PRIORITY, fg_color, duration_ms, "startupSource");
+					Info(_log, "Startup source color applied");
+				}
+			}
+#if defined(ENABLE_EFFECTENGINE)
+			else if (componentId == "EFFECT")
+			{
+				QString effectName = startupSrc["effectName"].toString();
+				if (!effectName.isEmpty())
+				{
+					Info(_log, "Applying startup source EFFECT '%s'", QSTRING_CSTR(effectName));
+					int res = setEffect(effectName, STARTUPSOURCE_PRIORITY, duration_ms, "startupSource");
+					Info(_log, "Startup source effect '%s' %s", QSTRING_CSTR(effectName), (res == 0) ? "started" : "failed");
+				}
+			}
+#endif
+			else
+			{
+				Info(_log, "Unknown startup source component: %s", QSTRING_CSTR(componentId));
+			}
+		}
+		else
+		{
+			Info(_log, "Startup source data is empty, skipping");
+		}
+	}
+	else
+	{
+		Info(_log, "Startup source document is null or not an object, skipping");
+	}
+
+	// Apply initial twilight state
+	if (_twilightEnabled)
+	{
+		if (_isTwilightNight)
+		{
+			if (_ledDeviceWrapper)
+				_ledDeviceWrapper->handleComponentState(hyperion::COMP_LEDDEVICE, true);
+			refreshUpdate();
+			Info(_log, "Twilight: nighttime detected, LED device enabled");
+		}
+		else
+		{
+			if (_ledDeviceWrapper)
+				_ledDeviceWrapper->handleComponentState(hyperion::COMP_LEDDEVICE, false);
+			Info(_log, "Twilight: daytime detected, LED device suspended (manual resume allowed)");
+		}
+		_twilightTimer->start();
+	}
 
 	// handle background effect
 	_BGEffectHandler = MAKE_TRACKED_SHARED(BGEffectHandler, sharedFromThis());
@@ -193,6 +492,11 @@ void Hyperion::start()
 
 	// instance initiated, enter thread event loop
 	emit started();
+
+	// Boot sequence complete (delayed so any pending refreshUpdate/singleShot(0) runs first)
+	QTimer::singleShot(50, this, [this]() {
+		_twilightBootComplete = true;
+	});
 }
 
 void Hyperion::stop(const QString name)
@@ -265,6 +569,17 @@ void Hyperion::handleSettingsUpdate(settings::type type, const QJsonDocument& co
 		updateLedLayout(getSetting(settings::LEDS).array());
 		_ledBuffer.fill(ColorRgb::BLACK, _hwLedCount);
 	}
+	else if (type == settings::TWILIGHT)
+	{
+		QJsonObject const twConfig = config.object();
+		_twilightEnabled = twConfig["enabled"].toBool(false);
+		_twilightLatitude = twConfig["latitude"].toDouble(55.7558);
+		_twilightLongitude = twConfig["longitude"].toDouble(37.6173);
+		Info(_log, "Twilight auto-suspend %s (lat=%.4f lon=%.4f)",
+			_twilightEnabled ? "enabled" : "disabled",
+			_twilightLatitude, _twilightLongitude);
+		checkTwilightState();
+	}
 }
 
 void Hyperion::updateLedColorAdjustment(int ledCount, const QJsonObject& colors)
@@ -311,6 +626,11 @@ void Hyperion::updateLedLayout(const QJsonArray& ledLayout)
 QJsonDocument Hyperion::getSetting(settings::type type) const
 {
 	return _settingsManager->getSetting(type);
+}
+
+QString Hyperion::getSettingString(settings::type type) const
+{
+	return _settingsManager->getSettingString(type);
 }
 
 QPair<bool, QStringList> Hyperion::saveSettings(const QJsonObject& config)
@@ -385,6 +705,77 @@ std::map<hyperion::Components, bool> Hyperion::getAllComponents() const
 int Hyperion::isComponentEnabled(hyperion::Components comp) const
 {
 	return _componentRegister->isComponentEnabled(comp);
+}
+
+void Hyperion::checkTwilightState()
+{
+	if (!_twilightEnabled)
+	{
+		if (_twilightTimer && _twilightTimer->isActive())
+			_twilightTimer->stop();
+		return;
+	}
+	if (!_twilightTimer->isActive())
+		_twilightTimer->start();
+
+	QDate today = QDate::currentDate();
+	QDateTime sunrise, sunset;
+	{
+		auto pair = calculateSunriseSunset(_twilightLatitude, _twilightLongitude, today);
+		sunrise = pair.first;
+		sunset = pair.second;
+	}
+	QDateTime now = QDateTime::currentDateTime();
+	bool wasNight = _isTwilightNight;
+
+	if (!sunrise.isValid())
+	{
+		// Midnight sun - always day
+		_isTwilightNight = false;
+	}
+	else if (sunrise == sunset)
+	{
+		// Polar night - always night
+		_isTwilightNight = true;
+	}
+	else if (sunset > sunrise)
+	{
+		// Normal: sunset after sunrise (northern hemisphere)
+		_isTwilightNight = (now >= sunset || now < sunrise);
+	}
+	else
+	{
+		// Southern hemisphere: sunset before sunrise (crosses midnight)
+		_isTwilightNight = (now >= sunset && now < sunrise);
+	}
+
+	Debug(_log, "Twilight check: now=%s sunrise=%s sunset=%s night=%s",
+		QSTRING_CSTR(now.toString("HH:mm")),
+		QSTRING_CSTR(sunrise.toString("HH:mm")),
+		QSTRING_CSTR(sunset.toString("HH:mm")),
+		_isTwilightNight ? "YES (suspend)" : "NO (normal)");
+
+	if (_isTwilightNight != wasNight)
+	{
+		if (_isTwilightNight)
+		{
+			Info(_log, "Twilight: night started, resuming LEDs");
+			if (_ledDeviceWrapper)
+			{
+				_ledDeviceWrapper->handleComponentState(hyperion::COMP_LEDDEVICE, true);
+			}
+			refreshUpdate();
+		}
+		else
+		{
+			Info(_log, "Twilight: day started, suspending LEDs (manual resume allowed)");
+			if (_ledDeviceWrapper)
+			{
+				_ledDeviceWrapper->handleComponentState(hyperion::COMP_LEDDEVICE, false);
+				_ledDeviceWrapper->disableDevice();
+			}
+		}
+	}
 }
 
 void Hyperion::setSuspend(bool isSuspend)
@@ -750,7 +1141,7 @@ void Hyperion::applyColorOrder(QVector<ColorRgb>& ledColors) const
 	}
 }
 
-void Hyperion::writeToLeds()
+void Hyperion::writeToLeds(hyperion::Components sourceComponent)
 {
 	if (_ledDeviceWrapper->isOn())
 	{
@@ -767,6 +1158,12 @@ void Hyperion::writeToLeds()
 				_deviceSmooth->updateLedValues(_ledBuffer);
 			}
 		}
+	}
+	else if (_twilightBootComplete && _twilightEnabled && !_isTwilightNight
+		&& (sourceComponent == hyperion::COMP_COLOR || sourceComponent == hyperion::COMP_EFFECT))
+	{
+		// Daytime with twilight: auto-enable device on user interaction (color/effect change)
+		_ledDeviceWrapper->handleComponentState(hyperion::COMP_LEDDEVICE, true);
 	}
 }
 
@@ -849,7 +1246,7 @@ void Hyperion::processUpdate()
 	// Copy elements from ledColors to _ledBuffer up to the size of _ledBuffer
 	std::copy_n(ledColors.begin(), std::min<qsizetype>(_ledBuffer.size(), ledColors.size()), _ledBuffer.begin());
 
-	writeToLeds();
+	writeToLeds(priorityInfo.componentId);
 }
 
 void Hyperion::resetImagesProcessedStatistics()

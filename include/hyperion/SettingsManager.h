@@ -48,6 +48,11 @@ public:
 	QJsonDocument getSetting(settings::type type) const;
 
 	///
+	/// @brief Get raw string value of a setting from the database
+	///
+	QString getSettingString(settings::type type) const;
+
+	///
 	/// @brief get a single setting json from configuration
 	/// @param type   The type as string
 	/// @return The requested json data as QJsonDocument
