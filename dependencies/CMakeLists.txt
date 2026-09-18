@@ -46,6 +46,15 @@ if(ENABLE_DEV_USB_HID OR ENABLE_DEV_FTDI)
 			set(LIBUSB_PIC_CMAKE_ARGS -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON)
 		endif()
 
+		set(LIBS_MSVC_RUNTIME_CMAKE_ARGS "")
+		if(MSVC)
+			if(CMAKE_BUILD_TYPE MATCHES "^[Dd]ebug$")
+				set(LIBS_MSVC_RUNTIME_CMAKE_ARGS -DCMAKE_MSVC_RUNTIME_LIBRARY:STRING=MultiThreadedDebugDLL)
+			else()
+				set(LIBS_MSVC_RUNTIME_CMAKE_ARGS -DCMAKE_MSVC_RUNTIME_LIBRARY:STRING=MultiThreadedDLL)
+			endif()
+		endif()
+
 		include(ExternalProject)
 		ExternalProject_Add(libusb
 			PREFIX				${CMAKE_CURRENT_BINARY_DIR}/external/libusb-cmake
@@ -64,6 +73,8 @@ if(ENABLE_DEV_USB_HID OR ENABLE_DEV_FTDI)
 								-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
 								-DCMAKE_STATIC_LIBRARY_PREFIX:STRING=lib
 								-DCMAKE_WARN_DEPRECATED:BOOL=OFF # Suppress warnings about "Compatibility with CMake < 3.5 will be removed from a future version of CMake"
+								-DCMAKE_POLICY_VERSION_MINIMUM:STRING=3.5 # Allow configuring projects that declare very old minimum CMake versions
+								${LIBS_MSVC_RUNTIME_CMAKE_ARGS}
 								${LIBUSB_PIC_CMAKE_ARGS}
 								${APPLE_CONFIGURATION}
 			BUILD_BYPRODUCTS    <BINARY_DIR>/libusb-1.0${CMAKE_STATIC_LIBRARY_SUFFIX}
@@ -126,8 +137,9 @@ if(ENABLE_DEV_FTDI)
 		# Set compiler flags for libftdi to suppress ALL warnings
 		set(LIBFTDI_C_FLAGS "")
 		if(MSVC)
-			# Use /w to disable all warnings completely, and set it multiple times to ensure it takes precedence
-			set(LIBFTDI_C_FLAGS "/W0 /w")
+			# Upstream libftdi appends -Wall after CMAKE_C_FLAGS. Disable the
+			# resulting MSVC diagnostics explicitly so flag ordering is irrelevant.
+			set(LIBFTDI_C_FLAGS "/wd4013 /wd4018 /wd4061 /wd4242 /wd4244 /wd4267 /wd4456 /wd4668 /wd4702 /wd4820 /wd4996 /wd5045 /wd5287")
 		elseif(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
 			set(LIBFTDI_C_FLAGS "-w")
 		endif()
@@ -151,8 +163,10 @@ if(ENABLE_DEV_FTDI)
 			URL                 https://www.intra2net.com/en/developer/libftdi/download/libftdi1-1.5.tar.bz2
 			URL_HASH            SHA256=7c7091e9c86196148bd41177b4590dccb1510bfe6cea5bf7407ff194482eb049
 			PATCH_COMMAND       ${GIT_EXECUTABLE} apply ${CMAKE_CURRENT_SOURCE_DIR}/patch/libftdi/linkage.diff
+			BUILD_COMMAND       ${CMAKE_COMMAND} --build <BINARY_DIR> --target ftdi1-static --config ${CMAKE_BUILD_TYPE}
 			INSTALL_COMMAND     ""
 			CMAKE_ARGS          -DSTATICLIBS:BOOL=ON # Build LibFTDI as static library
+								-DCMAKE_SUPPRESS_DEVELOPER_WARNINGS:BOOL=ON # Suppress developer warnings from the legacy LibFTDI project
 								-DEXAMPLES:BOOL=OFF #  Disable build of LibFTDI example programs
 								-DFTDI_EEPROM:BOOL=OFF # Disable building ftdi_eeprom
 								-DLIBUSB_INCLUDE_DIR:PATH=${LIBUSB_INCLUDE_DIR} # LibUSB include directory
@@ -165,6 +179,8 @@ if(ENABLE_DEV_FTDI)
 								-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
 								-DCMAKE_STATIC_LIBRARY_PREFIX_C:STRING=lib
 								-DCMAKE_WARN_DEPRECATED:BOOL=OFF # Suppress warnings about "Compatibility with CMake < 3.5 will be removed from a future version of CMake"
+								-DCMAKE_POLICY_VERSION_MINIMUM:STRING=3.5 # Allow configuring projects with a pre-3.5 minimum CMake version
+								${LIBS_MSVC_RUNTIME_CMAKE_ARGS}
 								${LIBFTDI_PIC_CMAKE_ARGS}
 								${APPLE_CONFIGURATION}
 			BUILD_BYPRODUCTS    <BINARY_DIR>/src/libftdi1${CMAKE_STATIC_LIBRARY_SUFFIX}
@@ -799,6 +815,10 @@ if(ENABLE_DEV_NETWORK)
 		# Add MbedTLS directory to the build (disable AUTOMOC to prevent moc warnings/builds for pure C libraries)
 		set(_CMAKE_AUTOMOC_BACKUP ${CMAKE_AUTOMOC})
 		set(CMAKE_AUTOMOC OFF)
+		if(CMAKE_HOST_WIN32)
+			# Force mbedtls to generate files it expects in-tree
+			set(GEN_FILES ON CACHE BOOL "Generate the auto-generated files as needed" FORCE)
+		endif()
 		add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/external/mbedtls")
 		set(CMAKE_AUTOMOC ${_CMAKE_AUTOMOC_BACKUP})
 
