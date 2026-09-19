@@ -15,6 +15,7 @@
 #include <QFileInfo>
 #include <QObject>
 #include <QStandardPaths>
+#include <QElapsedTimer>
 
 #include <algorithm>
 #include <chrono>
@@ -76,6 +77,7 @@ namespace {
 		uint32_t nodeId{0};
 		QVariantMap properties;
 	};
+
 }
 
 Q_DECLARE_METATYPE(PortalStream)
@@ -235,6 +237,8 @@ int DesktopPortalGrabber::grabFrame(Image<ColorRgb>& image, bool /*forceUpdate*/
 
 	_imageResampler.processImage(_frontBuffer.data.data(), _frontBuffer.width, _frontBuffer.height,
 		_frontBuffer.stride, _frontBuffer.pixelFormat, image);
+
+	qCDebug(grabber_screen_flow) << "Frame grabbed into image with size:" << image.width() << "x" << image.height();
 
 	return 0;
 }
@@ -728,6 +732,8 @@ void DesktopPortalGrabber::onStreamProcess(void* userdata)
 	const int sampledHeight = std::max(1, height / READ_STRIDE_FACTOR);
 	const size_t sampledStride = static_cast<size_t>(sampledWidth) * 4;
 
+	qCDebug(grabber_screen_flow) << "Sampled resolution:" << sampledWidth << "x" << sampledHeight;
+
 	static thread_local std::vector<uint8_t> rowStaging;
 	rowStaging.resize(static_cast<size_t>(width) * 4);
 
@@ -758,6 +764,27 @@ void DesktopPortalGrabber::onStreamProcess(void* userdata)
 	}
 
 	pw_stream_queue_buffer(self->_stream, pwBuffer);
+
+	if (grabber_screen_benchmark().isDebugEnabled())
+	{
+		// calculate average frametime
+		if (self->_currentFrame > 1)
+		{
+			if (self->_currentFrame % 100 == 0)
+			{
+				qint64 timeElaped = self->_frameTimer.restart() / 100;
+				qCDebug(grabber_screen_benchmark) << self->_currentFrame << ": avg. frametime=" 
+				<< timeElaped << "ms" << "/" << 1000 / timeElaped << "fps" 
+				<< "vs." << 1000 / self->_fps << "ms" << "/" << self->_fps << "fps expected";
+			}
+		}
+		else
+		{
+			qCDebug(grabber_screen_benchmark) << self->_currentFrame << ": frametimer started";
+			self->_frameTimer.start();
+		}
+		++self->_currentFrame;
+	}
 }
 
 bool DesktopPortalGrabber::connectCore()

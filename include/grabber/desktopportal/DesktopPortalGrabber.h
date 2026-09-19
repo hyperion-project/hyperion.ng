@@ -2,6 +2,8 @@
 
 #include <hyperion/Grabber.h>
 
+#include <QAtomicInt>
+#include <QElapsedTimer>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QMutex>
@@ -124,6 +126,11 @@ private:
 
 	QMutex _bufferMutex;
 	FrameBuffer _frontBuffer;
+
+	// Frame-rate benchmarking state for onStreamProcess(), only touched (and only meaningful)
+	// when the grabber_screen_benchmark debug category is enabled; see its use there.
+	QAtomicInt _currentFrame{0};
+	QElapsedTimer _frameTimer;
 
 	// DMA-BUF fds are stable for the lifetime of a stream connection - PipeWire cycles through
 	// a small, fixed pool of buffers rather than allocating a fresh one per frame - so mmap()
