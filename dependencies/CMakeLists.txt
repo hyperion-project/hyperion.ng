@@ -159,7 +159,7 @@ if(ENABLE_DEV_FTDI)
 			URL                 https://www.intra2net.com/en/developer/libftdi/download/libftdi1-1.5.tar.bz2
 			URL_HASH            SHA256=7c7091e9c86196148bd41177b4590dccb1510bfe6cea5bf7407ff194482eb049
 			PATCH_COMMAND       ${GIT_EXECUTABLE} apply ${CMAKE_CURRENT_SOURCE_DIR}/patch/libftdi/linkage.diff
-			BUILD_COMMAND       ${CMAKE_COMMAND} --build <BINARY_DIR> --target ftdi1-static --config <CONFIG>
+			BUILD_COMMAND       ${CMAKE_COMMAND} --build <BINARY_DIR> --target ftdi1-static --config $<CONFIG>
 			INSTALL_COMMAND     ""
 			CMAKE_ARGS          -DSTATICLIBS:BOOL=ON # Build LibFTDI as static library
 								-DCMAKE_SUPPRESS_DEVELOPER_WARNINGS:BOOL=ON # Suppress developer warnings from the legacy LibFTDI project
