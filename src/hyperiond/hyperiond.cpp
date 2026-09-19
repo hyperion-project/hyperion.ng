@@ -814,6 +814,18 @@ void HyperionDaemon::updateScreenGrabbers(const QJsonDocument& grabberConfig)
 			startGrabber<XcbWrapper>(_screenGrabber, grabberConfig);
 		}
 #endif
+#ifdef ENABLE_GAMESCOPE
+		else if (type == "gamescope")
+		{
+			startGrabber<GamescopeWrapper>(_screenGrabber, grabberConfig);
+		}
+#endif
+#ifdef ENABLE_DESKTOP_PORTAL
+		else if (type == "desktop-portal")
+		{
+			startGrabber<DesktopPortalWrapper>(_screenGrabber, grabberConfig);
+		}
+#endif
 		else
 		{
 			_screenGrabber.reset();
@@ -864,47 +876,49 @@ void HyperionDaemon::updateAudioGrabbers(const QJsonObject& /*grabberConfig*/)
 
 QString HyperionDaemon::evalScreenGrabberType()
 {
-	QString type;
+#ifdef ENABLE_GAMESCOPE
+	// gamescope -> GAMESCOPE_WAYLAND_DISPLAY is set inside gamescope sessions
+	if (!qEnvironmentVariableIsEmpty("GAMESCOPE_WAYLAND_DISPLAY"))
+	{
+		return "gamescope";
+	}
+#endif
 
-	// dispmanx -> on raspi
+#ifdef ENABLE_DESKTOP_PORTAL
+	// desktop-portal -> real Wayland session
+	if (!qEnvironmentVariableIsEmpty("WAYLAND_DISPLAY"))
+	{
+		return "desktop-portal";
+	}
+#endif
+
+	// dispmanx -> Raspberry Pi
 	if (QFile::exists("/dev/vchiq"))
 	{
-		type = "dispmanx";
+		return "dispmanx";
 	}
-	// amlogic -> /dev/amvideo exists
-	else
+
+	// amlogic -> Amlogic devices
+	if (QFile::exists("/dev/amvideo"))
 	{
-		if (QFile::exists("/dev/amvideo"))
+		static const QString amlDevice("/dev/amvideocap0");
+		if (!QFile::exists(amlDevice))
 		{
-			type = "amlogic";
-
-			QString const amlDevice("/dev/amvideocap0");
-			if (!QFile::exists(amlDevice))
-			{
-				Error(_log, "grabber device '%s' for type amlogic not found!", QSTRING_CSTR(amlDevice));
-			}
+			Error(_log, "grabber device '%s' for type amlogic not found!", QSTRING_CSTR(amlDevice));
 		}
-		else
-		{
-			// x11 -> if DISPLAY is set
-			QByteArray const envDisplay = qgetenv("DISPLAY");
-			if (!envDisplay.isEmpty())
-			{
-#if defined(ENABLE_X11)
-				type = "x11";
-#elif defined(ENABLE_XCB)
-				type = "xcb";
-#else
-				type = "qt";
-#endif
-			}
-			// qt -> if nothing other applies
-			else
-			{
-				type = "qt";
-			}
-		}
+		return "amlogic";
 	}
 
-	return type;
+	// X11 / XCB fallback if DISPLAY is set
+	if (!qEnvironmentVariableIsEmpty("DISPLAY"))
+	{
+#if defined(ENABLE_X11)
+		return "x11";
+#elif defined(ENABLE_XCB)
+		return "xcb";
+#endif
+	}
+
+	// Default fallback
+	return "qt";
 }

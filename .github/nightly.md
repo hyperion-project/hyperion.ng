@@ -20,7 +20,7 @@ Then the **Nightly Build** version of **Hyperion** is just right for you!
 We recommend installing Linux nightly builds via our APT/DNF repository. \
 Start via [Linux -> Easy Install -> check "Nightly release" tab](https://docs.hyperion-project.org/user/gettingstarted/Linux.html).
 
-Note: The `*.deb` and `*.tar.gz` packages attached here are based on **Debian Bullseye** and are tailored for the platform specified in the filename.
+Note: The `*.deb` and `*.tar.gz` packages attached here are based on **Debian Bookworm** and are tailored for the platform specified in the filename.
 
 ### 🪟 [Windows](https://docs.hyperion-project.org/user/gettingstarted/Windows.html)
 We offer two installers for **Windows 11**:
