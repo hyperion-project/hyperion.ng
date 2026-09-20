@@ -1,8 +1,6 @@
 #pragma once
 
-#undef slots
-#include <Python.h>
-#define slots Q_SLOTS
+#include <python/PythonCompat.h>
 
 #include <QJsonValue>
 
@@ -20,7 +18,7 @@ public:
 	static PyObject* json2python(const QJsonValue& jsonData);
 
 	// Wrapper methods for Python interpreter extra buildin methods
-	static PyMethodDef effectMethods[];
+	static PyMethodDef effectMethods[]; // NOSONAR - C-style array required by PyMethodDef Python C API
 	static PyObject* wrapSetColor              (PyObject *self, PyObject *args);
 	static PyObject* wrapSetImage              (PyObject *self, PyObject *args);
 	static PyObject* wrapGetImage              (PyObject *self, PyObject *args);

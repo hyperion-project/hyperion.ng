@@ -4,7 +4,10 @@
 // LedDevice includes
 #include <leddevice/LedDevice.h>
 
-#include <ftdi.h>
+// Keep libftdi headers out of this public header.
+// Upstream ftdi.h emits compiler-specific pragma messages on some toolchains,
+// so including it only in ProviderFtdi.cpp avoids duplicated warning noise.
+struct ftdi_context;
 
 ///
 /// The ProviderFtdi implements an abstract base-class for LedDevices using a Ftdi-device.

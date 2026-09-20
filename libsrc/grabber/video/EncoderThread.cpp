@@ -6,12 +6,10 @@ EncoderThread::EncoderThread()
 	: _localData(nullptr)
 	, _scalingFactorsCount(0)
 	, _doTransform(false)
-	,_imageResampler()
-	#ifdef HAVE_TURBO_JPEG
+	, _imageResampler()
 	, _tjInstance(nullptr)
 	, _scalingFactors(nullptr)
 	, _xform(nullptr)
-	#endif
 {
 #ifdef HAVE_TURBO_JPEG
 	_scalingFactors = tjGetScalingFactors(&_scalingFactorsCount);

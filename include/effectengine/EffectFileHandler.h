@@ -1,5 +1,12 @@
 #pragma once
 
+#include <QDir>
+#include <QFileInfo>
+#include <QJsonArray>
+#include <QMap>
+#include <QSharedPointer>
+#include <QWeakPointer>
+
 // util
 #include <utils/Logger.h>
 #include <effectengine/EffectDefinition.h>
@@ -81,6 +88,36 @@ private:
 	/// @brief load effect schemas, called by updateEffects()
 	///
 	bool loadEffectSchema(const QString& path, const QString& effectSchemaFile, EffectSchema& effectSchema);
+
+	///
+	/// @brief Load all effect definitions from a directory, called by updateEffects()
+	///
+	void loadEffectsFromDirectory(const QString& path, const QDir& directory, const QStringList& disableList, QMap<QString, EffectDefinition>& availableEffects);
+
+	///
+	/// @brief Load all effect schemas from a directory, called by updateEffects()
+	///
+	void loadSchemasFromDirectory(const QString& path, QDir& directory);
+
+	///
+	/// @brief Resolve the file path for a new/updated effect and write it, called by saveEffect()
+	///
+	QString resolveEffectFilePath(const QJsonObject& message, const QString& effectName, const QJsonArray& effectArray, QJsonObject& effectJson);
+
+	///
+	/// @brief Save an embedded image for a gif effect, called by saveEffect()
+	///
+	QString saveEffectImage(const QJsonObject& message, const QJsonArray& effectArray, QJsonObject& effectJson);
+
+	///
+	/// @brief Remove the unused imageSource key (url/file) from the effect args
+	///
+	void cleanImageSource(const QJsonObject& message, QJsonObject& effectJson) const;
+
+	///
+	/// @brief Remove effect configuration and associated image files
+	///
+	QString removeEffectFiles(const EffectDefinition& effect, const QFileInfo& effectConfigurationFile);
 
 private:
  	QJsonObject _effectConfig;

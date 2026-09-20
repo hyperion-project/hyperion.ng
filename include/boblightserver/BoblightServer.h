@@ -8,6 +8,9 @@
 #include <QJsonDocument>
 #include <QWeakPointer>
 
+// boblight includes
+#include <boblightserver/BoblightClientConnection.h>
+
 // Hyperion includes
 #include <utils/Logger.h>
 #include <utils/Components.h>
@@ -15,7 +18,6 @@
 // settings
 #include <utils/settings.h>
 
-class BoblightClientConnection;
 class Hyperion;
 class QTcpServer;
 

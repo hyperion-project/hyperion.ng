@@ -9,6 +9,7 @@
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QJsonDocument>
+#include <QSslCertificate>
 #include <QUrlQuery>
 
 #include <QFile>
@@ -483,9 +484,11 @@ private:
 	QUrlQuery _query;
 
 	QNetworkRequest _networkRequestHeaders;
+	QList<QSslCertificate> _caCertificates;
+	QSslConfiguration _requestSslConfiguration;
 
 	QString _serverIdentity;
-	bool _isSelfSignedCertificateAccpeted;
+	bool _isSelfSignedCertificateAccepted;
 };
 
 #endif // PROVIDERRESTAPI_H

@@ -28,7 +28,7 @@ public:
 	/// height)
 	/// @return Zero on success else negative
 	///
-	int grabFrame(Image<ColorRgb> &image) override;
+	int grabFrame(Image<ColorRgb> &image, bool forceUpdate = false) override;
 
 	///
 	/// @brief Discover AmLogic screens available (for configuration).

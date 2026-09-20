@@ -135,7 +135,7 @@ bool DirectXGrabber::setupDisplay()
 	return true;
 }
 
-int DirectXGrabber::grabFrame(Image<ColorRgb> & image)
+int DirectXGrabber::grabFrame(Image<ColorRgb> & image, bool /*forceUpdate*/)
 {
 	if (_isDeviceInError)
 	{

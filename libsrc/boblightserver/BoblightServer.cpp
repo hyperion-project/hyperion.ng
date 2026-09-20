@@ -3,7 +3,7 @@
 
 // project includes
 #include <boblightserver/BoblightServer.h>
-#include "BoblightClientConnection.h"
+#include <boblightserver/BoblightClientConnection.h>
 
 // hyperion includes
 #include <hyperion/Hyperion.h>

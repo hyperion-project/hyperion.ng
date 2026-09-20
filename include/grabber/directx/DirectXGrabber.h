@@ -33,7 +33,7 @@ public:
 	///
 	/// @param[out] image  The snapped screenshot
 	///
-	int grabFrame(Image<ColorRgb> & image) override;
+	int grabFrame(Image<ColorRgb> & image, bool forceUpdate = false) override;
 
 	///
 	/// @brief Set a new video mode

@@ -17,6 +17,7 @@ add_library(effectengine
 	${CMAKE_SOURCE_DIR}/include/effectengine/EffectModule.h
 	${CMAKE_SOURCE_DIR}/include/effectengine/EffectSchema.h
 	${CMAKE_SOURCE_DIR}/libsrc/effectengine/Effect.cpp
+	${CMAKE_SOURCE_DIR}/libsrc/effectengine/EffectDefinition.cpp
 	${CMAKE_SOURCE_DIR}/libsrc/effectengine/EffectEngine.cpp
 	${CMAKE_SOURCE_DIR}/libsrc/effectengine/EffectFileHandler.cpp
 	${CMAKE_SOURCE_DIR}/libsrc/effectengine/EffectModule.cpp

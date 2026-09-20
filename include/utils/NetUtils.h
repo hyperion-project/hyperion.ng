@@ -13,6 +13,7 @@
 #include <HyperionConfig.h>
 #include <utils/Logger.h>
 
+#include <mdns/MdnsUtils.h>
 #ifdef ENABLE_MDNS
 #include <mdns/MdnsBrowser.h>
 #include <mdns/MdnsServiceRegister.h>
@@ -32,17 +33,57 @@ inline bool portAvailable(quint16& port, QSharedPointer<Logger> log)
 {
 	const quint16 prevPort = port;
 	QTcpServer server;
+	int failCount = 0;
+
 	while (!server.listen(QHostAddress::Any, port))
 	{
-		Warning(log,"Port '%d' is already in use, will increment", port);
-		port ++;
+		++failCount;
+		QAbstractSocket::SocketError err = server.serverError();
+		QString errString = server.errorString();
+
+		if (failCount == 1)
+		{
+			Warning(log, "Port '%d' binding failed. SocketError: %d (%s)",
+					port, err, QSTRING_CSTR(errString));
+		}
+		else
+		{
+			Debug(log, "Port '%d' binding failed. SocketError: %d (%s)",
+				  port, err, QSTRING_CSTR(errString));
+		}
+
+		// UnsupportedSocketOperationError typically means a system proxy rejected the
+		// bind (SOCKSv5 does not support listen). Aborting immediately if it occurs — no port will succeed.
+		if (err == QAbstractSocket::UnsupportedSocketOperationError)
+		{
+			Error(log, "Port '%d' bind rejected as unsupported operation (proxy?). Aborting port search.", port);
+			return false;
+		}
+
+		// On some platforms (notably Windows), certain ports fail with SocketAccessError
+		// due to OS/proxy reservations or exclusions while higher ports remain available.
+		if (err == QAbstractSocket::SocketAccessError)
+		{
+			Debug(log, "Port '%d' is reserved or excluded by the OS/Proxy, trying next port.", port);
+		}
+
+		if (port >= MAX_PORT)
+		{
+			Error(log, "Reached maximum port limit (%d).", MAX_PORT);
+			return false;
+		}
+
+		port++;
 	}
+
+	// Explicitly release the port now that we proved we could listen on it.
 	server.close();
-	if(port != prevPort)
+
+	if (port != prevPort)
 	{
-		Warning(log, "The requested Port '%d' is already in use, will use Port '%d' instead", prevPort, port);
-		return false;
+		Warning(log, "Requested Port '%d' was unavailable, will use Port '%d' instead", prevPort, port);
 	}
+
 	return true;
 }
 
@@ -179,13 +220,13 @@ inline bool resolveMdnsHostToAddress(QSharedPointer<Logger> log, QString &hostna
 		return false;
 	}
 
-#ifdef ENABLE_MDNS
-	if (!MdnsBrowser::isMdns(hostname))
+	if (!MdnsUtils::isMdns(hostname))
 	{
 		Debug(log, "Given name [%s] is not an mDNS hostname, no mDNS resolution is required", QSTRING_CSTR(hostname));
 		return true;
 	}
 
+#ifdef ENABLE_MDNS
 	MdnsBrowser *browser = MdnsBrowser::getInstance().get();
 	QEventLoop loop;
 
@@ -221,7 +262,8 @@ inline bool resolveMdnsHostToAddress(QSharedPointer<Logger> log, QString &hostna
 	}
 	return true;
 #else
-	return false;
+	Debug(log, "mDNS resolution is disabled, letting the operating system handle hostname [%s]!", QSTRING_CSTR(hostname));
+	return true;
 #endif
 }
 
@@ -234,13 +276,14 @@ inline bool resolveMdnsHostToAddress(QSharedPointer<Logger> log, QString &hostna
 ///
 inline bool convertMdnsToIp(QSharedPointer<Logger> log, QString& mdnsName, int& port, QAbstractSocket::NetworkLayerProtocol protocol = QAbstractSocket::AnyIPProtocol)
 {
-#ifdef ENABLE_MDNS
-	if (!MdnsBrowser::isMdns(mdnsName))
+
+	if (!MdnsUtils::isMdns(mdnsName))
 	{
 		Debug(log, "Given name [%s] is not an mDNS name, no mDNS resolution is required", QSTRING_CSTR(mdnsName));
 		return true;
 	}
 
+#ifdef ENABLE_MDNS
 	// 1. Treat mdnsName as service instance name that requires to be resolved into an mDNS-Hostname
 	QString mdnsHostname{mdnsName};
 	if (MdnsBrowser::isMdnsService(mdnsName))
@@ -280,7 +323,16 @@ inline bool convertMdnsToIp(QSharedPointer<Logger> log, QString& mdnsName, int& 
 
 	return true;
 #else
-	return false;
+	// Without ENABLE_MDNS, service instance names (e.g. "foo._hyperion._tcp.local") cannot
+	// be resolved at all — the OS has no way to look up the SRV record.
+	if (MdnsUtils::isMdnsService(mdnsName))
+	{
+		Error(log, "mDNS support is disabled: cannot resolve service instance [%s]. Enable MDNS support.", QSTRING_CSTR(mdnsName));
+		return false;
+	}
+	// Plain .local hostnames may still be handled by the OS (Avahi, Bonjour, etc.).
+	Debug(log, "mDNS support is disabled, letting the operating system handle hostname [%s].", QSTRING_CSTR(mdnsName));
+	return true;
 #endif
 }
 

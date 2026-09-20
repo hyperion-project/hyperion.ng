@@ -1,5 +1,9 @@
 import hyperion, time, random, math
 
+# Traces requires at least 2 LEDs so runners can advance positions and ledData is non-empty
+if hyperion.ledCount < 2:
+	raise SystemExit(f"Traces requires at least 2 LEDs (configured: {hyperion.ledCount}). Increase LED count.")
+
 # Initialize the led data
 ledData = bytearray()
 for i in range(hyperion.ledCount):
@@ -27,7 +31,6 @@ i = 0
 while not hyperion.abort():
 	for r in runners:
 		if r["c"] == 0:
-			#ledData[r["pos"]*3+r["i"]] = 0
 			r["c"] = r["step"]
 			r["pos"] = (r["pos"]+1)%hyperion.ledCount
 			ledData[r["pos"]*3+r["i"]] = int(r["lvl"]*(0.2+0.8*random.random()))

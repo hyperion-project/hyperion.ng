@@ -81,7 +81,7 @@ public:
 	 *                   with the correct dimensions before calling this function.
 	 * @return 0 on success, a negative value on failure.
 	 */
-	int grabFrame(Image<ColorRgb> & image) override;
+	int grabFrame(Image<ColorRgb> & image, bool forceUpdate = false) override;
 
 	/**
 	 * @brief Initializes the DRM device for screen capturing.

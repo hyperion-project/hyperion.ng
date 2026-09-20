@@ -71,7 +71,9 @@ static PixelFormat GetPixelFormat(const unsigned int format)
 	if (format == V4L2_PIX_FMT_YUYV) return PixelFormat::YUYV;
 	if (format == V4L2_PIX_FMT_UYVY) return PixelFormat::UYVY;
 	if (format == V4L2_PIX_FMT_NV12) return  PixelFormat::NV12;
+	if (format == V4L2_PIX_FMT_NV21) return  PixelFormat::NV21;
 	if (format == V4L2_PIX_FMT_YUV420) return  PixelFormat::I420;
+	if (format == V4L2_PIX_FMT_YUV422P) return  PixelFormat::I422;
 #ifdef HAVE_TURBO_JPEG
 	if (format == V4L2_PIX_FMT_MJPEG) return  PixelFormat::MJPEG;
 #endif
@@ -683,8 +685,16 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_NV12;
 		break;
 
+		case PixelFormat::NV21:
+			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_NV21;
+		break;
+
 		case PixelFormat::I420:
 			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV420;
+		break;
+
+		case PixelFormat::I422:
+			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV422P;
 		break;
 
 #ifdef HAVE_TURBO_JPEG
@@ -850,11 +860,27 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 		}
 		break;
 
+		case V4L2_PIX_FMT_NV21:
+		{
+			_pixelFormat = PixelFormat::NV21;
+			_frameByteSize = (_width * _height * 6) / 4;
+			Debug(_log, "Pixel format=NV12");
+		}
+		break;
+
 		case V4L2_PIX_FMT_YUV420:
 		{
 			_pixelFormat = PixelFormat::I420;
 			_frameByteSize = (_width * _height * 6) / 4;
 			Debug(_log, "Pixel format=I420");
+		}
+		break;
+
+		case V4L2_PIX_FMT_YUV422P:
+		{
+			_pixelFormat = PixelFormat::I422;
+			_frameByteSize = _width * _height * 2;
+			Debug(_log, "Pixel format=I422");
 		}
 		break;
 
@@ -869,9 +895,9 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 
 		default:
 #ifdef HAVE_TURBO_JPEG
-			throw_exception("Only pixel formats RGB32, BGR32, RGB24, BGR24, YUYV, UYVY, NV12, I420 and MJPEG are supported");
+			throw_exception("Only pixel formats RGB32, BGR32, RGB24, BGR24, YUYV, UYVY, NV12, NV21, I420, I422 and MJPEG are supported");
 #else
-			throw_exception("Only pixel formats RGB32, BGR32, RGB24, BGR24, YUYV, UYVY, NV12 and I420 are supported");
+			throw_exception("Only pixel formats RGB32, BGR32, RGB24, BGR24, YUYV, UYVY, NV12, NV21, I420 and I422 are supported");
 #endif
 		return;
 	}

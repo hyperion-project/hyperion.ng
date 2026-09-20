@@ -820,21 +820,22 @@ void Hyperion::processUpdate()
 	// copy image & process OR copy ledColors from muxer
 	const Image<ColorRgb>& image = priorityInfo.image;
 
-	if (image.isNull())
-	{
-		TRACK_SCOPE_SUBCOMPONENT_CATEGORY(image_track) << "Empty image - skip update";
-		return;
-	}
-
 	QVector<ColorRgb> ledColors;
-	if (image.width() > 1 || image.height() > 1)
+
+	if (!image.isNull())
 	{
+		TRACK_SCOPE_SUBCOMPONENT_CATEGORY(instance_update) << "Process update using image with id" << image.id() << "and resolution" << image.width() << "x" << image.height();
 		emit currentImage(image);  // Emit the image signal at the controlled rate
 		ledColors = _imageProcessor->process(image);
 	}
 	else
 	{
 		ledColors = priorityInfo.ledColors;
+		if (ledColors.empty())
+		{		
+			TRACK_SCOPE_SUBCOMPONENT_CATEGORY(instance_update) << "Empty image and no LED colors provided - skip update";
+			return;
+		}
 	}
 
 	emit rawLedColors(ledColors);

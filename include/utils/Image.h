@@ -184,7 +184,7 @@ public:
 	void clear(const pixel_type background);
 
 	///
-	/// Reset the image to 1x1 with default background color
+	/// Reset the image to 0x0
 	///
 	void reset();
 

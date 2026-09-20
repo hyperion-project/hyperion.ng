@@ -29,7 +29,8 @@ def lerp(a, b, t):
     return (a[0]*(1-t)+b[0]*t, a[1]*(1-t)+b[1]*t, a[2]*(1-t)+b[2]*t)
 
 for i in range(0, snakeLeds):
-	hsv = lerp(color_hsv, backgroundColor_hsv, 1.0/(snakeLeds-1)*i)
+	t = 0.0 if snakeLeds == 1 else (1.0 / (snakeLeds - 1) * i)
+	hsv = lerp(color_hsv, backgroundColor_hsv, t)
 	rgb = colorsys.hsv_to_rgb(hsv[0], hsv[1], hsv[2])
 	ledData += bytearray((int(rgb[0]*255), int(rgb[1]*255), int(rgb[2]*255)))
 

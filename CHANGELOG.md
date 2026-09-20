@@ -4,11 +4,49 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.2.0...HEAD)
+## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.2.1...HEAD)
 
 ### ⚠️ Breaking Changes
 
 ---
+
+### ✨ Added
+
+- V4L2/ImageResampler: add support for pixelformats YUV422P and NV21
+- New Juggler Effect
+---
+
+### 🔧 Changed
+
+ - Windows - Provide more error details if the UI fails to start because the system proxy is enabled (#2005).
+
+- **Fixes:**
+  - Windows DDA Grabber - Prevent image updates when mouse is moved. Provide a Warning on incompatible setting. (#2002)
+  - EffectModule - Reference Counting (Use-After-Free) bugs (#2010) - _Thanks to @wr-web_
+  - EffectEngine - Follow-up Python C-API null-pointer and stability fixes (#2011)
+  - EffectFileHandler - Path traversal vulnerability when saving user-defined effects (#2011)
+  - Effect scripts: Minor stability and style fixes in `pacman.py`, `traces.py`, `trails.py`(#2011)
+  - WebUI - Return a valid Content-Type for static assets to prevent module loading failures
+  - MdnsBrowser compile errors when ENABLE_MDNS is false (#2024)
+  - LinearColorSmoothing - fix incorrect output interval calculation, fix handling for update frequency >= 1000Hz
+
+---
+### Technical
+
+- EffectEngine: Refactor Python C-extension module to reduce nesting depth and cognitive complexity.
+- EffectModule - Refactor and stabilising
+- EffectFileHandler: Refactor effect file management
+- EffectEngine: Added dedicated `hyperion.effect` debug logging category
+- Empty image consistency applied. 0×0 is now the canonical empty image; 1×1 is no longer treated as empty
+- ProviderRestAPI - Add error when failing to load Qt SSL
+- NetUtils: Improve handling when ENABLE_MDNS is false
+- Configure ccache or buildcache only if explicitly requested
+- Fixed - docker-compile script, plus support private git package builds
+- Update Mbed TLS to v4.2.0, Update protobuf to v36.0,  HID-API to master (v0.16.0), libusb-cmake to v1.0.30-0, rpi_ws281x
+- Housekeeping - GitHub builds
+- Script to validate translations files for common malformed placeholder/template tokens that may break the i18n parser
+
+## [2.2.1](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.2.1) - 2026-04-06
 
 ### ✨ Added
 
@@ -23,10 +61,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Art-Net device is limited to 108 DMX channels (36 RGB LEDs) instead of 512 channels (170 RGB LEDs)
   - Image Effect trigger kills Hyperion (#1980)
   - Nanoleaf UI error
-
----
-
-### 🗑️ Removed
 
 ---
 

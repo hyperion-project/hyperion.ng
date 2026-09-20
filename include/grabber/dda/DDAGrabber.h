@@ -23,7 +23,7 @@ public:
 	///
 	/// @param[out] image  The snapped screenshot
 	///
-	int grabFrame(Image<ColorRgb> &image) override;
+	int grabFrame(Image<ColorRgb> &image, bool forceUpdate = false) override;
 
 	///
 	/// @brief Apply new width/height values, overwrite Grabber.h implementation
@@ -60,6 +60,12 @@ private:
 	/// @return True on success, false if no display is found
 	///
 	bool restartCapture();
+
+	///
+	/// Validates the cursor settings and report,
+	/// if a setting results in that the mouse cursor is part of the capture.
+	///
+	void validateCursorSettings();
 
 	void computeCropBox(int sourceWidth, int sourceHeight, D3D11_BOX& box) const;
 

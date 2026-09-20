@@ -3,6 +3,8 @@
 #include "ProviderFtdi.h"
 #include <utils/WaitTime.h>
 
+// Intentionally implementation-only: do not move this include into the header.
+// See ProviderFtdi.h for rationale.
 #include <ftdi.h>
 #include <libusb.h>
 

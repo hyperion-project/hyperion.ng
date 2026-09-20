@@ -24,7 +24,7 @@
 #include <hyperion/PriorityMuxer.h>
 
 // project includes
-#include "BoblightClientConnection.h"
+#include <boblightserver/BoblightClientConnection.h>
 
 // Constants
 namespace {

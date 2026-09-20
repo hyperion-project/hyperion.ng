@@ -161,7 +161,7 @@ void DispmanxFrameGrabber::setFlags(DISPMANX_TRANSFORM_T vc_flags)
 	_vc_flags = vc_flags;
 }
 
-int DispmanxFrameGrabber::grabFrame(Image<ColorRgb> & image)
+int DispmanxFrameGrabber::grabFrame(Image<ColorRgb> & image, bool /*forceUpdate*/)
 {
 	if (_isDeviceInError)
     {

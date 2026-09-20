@@ -107,7 +107,7 @@ bool OsxFrameGrabber::setupDisplay()
 	return rc;
 }
 
-int OsxFrameGrabber::grabFrame(Image<ColorRgb> & image)
+int OsxFrameGrabber::grabFrame(Image<ColorRgb> & image, bool /*forceUpdate*/)
 {
 	if (_isDeviceInError)
     {

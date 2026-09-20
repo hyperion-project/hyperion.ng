@@ -11,10 +11,31 @@
 #include <QThread>
 
 //----------- mbedtls
-#if defined(USE_MBEDTLS3)
+#if defined(USE_MBEDTLS4)
+#include <mbedtls/build_info.h>
+#include <psa/crypto.h>
+#elif defined(USE_MBEDTLS3)
 #include <mbedtls/build_info.h>
 #else
-#if !defined(MBEDTLS_CONFIG_FILE)
+#if defined(__has_include)
+#if __has_include(<mbedtls/build_info.h>)
+#include <mbedtls/build_info.h>
+#if defined(MBEDTLS_VERSION_MAJOR) && (MBEDTLS_VERSION_MAJOR >= 4)
+#include <psa/crypto.h>
+#ifndef USE_MBEDTLS4
+#define USE_MBEDTLS4
+#endif
+#elif defined(MBEDTLS_VERSION_MAJOR) && (MBEDTLS_VERSION_MAJOR == 3)
+#ifndef USE_MBEDTLS3
+#define USE_MBEDTLS3
+#endif
+#endif
+#elif !defined(MBEDTLS_CONFIG_FILE)
+#include <mbedtls/config.h>
+#else
+#include MBEDTLS_CONFIG_FILE
+#endif
+#elif !defined(MBEDTLS_CONFIG_FILE)
 #include <mbedtls/config.h>
 #else
 #include MBEDTLS_CONFIG_FILE
@@ -31,9 +52,11 @@
 
 #include <mbedtls/net_sockets.h>
 #include <mbedtls/ssl_ciphersuites.h>
+#if !defined(USE_MBEDTLS4)
 #include <mbedtls/entropy.h>
-#include <mbedtls/timing.h>
 #include <mbedtls/ctr_drbg.h>
+#endif
+#include <mbedtls/timing.h>
 #include <mbedtls/error.h>
 #include <mbedtls/debug.h>
 
@@ -129,22 +152,28 @@ private:
 
 	bool initConnection();
 
+#if !defined(USE_MBEDTLS4)
 	bool seedingRNG();
+#endif
 	bool setupStructure();
 
 	bool setupPSK();
 	bool startSSLHandshake();
 
-	QString errorMsg(int ret);
+	QString errorMsg(int ret) const;
 	void closeSSLNotify();
 	void freeSSLConnection();
 
 	mbedtls_net_context          client_fd;
+#if !defined(USE_MBEDTLS4)
 	mbedtls_entropy_context      entropy;
+#endif
 	mbedtls_ssl_context          ssl;
 	mbedtls_ssl_config           conf;
 	mbedtls_x509_crt             cacert;
+#if !defined(USE_MBEDTLS4)
 	mbedtls_ctr_drbg_context     ctr_drbg;
+#endif
 	mbedtls_timing_delay_context timer;
 
 	QString      _transport_type;

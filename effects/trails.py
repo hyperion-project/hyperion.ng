@@ -5,7 +5,6 @@ import random
 
 min_len = int(hyperion.args.get('min_len', 3))
 max_len = int(hyperion.args.get('max_len', 3))
-#iHeight = int(hyperion.args.get('iHeight', 8))
 trails = int(hyperion.args.get('int', 8))
 sleepTime = float(hyperion.args.get('speed', 1)) / 1000.0
 color = list(hyperion.args.get('color', (255,255,255)))
@@ -28,14 +27,14 @@ class trail:
 		self.data = []
 		brigtness = color[2]
 		step_brigtness = color[2] / _len
-		for i in range(0, _len):
+		for _ in range(0, _len):
 			rgb = colorsys.hsv_to_rgb(color[0], color[1], brigtness)
 			self.data.insert(0, (int(255*rgb[0]), int(255*rgb[1]), int(255*rgb[2])))
 			brigtness -= step_brigtness
 
 		self.data.extend([(0,0,0)]*(_h-y))
 		if len(self.data) < _h:
-			for i in range (_h-len(self.data)):
+			for _ in range (_h-len(self.data)):
 				self.data.insert(0, (0,0,0))
 
 	def getdata(self):

@@ -1,7 +1,7 @@
 #include "HyperionConfig.h"
 
 #if defined(ENABLE_EFFECTENGINE)
-#include <Python.h>
+#include <python/PythonCompat.h>
 #endif
 
 #include "utils/SysInfo.h"

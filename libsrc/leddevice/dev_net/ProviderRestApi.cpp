@@ -32,7 +32,7 @@ ProviderRestApi::ProviderRestApi(const QString& scheme, const QString& host, int
 	: _log(Logger::getInstance("LEDDEVICE"))
 	, _networkManager(new QNetworkAccessManager())
 	, _requestTimeout(DEFAULT_REST_TIMEOUT)
-	, _isSelfSignedCertificateAccpeted(false)
+	, _isSelfSignedCertificateAccepted(false)
 {
 	TRACK_SCOPE();
 
@@ -221,6 +221,13 @@ httpResponse ProviderRestApi::executeOperation(QNetworkAccessManager::Operation 
 	request.setUrl(url);
 	request.setOriginatingObject(this);
 
+#ifndef QT_NO_SSL
+	if (!_caCertificates.isEmpty() && url.scheme().compare("https", Qt::CaseInsensitive) == 0)
+	{
+		request.setSslConfiguration(_requestSslConfiguration);
+	}
+#endif
+
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
 	_networkManager->setTransferTimeout(static_cast<int>(_requestTimeout.count()));
 #endif
@@ -282,7 +289,6 @@ httpResponse ProviderRestApi::executeOperation(QNetworkAccessManager::Operation 
 
 	return response;
 }
-
 namespace {
 QString getReplyErrorReason(QNetworkReply* const& reply, const httpResponse& response)
 {
@@ -424,41 +430,65 @@ QByteArray httpResponse::getHeader(const QByteArray& header) const
 
 bool ProviderRestApi::setCaCertificate(const QString& caFileName)
 {
-	bool rc {false};
-	/// Add our own CA to the default SSL configuration
-	QSslConfiguration configuration = QSslConfiguration::defaultConfiguration();
+#ifndef QT_NO_SSL
+	if (!QSslSocket::supportsSsl())
+	{
+		QString buildVersion = QSslSocket::sslLibraryBuildVersionString();
+		QString runtimeVersion = QSslSocket::sslLibraryVersionString();
+
+        if (buildVersion.isEmpty())
+        {
+            buildVersion = QStringLiteral("not available");
+        }
+
+        if (runtimeVersion.isEmpty())
+        {
+            runtimeVersion = QStringLiteral("not available");
+        }
+
+		Error(_log, "SSL support is compiled into Qt, but the underlying SSL libraries failed to load at runtime. "
+		            "Built against: \"%s\", runtime version: \"%s\".",
+		            QSTRING_CSTR(buildVersion),
+		            QSTRING_CSTR(runtimeVersion));
+		return false;
+	}
+#else
+	Error(_log, "SSL support is entirely disabled in this build of Qt (QT_NO_SSL is defined).");
+	return false;
+#endif
 
 	QFile caFile (caFileName);
 	if (!caFile.open(QIODevice::ReadOnly))
 	{
-		Error(_log,"Unable to open CA-Certificate file: %s", QSTRING_CSTR(caFileName));
+		Error(_log, "Unable to open CA-Certificate file: %s", QSTRING_CSTR(caFileName));
 		return false;
 	}
 
-	QSslCertificate const cert (&caFile);
+	// Load all PEM certificates from the bundle (handles concatenated/multi-cert bundles)
+	QList<QSslCertificate> newCerts = QSslCertificate::fromDevice(&caFile, QSsl::Pem);
 	caFile.close();
 
-	QList<QSslCertificate> allowedCAs;
-	allowedCAs << cert;
-	configuration.setCaCertificates(allowedCAs);
-
-	QSslConfiguration::setDefaultConfiguration(configuration);
-
-#ifndef QT_NO_SSL
-	if (QSslSocket::supportsSsl())
+	if (newCerts.isEmpty())
 	{
-		QObject::connect( _networkManager.get(), &QNetworkAccessManager::sslErrors, this, &ProviderRestApi::onSslErrors );
-		_networkManager->connectToHostEncrypted(_apiUrl.host(), static_cast<quint16>(_apiUrl.port()), configuration);
-		rc = true;
+		Error(_log, "The file %s does not contain any valid SSL certificates", QSTRING_CSTR(caFileName));
+		return false;
 	}
-#endif
 
-	return rc;
+	_caCertificates = newCerts;
+
+	_requestSslConfiguration = QSslConfiguration::defaultConfiguration();
+	QList<QSslCertificate> allowedCAs = _requestSslConfiguration.caCertificates();
+	allowedCAs.append(_caCertificates);
+	_requestSslConfiguration.setCaCertificates(allowedCAs);
+
+	// Use Qt::UniqueConnection to prevent duplicate signal connections on repeated calls
+	QObject::connect( _networkManager.get(), &QNetworkAccessManager::sslErrors, this, &ProviderRestApi::onSslErrors, Qt::UniqueConnection );
+	return true;
 }
 
 void ProviderRestApi::acceptSelfSignedCertificates(bool isAccepted)
 {
-	_isSelfSignedCertificateAccpeted = isAccepted;
+	_isSelfSignedCertificateAccepted = isAccepted;
 }
 
 void ProviderRestApi::setAlternateServerIdentity(const QString& serverIdentity)
@@ -563,7 +593,7 @@ bool ProviderRestApi::handleSslError(const QSslError& error, const QSslConfigura
 			}
 			break;
 		case QSslError::SelfSignedCertificate:
-			if (_isSelfSignedCertificateAccpeted)
+			if (_isSelfSignedCertificateAccepted)
 			{
 				const QSslCertificate& certificate = error.certificate();
 				if (matchesPinnedCertificate(certificate))

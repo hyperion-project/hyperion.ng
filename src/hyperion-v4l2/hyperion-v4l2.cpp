@@ -25,13 +25,6 @@
 // hyperion-v4l2 includes
 #include "ScreenshotHandler.h"
 
-#ifdef ENABLE_MDNS
-// mDNS discover
-#include <mdns/MdnsBrowser.h>
-#else
-// ssdp discover
-#include <ssdp/SSDPDiscover.h>
-#endif
 #include <utils/NetUtils.h>
 
 // flatbuf includes
@@ -272,11 +265,10 @@ int main(int argc, char** argv)
 
 		Info(log, "Connecting to Hyperion host: %s, port: %u", QSTRING_CSTR(hostName), port);
 
-		if (MdnsBrowser::isMdns(hostName))
+		if (MdnsUtils::isMdns(hostName))
 		{
 			NetUtils::discoverMdnsServices("flatbuffer");
 		}
-
 		if (!NetUtils::convertMdnsToIp(log, hostName, port))
 		{
 			emit errorManager.errorOccurred(QString("IP-address cannot be resolved for the given mDNS service- or hostname: \"%1\"").arg(QSTRING_CSTR(hostName)));

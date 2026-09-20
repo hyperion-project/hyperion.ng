@@ -28,6 +28,12 @@ posBlueGuy = posPinkGuy + diffGuys
 posSlowGuy = posBlueGuy + diffGuys
 posRedGuy = posSlowGuy + diffGuys
 
+# minimum LEDs needed: randint(10, ledCount) requires ledCount >= 10,
+# and posRedGuy + 1 LEDs are needed to show all characters
+minLedCount = max(10, posRedGuy + 1)
+if hyperion.ledCount < minLedCount:
+	raise SystemExit(f"Pac-Man requires at least {minLedCount} LEDs (configured: {hyperion.ledCount}). Increase LED count or reduce 'margin-pos'.")
+
 # initialize the led data
 ledDataEscape = bytearray()
 for i in range(hyperion.ledCount):
@@ -56,19 +62,19 @@ for i in range(hyperion.ledCount):
 # increment = 3, because LED-Color is defined by 3 Bytes
 increment = 3
 
-def shiftLED(ledData, increment, limit, lightPos=None):
+def shift_led(led_data, increment, limit, light_pos=None):
 	state = 0
 	while state < limit and not hyperion.abort():
-		ledData = ledData[increment:] + ledData[:increment]
+		led_data = led_data[increment:] + led_data[:increment]
 
-		if (lightPos):
-			tmp = ledData[lightPos]
-			ledData[lightPos] = light
+		if (light_pos):
+			tmp = led_data[light_pos]
+			led_data[light_pos] = light
 
-		hyperion.setColor(ledData)
+		hyperion.setColor(led_data)
 
-		if (lightPos):
-			ledData[lightPos] = tmp
+		if (light_pos):
+			led_data[light_pos] = tmp
 
 		time.sleep(sleepTime)
 		state += 1
@@ -78,17 +84,17 @@ while not hyperion.abort():
 
 	# escape mode
 	ledData = ledDataEscape
-	shiftLED(ledData, increment, hyperion.ledCount)
+	shift_led(ledData, increment, hyperion.ledCount)
 
 	random = randint(10,hyperion.ledCount)
 
 	# escape mode + power pellet
 	s = slice(3*random, 3*random+3)
-	shiftLED(ledData, increment, hyperion.ledCount - random, s)
+	shift_led(ledData, increment, hyperion.ledCount - random, s)
 
 	# chase mode
 	shift   = 3*(hyperion.ledCount - random)
 	ledData = ledDataChase[shift:]+ledDataChase[:shift]
-	shiftLED(ledData, -increment, 2*hyperion.ledCount-random)
+	shift_led(ledData, -increment, 2*hyperion.ledCount-random)
 	time.sleep(sleepTime)
 

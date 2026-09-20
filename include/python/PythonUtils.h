@@ -1,8 +1,6 @@
 #pragma once
 
-#undef slots
-#include <Python.h>
-#define slots Q_SLOTS
+#include <python/PythonCompat.h>
 
 // decl
 extern PyThreadState* mainThreadState;

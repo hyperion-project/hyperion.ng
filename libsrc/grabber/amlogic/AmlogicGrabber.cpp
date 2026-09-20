@@ -161,7 +161,7 @@ bool AmlogicGrabber::isVideoPlaying()
 	return false;
 }
 
-int AmlogicGrabber::grabFrame(Image<ColorRgb> &image)
+int AmlogicGrabber::grabFrame(Image<ColorRgb> &image, bool /*forceUpdate*/)
 {
 	if (!_isEnabled || _isDeviceInError)
 	{
