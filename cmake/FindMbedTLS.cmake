@@ -4,7 +4,7 @@
 
 find_package(PkgConfig QUIET)
 if(PKG_CONFIG_FOUND)
-	pkg_check_modules(PC_MbedTLS QUIET mbedtls mbedcrypto mbedx509)
+	pkg_check_modules(PC_MbedTLS QUIET mbedtls mbedcrypto mbedx509 tfpsacrypto)
 endif()
 
 find_path(mbedtls_INCLUDE_DIR
@@ -41,6 +41,8 @@ find_library(mbedx509_LIBRARY
 
 find_library(mbedcrypto_LIBRARY
 	NAMES
+		libtfpsacrypto
+		tfpsacrypto
 		libmbedcrypto
 		mbedcrypto
 	HINTS
@@ -55,8 +57,12 @@ if(mbedtls_LIBRARY AND NOT mbedx509_LIBRARY AND NOT mbedcrypto_LIBRARY)
 	set(CMAKE_REQUIRED_INCLUDES "${mbedtls_INCLUDE_DIR}")
 	set(CMAKE_REQUIRED_LIBRARIES "${mbedtls_LIBRARY}")
 
-	check_symbol_exists(mbedtls_x509_crt_init "mbedtls/x590_crt.h" MBEDTLS_INCLUDES_X509)
-	check_symbol_exists(mbedtls_sha256_init "mbedtls/sha256.h" MBEDTLS_INCLUDES_CRYPTO)
+	check_symbol_exists(mbedtls_x509_crt_init "mbedtls/x509_crt.h" MBEDTLS_INCLUDES_X509)
+	check_symbol_exists(mbedtls_sha256_init "mbedtls/sha256.h" MBEDTLS_INCLUDES_CRYPTO_LEGACY)
+	check_symbol_exists(psa_crypto_init "psa/crypto.h" MBEDTLS_INCLUDES_CRYPTO_PSA)
+	if(MBEDTLS_INCLUDES_CRYPTO_LEGACY OR MBEDTLS_INCLUDES_CRYPTO_PSA)
+		set(MBEDTLS_INCLUDES_CRYPTO TRUE)
+	endif()
 
 	unset(CMAKE_REQUIRED_INCLUDES)
 	unset(CMAKE_REQUIRED_LIBRARIES)
