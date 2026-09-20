@@ -308,6 +308,8 @@ private:
 	///
 	void handleStartupSourceCommand(const QJsonObject &message, const JsonApiCommand& cmd);
 
+	void handleTwilightCommand(const QJsonObject& message, const JsonApiCommand& cmd);
+
 	///  Handle an incoming data request message
 	/// 
 	/// @param message the incoming message

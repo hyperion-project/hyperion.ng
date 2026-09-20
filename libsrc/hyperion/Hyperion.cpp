@@ -90,7 +90,9 @@ Hyperion::Hyperion(quint8 instance, QObject* parent)
 	, _layoutLedCount(0)
 	, _colorOrder("rgb")
 	, _statisticsTimer(nullptr)
+#ifdef _WIN32	
 	, _suspendOnStart(false)
+#endif
 {
 	qRegisterMetaType<ComponentList>("ComponentList");
 	qRegisterMetaType<Image<ColorRgb>>("ColorRgbImage");

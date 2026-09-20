@@ -297,6 +297,9 @@
          "dithering":false,
          "updateDelay":0
       },
-      "startupSource":{}
-   }
+    "startupSource": {},
+    "twilight": {
+      "enabled": false
+      }
+    }
 }

@@ -85,6 +85,9 @@ public:
 	///
 	int getLedCount() const;
 
+	void setStartEnabled(bool enabled);
+	void disableDevice();
+
 public slots:
 	///
 	/// @brief Handle new component state request
@@ -158,6 +161,7 @@ protected:
 	static LedDeviceRegistry _ledDeviceMap;
 
 private:
+
 	/// The common Logger instance for all LED-devices
 	QSharedPointer<Logger> _log;
 
@@ -171,6 +175,8 @@ private:
 	// 	LED-Device's states
 	bool _isEnabled;
 	bool _isOn;
+
+	bool _startEnabled;
 };
 
 #endif // LEDEVICEWRAPPER_H

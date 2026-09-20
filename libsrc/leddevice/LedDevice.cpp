@@ -233,6 +233,11 @@ void LedDevice::disable()
 	emit isEnabledChanged(_isEnabled);
 }
 
+void LedDevice::setStartEnabled(bool enabled)
+{
+	_startEnabled = enabled;
+}
+
 void LedDevice::setActiveDeviceType(const QString& deviceType)
 {
 	_activeDeviceType = deviceType;

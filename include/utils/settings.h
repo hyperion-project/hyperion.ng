@@ -108,7 +108,7 @@ namespace settings {
 		if (type == "flatbufServer")        return FLATBUFSERVER;
 		if (type == "protoServer")          return PROTOSERVER;
 		if (type == "osEvents")             return OSEVENTS;
-		if (type == "cecEvents")           return CECEVENTS;
+		if (type == "cecEvents")            return CECEVENTS;
 		if (type == "schedEvents")          return SCHEDEVENTS;
 		if (type == "startupSource")        return STARTUPSOURCE;
 		if (type == "twilight")             return TWILIGHT;

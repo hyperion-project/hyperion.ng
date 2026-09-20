@@ -36,6 +36,7 @@ public:
 		StartupSource,
 		Temperature,
 		Transform,
+		Twilight,
 		VideoMode
 	};
 
@@ -66,6 +67,7 @@ public:
 		case System: return "system";
 		case Temperature: return "temperature";
 		case Transform: return "transform";
+		case Twilight: return "twilight";
 		case VideoMode: return "videomode";
 		case Service: return "service";
 		case StartupSource: return "startupsource";
@@ -97,6 +99,7 @@ public:
 		GetSubscriptionCommands,
 		GetSubscriptions,
 		GetTokenList,
+		GetTwilight,
 		Identify,
 		Idle,
 		ImageStreamStart,
@@ -116,6 +119,7 @@ public:
 		SaveName,
 		SetConfig,
 		SetStartupSource,
+		SetTwilight,
 		Start,
 		StartInstance,
 		Stop,
@@ -150,6 +154,7 @@ public:
 		case GetSubscriptionCommands: return "getSubscriptionCommands";
 		case GetSubscriptions: return "getSubscriptions";
 		case GetTokenList: return "getTokenList";
+		case GetTwilight: return "get";
 		case Identify: return "identify";
 		case Idle: return "idle";
 		case ImageStreamStart: return "imagestream-start";
@@ -168,7 +173,8 @@ public:
 		case Resume: return "resume";
 		case SaveName: return "saveName";
 		case SetConfig: return "setconfig";
-		case SetStartupSource: return "set";
+		case SetStartupSource: return "setStartupSource";
+		case SetTwilight: return "set"; 
 		case Start: return "start";
 		case StartInstance: return "startInstance";
 		case Stop: return "stop";
@@ -364,6 +370,8 @@ public:
 			{ {"system", "toggleIdle"},                  { Command::System,         SubCommand::ToggleIdle,              Authorization::Yes,    InstanceCmd::No,           InstanceCmd::MustRun_No,     NoListenerCmd::Yes } },
 			{ {"temperature", ""},                       { Command::Temperature,    SubCommand::Empty,                   Authorization::Yes,    InstanceCmd::Single,       InstanceCmd::MustRun_Yes,    NoListenerCmd::Yes } },
 			{ {"transform", ""},                         { Command::Transform,      SubCommand::Empty,                   Authorization::Yes,    InstanceCmd::Single,       InstanceCmd::MustRun_Yes,    NoListenerCmd::Yes } },
+			{ {"twilight", "get"},                       { Command::Twilight,       SubCommand::GetTwilight,             Authorization::Yes,    InstanceCmd::Single,       InstanceCmd::MustRun_Yes,    NoListenerCmd::Yes } },
+			{ {"twilight", "set"},                       { Command::Twilight,       SubCommand::SetTwilight,             Authorization::Yes,    InstanceCmd::Single,       InstanceCmd::MustRun_Yes,    NoListenerCmd::Yes } },
 			{ {"videomode", ""},                         { Command::VideoMode,      SubCommand::Empty,                   Authorization::Yes,    InstanceCmd::No,           InstanceCmd::MustRun_No,     NoListenerCmd::Yes } }
 		};
 		return commandLookup;

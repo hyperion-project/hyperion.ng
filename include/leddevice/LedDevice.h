@@ -302,6 +302,8 @@ public slots:
 	///
 	virtual bool switchOff();
 
+	void setStartEnabled(bool enabled);
+
 signals:
 	///
 	/// @brief Emits whenever the LED-Device is enabled/disabled.
@@ -620,6 +622,8 @@ private:
 	// The mutex now ONLY protects the data buffer.
 	QMutex _ledBufferMutex;
 	QVector<ColorRgb> _ledUpdateBuffer;
+
+	bool _startEnabled;
 };
 
 #endif // LEDEVICE_H

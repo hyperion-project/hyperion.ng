@@ -25,8 +25,9 @@
 		<file alias="schema-protoServer.json">schema/schema-protoServer.json</file>
 		<file alias="schema-schedEvents.json">schema/schema-schedEvents.json</file>
 		<file alias="schema-smoothing.json">schema/schema-smoothing.json</file>
+		<file alias="schema-smoothing.json">schema/schema-smoothing.json</file>
+		<file alias="schema-twilight.json">schema/schema-twilight.json</file>
 		<file alias="schema-webConfig.json">schema/schema-webConfig.json</file>
-		
 		<file alias="schema-settings-default.json">schema/schema-settings-default.json</file>
 		<file alias="schema-settings-full.json">schema/schema-settings-full.json</file>
 		<file alias="schema-settings-full-relaxed.json">schema/schema-settings-full-relaxed.json</file>		
