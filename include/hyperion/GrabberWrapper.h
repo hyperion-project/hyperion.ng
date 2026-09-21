@@ -110,13 +110,26 @@ public:
 	template <typename Grabber_T>
 	bool transferFrame(Grabber_T &grabber)
 	{
-		int w = grabber.getImageWidth();
-		int h = grabber.getImageHeight();
-
-		if (_image.width() != w || _image.height() != h)
+		if (grabber.isUsingImageResampler())
 		{
-			qCDebug(image_track) << "Image [" << _image.id() << "], resizing image from " << _image.width() << "x" << _image.height() << " to " << w << "x" << h;
-			_image.resize(w, h);
+			// The ImageResampler sizes the image itself (capture resolution divided by the
+			// pixel decimation). Pre-sizing it to the configured capture size would only
+			// cause an expensive resize round-trip for every single frame.
+			if (_image.isNull())
+			{
+				_image.resize(grabber.getImageWidth(), grabber.getImageHeight());
+			}
+		}
+		else
+		{
+			int w = grabber.getImageWidth();
+			int h = grabber.getImageHeight();
+
+			if (_image.width() != w || _image.height() != h)
+			{
+				qCDebug(image_track) << "Image [" << _image.id() << "], resizing image from " << _image.width() << "x" << _image.height() << " to " << w << "x" << h;
+				_image.resize(w, h);
+			}
 		}
 
 		int ret = grabber.grabFrame(_image);
