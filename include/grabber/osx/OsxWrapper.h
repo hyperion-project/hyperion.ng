@@ -30,6 +30,15 @@ public:
 	///
 	OsxWrapper(const QJsonDocument& grabberConfig = QJsonDocument());
 
+	///
+	/// Starts the grabber and the continuous capture session (macOS 15+)
+	///
+	bool start() override;
+
+	///
+	/// Stops the grabber and the continuous capture session (macOS 15+)
+	///
+	void stop() override;
 
 public slots:
 	///

@@ -18,6 +18,23 @@ OsxWrapper::OsxWrapper(const QJsonDocument& grabberConfig)
 	GrabberWrapper::handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
 }
 
+bool OsxWrapper::start()
+{
+	const bool rc = GrabberWrapper::start();
+	if (rc)
+	{
+		// The continuous capture session is only required while the grabber is active
+		_grabber.startStream();
+	}
+	return rc;
+}
+
+void OsxWrapper::stop()
+{
+	_grabber.stopStream();
+	GrabberWrapper::stop();
+}
+
 void OsxWrapper::action()
 {
 	transferFrame(_grabber);
