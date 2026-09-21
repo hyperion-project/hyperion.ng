@@ -97,7 +97,8 @@ protected:
 private:
 	static QJsonArray enumerateHidDevices(
 		unsigned short vendorId, unsigned short productId,
-		unsigned short usagePage, unsigned short usage, bool filterByUsage);
+		unsigned short usagePage, unsigned short usage, bool filterByUsage,
+		int interfaceNumber);
 
 private slots:
 	/// Unblock the device after a connection delay

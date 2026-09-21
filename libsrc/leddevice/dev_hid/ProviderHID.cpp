@@ -45,11 +45,12 @@ QJsonObject ProviderHID::discover(const QJsonObject& params)
 	const auto productId = _productId != 0 ? _productId : parseHexValue(params.value("PID"));
 	const auto usagePage = parseHexValue(params.value("usagePage"));
 	const auto usage = parseHexValue(params.value("usage"));
+	const auto interfaceNumber = params.value("interfaceNumber").toInt(-1);
 
 	QJsonObject devicesDiscovered;
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );
 	devicesDiscovered.insert("devices", enumerateHidDevices(
-		vendorId, productId, usagePage, usage, usagePage != 0 && usage != 0));
+		vendorId, productId, usagePage, usage, usagePage != 0 && usage != 0, interfaceNumber));
 
 	Debug(_log, "HID devices discovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
@@ -249,25 +250,23 @@ QJsonObject ProviderHID::hidDeviceInfoToJson(const hid_device_info& deviceInfo)
 	properties.insert("vendorIdentifier", formatHexValue(deviceInfo.vendor_id));
 	properties.insert("productIdentifier", formatHexValue(deviceInfo.product_id));
 	properties.insert("release_number", formatHexValue(deviceInfo.release_number));
-#if defined(MACOS) || defined(WINDOWS)
-	properties.insert("usage_page", formatHexValue(deviceInfo.usage_page));
-	properties.insert("usage", formatHexValue(deviceInfo.usage));
-#endif
+	if (deviceInfo.usage_page != 0 && deviceInfo.usage != 0)
+	{
+		properties.insert("usage_page", formatHexValue(deviceInfo.usage_page));
+		properties.insert("usage", formatHexValue(deviceInfo.usage));
+	}
 	properties.insert("interface_number", deviceInfo.interface_number);
 
 	qCDebug(leddevice_properties).noquote()
-		<< "HID device:" 
+		<< "HID device:"
 		<< QJsonDocument(properties).toJson(QJsonDocument::Indented);
 	return properties;
 }
 
 QJsonArray ProviderHID::enumerateHidDevices(
 	const unsigned short vendorId, const unsigned short productId,
-#if defined(MACOS) || defined(WINDOWS)	
-	const unsigned short usagePage, const unsigned short usage, const bool filterByUsage)
-#else
-	const unsigned short /*usagePage*/, const unsigned short /*usage*/, const bool /*filterByUsage*/)
-#endif
+	const unsigned short usagePage, const unsigned short usage, const bool filterByUsage,
+	const int interfaceNumber)
 {
 	QJsonArray deviceList;
 	hid_device_info* devices = hid_enumerate(vendorId, productId);
@@ -276,22 +275,20 @@ QJsonArray ProviderHID::enumerateHidDevices(
 	{
 		qCDebug(leddevice_properties) << "No HID devices found for Vendor ID:" << formatHexValue(vendorId)
 				 << "Product ID:" << formatHexValue(productId);
-		return deviceList;	
+		return deviceList;
 	}
 
 	for (const hid_device_info* current = devices; current != nullptr; current = current->next)
 	{
-
-		if (current->path == nullptr)
+		if (current->path == nullptr ||
+			(interfaceNumber >= 0 && current->interface_number != interfaceNumber))
 		{
 			continue;
 		}
-#if defined(MACOS) || defined(WINDOWS)
 		if (filterByUsage && (current->usage_page != usagePage || current->usage != usage))
 		{
 			continue;
 		}
-#endif
 		deviceList.append(hidDeviceInfoToJson(*current));
 	}
 

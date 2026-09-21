@@ -15,6 +15,7 @@ namespace
 	constexpr unsigned short PRODUCT_ID = 0xFE07;
 	constexpr unsigned short USAGE_PAGE = 0xFF00;
 	constexpr unsigned short USAGE = 0x0001;
+	constexpr int PROTOCOL_INTERFACE_NUMBER = 0;
 	constexpr int HID_REPORT_SIZE = 64;
 	constexpr int MAX_LED_COUNT = 254;
 	// The original SyncLight application limits the raw 0x87 brightness value
@@ -57,9 +58,13 @@ LedDevice* LedDeviceRobobloq::construct(const QJsonObject& deviceConfig)
 QJsonObject LedDeviceRobobloq::discover(const QJsonObject& params)
 {
 	QJsonObject discoveryParams(params);
-#if defined(MACOS) || defined(WINDOWS)
+#if defined(Q_OS_MACOS) || defined(Q_OS_WIN)
 	discoveryParams.insert("usagePage", formatHexValue(USAGE_PAGE));
 	discoveryParams.insert("usage", formatHexValue(USAGE));
+#elif defined(Q_OS_LINUX)
+	// The Linux libusb backend does not resolve usage pairs during enumeration.
+	// HIDAPI recommends using the interface number for composite devices instead.
+	discoveryParams.insert("interfaceNumber", PROTOCOL_INTERFACE_NUMBER);
 #endif
 	return ProviderHID::discover(discoveryParams);
 }
@@ -162,31 +167,24 @@ int LedDeviceRobobloq::open()
 		return -1;
 	}
 
+	// Unlike enumeration, the Linux libusb backend can resolve the usage pair
+	// after the interface has been opened and claimed.
 	const hid_device_info* hidInfo = hid_get_device_info(_deviceHandle);
 	if (hidInfo == nullptr || !isExpectedDevice(*hidInfo))
 	{
-		QString errorMessage = QStringLiteral("The selected HID path does not identify the Robobloq protocol collection (%1:%2)")
-			.arg(formatHexValue(VENDOR_ID), formatHexValue(PRODUCT_ID));
-#if defined(MACOS) || defined(WINDOWS)
-		errorMessage += QStringLiteral(" (usage %1:%2)")
-			.arg(formatHexValue(USAGE_PAGE), formatHexValue(USAGE));
-#endif
-		setInError(errorMessage);
+		setInError(
+			QStringLiteral("The selected HID path does not identify the Robobloq protocol collection "
+				"(%1:%2, usage %3:%4).")
+				.arg(formatHexValue(VENDOR_ID), formatHexValue(PRODUCT_ID),
+					formatHexValue(USAGE_PAGE), formatHexValue(USAGE)));
 		ProviderHID::close();
 		return -1;
 	}
 
-#if defined(MACOS) || defined(WINDOWS)
 	Info(_log, "Opened Robobloq HID device: product='%s', serial='%s', interface=%d, usage=%04hx:%04hx",
 		QSTRING_CSTR(QString::fromWCharArray(hidInfo->product_string)),
 		QSTRING_CSTR(QString::fromWCharArray(hidInfo->serial_number)),
 		hidInfo->interface_number, hidInfo->usage_page, hidInfo->usage);
-#else
-	Info(_log, "Opened Robobloq HID device: product='%s', serial='%s', interface=%d",
-		QSTRING_CSTR(QString::fromWCharArray(hidInfo->product_string)),
-		QSTRING_CSTR(QString::fromWCharArray(hidInfo->serial_number)),
-		hidInfo->interface_number);
-#endif
 
 	// Device metadata is optional; keep using the configured LED count if it cannot be read
 	if (DeviceInfo deviceInfo; readDeviceInfo(_deviceHandle, _nextMessageId, deviceInfo))
@@ -424,19 +422,10 @@ bool LedDeviceRobobloq::readDeviceInfo(hid_device* handle, uint8_t& nextMessageI
 
 bool LedDeviceRobobloq::isExpectedDevice(const hid_device_info& deviceInfo)
 {
-	if (deviceInfo.vendor_id != VENDOR_ID || deviceInfo.product_id != PRODUCT_ID)
-	{
-		return false;
-	}
-
-#if defined(MACOS) || defined(WINDOWS)
-	if (deviceInfo.usage_page != USAGE_PAGE || deviceInfo.usage != USAGE)
-	{
-		return false;
-	}
-#endif
-
-	return true;
+	return deviceInfo.vendor_id == VENDOR_ID &&
+		deviceInfo.product_id == PRODUCT_ID &&
+		deviceInfo.usage_page == USAGE_PAGE &&
+		deviceInfo.usage == USAGE;
 }
 
 bool LedDeviceRobobloq::parseDeviceInfoReply(const uint8_t* data, const int size, DeviceInfo& deviceInfo, uint8_t& messageId)
