@@ -92,6 +92,16 @@ jobs:
         with:
           arch: ${{ matrix.os.architecture }}
 
+      - name: 🔧 Setup sccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          variant: sccache
+          key: sccache-windows-${{ matrix.os.architecture }}-${{ env.BUILD_TYPE }}-qt${{ steps.dependencies.outputs.qtVersion }}
+          restore-keys: sccache-windows-${{ matrix.os.architecture }}-${{ env.BUILD_TYPE }}-
+          max-size: 500M
+        env:
+          BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'relwithdebinfo' || 'release' }}
+
       - name: Download/Install Inno Setup
         run: |
           echo "Checking pre-installation..."
