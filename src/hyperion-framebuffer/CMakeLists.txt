@@ -4,6 +4,11 @@ project(hyperion-framebuffer)
 add_executable(${PROJECT_NAME}
 	FramebufferWrapper.h
 	FramebufferWrapper.cpp
+	FramebufferGrabberOptions.h
+	FramebufferGrabberCli.h
+	FramebufferGrabberCli.cpp
+	FramebufferGrabberTraits.h
+	FramebufferGrabberTraits.cpp
 	hyperion-framebuffer.cpp
 )
 

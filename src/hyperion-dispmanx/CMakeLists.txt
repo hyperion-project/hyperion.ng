@@ -4,6 +4,11 @@ project(hyperion-dispmanx)
 add_executable(${PROJECT_NAME}
 	DispmanxWrapper.h
 	DispmanxWrapper.cpp
+	DispmanxGrabberOptions.h
+	DispmanxGrabberCli.h
+	DispmanxGrabberCli.cpp
+	DispmanxGrabberTraits.h
+	DispmanxGrabberTraits.cpp
 	hyperion-dispmanx.cpp
 )
 

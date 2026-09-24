@@ -4,8 +4,6 @@ project(hyperion-qt)
 add_executable(${PROJECT_NAME}
 	QtWrapper.h
 	QtWrapper.cpp
-	ScreenshotUtil.h
-	ScreenshotUtil.cpp
 	QtGrabberOptions.h
 	QtGrabberCli.h
 	QtGrabberCli.cpp

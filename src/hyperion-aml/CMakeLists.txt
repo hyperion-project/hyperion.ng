@@ -4,6 +4,11 @@ project(hyperion-aml)
 add_executable(${PROJECT_NAME}
 	AmlogicWrapper.h
 	AmlogicWrapper.cpp
+	AmlogicGrabberOptions.h
+	AmlogicGrabberCli.h
+	AmlogicGrabberCli.cpp
+	AmlogicGrabberTraits.h
+	AmlogicGrabberTraits.cpp
 	hyperion-aml.cpp
 )
 

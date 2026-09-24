@@ -4,6 +4,11 @@ project(hyperion-drm)
 add_executable(${PROJECT_NAME}
 	DRMWrapper.h
 	DRMWrapper.cpp
+	DRMGrabberOptions.h
+	DRMGrabberCli.h
+	DRMGrabberCli.cpp
+	DRMGrabberTraits.h
+	DRMGrabberTraits.cpp
 	hyperion-drm.cpp
 	$<$<BOOL:${WIN32}>:${CMAKE_BINARY_DIR}/win.rc>
 )

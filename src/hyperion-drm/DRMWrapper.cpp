@@ -1,13 +1,13 @@
 #include "DRMWrapper.h"
 
 DRMWrapper::DRMWrapper( int updateRate_Hz,
-					  int display,
+					  int deviceIdx,
 					  int pixelDecimation,
 					  int cropLeft, int cropRight,
 					  int cropTop, int cropBottom
 					  ) :
 	  _timer(this),
-	  _grabber(display, cropLeft, cropRight, cropTop, cropBottom)
+	  _grabber(deviceIdx, cropLeft, cropRight, cropTop, cropBottom)
 {
 	_grabber.setFramerate(updateRate_Hz);
 	_grabber.setPixelDecimation(pixelDecimation);

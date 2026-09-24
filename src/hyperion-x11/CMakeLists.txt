@@ -9,6 +9,8 @@ add_executable(${PROJECT_NAME}
 	X11Wrapper.h
 	X11Wrapper.cpp
 	X11GrabberOptions.h
+	X11GrabberCli.h
+	X11GrabberCli.cpp
 	X11GrabberTraits.h
 	X11GrabberTraits.cpp
 	hyperion-x11.cpp

@@ -5,6 +5,8 @@ add_executable(${PROJECT_NAME}
 	XcbWrapper.h
 	XcbWrapper.cpp
 	XcbGrabberOptions.h
+	XcbGrabberCli.h
+	XcbGrabberCli.cpp
 	XcbGrabberTraits.h
 	XcbGrabberTraits.cpp
 	hyperion-xcb.cpp

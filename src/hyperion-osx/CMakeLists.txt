@@ -4,6 +4,11 @@ project(hyperion-osx)
 add_executable(${PROJECT_NAME}
 	OsxWrapper.h
 	OsxWrapper.cpp
+	OsxGrabberOptions.h
+	OsxGrabberCli.h
+	OsxGrabberCli.cpp
+	OsxGrabberTraits.h
+	OsxGrabberTraits.cpp
 	hyperion-osx.cpp
 )
 
