@@ -9,6 +9,9 @@ target_link_libraries(osx-grabber
 	hyperion
 	"-framework CoreGraphics"
 	"-framework Foundation"
+	# Required to process the frames delivered by ScreenCaptureKit
+	"-framework CoreMedia"
+	"-framework CoreVideo"
 )
 
 find_library(ScreenCaptureKit ScreenCaptureKit)

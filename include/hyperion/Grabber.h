@@ -141,6 +141,14 @@ public:
 	QString getGrabberName() const { return _grabberName; }
 
 	///
+	/// @brief Determine whether the grabber converts the captured image via the ImageResampler.
+	///        Such grabbers determine the size of the image themselves (it depends on the capture
+	///        resolution and the pixel decimation), i.e. the image should not be pre-sized to the
+	///        configured capture size.
+	///
+	bool isUsingImageResampler() const { return _useImageResampler; }
+
+	///
 	/// @brief Determine if the grabber is available.
 	///
 	/// @return true, on success (i.e. library is present), else false
