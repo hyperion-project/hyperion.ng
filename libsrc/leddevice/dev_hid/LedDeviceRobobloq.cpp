@@ -58,10 +58,10 @@ LedDevice* LedDeviceRobobloq::construct(const QJsonObject& deviceConfig)
 QJsonObject LedDeviceRobobloq::discover(const QJsonObject& params)
 {
 	QJsonObject discoveryParams(params);
-#if defined(Q_OS_MACOS) || defined(Q_OS_WIN)
+#if defined(__APPLE__) || defined(_WIN32)
 	discoveryParams.insert("usagePage", formatHexValue(USAGE_PAGE));
 	discoveryParams.insert("usage", formatHexValue(USAGE));
-#elif defined(Q_OS_LINUX)
+#elif defined(__linux__)
 	// The Linux libusb backend does not resolve usage pairs during enumeration.
 	// HIDAPI recommends using the interface number for composite devices instead.
 	discoveryParams.insert("interfaceNumber", PROTOCOL_INTERFACE_NUMBER);
