@@ -7,7 +7,7 @@
 #include <QString>
 #include <QTextStream>
 
-#ifdef WIN32
+#ifdef _WIN32
 // psapi.h requires windows.h to be included
 #include <Windows.h>
 #include <Psapi.h>
@@ -18,7 +18,7 @@ QStringList getProcessIdsByProcessName(const QString& processName)
 {
 	QStringList listOfPids;
 
-#if defined(WIN32)
+#if defined(_WIN32)
 	// https://docs.microsoft.com/en-us/windows/win32/toolhelp/taking-a-snapshot-and-viewing-processes
 	/* Take a snapshot of all processes in the system */
 	HANDLE hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);

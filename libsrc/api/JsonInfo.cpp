@@ -702,7 +702,7 @@ QJsonArray JsonInfo::discoverAudioInputs(const QJsonObject& params) const
 	QJsonArray audioInputs;
 
 #ifdef ENABLE_AUDIO
-#ifdef WIN32
+#ifdef _WIN32
 	discoverGrabber<AudioGrabberWindows>(audioInputs, params);
 #endif
 

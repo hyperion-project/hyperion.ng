@@ -2,7 +2,7 @@
 
 #include <hyperion/GrabberWrapper.h>
 
-#ifdef WIN32
+#ifdef _WIN32
 	#include <grabber/audio/AudioGrabberWindows.h>
 #endif
 
@@ -58,7 +58,7 @@ class AudioWrapper : public GrabberWrapper
 		void newFrame(const Image<ColorRgb>& image);
 
 		/// The actual grabber
-#ifdef WIN32
+#ifdef _WIN32
 		AudioGrabberWindows _grabber;
 #endif
 
