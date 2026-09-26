@@ -2,3 +2,4 @@ name: "CodeQL config"
 paths-ignore:
   - 'dependencies/external/'
   - 'assets/webconfig/js/lib'
+  - 'build/**'
