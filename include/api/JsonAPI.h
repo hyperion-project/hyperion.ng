@@ -302,6 +302,14 @@ private:
 	///
 	void handleSystemCommand(const QJsonObject &message, const JsonApiCommand& cmd);
 
+	/// Handle an incoming JSON message to get/set startup source
+	///
+	/// @param message the incoming message
+	///
+	void handleStartupSourceCommand(const QJsonObject &message, const JsonApiCommand& cmd);
+
+	void handleTwilightCommand(const QJsonObject& message, const JsonApiCommand& cmd);
+
 	///  Handle an incoming data request message
 	/// 
 	/// @param message the incoming message

@@ -311,6 +311,7 @@ public slots:
 	/// @return      Data Document
 	///
 	QJsonDocument getSetting(settings::type type) const;
+	QString getSettingString(settings::type type) const;
 
 	///
 	/// @brief Save a complete json config
@@ -382,6 +383,18 @@ public slots:
 	/// @param isIdle True, selected components will be deactivated, else put into their previous state before idle
 	///
 	void setIdle(bool isIdle);
+
+	///
+	/// @brief Check if twilight auto-suspend is active (night time)
+	/// @return True if night (LEDs should be suspended)
+	///
+	bool isTwilightNight() const { return _twilightEnabled && _isTwilightNight; }
+
+public slots:
+	///
+	/// @brief Calculate current day/night state and suspend/resume LEDs accordingly
+	///
+	void checkTwilightState();
 
 signals:
 	/// Signal which is emitted when a priority channel is actively cleared
@@ -565,7 +578,7 @@ private:
 	/// Writes the final LED colors to the LED device.
 	/// This involves smoothing and throttling.
 	///
-	void writeToLeds();
+	void writeToLeds(hyperion::Components sourceComponent = hyperion::COMP_COLOR);
 
 	/// instance index
 	const quint8 _instIndex;
@@ -632,4 +645,16 @@ private:
 	QScopedPointer<QTimer> _statisticsTimer;
 	std::atomic<int> _totalImagesProcessed{ 0 };
 	std::atomic<int> _imagesSkipped{ 0 };
+
+#ifdef _WIN32
+	bool _suspendOnStart = false;
+#endif
+
+	/// Twilight auto-suspend members
+	bool _twilightEnabled = false;
+	bool _isTwilightNight = true;
+	bool _twilightBootComplete = false;
+	double _twilightLatitude = 55.7558;
+	double _twilightLongitude = 37.6173;
+	QScopedPointer<QTimer> _twilightTimer;
 };

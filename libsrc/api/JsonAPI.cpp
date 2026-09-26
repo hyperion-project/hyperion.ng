@@ -526,6 +526,12 @@ void JsonAPI::handleCommand(const JsonApiCommand& cmd, const QJsonObject &messag
 	case Command::ClearAll:
 		handleClearallCommand(message, cmd);
 	break;
+	case Command::StartupSource:
+		handleStartupSourceCommand(message, cmd);
+	break;
+	case Command::Twilight:
+		handleTwilightCommand(message, cmd);
+	break;
 	case Command::InstanceData:
 		handleInstanceDataCommand(message, cmd);
 		break;
@@ -859,6 +865,96 @@ void JsonAPI::handleClearallCommand(const QJsonObject &message, const JsonApiCom
 	QString replyMsg;
 	API::clearPriority(-1, replyMsg);
 	sendSuccessReply(cmd);
+}
+
+void JsonAPI::handleStartupSourceCommand(const QJsonObject &message, const JsonApiCommand& cmd)
+{
+	if (cmd.subCommand == SubCommand::SetStartupSource)
+	{
+		QJsonObject data = message["data"].toObject();
+		Info(_log, "Saving startup source: %s", QSTRING_CSTR(QString::fromUtf8(JsonUtils::toCompact(data))));
+		QJsonObject config;
+		config["startupSource"] = data;
+		auto hyperion = _hyperionWeak.toStrongRef();
+		if (!hyperion.isNull())
+		{
+			hyperion->saveSettings(config);
+		}
+		else
+		{
+			SettingsManager mgr(0);
+			mgr.saveSettings(config);
+		}
+		sendSuccessReply(cmd);
+	}
+	else
+	{
+		// Get stored startup source
+		QJsonObject data;
+		auto hyperion = _hyperionWeak.toStrongRef();
+		if (!hyperion.isNull())
+		{
+			data = hyperion->getSetting(settings::STARTUPSOURCE).object();
+		}
+		else
+		{
+			SettingsManager mgr(0);
+			data = mgr.getSetting(settings::STARTUPSOURCE).object();
+		}
+		Info(_log, "Read startup source: %s", QSTRING_CSTR(QString::fromUtf8(JsonUtils::toCompact(data))));
+		sendSuccessDataReply(QJsonValue(data), cmd);
+	}
+}
+
+void JsonAPI::handleTwilightCommand(const QJsonObject &message, const JsonApiCommand& cmd)
+{
+	if (cmd.subCommand == SubCommand::SetTwilight)
+	{
+		QJsonObject data = message["data"].toObject();
+		Info(_log, "Saving twilight settings: %s", QSTRING_CSTR(QString::fromUtf8(JsonUtils::toCompact(data))));
+		QJsonObject config;
+		config["twilight"] = data;
+		auto hyperion = _hyperionWeak.toStrongRef();
+		bool ok = false;
+		if (!hyperion.isNull())
+		{
+			auto result = hyperion->saveSettings(config);
+			ok = result.first;
+			if (!ok)
+				Warning(_log, "Failed to save twilight: %s", QSTRING_CSTR(result.second.join(", ")));
+		}
+		else
+		{
+			SettingsManager mgr(0);
+			auto result = mgr.saveSettings(config);
+			ok = result.first;
+			if (!ok)
+				Warning(_log, "Failed to save twilight (no instance): %s", QSTRING_CSTR(result.second.join(", ")));
+		}
+		Info(_log, "Twilight save %s", ok ? "succeeded" : "FAILED");
+		sendSuccessReply(cmd);
+	}
+	else
+	{
+		QJsonObject data;
+		auto hyperion = _hyperionWeak.toStrongRef();
+		if (!hyperion.isNull())
+		{
+			// Debug: check raw DB value
+			QString raw = hyperion->getSettingString(settings::TWILIGHT);
+			Info(_log, "Twilight get raw DB: '%s'", QSTRING_CSTR(raw));
+			data = hyperion->getSetting(settings::TWILIGHT).object();
+			Info(_log, "Twilight get (instance): %s", QSTRING_CSTR(QString::fromUtf8(JsonUtils::toCompact(QJsonValue(data)))));
+			data["isNight"] = hyperion->isTwilightNight();
+		}
+		else
+		{
+			SettingsManager mgr(0);
+			data = mgr.getSetting(settings::TWILIGHT).object();
+			Info(_log, "Twilight get (no instance): %s", QSTRING_CSTR(QString::fromUtf8(JsonUtils::toCompact(QJsonValue(data)))));
+		}
+		sendSuccessDataReply(QJsonValue(data), cmd);
+	}
 }
 
 void JsonAPI::handleAdjustmentCommand(const QJsonObject &message, const JsonApiCommand& cmd)

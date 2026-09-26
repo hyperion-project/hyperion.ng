@@ -296,6 +296,10 @@
          "decay":1,
          "dithering":false,
          "updateDelay":0
+      },
+    "startupSource": {},
+    "twilight": {
+      "enabled": false
       }
-   }
+    }
 }
