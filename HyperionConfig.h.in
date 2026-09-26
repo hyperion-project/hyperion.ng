@@ -37,6 +37,12 @@
 // Define to enable the XCB grabber
 #cmakedefine ENABLE_XCB
 
+// Define to enable the Gamescope grabber (direct gamescope capture via Pipewire)
+#cmakedefine ENABLE_GAMESCOPE
+
+// Define to enable the Desktop Portal grabber (xdg-desktop-portal ScreenCast via Pipewire)
+#cmakedefine ENABLE_DESKTOP_PORTAL
+
 // Define to enable boblight server
 #cmakedefine ENABLE_BOBLIGHT_SERVER
 

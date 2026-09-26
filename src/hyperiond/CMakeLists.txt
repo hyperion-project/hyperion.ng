@@ -87,6 +87,8 @@ target_link_libraries(${PROJECT_NAME}
 	$<$<BOOL:${ENABLE_V4L2}>:v4l2-grabber>
 	$<$<BOOL:${ENABLE_X11}>:x11-grabber>
 	$<$<BOOL:${ENABLE_XCB}>:xcb-grabber>
+	$<$<BOOL:${ENABLE_GAMESCOPE}>:gamescope-grabber>
+	$<$<BOOL:${ENABLE_DESKTOP_PORTAL}>:desktopportal-grabber>
 	$<$<BOOL:${ENABLE_AUDIO}>:audio-grabber>
 	# Input
 	$<$<BOOL:${ENABLE_FLATBUF_SERVER}>:flatbufserver>

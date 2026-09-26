@@ -31,7 +31,7 @@ jobs:
       codename: ${{ matrix.debian.codename[0] }}
       event_name: ${{ github.event_name }}
       pull_request_number: ${{ github.event.pull_request.number }}
-      publish: ${{ startsWith(github.event.ref, 'refs/tags') && matrix.debian.codename[0] == 'bullseye' }}
+      publish: ${{ startsWith(github.event.ref, 'refs/tags') && matrix.debian.codename[0] == 'bookworm' }}
 
   # Build macOS Artifacts
   macos:

@@ -41,6 +41,14 @@
 #include <grabber/xcb/XcbGrabber.h>
 #endif
 
+#if defined(ENABLE_GAMESCOPE)
+#include <grabber/gamescope/GamescopeGrabber.h>
+#endif
+
+#if defined(ENABLE_DESKTOP_PORTAL)
+#include <grabber/desktopportal/DesktopPortalGrabber.h>
+#endif
+
 #if defined(ENABLE_MF)
 #include <grabber/video/mediafoundation/MFGrabber.h>
 #elif defined(ENABLE_V4L2)

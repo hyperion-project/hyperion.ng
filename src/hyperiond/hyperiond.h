@@ -72,6 +72,18 @@
 	using XcbWrapper = QObject;
 #endif
 
+#ifdef ENABLE_GAMESCOPE
+	#include <grabber/gamescope/GamescopeWrapper.h>
+#else
+	using GamescopeWrapper = QObject;
+#endif
+
+#ifdef ENABLE_DESKTOP_PORTAL
+	#include <grabber/desktopportal/DesktopPortalWrapper.h>
+#else
+	using DesktopPortalWrapper = QObject;
+#endif
+
 #if defined(ENABLE_V4L2) || defined(ENABLE_MF)
 	#include <grabber/video/VideoWrapper.h>
 #else
