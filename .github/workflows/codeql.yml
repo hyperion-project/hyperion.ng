@@ -39,6 +39,7 @@ jobs:
         uses: github/codeql-action/init@v4.37.9
         with:
           languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.language == 'cpp' && 'manual' || 'autobuild' }}
           queries: +security-and-quality
           config-file: ./.github/config/codeql.yml
 
@@ -58,14 +59,14 @@ jobs:
         with:
           os: 'debian_bookworm'
           architecture: 'amd64'
-          qt_version: '6'
           build_type: ${{ github.event_name == 'pull_request' && 'debug' || 'release' }}
 
       - name: 👷 Build (C++)
         if: ${{ matrix.language == 'cpp' }}
         run: |
-          cmake --preset linux-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }}
-          cmake --build --preset linux-${{ env.BUILD_TYPE }}
+          # Override build directory to be outside $GITHUB_WORKSPACE
+          cmake --preset linux-${{ env.BUILD_TYPE }} -B ../build-out ${{ steps.dependencies.outputs.cmakeArgs }}
+          cmake --build ../build-out
         env:
           BUILD_TYPE: ${{ github.event_name == 'pull_request' && 'debug' || 'release' }}
 
