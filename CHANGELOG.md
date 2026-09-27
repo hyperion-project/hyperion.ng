@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - MdnsBrowser compile errors when ENABLE_MDNS is false (#2024)
   - LinearColorSmoothing - fix incorrect output interval calculation, fix handling for update frequency >= 1000Hz
   - macOS Screen Capture - Do not take a one-shot screenshot per frame. Use a continuous ScreenCaptureKit stream instead, which is established once. This removes the per-frame shareable content enumeration (WindowServer/replayd CPU) and stops the Screen Recording indicator from flickering, which pinned the macOS Control Center close to 100% CPU (#2046, #2039, #1921)
+  - X11-Grabber - fix that client leaks when repeatedly enabled/disabled (#2035)
 
 ---
 ### Technical
