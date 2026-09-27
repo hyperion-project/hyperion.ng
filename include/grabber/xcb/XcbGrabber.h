@@ -37,9 +37,10 @@ public:
 	bool isAvailable(bool logError = false) override;
 
 	bool open();
+	bool close();	
 	bool setupDisplay();
 
-	int grabFrame(Image<ColorRgb> & image, bool forceUpdate = false);
+	int grabFrame(Image<ColorRgb> & image, bool forceUpdate = false) override;
 	int updateScreenDimensions(bool force = false);
 	void setVideoMode(VideoMode mode) override;
 	bool setWidthHeight(int width, int height) override { return true; }
