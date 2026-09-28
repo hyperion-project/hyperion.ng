@@ -16,12 +16,12 @@
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 
+from __future__ import division
+
 import sys
 import socket
 import serial
 import serial.threaded
-
-from __future__ import division
 
 class SerialToNet(serial.threaded.Protocol):
     """serial->socket"""
@@ -119,6 +119,11 @@ to this service over the network.
         help='local UDP port',
         default=2801)
 
+    group.add_argument(
+        '-I', '--listen',
+        default='0.0.0.0',
+        help='local IP address to listen on, default: %(default)s')
+
     args = parser.parse_args()
 
     # connect to serial port
@@ -137,7 +142,7 @@ to this service over the network.
     if not args.quiet:
         sys.stderr.write(
             '--- UDP to Serial redirector\n'
-            '--- listening on udp port {a.localport}\n'
+            '--- listening on udp {a.listen}:{a.localport}\n'
             '--- sending to {p.name}  {p.baudrate},{p.bytesize}{p.parity}{p.stopbits}\n'
             '--- type Ctrl-C / BREAK to quit\n'.format(p=ser, a=args))
 
@@ -153,7 +158,7 @@ to this service over the network.
 
     srv = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    srv.bind(('0.0.0.0', args.localport))
+    srv.bind((args.listen, args.localport))
 
     try:
         while True:

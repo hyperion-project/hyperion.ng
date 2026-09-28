@@ -33,7 +33,7 @@ while not hyperion.abort():
 		if r["c"] == 0:
 			r["c"] = r["step"]
 			r["pos"] = (r["pos"]+1)%hyperion.ledCount
-			ledData[r["pos"]*3+r["i"]] = int(r["lvl"]*(0.2+0.8*random.random()))
+			ledData[r["pos"]*3+r["i"]] = int(r["lvl"]*(0.2+0.8*random.random()))  # NOSONAR
 		else:
 			r["c"] -= 1
 

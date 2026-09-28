@@ -1,5 +1,4 @@
-import hyperion, time, colorsys, math
-from random import random
+import hyperion, time, colorsys, math, random
 
 # Get the parameters
 rotationTime = float(hyperion.args.get('rotationTime', 20.0))
@@ -34,7 +33,7 @@ baseColorChangeRate = max(0, baseColorChangeRate) # > 0
 # Calculate the color data
 baseHsv = colorsys.rgb_to_hsv(color[0]/255.0, color[1]/255.0, color[2]/255.0)
 if colorRandom:
-    baseHsv = (random(), baseHsv[1], baseHsv[2])
+    baseHsv = (random.random(), baseHsv[1], baseHsv[2])  # NOSONAR
 
 colorData = bytearray()
 for i in range(hyperion.ledCount):
