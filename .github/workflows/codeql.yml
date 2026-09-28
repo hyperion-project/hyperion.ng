@@ -14,7 +14,7 @@ on:
 
 jobs:
   analyze:
-    name: 📊 Analyze
+    name: 📊 Analyze (${{ matrix.language }})
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -24,10 +24,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ python, javascript, cpp ]
+        include:
+          - language: python
+            build-mode: none
+            container: ~
+          - language: javascript
+            build-mode: none
+            container: ~
+          - language: cpp
+            build-mode: manual
+            container:
+              image: ghcr.io/hyperion-project/debian:bookworm-qt6
+              options: -v /__t/CodeQL:/__t/CodeQL -v /opt/hostedtoolcache/CodeQL:/opt/hostedtoolcache/CodeQL
 
-    container:
-      image: ghcr.io/hyperion-project/debian:bookworm-qt6
+    container: ${{ matrix.container }}
 
     steps:
       - name: ⬇ Checkout
@@ -35,22 +45,23 @@ jobs:
         with:
           submodules: recursive
 
+      - name: ⚙️ Mark Workspace Safe for Git
+        if: ${{ matrix.language == 'cpp' }}
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
       - name: 🔁 Initialize CodeQL
         uses: github/codeql-action/init@v4.37.9
         with:
           languages: ${{ matrix.language }}
-          build-mode: ${{ matrix.language == 'cpp' && 'manual' || 'autobuild' }}
+          build-mode: ${{ matrix.build-mode }}
           queries: +security-and-quality
           config-file: ./.github/config/codeql.yml
 
-      - name: 👷 Build (Python & JavaScript)
-        if: ${{ matrix.language != 'cpp' }}
-        uses: github/codeql-action/autobuild@v4.37.9
-
-      - name: 📥 Install jq (C++)
+      - name: 📥 Install jq & Pre-Build Deps (C++)
         if: ${{ matrix.language == 'cpp' }}
         shell: bash
-        run: apt-get update && apt-get install -y jq
+        run: |
+          apt-get update && apt-get install -y jq
 
       - name: 💾 Download Pre-Build Dependencies (C++)
         if: ${{ matrix.language == 'cpp' }}
@@ -61,14 +72,27 @@ jobs:
           architecture: 'amd64'
           build_type: ${{ github.event_name == 'pull_request' && 'debug' || 'release' }}
 
+      - name: ⚡ Setup ccache
+        if: ${{ matrix.language == 'cpp' }}
+        uses: hendrikmuhs/ccache-action@v1.2.24
+        with:
+          key: ${{ runner.os }}-codeql-ccache-${{ github.ref }}
+          restore-keys: |
+            ${{ runner.os }}-codeql-ccache-master
+            ${{ runner.os }}-codeql-ccache-
+
       - name: 👷 Build (C++)
         if: ${{ matrix.language == 'cpp' }}
         run: |
-          # Override build directory to be outside $GITHUB_WORKSPACE
-          cmake --preset linux-${{ env.BUILD_TYPE }} -B ../build-out ${{ steps.dependencies.outputs.cmakeArgs }}
-          cmake --build ../build-out
+          # Ensure ccache uses the workspace directory shared with the host
+          export CCACHE_DIR="$GITHUB_WORKSPACE/.ccache"
+          mkdir -p "$CCACHE_DIR"
+          
+          cmake --preset linux-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }} -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
+          cmake --build --preset linux-${{ env.BUILD_TYPE }}
         env:
           BUILD_TYPE: ${{ github.event_name == 'pull_request' && 'debug' || 'release' }}
+          CCACHE_DIR: ${{ github.workspace }}/.ccache
 
       - name: 🏃 Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4.37.9
@@ -81,8 +105,16 @@ jobs:
         uses: advanced-security/filter-sarif@v1
         with:
           patterns: |
-            -**/dependencies/**
-            -**/moc_*.cpp
+            -dependencies/**
+            -/**/dependencies/**
+            -moc_*.cpp
+            -/**/moc_*.cpp
+            -build/**
+            -/**/build/**
+            -*.pb.cc
+            -/**/*.pb.cc
+            -*.pb.h
+            -/**/*.pb.h
           input: sarif-results/${{ matrix.language }}.sarif
           output: sarif-results/${{ matrix.language }}.sarif
 
