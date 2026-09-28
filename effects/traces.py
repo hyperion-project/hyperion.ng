@@ -1,4 +1,5 @@
-import hyperion, time, random, math
+import hyperion, time, math
+from random import random
 
 # Traces requires at least 2 LEDs so runners can advance positions and ledData is non-empty
 if hyperion.ledCount < 2:
@@ -33,7 +34,7 @@ while not hyperion.abort():
 		if r["c"] == 0:
 			r["c"] = r["step"]
 			r["pos"] = (r["pos"]+1)%hyperion.ledCount
-			ledData[r["pos"]*3+r["i"]] = int(r["lvl"]*(0.2+0.8*random.random()))  # codeql[py/call-to-non-callable] # NOSONAR
+			ledData[r["pos"]*3+r["i"]] = int(r["lvl"]*(0.2+0.8*random())) # NOSONAR
 		else:
 			r["c"] -= 1
 
