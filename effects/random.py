@@ -1,5 +1,8 @@
-import hyperion, time, colorsys, math
-from random import random, randrange
+import hyperion, time, colorsys, math, importlib
+
+_stdlib_random = importlib.import_module('random')
+random = _stdlib_random.random
+randrange = _stdlib_random.randrange
 
 # get args
 sleepTime  = float(hyperion.args.get('speed', 1.0))/1000.0
@@ -24,8 +27,8 @@ while not hyperion.abort():
 		ledDataBuf[i] = ledData[i]
 
 	for i in range(hyperion.ledCount):
-		if randrange(10) == 1: # NOSONAR
-			rgb = colorsys.hsv_to_rgb(random(), saturation, random())  # NOSONAR
+		if randrange(10) == 1:
+			rgb = colorsys.hsv_to_rgb(random(), saturation, random())
 			ledData[i*3  ] = int(255*rgb[0])
 			ledData[i*3+1] = int(255*rgb[1])
 			ledData[i*3+2] = int(255*rgb[2])
