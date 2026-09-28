@@ -27,14 +27,17 @@ jobs:
         include:
           - language: python
             build-mode: none
+            container: ~
           - language: javascript
             build-mode: none
+            container: ~
           - language: cpp
             build-mode: manual
+            container:
+              image: ghcr.io/hyperion-project/debian:bookworm-qt6
+              options: -v /__t/CodeQL:/__t/CodeQL -v /opt/hostedtoolcache/CodeQL:/opt/hostedtoolcache/CodeQL
 
-    container:
-      image: ghcr.io/hyperion-project/debian:bookworm-qt6
-      options: -v /__t/CodeQL:/__t/CodeQL -v /opt/hostedtoolcache/CodeQL:/opt/hostedtoolcache/CodeQL
+    container: ${{ matrix.container }}
 
     steps:
       - name: ⬇ Checkout
