@@ -23,10 +23,10 @@ for i in range(hyperion.ledCount):
 while not hyperion.abort():
 	ledData[:] = bytearray(3*hyperion.ledCount)
 	for i in range(hyperion.ledCount):
-		if random.random() < 0.005:   # NOSONAR
+		if random.random() < 0.005:   # codeql[py/call-to-non-callable]
 
 			if randomColor:
-				rgb = colorsys.hsv_to_rgb(random.random(), saturation, brightness)  # NOSONAR
+				rgb = colorsys.hsv_to_rgb(random.random(), saturation, brightness)  # codeql[py/call-to-non-callable] # NOSONAR
 				for n in range(3):
 					color[n] = int(rgb[n]*255)
 
