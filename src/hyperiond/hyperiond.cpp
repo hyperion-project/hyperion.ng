@@ -85,8 +85,12 @@
 #endif
 
 namespace {
-	// The following line ensures that the GlobalSignals singleton is created when the library is loaded
-	[[maybe_unused]] const auto ensureGlobalSignalsInitialized = GlobalSignals::getInstance();
+	// Ensure the GlobalSignals singleton is created when the library is loaded.
+	// Using a struct with a constructor avoids any "unused variable" static analysis warnings.
+	struct GlobalSignalsInitializer {
+		GlobalSignalsInitializer() { (void)GlobalSignals::getInstance(); }
+	};
+	const GlobalSignalsInitializer globalSignalsInitializer;
 }
 
 HyperionDaemon* HyperionDaemon::daemon = nullptr;
