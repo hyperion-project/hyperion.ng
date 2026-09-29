@@ -25,8 +25,8 @@ import sys
 import textwrap
 
 try:
-    from collections import MutableMapping
-except ImportError:
+    MutableMapping = collections.MutableMapping
+except AttributeError:
     from collections.abc import MutableMapping
 
 try:
@@ -1283,7 +1283,7 @@ class ErrorTree(object):
         """
 
         if self._instance is not _unset and k not in self:
-            self._instance[k]
+            _ = self._instance[k]
         return self._contents[k]
 
     def __setitem__(self, k, v):

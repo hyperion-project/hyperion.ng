@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - macOS bundle - Code signing identity is configurable via `MACOS_CODESIGN_IDENTITY` ('-' = ad-hoc). A stable identity keeps the macOS privacy permissions (e.g. Screen Recording) across rebuilds.
 - Housekeeping - GitHub builds
 - Script to validate translations files for common malformed placeholder/template tokens that may break the i18n parser
+- Update CodeQL runs to exclude external code, plus addressed CodeQL findings
 
 ## [2.2.1](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.2.1) - 2026-04-06
 

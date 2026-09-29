@@ -4,8 +4,8 @@
 #include <db/DBManager.h>
 
 namespace hyperion {
-const char DEFAULT_USER[] = "Hyperion";
-const char DEFAULT_PASSWORD[] = "hyperion";
+inline constexpr char DEFAULT_USER[] = "Hyperion";
+inline constexpr char DEFAULT_PASSWORD[] = "hyperion";
 }
 
 ///

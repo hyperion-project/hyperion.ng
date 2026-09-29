@@ -562,15 +562,8 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 		crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 		crop.c = cropcap.defrect; /* reset to default */
 
-		if (-1 == xioctl(VIDIOC_S_CROP, &crop))
-		{
-			switch (errno)
-			{
-				case EINVAL: /* Cropping not supported. */
-				default: /* Errors ignored. */
-					break;
-			}
-		}
+		/* Reset to default crop — ignore errors (EINVAL = cropping not supported). */
+		(void)xioctl(VIDIOC_S_CROP, &crop);
 	}
 
 	// set input if needed and supported
@@ -1410,30 +1403,83 @@ bool V4L2Grabber::reload(bool force)
 	return false;
 }
 
+/// @brief Enumerates all available V4L2 capture devices and returns their
+///        capabilities as a JSON array suitable for the Hyperion device-discovery API.
+///
+/// The function first calls @c enumVideoCaptureDevices() to refresh the internal
+/// @c _deviceProperties and @c _deviceControls maps.  It then walks every device,
+/// skipping those that have no usable inputs, and assembles one JSON object per
+/// device.
+///
+/// @par Returned JSON schema (one element of the array)
+/// @code{.json}
+/// {
+///   "device":       "/dev/video0",
+///   "device_name":  "USB Capture Card",
+///   "type":         "v4l2",
+///   "video_inputs": [
+///     {
+///       "name":     "Composite",
+///       "inputIdx": 0,
+///       "standards": ["PAL", "NTSC"],        // only present when non-empty
+///       "formats": [
+///         {
+///           "format": "yuyv",
+///           "resolutions": [
+///             { "width": 640, "height": 480, "fps": [25, 30] }
+///           ]
+///         }
+///       ]
+///     }
+///   ],
+///   "properties": {                          // current V4L2 control values
+///     "brightness": { "minValue": 0, "maxValue": 255, "step": 1, "current": 128 }
+///   },
+///   "default": {                             // suggested defaults for the UI
+///     "video_input": { "inputIdx": 0, "standards": "PAL",
+///                      "formats": { "format": "yuyv",
+///                                   "resolution": { "width": 640, "height": 480, "fps": 25 } } },
+///     "properties": { "brightness": 128 }
+///   }
+/// }
+/// @endcode
+///
+/// @note The internal @c _deviceProperties and @c _deviceControls maps are
+///       cleared at the end of this call.  Call @c enumVideoCaptureDevices()
+///       again if a fresh enumeration is required later.
+///
+/// @param params Discovery parameters (currently unused).
+/// @return A @c QJsonArray containing one object per discovered V4L2 device
+///         that has at least one input.
 QJsonArray V4L2Grabber::discover(const QJsonObject& /*params*/)
 {
+	// Refresh the internal device and control maps from the kernel.
 	enumVideoCaptureDevices();
 
 	QJsonArray inputsDiscovered;
 	for (auto device_property = _deviceProperties.constBegin(); device_property != _deviceProperties.constEnd(); ++device_property)
 	{
+		// Skip devices that expose no usable video inputs.
 		if (device_property.value().inputs.isEmpty())
 		{
 			continue;
 		}
 
+		// Top-level device descriptor.
 		QJsonObject device;
 		device["device"] = device_property.key();
 		device["device_name"] = device_property.value().name;
 		device["type"] = "v4l2";
 
-		QJsonArray video_inputs;		
+		// Build the list of video inputs for this device.
+		QJsonArray video_inputs;
 		for (auto input = device_property.value().inputs.constBegin(); input != device_property.value().inputs.constEnd(); ++input)
 		{
 			QJsonObject in;
 			in["name"] = input.value().inputName;
 			in["inputIdx"] = input.key();
 
+			// Collect the unique broadcast standards supported by this input.
 			QJsonArray standards;
 			for (auto std = input.value().standards.constBegin(); std != input.value().standards.constEnd(); ++std)
 			{
@@ -1448,6 +1494,7 @@ QJsonArray V4L2Grabber::discover(const QJsonObject& /*params*/)
 				in["standards"] = standards;
 			}
 
+			// Build the list of supported pixel formats and their resolutions/frame rates.
 			QJsonArray formats;
 			for (auto encodingFormat : input.value().encodingFormats.uniqueKeys())
 			{
@@ -1456,6 +1503,8 @@ QJsonArray V4L2Grabber::discover(const QJsonObject& /*params*/)
 
 				format["format"] = pixelFormatToString(encodingFormat);
 
+				// Merge duplicate (width, height) entries so each resolution appears
+				// once with all its supported frame rates collected into a set.
 				auto combined = QMap<std::pair<int, int>, QSet<int>>();
 				for (const auto &enc : input.value().encodingFormats.values(encodingFormat))
 				{
@@ -1467,6 +1516,7 @@ QJsonArray V4L2Grabber::discover(const QJsonObject& /*params*/)
 					}
 				}
 
+				// Emit one resolution object per unique (width, height) pair.
 				for (auto enc = combined.constBegin(); enc != combined.constEnd(); ++enc)
 				{
 					QJsonObject resolution;
@@ -1488,14 +1538,15 @@ QJsonArray V4L2Grabber::discover(const QJsonObject& /*params*/)
 			}
 			in["formats"] = formats;
 			video_inputs.append(in);
-
 		}
 
 		device["video_inputs"] = video_inputs;
 
+		// Collect the current and default values of all V4L2 controls (brightness,
+		// contrast, etc.) exposed by this device.
 		QJsonObject controls;
 		QJsonObject controls_default;
-		for (const auto &control :  std::as_const(_deviceControls[device_property.key()]))
+		for (const auto &control : std::as_const(_deviceControls[device_property.key()]))
 		{
 			QJsonObject property;
 			property["minValue"] = control.minValue;
@@ -1503,10 +1554,12 @@ QJsonArray V4L2Grabber::discover(const QJsonObject& /*params*/)
 			property["step"] = control.step;
 			property["current"] = control.currentValue;
 			controls[control.property] = property;
+			// Apply any device-specific default-value overrides before storing.
 			controls_default[control.property] = v4l2FixDefaultValue(_deviceProperties[device_property.key()].name, control.property, control.defaultValue, control.minValue, control.maxValue);
 		}
 		device["properties"] = controls;
 
+		// Assemble hard-coded UI defaults for video input and device controls.
 		QJsonObject resolution_default;
 		resolution_default["width"] = 640;
 		resolution_default["height"] = 480;
@@ -1521,7 +1574,7 @@ QJsonArray V4L2Grabber::discover(const QJsonObject& /*params*/)
 		video_inputs_default["standards"] = "PAL";
 		video_inputs_default["formats"] = format_default;
 
-		QJsonObject defaults;		
+		QJsonObject defaults;
 		defaults["video_input"] = video_inputs_default;
 		defaults["properties"] = controls_default;
 		device["default"] = defaults;
@@ -1529,6 +1582,7 @@ QJsonArray V4L2Grabber::discover(const QJsonObject& /*params*/)
 		inputsDiscovered.append(device);
 	}
 
+	// Free the internal maps; a new enumeration is required for fresh data.
 	_deviceProperties.clear();
 	_deviceControls.clear();
 

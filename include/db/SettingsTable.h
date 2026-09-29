@@ -13,7 +13,7 @@
 #include <QJsonDocument>
 
 const int NO_INSTANCE_ID = std::numeric_limits<quint8>::max();;
-const char DEFAULT_CONFIG_VERSION[] = "2.0.0-alpha.8";
+inline constexpr char DEFAULT_CONFIG_VERSION[] = "2.0.0-alpha.8";
 
 ///
 /// @brief settings table db interface
