@@ -4,9 +4,9 @@
 #include <HyperionConfig.h>
 
 // utils includes
-#include <utils/GlobalSignals.h>
 #include <events/EventHandler.h>
 #include <events/OsEventHandler.h>
+#include <utils/GlobalSignals.h>
 
 // qt
 #include <QTimer>
@@ -74,7 +74,7 @@ GrabberWrapper::~GrabberWrapper()
 bool GrabberWrapper::start()
 {
 	qCDebug(grabber_flow) << "Request to start grabber" << _grabberName
-		<< ", which is currently"<< (_ggrabber->isEnabled() ? "enabled" : "disabled");
+	                      << ", which is currently" << (_ggrabber->isEnabled() ? "enabled" : "disabled");
 	if (!_ggrabber->isAvailable())
 	{
 		qCDebug(grabber_flow) << "Grabber" << _grabberName << "is not started as it not available";
@@ -84,7 +84,7 @@ bool GrabberWrapper::start()
 	if (!_ggrabber->isEnabled())
 	{
 		qCDebug(grabber_flow) << "Grabber" << _grabberName << "is not started as it is disabled";
-		Info(_log,"%s grabber is disabled, it is not started", QSTRING_CSTR(getName()));
+		Info(_log, "%s grabber is disabled, it is not started", QSTRING_CSTR(getName()));
 		return false;
 	}
 
@@ -94,15 +94,15 @@ bool GrabberWrapper::start()
 		return true;
 	}
 
-	if ( !open() )
+	if (!open())
 	{
 		return false;
 	}
-	
+
 	if (!_timer->isActive())
 	{
 		// Start the timer with the pre configured interval
-		Info(_log,"%s grabber started", QSTRING_CSTR(getName()));
+		Info(_log, "%s grabber started", QSTRING_CSTR(getName()));
 		_timer->start();
 	}
 	qCDebug(grabber_flow) << "Grabber" << _grabberName << (_timer->isActive() ? "active" : "inactive") << "now";
@@ -113,23 +113,26 @@ bool GrabberWrapper::start()
 void GrabberWrapper::stop()
 {
 	qCDebug(grabber_flow) << "Request to stop grabber" << _grabberName
-		<< ", which is currently"<< (_ggrabber->isEnabled() ? "enabled" : "disabled")
-		<< ", and" << (_timer->isActive() ? "active" : "inactive");
+	                      << ", which is currently" << (_ggrabber->isEnabled() ? "enabled" : "disabled")
+	                      << ", and" << (_timer->isActive() ? "active" : "inactive");
 
 	if (_timer->isActive())
 	{
 		// Stop the timer, effectively stopping the process
-		Info(_log,"%s grabber stopped", QSTRING_CSTR(getName()));
+		Info(_log, "%s grabber stopped", QSTRING_CSTR(getName()));
 		_timer->stop();
 	}
+
+	close();
+
 	qCDebug(grabber_flow) << "Grabber" << _grabberName << "stopped";
 }
 
 bool GrabberWrapper::restart()
 {
 	qCDebug(grabber_flow) << "Request to restart grabber" << _grabberName
-		<< ", which is currently" << (_ggrabber->isEnabled() ? "enabled" : "disabled")
-		<< ", and" << (_timer->isActive() ? "active" : "inactive");
+	                      << ", which is currently" << (_ggrabber->isEnabled() ? "enabled" : "disabled")
+	                      << ", and" << (_timer->isActive() ? "active" : "inactive");
 
 	_timer->stop();
 	return start();
@@ -186,59 +189,59 @@ QStringList GrabberWrapper::availableGrabbers(GrabberTypeFilter type)
 
 	if (type == GrabberTypeFilter::SCREEN || type == GrabberTypeFilter::ALL)
 	{
-		#ifdef ENABLE_DISPMANX
-				grabbers << "dispmanx";
-		#endif
+#ifdef ENABLE_DISPMANX
+		grabbers << "dispmanx";
+#endif
 
-		#ifdef ENABLE_FB
-				grabbers << "framebuffer";
-		#endif
+#ifdef ENABLE_FB
+		grabbers << "framebuffer";
+#endif
 
-		#ifdef ENABLE_AMLOGIC
-				grabbers << "amlogic";
-		#endif
+#ifdef ENABLE_AMLOGIC
+		grabbers << "amlogic";
+#endif
 
-		#ifdef ENABLE_OSX
-				grabbers << "osx";
-		#endif
+#ifdef ENABLE_OSX
+		grabbers << "osx";
+#endif
 
-		#ifdef ENABLE_X11
-				grabbers << "x11";
-		#endif
+#ifdef ENABLE_X11
+		grabbers << "x11";
+#endif
 
-		#ifdef ENABLE_XCB
-				grabbers << "xcb";
-		#endif
+#ifdef ENABLE_XCB
+		grabbers << "xcb";
+#endif
 
-		#ifdef ENABLE_QT
-				grabbers << "qt";
-		#endif
+#ifdef ENABLE_QT
+		grabbers << "qt";
+#endif
 
-		#ifdef ENABLE_DX
-				grabbers << "dx";
-		#endif
+#ifdef ENABLE_DX
+		grabbers << "dx";
+#endif
 
-		#ifdef ENABLE_DDA
-				grabbers << "dda";
-		#endif
+#ifdef ENABLE_DDA
+		grabbers << "dda";
+#endif
 
-		#ifdef ENABLE_DRM
-				grabbers << "drm";
-		#endif
+#ifdef ENABLE_DRM
+		grabbers << "drm";
+#endif
 	}
 
 	if (type == GrabberTypeFilter::VIDEO || type == GrabberTypeFilter::ALL)
 	{
-		#if defined(ENABLE_V4L2) || defined(ENABLE_MF)
-			grabbers << "v4l2";
-		#endif
+#if defined(ENABLE_V4L2) || defined(ENABLE_MF)
+		grabbers << "v4l2";
+#endif
 	}
 
 	if (type == GrabberTypeFilter::AUDIO || type == GrabberTypeFilter::ALL)
 	{
-		#ifdef ENABLE_AUDIO
-			grabbers << "audio";
-		#endif
+#ifdef ENABLE_AUDIO
+		grabbers << "audio";
+#endif
 	}
 
 	return grabbers;
@@ -248,7 +251,7 @@ void GrabberWrapper::setVideoMode(VideoMode mode)
 {
 	if (_ggrabber != nullptr)
 	{
-		Info(_log,"setVideoMode");
+		Info(_log, "setVideoMode");
 		_ggrabber->setVideoMode(mode);
 	}
 }
@@ -265,7 +268,7 @@ void GrabberWrapper::setCropping(int cropLeft, int cropRight, int cropTop, int c
 
 void GrabberWrapper::updateTimer(int interval)
 {
-	if(_updateInterval_ms != interval)
+	if (_updateInterval_ms != interval)
 	{
 		_updateInterval_ms = interval;
 
@@ -273,7 +276,7 @@ void GrabberWrapper::updateTimer(int interval)
 		_timer->stop();
 		_timer->setInterval(_updateInterval_ms);
 
-		if(timerWasActive)
+		if (timerWasActive)
 		{
 			_timer->start();
 		}
@@ -283,8 +286,8 @@ void GrabberWrapper::updateTimer(int interval)
 void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
 	if (type == settings::SYSTEMCAPTURE &&
-		!_grabberName.startsWith("V4L") &&
-		!_grabberName.startsWith("Audio"))
+	    !_grabberName.startsWith("V4L") &&
+	    !_grabberName.startsWith("Audio"))
 	{
 		const QJsonObject& obj = config.object();
 		qCDebug(grabber_flow) << "Screen grabber" << _grabberName << "updating settings with" << obj;
@@ -310,10 +313,10 @@ void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocume
 
 			// crop for system capture
 			_ggrabber->setCropping(
-				obj["cropLeft"].toInt(0),
-				obj["cropRight"].toInt(0),
-				obj["cropTop"].toInt(0),
-				obj["cropBottom"].toInt(0));
+			    obj["cropLeft"].toInt(0),
+			    obj["cropRight"].toInt(0),
+			    obj["cropTop"].toInt(0),
+			    obj["cropBottom"].toInt(0));
 
 			_ggrabber->setFramerate(obj["fps"].toInt(DEFAULT_RATE_HZ));
 			// eval new update time
@@ -340,8 +343,8 @@ void GrabberWrapper::handleSourceRequestScreen(hyperion::Components component, i
 {
 	// Handle screen grabber requests (e.g., X11, DirectX)
 	if (component == hyperion::Components::COMP_GRABBER &&
-		!_grabberName.startsWith("V4L") &&
-		!_grabberName.startsWith("Audio"))
+	    !_grabberName.startsWith("V4L") &&
+	    !_grabberName.startsWith("Audio"))
 	{
 		qCDebug(grabber_screen_flow) << "Instance [" << hyperionInd << "] - Request to" << (listen ? "add" : "remove") << "screen grabber" << _grabberName << "which is" << (getSysGrabberState() ? "enabled" : "disabled");
 		if (listen)
@@ -362,6 +365,7 @@ void GrabberWrapper::handleSourceRequestScreen(hyperion::Components component, i
 				// If this is the first client, start the grabber
 				qCDebug(grabber_screen_flow) << "Instance [" << hyperionInd << "] - First instance available for screen grabber";
 				start();
+				qCDebug(grabber_screen_flow) << "Instance [" << hyperionInd << "] - Screen grabber" << _grabberName << "started";
 			}
 		}
 		else
@@ -423,7 +427,7 @@ void GrabberWrapper::handleSourceRequestVideo(hyperion::Components component, in
 void GrabberWrapper::handleSourceRequestAudio(hyperion::Components component, int hyperionInd, bool listen)
 {
 	if (component == hyperion::Components::COMP_AUDIO &&
-		_grabberName.startsWith("Audio"))
+	    _grabberName.startsWith("Audio"))
 	{
 		qCDebug(grabber_audio_flow) << "Instance [" << hyperionInd << "] - Request to" << (listen ? "add" : "remove") << "audio grabber" << _grabberName << "which is" << (getAudioGrabberState() ? "enabled" : "disabled");
 
@@ -476,9 +480,9 @@ void GrabberWrapper::tryStart()
 {
 	// verify start condition
 	if (!_grabberName.startsWith("V4L") &&
-		!_grabberName.startsWith("Audio") &&
-		!GRABBER_SYS_CLIENTS.empty() &&
-		getSysGrabberState())
+	    !_grabberName.startsWith("Audio") &&
+	    !GRABBER_SYS_CLIENTS.empty() &&
+	    getSysGrabberState())
 	{
 		start();
 	}
