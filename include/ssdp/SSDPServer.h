@@ -16,7 +16,7 @@ public:
 	/// @brief Construct the server, listen on default ssdp address/port with multicast
 	/// @param parent  The parent object
 	///
-	SSDPServer(QObject* parent = nullptr);
+	explicit SSDPServer(QObject* parent = nullptr);
 	~SSDPServer() override;
 
 	///
