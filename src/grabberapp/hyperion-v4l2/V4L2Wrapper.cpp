@@ -5,6 +5,7 @@
 #include <QEventLoop>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QTimer>
 
 #include "ScreenshotHandler.h"
 
@@ -88,29 +89,48 @@ void V4L2Wrapper::setVideoMode(VideoMode mode)
 
 const Image<ColorRgb>& V4L2Wrapper::getScreenshot()
 {
+	if (!_grabber.start())
+	{
+		emit sig_error(QStringLiteral("Failed to start the V4L2 device for screenshot capture"));
+		return _screenshot;
+	}
+
 	QEventLoop loop;
+	bool frameReceived = false;
 
 	// Prints the same "no signal area" suggestion diagnostics to stdout as before.
 	ScreenshotHandler handler(_grabber.getSignalDetectionOffset());
 	connect(&_grabber, &V4L2Grabber::newFrame, &handler, &ScreenshotHandler::receiveImage);
 
-	QMetaObject::Connection const captureConn = connect(&_grabber, &V4L2Grabber::newFrame, this, [this, &loop](const Image<ColorRgb>& image) {
+	QMetaObject::Connection const captureConn = connect(&_grabber, &V4L2Grabber::newFrame, this, [this, &loop, &frameReceived](const Image<ColorRgb>& image) {
 		_screenshot = image;
+		frameReceived = true;
 		loop.quit();
 	});
 
-	_grabber.start();
+	// Bound the wait: a device that opened successfully may still never deliver a
+	// frame (e.g. disconnected signal source), which would otherwise hang forever.
+	QTimer::singleShot(NO_FRAME_TIMEOUT_MS, &loop, &QEventLoop::quit);
+
 	loop.exec();
 	_grabber.stop();
 
 	disconnect(captureConn);
+
+	if (!frameReceived)
+	{
+		emit sig_error(QStringLiteral("No frame received from the V4L2 device within %1 ms").arg(NO_FRAME_TIMEOUT_MS));
+	}
 
 	return _screenshot;
 }
 
 void V4L2Wrapper::start()
 {
-	_grabber.start();
+	if (!_grabber.start())
+	{
+		emit sig_error(QStringLiteral("Failed to start the V4L2 device"));
+	}
 }
 
 void V4L2Wrapper::stop()

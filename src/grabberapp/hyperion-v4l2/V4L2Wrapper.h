@@ -38,6 +38,11 @@ public:
 signals:
 	void sig_screenshot(const Image<ColorRgb>& image);
 
+	// Emitted when the device fails to start, or starts but delivers no frame within
+	// the bounded timeout (see getScreenshot()/start()). Callers are expected to wire
+	// this to ErrorManager::errorOccurred.
+	void sig_error(const QString& message);
+
 private:
 	V4L2Grabber _grabber;
 	Image<ColorRgb> _screenshot;
@@ -45,4 +50,9 @@ private:
 	// Set once a matching device (path + enumerated name) was resolved in the
 	// constructor; see the comment there for why this is required.
 	bool _deviceResolved = false;
+
+	// Upper bound for how long getScreenshot() waits for a single frame once the
+	// device has started, so a device that opens but never delivers a frame cannot
+	// hang the process indefinitely.
+	static constexpr int NO_FRAME_TIMEOUT_MS = 5000;
 };
