@@ -50,7 +50,7 @@ jobs:
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - name: 🔁 Initialize CodeQL
-        uses: github/codeql-action/init@v4.37.9
+        uses: github/codeql-action/init@v4.38.2
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
@@ -95,7 +95,7 @@ jobs:
           CCACHE_DIR: ${{ github.workspace }}/.ccache
 
       - name: 🏃 Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v4.37.9
+        uses: github/codeql-action/analyze@v4.38.2
         with:
           category: "/language:${{ matrix.language }}"
           upload: False
@@ -119,7 +119,7 @@ jobs:
           output: sarif-results/${{ matrix.language }}.sarif
 
       - name: 📦 Upload SARIF
-        uses: github/codeql-action/upload-sarif@v4.37.9
+        uses: github/codeql-action/upload-sarif@v4.38.2
         with:
           sarif_file: sarif-results/${{ matrix.language }}.sarif
 
