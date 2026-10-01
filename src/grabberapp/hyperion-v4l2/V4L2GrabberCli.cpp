@@ -40,13 +40,13 @@ V4L2GrabberOptions parseV4L2GrabberOptions(const QCoreApplication& app)
 
 	BooleanOption const& argSignalDetection = parser.add<BooleanOption>(0x0, "signal-detection-disabled", "disable signal detection");
 	DoubleOption& argSignalThreshold = parser.add<DoubleOption>(0x0, "signal-threshold", "The signal threshold for detecting the presence of a signal. Value should be between 0.0 and 1.0.", QString(), 0.0, 1.0);
-	DoubleOption& argRedSignalThreshold = parser.add<DoubleOption>(0x0, "red-threshold", "The red signal threshold. Value should be between 0.0 and 1.0. (overrides --signal-threshold)");
-	DoubleOption& argGreenSignalThreshold = parser.add<DoubleOption>(0x0, "green-threshold", "The green signal threshold. Value should be between 0.0 and 1.0. (overrides --signal-threshold)");
-	DoubleOption& argBlueSignalThreshold = parser.add<DoubleOption>(0x0, "blue-threshold", "The blue signal threshold. Value should be between 0.0 and 1.0. (overrides --signal-threshold)");
-	DoubleOption& argSignalHorizontalMin = parser.add<DoubleOption>(0x0, "signal-horizontal-min", "area for signal detection - horizontal minimum offset value. Values between 0.0 and 1.0");
-	DoubleOption& argSignalVerticalMin = parser.add<DoubleOption>(0x0, "signal-vertical-min", "area for signal detection - vertical minimum offset value. Values between 0.0 and 1.0");
-	DoubleOption& argSignalHorizontalMax = parser.add<DoubleOption>(0x0, "signal-horizontal-max", "area for signal detection - horizontal maximum offset value. Values between 0.0 and 1.0");
-	DoubleOption& argSignalVerticalMax = parser.add<DoubleOption>(0x0, "signal-vertical-max", "area for signal detection - vertical maximum offset value. Values between 0.0 and 1.0");
+	DoubleOption& argRedSignalThreshold = parser.add<DoubleOption>(0x0, "red-threshold", "The red signal threshold. Value should be between 0.0 and 1.0. (overrides --signal-threshold)", QString(), 0.0, 1.0);
+	DoubleOption& argGreenSignalThreshold = parser.add<DoubleOption>(0x0, "green-threshold", "The green signal threshold. Value should be between 0.0 and 1.0. (overrides --signal-threshold)", QString(), 0.0, 1.0);
+	DoubleOption& argBlueSignalThreshold = parser.add<DoubleOption>(0x0, "blue-threshold", "The blue signal threshold. Value should be between 0.0 and 1.0. (overrides --signal-threshold)", QString(), 0.0, 1.0);
+	DoubleOption& argSignalHorizontalMin = parser.add<DoubleOption>(0x0, "signal-horizontal-min", "area for signal detection - horizontal minimum offset value. Values between 0.0 and 1.0", QString(), 0.0, 1.0);
+	DoubleOption& argSignalVerticalMin = parser.add<DoubleOption>(0x0, "signal-vertical-min", "area for signal detection - vertical minimum offset value. Values between 0.0 and 1.0", QString(), 0.0, 1.0);
+	DoubleOption& argSignalHorizontalMax = parser.add<DoubleOption>(0x0, "signal-horizontal-max", "area for signal detection - horizontal maximum offset value. Values between 0.0 and 1.0", QString(), 0.0, 1.0);
+	DoubleOption& argSignalVerticalMax = parser.add<DoubleOption>(0x0, "signal-vertical-max", "area for signal detection - vertical maximum offset value. Values between 0.0 and 1.0", QString(), 0.0, 1.0);
 
 	Option const& argAddress = parser.add<Option>('a', "address", "The hostname or IP-address (IPv4 or IPv6) of the hyperion server.\nDefault host: %1, port: 19400.\nSample addresses:\nHost : hyperion.fritz.box\nIPv4 : 127.0.0.1:19400\nIPv6 : [2001:1:2:3:4:5:6:7]", "127.0.0.1");
 	IntOption& argPriority = parser.add<IntOption>('p', "priority", "Use the provided priority channel (suggested 100-199) [default: %1]", "150");
