@@ -16,7 +16,7 @@ public:
 	/// Constructs the DRM frame grabber with a specified grab size and update rate.
 	///
 	/// @param[in] updateRate_Hz     The image grab rate [Hz]
-	/// @param[in] device Framebuffer device name/path
+	/// @param[in] deviceIdx         The index of the DRM device to use
 	/// @param[in] pixelDecimation   Decimation factor for image [pixels]
 	/// @param[in] cropLeft          Remove from left [pixels]
 	/// @param[in] cropRight 	     Remove from right [pixels]
@@ -29,7 +29,7 @@ public:
 			   int cropLeft = 0, int cropRight = 0,
 			   int cropTop = 0, int cropBottom = 0);
 	///
-	/// Constructs the QT frame grabber from configuration settings
+	/// Constructs the DRM frame grabber from configuration settings
 	///
 	explicit DRMWrapper(const QJsonDocument &grabberConfig = QJsonDocument());
 
