@@ -8,14 +8,15 @@
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
 
-/// This class handles callbacks from the V4L2 grabber
+/// Analyses a single frame captured for --screenshot and prints "no signal area"
+/// suggestion diagnostics to stdout. Saving the actual screenshot file and quitting
+/// the application is handled generically by the shared GrabberRunner/V4L2Wrapper code.
 class ScreenshotHandler : public QObject
 {
 	Q_OBJECT
 
 public:
-	ScreenshotHandler(const QString & filename, const QRectF & signalDetectionOffset);
-	virtual ~ScreenshotHandler();
+	explicit ScreenshotHandler(const QRectF & signalDetectionOffset);
 
 public slots:
 	/// Handle a single image
@@ -25,6 +26,5 @@ public slots:
 private:
 	bool findNoSignalSettings(const Image<ColorRgb> & image);
 
-	const QString _filename;
 	const QRectF  _signalDetectionOffset;
 };

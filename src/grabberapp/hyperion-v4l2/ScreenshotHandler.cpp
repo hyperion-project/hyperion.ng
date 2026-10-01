@@ -1,33 +1,20 @@
 #include <cmath>
 
 // Qt includes
-#include <QImage>
-#include <QCoreApplication>
 #include <QVector>
 #include <algorithm>
 
 // hyperion-v4l2 includes
 #include "ScreenshotHandler.h"
 
-ScreenshotHandler::ScreenshotHandler(const QString & filename, const QRectF & signalDetectionOffset)
-	: _filename(filename)
-	, _signalDetectionOffset(signalDetectionOffset)
-{
-}
-
-ScreenshotHandler::~ScreenshotHandler()
+ScreenshotHandler::ScreenshotHandler(const QRectF & signalDetectionOffset)
+	: _signalDetectionOffset(signalDetectionOffset)
 {
 }
 
 void ScreenshotHandler::receiveImage(const Image<ColorRgb> & image)
 {
 	findNoSignalSettings(image);
-	// store as PNG
-	QImage pngImage((const uint8_t *) image.memptr(), image.width(), image.height(), 3*image.width(), QImage::Format_RGB888);
-	pngImage.save(_filename);
-
-	// Quit the application after the first image
-	QCoreApplication::quit();
 }
 
 bool ScreenshotHandler::findNoSignalSettings(const Image<ColorRgb> & image)
