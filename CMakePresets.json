@@ -41,25 +41,6 @@
       }
     },
     {
-      "name": "sccache",
-      "description": "Use sccache as compiler launcher",
-      "hidden": true,
-      "cacheVariables": {
-        "CMAKE_C_COMPILER_LAUNCHER": "sccache",
-        "CMAKE_CXX_COMPILER_LAUNCHER": "sccache"
-      }
-    },
-    {
-      "name": "sccache-msvc",
-      "description": "sccache on MSVC: /Z7 embeds debug info in .obj so sccache can cache RelWithDebInfo",
-      "hidden": true,
-      "inherits": [ "sccache" ],
-      "cacheVariables": {
-        "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "/O2 /Ob1 /Z7 /DNDEBUG",
-        "CMAKE_C_FLAGS_RELWITHDEBINFO": "/O2 /Ob1 /Z7 /DNDEBUG"
-      }
-    },
-    {
       "name": "hyperion-light",
       "hidden": true,
       "cacheVariables": {
@@ -186,7 +167,7 @@
       "name": "windows-release",
       "displayName": "Windows (release) (msvc)",
       "description": "Build with MSVC's CL as Release without Debug Symbols",
-      "inherits": [ "base", "release", "msvc", "sccache" ],
+      "inherits": [ "base", "release", "msvc" ],
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
@@ -197,7 +178,7 @@
       "name": "windows-relwithdebinfo",
       "displayName": "Windows (RelWithDebInfo) (msvc)",
       "description": "Build with MSVC's CL as Release with Debug Symbols",
-      "inherits": [ "base", "relwithdebinfo", "msvc", "sccache-msvc" ],
+      "inherits": [ "base", "relwithdebinfo", "msvc" ],
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
