@@ -19,15 +19,19 @@ bool Parser::parse(const QStringList &arguments)
 	{
 		if (!option->valueName().isEmpty())
 		{
-			QString value = this->value(*option);
+			const QString originalValue = this->value(*option);
+			QString value = originalValue;
+			// 'value' may be rewritten by validate() (e.g. QDoubleValidator::fixup()
+			// can reformat it in scientific notation), so keep 'originalValue' for the
+			// error message to show the user exactly what they typed.
 			if (!option->validate(*this, value)) {
 				const QString error = option->getError();
 				if (!error.isEmpty()) {
-					_errorText = tr("\"%1\" is not a valid option for %2, %3").arg(value, option->name(), error);
+					_errorText = tr("\"%1\" is not a valid option for %2, %3").arg(originalValue, option->name(), error);
 				}
 				else
 				{
-					_errorText = tr("\"%1\" is not a valid option for %2").arg(value, option->name());
+					_errorText = tr("\"%1\" is not a valid option for %2").arg(originalValue, option->name());
 				}
 				return false;
 			}
