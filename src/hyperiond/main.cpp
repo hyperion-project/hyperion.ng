@@ -174,7 +174,7 @@ int main(int argc, char** argv)
 
 	parser.process(*qApp);
 
-#ifdef WIN32
+#ifdef _WIN32
 		//Attach the output to an existing console if available
 	openConsole(false);
 #endif

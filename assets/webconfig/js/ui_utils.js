@@ -1552,13 +1552,13 @@ function isValidIPv6(value) {
 
 function isValidHostname(value) {
   return !!(value.match(
-    '^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9])(.([a-zA-Z0-9]|[_a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]))*$'
+    /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.\w([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
   ));
 }
 
 function isValidServicename(value) {
   return !!(value.match(
-    '^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9 -]{0,61}[a-zA-Z0-9])(.([a-zA-Z0-9]|[_a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]))*$'
+    /^[a-zA-Z0-9]([a-zA-Z0-9 -]{0,61}[a-zA-Z0-9])?(\.\w([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
   ));
 }
 

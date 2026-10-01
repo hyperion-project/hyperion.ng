@@ -38,15 +38,15 @@ jobs:
             echo "code_changes_since_yesterday=false" >> $GITHUB_OUTPUT
           fi
 
-  # Build Debian Bullseye Artifacts
+  # Build Debian Bookworm Artifacts
   linux:
-    name: 🐧 Debian Bullseye
+    name: 🐧 Debian Bookworm
     if: ${{ needs.check.outputs.should_run == 'true' || inputs.forceRun }}
     needs: [check]
     uses: ./.github/workflows/debian.yml
     secrets: inherit
     with:
-      codename: 'bullseye'
+      codename: 'bookworm'
       publish: true
       nightly: true
 

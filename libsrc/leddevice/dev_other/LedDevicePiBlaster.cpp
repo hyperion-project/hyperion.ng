@@ -2,6 +2,7 @@
 // STL includes
 #include <cstring>
 #include <csignal>
+#include <fcntl.h>
 
 // QT includes
 #include <QDir>
@@ -104,7 +105,10 @@ int LedDevicePiBlaster::open()
 		return -1;
 	}
 
-	_fid = fopen(QSTRING_CSTR(_deviceName), "w");
+	// Use open(O_WRONLY) + fdopen to avoid fopen("w") implicitly creating a new file
+	// with mode 0666 (world-writable). O_WRONLY without O_CREAT can never create a file.
+	int fd = ::open(QSTRING_CSTR(_deviceName), O_WRONLY);
+	_fid = (fd == -1) ? nullptr : fdopen(fd, "w");
 	if (_fid == nullptr)
 	{
 		errortext = QString ("Failed to open device (%1). Error message: %2").arg(_deviceName, strerror(errno));

@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - V4L2/ImageResampler: add support for pixelformats YUV422P and NV21
 - New Juggler Effect
+- Support for **Robobloq** devices
 ---
 
 ### 🔧 Changed
@@ -28,6 +29,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Effect scripts: Minor stability and style fixes in `pacman.py`, `traces.py`, `trails.py`(#2011)
   - WebUI - Return a valid Content-Type for static assets to prevent module loading failures
   - MdnsBrowser compile errors when ENABLE_MDNS is false (#2024)
+  - LinearColorSmoothing - fix incorrect output interval calculation, fix handling for update frequency >= 1000Hz
+  - macOS Screen Capture - Do not take a one-shot screenshot per frame. Use a continuous ScreenCaptureKit stream instead, which is established once. This removes the per-frame shareable content enumeration (WindowServer/replayd CPU) and stops the Screen Recording indicator from flickering, which pinned the macOS Control Center close to 100% CPU (#2046, #2039, #1921)
+  - X11/XCB-Grabbers - fix that client leaks when repeatedly enabled/disabled (#2035)
 
 ---
 ### Technical
@@ -41,12 +45,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - NetUtils: Improve handling when ENABLE_MDNS is false
 - Configure ccache or buildcache only if explicitly requested
 - Standalone grabber apps refactored to a shared Options/Cli/Traits template pattern and consolidated under `src/grabberapp/`
+- Fixed - docker-compile script, plus support private git package builds
+- Update Mbed TLS to v4.2.0, Update protobuf to v36.0,  HID-API to master (v0.16.0), libusb-cmake to v1.0.30-0, rpi_ws281x
+- macOS Screen Capture - The capture session scales the display down to the analysis resolution (GPU) instead of converting the full resolution frame on the CPU. In addition, the image is no longer re-sized to the configured capture size for every frame. Reduces Hyperion's CPU usage during screen capture by ~5x (#2046, #2039). Cropping and the 3D modes keep using the full resolution capture.
+- macOS bundle - Code signing identity is configurable via `MACOS_CODESIGN_IDENTITY` ('-' = ad-hoc). A stable identity keeps the macOS privacy permissions (e.g. Screen Recording) across rebuilds.
+- Housekeeping - GitHub builds
+- Script to validate translations files for common malformed placeholder/template tokens that may break the i18n parser
+- Update CodeQL runs to exclude external code, plus addressed CodeQL findings
 
 ## [2.2.1](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.2.1) - 2026-04-06
 
 ### ✨ Added
 
 - Art-Net - Add RGBW support
+- e1.31 - Add new RGBW white algorithm: **Custom white in Kelvins** (`sub_ktemp_white`). Subtracts a white component at a user-defined color temperature (1000–40000 K) from the RGB signal, allowing accurate RGBW conversion for white LEDs with a known color temperature.
 
 ---
 
@@ -118,7 +130,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - LED-devices are resolving IP-addresses for API and UDP two times in sequence
   - LED-device updates queue up and let Hyperion crash (#1887)
   - LED-device switch-off were not always executed during instance stopping
-  - LED-Device latchTime was not considered correctly 
+  - LED-Device latchTime was not considered correctly
   - LED-Device Adalight LightBerry APA102 Mode not working (#1961)
   - Segfault when turning an LED instance off (#1903)
   - Fix concurrent mDNS resolution (#1906) - _Thanks to @discordianfish_
@@ -132,14 +144,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Memory/Image queuing issue when all instances are stopped but grabber is running
   - Forwarder was not using the correct target instance IDs for JSON requests
   - Flatbuffer/Protobuffer sources are not reconnected after (re)starting a hyperion instance
-  - Flatbuffer/Protobuffer breaks, if socket drops while sending a reply 
+  - Flatbuffer/Protobuffer breaks, if socket drops while sending a reply
   - Adalight.ino changes due to FastLED update (#1942) _Thanks to @JackSwieper_
   - mdnsBrowser is not stopped properly on shutdown
   - ColorTypes are not correctly initialised to black
   - WebSockets are not closed properly when stopping Hyperion
   - Tracing is not initialized for hyperion remote executables
   - DDA Grabber is entering permanent error state when elevated or policy deny DDA
-  
+
+
 - **Refactors:**
   - Fixed Image & ImageData and add debug logging (#1792, #1892)
   - Aligned grabbers with reworked Image handling avoiding extra copies
@@ -171,7 +184,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Fixes:**
   - WebUI unreachable via IPv6 (#1871)
   - Align install_pr script working with default Qt6 builds & show authentication failures (#1871)
-  
+
 - **Build:**
     - Added Debian Trixie to PR-builds for early testing
 

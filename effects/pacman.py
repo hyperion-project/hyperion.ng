@@ -86,15 +86,15 @@ while not hyperion.abort():
 	ledData = ledDataEscape
 	shift_led(ledData, increment, hyperion.ledCount)
 
-	random = randint(10,hyperion.ledCount)
+	random_pos = randint(10, hyperion.ledCount) # NOSONAR
 
 	# escape mode + power pellet
-	s = slice(3*random, 3*random+3)
-	shift_led(ledData, increment, hyperion.ledCount - random, s)
+	s = slice(3 * random_pos, 3 * random_pos + 3)
+	shift_led(ledData, increment, hyperion.ledCount - random_pos, s)
 
 	# chase mode
-	shift   = 3*(hyperion.ledCount - random)
-	ledData = ledDataChase[shift:]+ledDataChase[:shift]
-	shift_led(ledData, -increment, 2*hyperion.ledCount-random)
+	shift   = 3 * (hyperion.ledCount - random_pos)
+	ledData = ledDataChase[shift:] + ledDataChase[:shift]
+	shift_led(ledData, -increment, 2 * hyperion.ledCount - random_pos)
 	time.sleep(sleepTime)
 

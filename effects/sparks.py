@@ -1,4 +1,5 @@
-import hyperion, time, colorsys, random
+import hyperion, time, colorsys
+from random import random
 
 # Get the parameters
 rotationTime = float(hyperion.args.get('rotation-time', 3.0))
@@ -23,10 +24,10 @@ for i in range(hyperion.ledCount):
 while not hyperion.abort():
 	ledData[:] = bytearray(3*hyperion.ledCount)
 	for i in range(hyperion.ledCount):
-		if random.random() < 0.005:
+		if random() < 0.005: # NOSONAR
 
 			if randomColor:
-				rgb = colorsys.hsv_to_rgb(random.random(), saturation, brightness)
+				rgb = colorsys.hsv_to_rgb(random(), saturation, brightness) # NOSONAR
 				for n in range(3):
 					color[n] = int(rgb[n]*255)
 

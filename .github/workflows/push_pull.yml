@@ -22,7 +22,6 @@ jobs:
       fail-fast: false
       matrix:
         debian: [
-          { codename: [ 'bullseye', 'Bullseye' ] },
           { codename: [ 'bookworm', 'Bookworm' ] },
           { codename: [ 'trixie', 'Trixie' ] }
         ]

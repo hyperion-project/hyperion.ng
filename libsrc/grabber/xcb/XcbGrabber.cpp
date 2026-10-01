@@ -1,8 +1,8 @@
-#include <utils/Logger.h>
 #include <grabber/xcb/XcbGrabber.h>
+#include <utils/Logger.h>
 
-#include "XcbCommands.h"
 #include "XcbCommandExecutor.h"
+#include "XcbCommands.h"
 
 #include <xcb/xcb_event.h>
 
@@ -10,30 +10,30 @@
 
 #include <memory>
 
-#define DOUBLE_TO_FIXED(d) ((xcb_render_fixed_t) ((d) * 65536))
+#define DOUBLE_TO_FIXED(d) ((xcb_render_fixed_t)((d) * 65536))
 
 XcbGrabber::XcbGrabber(int cropLeft, int cropRight, int cropTop, int cropBottom)
-	: Grabber("GRABBER-XCB", cropLeft, cropRight, cropTop, cropBottom)
-	, _connection{}
-	, _screen{}
-	, _pixmap{}
-	, _srcFormat{}
-	, _dstFormat{}
-	, _srcPicture{}
-	, _dstPicture{}
-	, _transform{}
-	, _shminfo{}
-	, _screenWidth{}
-	, _screenHeight{}
-	, _src_x(cropLeft)
-	, _src_y(cropTop)
-	, _XcbRenderAvailable{}
-	, _XcbRandRAvailable{}
-	, _XcbShmAvailable{}
-	, _XcbShmPixmapAvailable{}
-	, _isWayland (false)
-	, _shmData{}
-	, _XcbRandREventBase{-1}
+    : Grabber("GRABBER-XCB", cropLeft, cropRight, cropTop, cropBottom)
+    , _connection{}
+    , _screen{}
+    , _pixmap{}
+    , _srcFormat{}
+    , _dstFormat{}
+    , _srcPicture{}
+    , _dstPicture{}
+    , _transform{}
+    , _shminfo{}
+    , _screenWidth{}
+    , _screenHeight{}
+    , _src_x(cropLeft)
+    , _src_y(cropTop)
+    , _XcbRenderAvailable{}
+    , _XcbRandRAvailable{}
+    , _XcbShmAvailable{}
+    , _XcbShmPixmapAvailable{}
+    , _isWayland(false)
+    , _shmData{}
+    , _XcbRandREventBase{-1}
 {
 	// cropping is performed by XcbRender, XcbShmGetImage or XcbGetImage
 	_useImageResampler = false;
@@ -42,45 +42,52 @@ XcbGrabber::XcbGrabber(int cropLeft, int cropRight, int cropTop, int cropBottom)
 
 XcbGrabber::~XcbGrabber()
 {
-	if (_connection != nullptr)
-	{
-		freeResources();
-		xcb_disconnect(_connection);
-	}
+	TRACK_SCOPE();
+	close();
 }
 
 void XcbGrabber::freeResources()
 {
+	qCDebug(grabber_screen_flow) << "Freeing XCB resources";
 	if (_XcbRandRAvailable)
 	{
+		qCDebug(grabber_screen_flow) << "Removing native event filter for XRandR";
 		qApp->removeNativeEventFilter(this);
+		_XcbRandRAvailable = false;
 	}
 
-	if(_XcbShmAvailable)
+	if (_XcbShmAvailable)
 	{
+		qCDebug(grabber_screen_flow) << "Detaching XShm";
 		query<ShmDetach>(_connection, _shminfo);
 		shmdt(_shmData);
 		shmctl(_shminfo, IPC_RMID, nullptr);
-
+		_XcbShmAvailable = false;
 	}
 
 	if (_XcbRenderAvailable)
 	{
+		qCDebug(grabber_screen_flow) << "Freeing XRender resources";
 		query<FreePixmap>(_connection, _pixmap);
 		query<RenderFreePicture>(_connection, _srcPicture);
 		query<RenderFreePicture>(_connection, _dstPicture);
+		_XcbRenderAvailable = false;
 	}
+	qCDebug(grabber_screen_flow) << "Finished freeing XCB resources";
 }
 
 void XcbGrabber::setupResources()
 {
+	qCDebug(grabber_screen_flow) << "Setting up XCB resources";
 	if (_XcbRandRAvailable)
 	{
+		qCDebug(grabber_screen_flow) << "Installing native event filter for XRandR";
 		qApp->installNativeEventFilter(this);
 	}
 
-	if(_XcbShmAvailable)
+	if (_XcbShmAvailable)
 	{
+		qCDebug(grabber_screen_flow) << "Setting up XShm resources";
 		_shminfo = xcb_generate_id(_connection);
 		int id = shmget(IPC_PRIVATE, size_t(_width) * size_t(_height) * 4, IPC_CREAT | 0777);
 		_shmData = static_cast<uint8_t*>(shmat(id, nullptr, 0));
@@ -89,19 +96,20 @@ void XcbGrabber::setupResources()
 
 	if (_XcbRenderAvailable)
 	{
+		qCDebug(grabber_screen_flow) << "Setting up XRender resources";
 		_useImageResampler = false;
 		_imageResampler.setHorizontalPixelDecimation(1);
 		_imageResampler.setVerticalPixelDecimation(1);
 
-		if(_XcbShmPixmapAvailable)
+		if (_XcbShmPixmapAvailable)
 		{
+			qCDebug(grabber_screen_flow) << "Creating XShm Pixmap";
 			_pixmap = xcb_generate_id(_connection);
-			query<ShmCreatePixmap>(
-				_connection, _pixmap, _screen->root, _width,
-				_height, _screen->root_depth, _shminfo, 0);
+			query<ShmCreatePixmap>(_connection, _pixmap, _screen->root, _width, _height, _screen->root_depth, _shminfo, 0);
 		}
 		else
 		{
+			qCDebug(grabber_screen_flow) << "Creating standard XPixmap";
 			_pixmap = xcb_generate_id(_connection);
 			query<CreatePixmap>(_connection, _screen->root_depth, _pixmap, _screen->root, _width, _height);
 		}
@@ -113,7 +121,7 @@ void XcbGrabber::setupResources()
 		_dstPicture = xcb_generate_id(_connection);
 
 		const uint32_t value_mask = XCB_RENDER_CP_REPEAT;
-		const uint32_t values[] = { XCB_RENDER_REPEAT_NONE };
+		const uint32_t values[] = {XCB_RENDER_REPEAT_NONE};
 
 		query<RenderCreatePicture>(_connection, _srcPicture, _screen->root, _srcFormat, value_mask, values);
 		query<RenderCreatePicture>(_connection, _dstPicture, _pixmap, _dstFormat, value_mask, values);
@@ -123,16 +131,18 @@ void XcbGrabber::setupResources()
 	}
 	else
 	{
+		qCDebug(grabber_screen_flow) << "Using image resampler with pixel decimation" << _pixelDecimation;
 		_useImageResampler = true;
 		_imageResampler.setHorizontalPixelDecimation(_pixelDecimation);
 		_imageResampler.setVerticalPixelDecimation(_pixelDecimation);
 	}
+	qCDebug(grabber_screen_flow) << "Finished setting up XCB resources";
 }
 
-xcb_screen_t * XcbGrabber::getScreen(const xcb_setup_t *setup, int screen_num) const
+xcb_screen_t* XcbGrabber::getScreen(const xcb_setup_t* setup, int screen_num) const
 {
 	xcb_screen_iterator_t it = xcb_setup_roots_iterator(setup);
-	xcb_screen_t * screen    = nullptr;
+	xcb_screen_t* screen = nullptr;
 
 	for (; it.rem > 0; xcb_screen_next(&it))
 	{
@@ -188,10 +198,9 @@ bool XcbGrabber::isAvailable(bool logError)
 
 bool XcbGrabber::open()
 {
-	bool rc = false;
-
 	if (_isAvailable)
 	{
+		qCDebug(grabber_screen_flow) << "Open grabber" << getGrabberName() << "currently:" << (_isEnabled ? "enabled" : "disabled");
 		_connection = xcb_connect(nullptr, &_screen_num);
 
 		int ret = xcb_connection_has_error(_connection);
@@ -201,16 +210,35 @@ bool XcbGrabber::open()
 		}
 		else
 		{
-			const xcb_setup_t * setup = xcb_get_setup(_connection);
+			const xcb_setup_t* setup = xcb_get_setup(_connection);
 			_screen = getScreen(setup, _screen_num);
-			if ( _screen != nullptr)
+			if (_screen != nullptr)
 			{
-				rc = true;
+				qCDebug(grabber_screen_flow) << "Successfully opened display" << getenv("DISPLAY") << "Screen#:" << _screen_num;
+				return true;
 			}
 		}
 	}
 
-	return rc;
+	return false;
+}
+
+bool XcbGrabber::close()
+{
+	if (_isAvailable)
+	{
+		qCDebug(grabber_screen_flow) << "Close grabber" << getGrabberName() << "currently:" << (_isEnabled ? "enabled" : "disabled");
+		if (_connection != nullptr)
+		{
+			freeResources();
+			qCDebug(grabber_screen_flow) << "Closing XCB connection";
+			xcb_disconnect(_connection);
+			_connection = nullptr;
+			qCDebug(grabber_screen_flow) << "Closed XCB connection";
+		}
+		return true;
+	}
+	return false;
 }
 
 bool XcbGrabber::setupDisplay()
@@ -226,6 +254,8 @@ bool XcbGrabber::setupDisplay()
 		return false;
 	}
 
+	qCDebug(grabber_screen_flow) << "Starting setup of XCB display";
+
 	if (!open())
 	{
 		if (getenv("DISPLAY") != nullptr)
@@ -239,38 +269,36 @@ bool XcbGrabber::setupDisplay()
 		freeResources();
 		return false;
 	}
-	else
+
+	qCDebug(grabber_screen_flow) << "Setting up display" << getenv("DISPLAY");
+	setupRandr();
+	setupRender();
+	setupShm();
+
+	Info(_log, "%s", QSTRING_CSTR(QString("XcbRandR=[%1] XcbRender=[%2] XcbShm=[%3] XcbPixmap=[%4]").arg(_XcbRandRAvailable ? "available" : "unavailable", _XcbRenderAvailable ? "available" : "unavailable", _XcbShmAvailable ? "available" : "unavailable", _XcbShmPixmapAvailable ? "available" : "unavailable")));
+
+	bool isOK = (updateScreenDimensions(true) >= 0);
+	if (!isOK)
 	{
-		setupRandr();
-		setupRender();
-		setupShm();
-
-		Info(_log, "%s", QSTRING_CSTR(QString("XcbRandR=[%1] XcbRender=[%2] XcbShm=[%3] XcbPixmap=[%4]")
-			 .arg(_XcbRandRAvailable ? "available" : "unavailable",
-			 _XcbRenderAvailable     ? "available" : "unavailable",
-			 _XcbShmAvailable        ? "available" : "unavailable",
-			 _XcbShmPixmapAvailable  ? "available" : "unavailable"))
-			 );
-
-		bool isOK = (updateScreenDimensions(true) >= 0);
-		if (!isOK)
-		{
-			setInError(QString("%1 start failed").arg(_grabberName));
-			return false;
-		}
-
-		setEnabled(true);
+		setInError(QString("%1 start failed").arg(_grabberName));
+		return false;
 	}
+
+	setEnabled(true);
 	return true;
 }
 
-int XcbGrabber::grabFrame(Image<ColorRgb> & image, bool forceUpdate)
+int XcbGrabber::grabFrame(Image<ColorRgb>& image, bool forceUpdate)
 {
 	if (!_isEnabled)
+	{
 		return 0;
+	}
 
 	if (forceUpdate)
+	{
 		updateScreenDimensions(forceUpdate);
+	}
 
 	if (_XcbRenderAvailable)
 	{
@@ -279,66 +307,59 @@ int XcbGrabber::grabFrame(Image<ColorRgb> & image, bool forceUpdate)
 		double scale = qMin(scale_y, scale_x);
 
 		_transform = {
-			DOUBLE_TO_FIXED(1), DOUBLE_TO_FIXED(0), DOUBLE_TO_FIXED(0),
-			DOUBLE_TO_FIXED(0), DOUBLE_TO_FIXED(1), DOUBLE_TO_FIXED(0),
-			DOUBLE_TO_FIXED(0), DOUBLE_TO_FIXED(0), DOUBLE_TO_FIXED(scale)
-		};
+		    DOUBLE_TO_FIXED(1), DOUBLE_TO_FIXED(0), DOUBLE_TO_FIXED(0),
+		    DOUBLE_TO_FIXED(0), DOUBLE_TO_FIXED(1), DOUBLE_TO_FIXED(0),
+		    DOUBLE_TO_FIXED(0), DOUBLE_TO_FIXED(0), DOUBLE_TO_FIXED(scale)};
 
 		query<RenderSetPictureTransform>(_connection, _srcPicture, _transform);
 		query<RenderComposite>(_connection,
-			XCB_RENDER_PICT_OP_SRC, _srcPicture,
-			XCB_RENDER_PICTURE_NONE, _dstPicture,
-			(_src_x/_pixelDecimation),
-			(_src_y/_pixelDecimation),
-			0, 0, 0, 0, _width, _height);
+		                       XCB_RENDER_PICT_OP_SRC, _srcPicture,
+		                       XCB_RENDER_PICTURE_NONE, _dstPicture,
+		                       (_src_x / _pixelDecimation),
+		                       (_src_y / _pixelDecimation),
+		                       0, 0, 0, 0, _width, _height);
 
 		xcb_flush(_connection);
 
 		if (_XcbShmAvailable)
 		{
 			query<ShmGetImage>(_connection,
-				_pixmap, 0, 0, _width, _height,
-				~0, XCB_IMAGE_FORMAT_Z_PIXMAP, _shminfo, 0);
+			                   _pixmap, 0, 0, _width, _height,
+			                   ~0, XCB_IMAGE_FORMAT_Z_PIXMAP, _shminfo, 0);
 
-			_imageResampler.processImage(
-				reinterpret_cast<const uint8_t *>(_shmData),
-				_width, _height, _width * 4, PixelFormat::BGR32, image);
+			_imageResampler.processImage(reinterpret_cast<const uint8_t*>(_shmData),
+			                             _width, _height, _width * 4, PixelFormat::BGR32, image);
 		}
 		else
 		{
 			auto result = query<GetImage>(_connection,
-				XCB_IMAGE_FORMAT_Z_PIXMAP, _pixmap,
-				0, 0, _width, _height, ~0);
+			                              XCB_IMAGE_FORMAT_Z_PIXMAP, _pixmap,
+			                              0, 0, _width, _height, ~0);
 
 			auto buffer = xcb_get_image_data(result.get());
 
-			_imageResampler.processImage(
-				reinterpret_cast<const uint8_t *>(buffer),
-				_width, _height, _width * 4, PixelFormat::BGR32, image);
+			_imageResampler.processImage(reinterpret_cast<const uint8_t*>(buffer), _width, _height, _width * 4, PixelFormat::BGR32, image);
 		}
-
 	}
 	else if (_XcbShmAvailable)
 	{
 		query<ShmGetImage>(_connection,
-			_screen->root, _src_x, _src_y, _width, _height,
-			~0, XCB_IMAGE_FORMAT_Z_PIXMAP, _shminfo, 0);
+		                   _screen->root, _src_x, _src_y, _width, _height,
+		                   ~0, XCB_IMAGE_FORMAT_Z_PIXMAP, _shminfo, 0);
 
-		_imageResampler.processImage(
-			reinterpret_cast<const uint8_t *>(_shmData),
-			_width, _height, _width * 4, PixelFormat::BGR32, image);
+		_imageResampler.processImage(reinterpret_cast<const uint8_t*>(_shmData),
+		                             _width, _height, _width * 4, PixelFormat::BGR32, image);
 	}
 	else
 	{
 		auto result = query<GetImage>(_connection,
-			XCB_IMAGE_FORMAT_Z_PIXMAP, _screen->root,
-			_src_x, _src_y, _width, _height, ~0);
+		                              XCB_IMAGE_FORMAT_Z_PIXMAP, _screen->root,
+		                              _src_x, _src_y, _width, _height, ~0);
 
 		auto buffer = xcb_get_image_data(result.get());
 
-		_imageResampler.processImage(
-			reinterpret_cast<const uint8_t *>(buffer),
-			_width, _height, _width * 4, PixelFormat::BGR32, image);
+		_imageResampler.processImage(reinterpret_cast<const uint8_t*>(buffer),
+		                             _width, _height, _width * 4, PixelFormat::BGR32, image);
 	}
 
 	return 0;
@@ -346,6 +367,7 @@ int XcbGrabber::grabFrame(Image<ColorRgb> & image, bool forceUpdate)
 
 int XcbGrabber::updateScreenDimensions(bool force)
 {
+	qCDebug(grabber_screen_flow) << "Current screen dimensions: [" << _screenWidth << "x" << _screenHeight << "], force update:" << force;
 	auto geometry = query<GetGeometry>(_connection, _screen->root);
 	if (geometry == nullptr)
 	{
@@ -357,18 +379,21 @@ int XcbGrabber::updateScreenDimensions(bool force)
 	if (!_isEnabled)
 		setEnabled(true);
 
-	if (!force && _screenWidth == unsigned(geometry->width) &&
-		_screenHeight == unsigned(geometry->height))
-		return 0;
-
-	if ((_screenWidth != 0) || (_screenHeight != 0))
+	if (!force && _screenWidth == unsigned(geometry->width) && _screenHeight == unsigned(geometry->height))
 	{
-		freeResources();
+		qCDebug(grabber_screen_flow) << "Screen dimensions unchanged, no update required";
+		return 0;
 	}
 
-	Info(_log, "Update of screen resolution: [%dx%d]  to [%dx%d]", _screenWidth, _screenHeight, geometry->width, geometry->height);
+	qCDebug(grabber_screen_flow) << QString("XcbRandR=[%1] XcbRender=[%2] XcbShm=[%3] XcbPixmap=[%4]")
+	                                    .arg(_XcbRandRAvailable ? "available" : "unavailable",
+										     _XcbRenderAvailable ? "available" : "unavailable",
+										     _XcbShmAvailable ? "available" : "unavailable",
+										     _XcbShmPixmapAvailable ? "available" : "unavailable");
 
-	_screenWidth  = geometry->width;
+	Info(_log, "Update of screen resolution: [%dx%d] to [%dx%d]", _screenWidth, _screenHeight, geometry->width, geometry->height);
+
+	_screenWidth = geometry->width;
 	_screenHeight = geometry->height;
 
 	int width = 0;
@@ -377,25 +402,25 @@ int XcbGrabber::updateScreenDimensions(bool force)
 	// Image scaling is performed by XRender when available, otherwise by ImageResampler
 	if (_XcbRenderAvailable)
 	{
-		width  =  (_screenWidth > unsigned(_cropLeft + _cropRight))
-			? ((_screenWidth - _cropLeft - _cropRight) / _pixelDecimation)
-			: _screenWidth / _pixelDecimation;
+		width = (_screenWidth > unsigned(_cropLeft + _cropRight))
+		            ? ((_screenWidth - _cropLeft - _cropRight) / _pixelDecimation)
+		            : _screenWidth / _pixelDecimation;
 
-		height =  (_screenHeight > unsigned(_cropTop + _cropBottom))
-			? ((_screenHeight - _cropTop - _cropBottom) / _pixelDecimation)
-			: _screenHeight / _pixelDecimation;
+		height = (_screenHeight > unsigned(_cropTop + _cropBottom))
+		             ? ((_screenHeight - _cropTop - _cropBottom) / _pixelDecimation)
+		             : _screenHeight / _pixelDecimation;
 
 		Info(_log, "Using XcbRender for grabbing [%dx%d]", width, height);
 	}
 	else
 	{
-		width  =  (_screenWidth > unsigned(_cropLeft + _cropRight))
-			? (_screenWidth - _cropLeft - _cropRight)
-			: _screenWidth;
+		width = (_screenWidth > unsigned(_cropLeft + _cropRight))
+		            ? (_screenWidth - _cropLeft - _cropRight)
+		            : _screenWidth;
 
-		height =  (_screenHeight > unsigned(_cropTop + _cropBottom))
-			? (_screenHeight - _cropTop - _cropBottom)
-			: _screenHeight;
+		height = (_screenHeight > unsigned(_cropTop + _cropBottom))
+		             ? (_screenHeight - _cropTop - _cropBottom)
+		             : _screenHeight;
 
 		Info(_log, "Using XcbGetImage for grabbing [%dx%d]", width, height);
 	}
@@ -404,23 +429,23 @@ int XcbGrabber::updateScreenDimensions(bool force)
 	switch (_videoMode)
 	{
 	case VideoMode::VIDEO_3DSBS:
-		_width  = width /2;
+		_width = width / 2;
 		_height = height;
-		_src_x  = _cropLeft / 2;
-		_src_y  = _cropTop;
+		_src_x = _cropLeft / 2;
+		_src_y = _cropTop;
 		break;
 	case VideoMode::VIDEO_3DTAB:
-		_width  = width;
+		_width = width;
 		_height = height / 2;
-		_src_x  = _cropLeft;
-		_src_y  = _cropTop / 2;
+		_src_x = _cropLeft;
+		_src_y = _cropTop / 2;
 		break;
 	case VideoMode::VIDEO_2D:
 	default:
-		_width  = width;
+		_width = width;
 		_height = height;
-		_src_x  = _cropLeft;
-		_src_y  = _cropTop;
+		_src_x = _cropLeft;
+		_src_y = _cropTop;
 		break;
 	}
 
@@ -432,7 +457,7 @@ int XcbGrabber::updateScreenDimensions(bool force)
 void XcbGrabber::setVideoMode(VideoMode mode)
 {
 	Grabber::setVideoMode(mode);
-	if(_connection != nullptr)
+	if (_connection != nullptr)
 	{
 		updateScreenDimensions(true);
 	}
@@ -440,31 +465,30 @@ void XcbGrabber::setVideoMode(VideoMode mode)
 
 bool XcbGrabber::setPixelDecimation(int pixelDecimation)
 {
-	bool rc (true);
 	if (Grabber::setPixelDecimation(pixelDecimation))
 	{
-		if(_connection != nullptr)
+		if (_connection != nullptr)
 		{
-			if ( updateScreenDimensions(true) < 0 )
+			if (updateScreenDimensions(true) < 0)
 			{
-				rc = false;
+				return false;
 			}
 		}
 	}
-	return rc;
+	return true;
 }
 
 void XcbGrabber::setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom)
 {
 	Grabber::setCropping(cropLeft, cropRight, cropTop, cropBottom);
-	if(_connection != nullptr)
+	if (_connection != nullptr)
 		updateScreenDimensions(true);
 }
 
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
-bool XcbGrabber::nativeEventFilter(const QByteArray & eventType, void * message, qintptr * /*result*/)
+bool XcbGrabber::nativeEventFilter(const QByteArray& eventType, void* message, qintptr* /*result*/)
 #else
-bool XcbGrabber::nativeEventFilter(const QByteArray & eventType, void * message, long int * /*result*/)
+bool XcbGrabber::nativeEventFilter(const QByteArray& eventType, void* message, long int* /*result*/)
 #endif
 {
 	if (!_XcbRandRAvailable || eventType != "xcb_generic_event_t" || _XcbRandREventBase == -1)
@@ -490,19 +514,19 @@ xcb_render_pictformat_t XcbGrabber::findFormatForVisual(xcb_visualid_t visual) c
 #else
 	int screen = _screen_num;
 #endif
-	xcb_render_pictscreen_iterator_t sit =
-		xcb_render_query_pict_formats_screens_iterator(formats.get());
+	xcb_render_pictscreen_iterator_t sit = xcb_render_query_pict_formats_screens_iterator(formats.get());
 
-	for (; sit.rem; --screen, xcb_render_pictscreen_next(&sit)) {
+	for (; sit.rem; --screen, xcb_render_pictscreen_next(&sit))
+	{
 		if (screen != 0)
+		{
 			continue;
+		}
 
-		xcb_render_pictdepth_iterator_t dit =
-			xcb_render_pictscreen_depths_iterator(sit.data);
+		xcb_render_pictdepth_iterator_t dit = xcb_render_pictscreen_depths_iterator(sit.data);
 		for (; dit.rem; xcb_render_pictdepth_next(&dit))
 		{
-			xcb_render_pictvisual_iterator_t vit
-				= xcb_render_pictdepth_visuals_iterator(dit.data);
+			xcb_render_pictvisual_iterator_t vit = xcb_render_pictdepth_visuals_iterator(dit.data);
 			for (; vit.rem; xcb_render_pictvisual_next(&vit))
 			{
 				if (vit.data->visual == visual)
@@ -515,91 +539,94 @@ xcb_render_pictformat_t XcbGrabber::findFormatForVisual(xcb_visualid_t visual) c
 	return {};
 }
 
-QJsonObject XcbGrabber::discover(const QJsonObject& params)
+QJsonObject XcbGrabber::discover(const QJsonObject& /*params*/)
 {
-	QJsonObject inputsDiscovered;
-	if ( isAvailable(false) && open() )
+	if (!isAvailable(false))
 	{
-		inputsDiscovered["device"] = "xcb";
-		inputsDiscovered["device_name"] = "XCB";
-		inputsDiscovered["type"] = "screen";
+		return {};
+	}
 
-		QJsonArray video_inputs;
+	QJsonObject inputsDiscovered;
+	inputsDiscovered["device"] = "xcb";
+	inputsDiscovered["device_name"] = "XCB";
+	inputsDiscovered["type"] = "screen";
 
-		if (_connection != nullptr && _screen != nullptr )
+	QJsonArray video_inputs;
+
+	if (!open() || _connection == nullptr || _screen == nullptr)
+	{
+		qCDebug(grabber_screen_properties) << "No screens found to capture from!";
+		return inputsDiscovered;
+	}
+
+	const xcb_setup_t* setup = xcb_get_setup(_connection);
+
+	xcb_screen_iterator_t it = xcb_setup_roots_iterator(setup);
+	xcb_screen_t* screen = nullptr;
+
+	int i = 0;
+	// Iterate through all X screens
+	for (; it.rem > 0; xcb_screen_next(&it))
+	{
+		screen = it.data;
+
+		auto geometry = query<GetGeometry>(_connection, screen->root);
+		if (geometry == nullptr)
 		{
-			const xcb_setup_t * setup = xcb_get_setup(_connection);
+			Debug(_log, "Failed to obtain screen geometry for screen [%d]", i);
+			continue;
+		}
+		QJsonObject in;
 
-			xcb_screen_iterator_t it = xcb_setup_roots_iterator(setup);
-			xcb_screen_t * screen  = nullptr;
-
-			int i = 0;
-			// Iterate through all X screens
-			for (; it.rem > 0; xcb_screen_next(&it))
+		QString displayName;
+		auto property = query<GetProperty>(_connection, 0, screen->root, XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 0, 0);
+		if (property != nullptr)
+		{
+			if (xcb_get_property_value_length(property.get()) > 0)
 			{
-				screen = it.data;
-
-				auto geometry = query<GetGeometry>(_connection, screen->root);
-				if (geometry == nullptr)
-				{
-					Debug(_log, "Failed to obtain screen geometry for screen [%d]", i);
-				}
-				else
-				{
-					QJsonObject in;
-
-					QString displayName;
-					auto property = query<GetProperty>(_connection, 0, screen->root, XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 0, 0);
-					if ( property != nullptr )
-					{
-						if ( xcb_get_property_value_length(property.get()) > 0 )
-						{
-							displayName = (char *) xcb_get_property_value(property.get());
-						}
-					}
-
-					if (displayName.isEmpty())
-					{
-						displayName = QString("Display:%1").arg(i);
-					}
-
-					in["name"] = displayName;
-					in["inputIdx"] = i;
-
-					QJsonArray formats;
-					QJsonArray resolutionArray;
-					QJsonObject format;
-					QJsonObject resolution;
-
-					resolution["width"] = geometry->width;
-					resolution["height"] = geometry->height;
-					resolution["fps"] = getFpsSupported();
-
-					resolutionArray.append(resolution);
-
-					format["resolutions"] = resolutionArray;
-					formats.append(format);
-
-					in["formats"] = formats;
-					video_inputs.append(in);
-				}
-				++i;
-			}
-
-			if ( !video_inputs.isEmpty() )
-			{
-				inputsDiscovered["video_inputs"] = video_inputs;
-
-				QJsonObject defaults;
-				QJsonObject video_inputs_default;
-				QJsonObject resolution_default;
-				resolution_default["fps"] = _fps;
-				video_inputs_default["resolution"] = resolution_default;
-				video_inputs_default["inputIdx"] = 0;
-				defaults["video_input"] = video_inputs_default;
-				inputsDiscovered["default"] = defaults;
+				displayName = (char*)xcb_get_property_value(property.get());
 			}
 		}
+
+		if (displayName.isEmpty())
+		{
+			displayName = QString("Display:%1").arg(i);
+		}
+
+		in["name"] = displayName;
+		in["inputIdx"] = i;
+
+		QJsonArray formats;
+		QJsonArray resolutionArray;
+		QJsonObject format;
+		QJsonObject resolution;
+
+		resolution["width"] = geometry->width;
+		resolution["height"] = geometry->height;
+		resolution["fps"] = getFpsSupported();
+
+		resolutionArray.append(resolution);
+
+		format["resolutions"] = resolutionArray;
+		formats.append(format);
+
+		in["formats"] = formats;
+		video_inputs.append(in);
+		++i;
+	}
+
+	if (!video_inputs.isEmpty())
+	{
+		inputsDiscovered["video_inputs"] = video_inputs;
+
+		QJsonObject defaults;
+		QJsonObject video_inputs_default;
+		QJsonObject resolution_default;
+		resolution_default["fps"] = _fps;
+		video_inputs_default["resolution"] = resolution_default;
+		video_inputs_default["inputIdx"] = 0;
+		defaults["video_input"] = video_inputs_default;
+		inputsDiscovered["default"] = defaults;
 	}
 
 	return inputsDiscovered;

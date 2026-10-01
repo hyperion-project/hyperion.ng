@@ -50,7 +50,7 @@
 #if defined(ENABLE_AUDIO)
 #include <grabber/audio/AudioGrabber.h>
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <grabber/audio/AudioGrabberWindows.h>
 #endif
 
