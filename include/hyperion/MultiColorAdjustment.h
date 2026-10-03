@@ -64,6 +64,9 @@ private:
 	/// List with a pointer to the ColorAdjustment for each individual led
 	QVector<ColorAdjustment*> _ledAdjustments;
 
+	/// Previous on/off state for hysteresis, indexed by LED
+	QVector<bool> _ledOnState;
+
 	// logger instance
 	QSharedPointer<Logger> _log;
 };
