@@ -922,6 +922,8 @@ void JsonAPI::applyTransforms(const QJsonObject &adjustment, ColorAdjustment *co
 	applyGammaTransform("gammaBlue", adjustment, colorAdjustment->_rgbTransform, 'b');
 	applyTransform("backlightThreshold", adjustment, colorAdjustment->_rgbTransform, &RgbTransform::setBacklightThreshold);
 	applyTransform("backlightColored", adjustment, colorAdjustment->_rgbTransform, &RgbTransform::setBacklightColored);
+	applyTransform("turnOnThreshold", adjustment, colorAdjustment->_rgbTransform, &RgbTransform::setTurnOnThreshold);
+	applyTransform("turnOffThreshold", adjustment, colorAdjustment->_rgbTransform, &RgbTransform::setTurnOffThreshold);
 	applyTransform("brightness", adjustment, colorAdjustment->_rgbTransform, &RgbTransform::setBrightness);
 	applyTransform("brightnessCompensation", adjustment, colorAdjustment->_rgbTransform, &RgbTransform::setBrightnessCompensation);
 	applyTransform("temperature", adjustment, colorAdjustment->_rgbTransform, &RgbTransform::setTemperature);

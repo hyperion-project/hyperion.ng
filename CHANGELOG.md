@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - V4L2/ImageResampler: add support for pixelformats YUV422P and NV21
 - New Juggler Effect
 - Support for **Robobloq** devices
+- Color adjustment: Add configurable per-LED brightness hysteresis thresholds to help prevent flicker near black.
+
 ---
 
 ### 🔧 Changed
@@ -1034,4 +1036,3 @@ If you used a `.deb` package please uninstall it before you upgrade
 ## [2.0.0-alpha.1](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.0-alpha.1) - 2020-02-16
 ### Added
 - Initial Release
-

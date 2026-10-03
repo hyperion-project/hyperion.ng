@@ -198,6 +198,49 @@ void RgbTransform::applyBacklight(uint8_t & red, uint8_t & green, uint8_t & blue
 	}
 }
 
+uint8_t RgbTransform::getTurnOnThreshold() const
+{
+	return _turnOnThreshold;
+}
+
+void RgbTransform::setTurnOnThreshold(uint8_t threshold)
+{
+	_turnOnThreshold = threshold;
+	if (_turnOffThreshold > _turnOnThreshold)
+	{
+		_turnOffThreshold = _turnOnThreshold;
+	}
+}
+
+uint8_t RgbTransform::getTurnOffThreshold() const
+{
+	return _turnOffThreshold;
+}
+
+void RgbTransform::setTurnOffThreshold(uint8_t threshold)
+{
+	_turnOffThreshold = qMin(threshold, _turnOnThreshold);
+}
+
+void RgbTransform::applyHysteresis(ColorRgb& color, bool& isOn) const
+{
+    const uint8_t threshold = isOn ? _turnOffThreshold : _turnOnThreshold;
+
+    if (color.red < threshold &&
+        color.green < threshold &&
+        color.blue < threshold)
+    {
+        color.red = 0;
+        color.green = 0;
+        color.blue = 0;
+        isOn = false;
+    }
+    else
+    {
+        isOn = true;
+    }
+}
+
 void RgbTransform::setTemperature(int temperature)
 {
 	_temperature = temperature;
