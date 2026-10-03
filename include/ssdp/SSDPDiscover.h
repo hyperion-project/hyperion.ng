@@ -29,10 +29,10 @@ struct SSDPService {
 };
 
 // Default values
-static const char	DEFAULT_SEARCH_ADDRESS[] = "239.255.255.250";
-static const int	DEFAULT_SEARCH_PORT = 1900;
-static const char	DEFAULT_FILTER[] = ".*";
-static const char	DEFAULT_FILTER_HEADER[] = "ST";
+inline constexpr char	DEFAULT_SEARCH_ADDRESS[] = "239.255.255.250";
+inline constexpr int	DEFAULT_SEARCH_PORT = 1900;
+inline constexpr char	DEFAULT_FILTER[] = ".*";
+inline constexpr char	DEFAULT_FILTER_HEADER[] = "ST";
 
 constexpr std::chrono::milliseconds DEFAULT_SSDP_TIMEOUT{5000}; // timeout in ms
 
@@ -45,7 +45,7 @@ class SSDPDiscover : public QObject
 
 public:
 
-	SSDPDiscover(QObject* parent = nullptr);
+	explicit SSDPDiscover(QObject* parent = nullptr);
 	~SSDPDiscover() override;
 
 	///

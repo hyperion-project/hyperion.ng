@@ -22,7 +22,7 @@ class HyperionIManager;
 // Constants
 namespace {
 
-const char NO_AUTHORIZATION[] = "No Authorization";;
+inline constexpr char NO_AUTHORIZATION[] = "No Authorization";;
 
 }
 

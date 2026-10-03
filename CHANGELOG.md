@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - macOS Screen Capture - Do not take a one-shot screenshot per frame. Use a continuous ScreenCaptureKit stream instead, which is established once. This removes the per-frame shareable content enumeration (WindowServer/replayd CPU) and stops the Screen Recording indicator from flickering, which pinned the macOS Control Center close to 100% CPU (#2046, #2039, #1921)
   - X11/XCB-Grabbers - fix that client leaks when repeatedly enabled/disabled (#2035)
   - ImageToLedsMap - Pixel index was calculated wrong for images with detected borders (#2023)
+  - QHttpServer - Fix memory leak
 
 ---
 ### Technical
