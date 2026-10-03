@@ -14,6 +14,7 @@
 #include "utils/MemoryTracker.h"
 
 Q_LOGGING_CATEGORY(imageProcessor_track, "hyperion.imageProcessor.track");
+Q_LOGGING_CATEGORY(imageProcessor_track_border_crop, "hyperion.imageProcessor.track.border.crop");
 
 using namespace hyperion;
 

@@ -1,7 +1,10 @@
 // STL includes
-#include<algorithm>
+#include <algorithm>
 
 // QT includes
+#include <QImage>
+#include <QPainter>
+#include <QPen>
 #include <QString>
 #include <QStringList>
 #include <QThread>
@@ -10,22 +13,22 @@
 // hyperion include
 #include <hyperion/Hyperion.h>
 
-#include <hyperion/ImageProcessor.h>
 #include <hyperion/ColorAdjustment.h>
+#include <hyperion/ImageProcessor.h>
 
 // utils
-#include <utils/hyperion.h>
-#include <utils/GlobalSignals.h>
-#include <utils/Logger.h>
-#include <utils/JsonUtils.h>
-#include "utils/WaitTime.h"
 #include "utils/MemoryTracker.h"
+#include "utils/WaitTime.h"
+#include <utils/GlobalSignals.h>
+#include <utils/JsonUtils.h>
+#include <utils/Logger.h>
+#include <utils/hyperion.h>
 
 // LedDevice includes
 #include <leddevice/LedDeviceWrapper.h>
 
-#include <hyperion/MultiColorAdjustment.h>
 #include <hyperion/LinearColorSmoothing.h>
+#include <hyperion/MultiColorAdjustment.h>
 
 #if defined(ENABLE_EFFECTENGINE)
 // effect engine includes
@@ -50,34 +53,35 @@ Q_LOGGING_CATEGORY(instance_flow, "hyperion.instance.flow");
 Q_LOGGING_CATEGORY(instance_update, "hyperion.instance.update");
 
 // Constants
-namespace {
-	const double DEFAULT_SKIPPEDUPDATES_LOWERBOUND = {5}; // Report skipped updates only if greater 5%
-	constexpr std::chrono::seconds DEFAULT_STATISTICS_INTERVAL{ 60 }; //Generate statistics every 60 seconds
-} //End of constants
+namespace
+{
+	const double DEFAULT_SKIPPEDUPDATES_LOWERBOUND = {5};           // Report skipped updates only if greater 5%
+	constexpr std::chrono::seconds DEFAULT_STATISTICS_INTERVAL{60}; // Generate statistics every 60 seconds
+} // End of constants
 
 Hyperion::Hyperion(quint8 instance, QObject* parent)
-	: QObject(parent)
-	, _instIndex(instance)
-	, _settingsManager(nullptr)
-	, _componentRegister(nullptr)
-	, _imageProcessor(nullptr)
-	, _raw2ledAdjustment(nullptr)
-	, _muxer(nullptr)
-	, _ledDeviceWrapper(nullptr)
-	, _deviceSmooth(nullptr)
-	, _captureCont(nullptr)
-	, _BGEffectHandler(nullptr)
-#if defined(ENABLE_EFFECTENGINE)	
-	, _effectEngine(nullptr)
-#endif	
-#if defined(ENABLE_BOBLIGHT_SERVER)
-	, _boblightServer(nullptr)
+    : QObject(parent)
+    , _instIndex(instance)
+    , _settingsManager(nullptr)
+    , _componentRegister(nullptr)
+    , _imageProcessor(nullptr)
+    , _raw2ledAdjustment(nullptr)
+    , _muxer(nullptr)
+    , _ledDeviceWrapper(nullptr)
+    , _deviceSmooth(nullptr)
+    , _captureCont(nullptr)
+    , _BGEffectHandler(nullptr)
+#if defined(ENABLE_EFFECTENGINE)
+    , _effectEngine(nullptr)
 #endif
-	, _log(nullptr)
-	, _hwLedCount(0)
-	, _layoutLedCount(0)
-	, _colorOrder("rgb")
-	, _statisticsTimer(nullptr)
+#if defined(ENABLE_BOBLIGHT_SERVER)
+    , _boblightServer(nullptr)
+#endif
+    , _log(nullptr)
+    , _hwLedCount(0)
+    , _layoutLedCount(0)
+    , _colorOrder("rgb")
+    , _statisticsTimer(nullptr)
 {
 	qRegisterMetaType<ComponentList>("ComponentList");
 	qRegisterMetaType<Image<ColorRgb>>("ColorRgbImage");
@@ -181,7 +185,6 @@ void Hyperion::start()
 	// if there is no startup / background effect and no sending capture interface we probably want to push once BLACK (as PrioMuxer won't emit a priority change)
 	refreshUpdate();
 
-
 	_statisticsTimer->start();
 
 #if defined(ENABLE_BOBLIGHT_SERVER)
@@ -199,7 +202,7 @@ void Hyperion::stop(const QString name)
 {
 	Debug(_log, "Hyperion instance [%u] - %s is stopping.", _instIndex, QSTRING_CSTR(name));
 
-	//Stop Background effect first that it does not kick in when other priorities are stopped
+	// Stop Background effect first that it does not kick in when other priorities are stopped
 	_BGEffectHandler->stop();
 
 	_captureCont->stop();
@@ -209,7 +212,7 @@ void Hyperion::stop(const QString name)
 	_boblightServer.clear();
 #endif
 
-	//Remove all priorities
+	// Remove all priorities
 	_muxer->clearAll(true);
 
 #if defined(ENABLE_EFFECTENGINE)
@@ -222,10 +225,9 @@ void Hyperion::stop(const QString name)
 
 	// Trigger instance stopped when the LedDevice signals it has stopped
 	connect(_ledDeviceWrapper.get(), &LedDeviceWrapper::isStopped, [this, name]()
-	{
+	        {
 		TRACK_SCOPE_SUBCOMPONENT_CATEGORY(instance_flow) << "LedDeviceWrapper signaled it has stopped for Hyperion instance:" << QSTRING_CSTR(name);
-		emit finished(name);
-	});
+		emit finished(name); });
 	_ledDeviceWrapper->stopDevice();
 }
 
@@ -304,7 +306,7 @@ void Hyperion::updateLedLayout(const QJsonArray& ledLayout)
 
 	if (_layoutLedCount < static_cast<int>(_ledBuffer.size()))
 	{
-		std::fill(_ledBuffer.begin() + _layoutLedCount, _ledBuffer.end(), ColorRgb{ 0, 0, 0 });
+		std::fill(_ledBuffer.begin() + _layoutLedCount, _ledBuffer.end(), ColorRgb{0, 0, 0});
 	}
 }
 
@@ -343,7 +345,7 @@ void Hyperion::setSourceAutoSelect(bool state)
 	if (!_muxer.isNull())
 	{
 		_muxer->setSourceAutoSelectEnabled(state);
-	}	
+	}
 }
 
 bool Hyperion::setVisiblePriority(int priority)
@@ -352,7 +354,7 @@ bool Hyperion::setVisiblePriority(int priority)
 	{
 		return _muxer->setPriority(priority);
 	}
-	
+
 	return false;
 }
 
@@ -398,7 +400,7 @@ void Hyperion::setIdle(bool isIdle)
 	clear(-1);
 
 	bool const enable = !isIdle;
-	emit compStateChangeRequestAll(enable, { hyperion::COMP_LEDDEVICE, hyperion::COMP_SMOOTHING });
+	emit compStateChangeRequestAll(enable, {hyperion::COMP_LEDDEVICE, hyperion::COMP_SMOOTHING});
 }
 
 void Hyperion::registerInput(int priority, hyperion::Components component, const QString& origin, const QString& owner, unsigned smooth_cfg)
@@ -449,7 +451,7 @@ bool Hyperion::setInputImage(int priority, const Image<ColorRgb>& image, int64_t
 
 	if (!_muxer->hasPriority(priority))
 	{
-		emit GlobalSignals::getInstance()->globalRegRequired(priority);
+		emit GlobalSignals::getInstance() -> globalRegRequired(priority);
 		return false;
 	}
 
@@ -500,7 +502,7 @@ void Hyperion::setColor(int priority, const QVector<ColorRgb>& ledColors, int ti
 
 	if (!ledColors.isEmpty())
 	{
-		const int ledCount   = _layoutLedCount;
+		const int ledCount = _layoutLedCount;
 		const auto colorCount = ledColors.size();
 
 		if (colorCount == 1)
@@ -513,7 +515,7 @@ void Hyperion::setColor(int priority, const QVector<ColorRgb>& ledColors, int ti
 			// General case: multiple colors, repeat colors if necessary to fill the entire vector
 			for (int i = 0; i < ledCount; ++i)
 			{
-				newLedColors[i] = ledColors[i % colorCount];		
+				newLedColors[i] = ledColors[i % colorCount];
 			}
 		}
 	}
@@ -583,7 +585,7 @@ bool Hyperion::clear(int priority, bool forceClearAll)
 
 int Hyperion::getCurrentPriority() const
 {
-	return  _muxer.isNull() ? PriorityMuxer::LOWEST_PRIORITY : _muxer->getCurrentPriority();
+	return _muxer.isNull() ? PriorityMuxer::LOWEST_PRIORITY : _muxer->getCurrentPriority();
 }
 
 bool Hyperion::isCurrentPriority(int priority) const
@@ -757,7 +759,7 @@ void Hyperion::writeToLeds()
 		// Smoothing is disabled
 		if (!_deviceSmooth->enabled())
 		{
-				emit ledDeviceData(_ledBuffer);
+			emit ledDeviceData(_ledBuffer);
 		}
 		else
 		{
@@ -812,6 +814,62 @@ void Hyperion::handleUpdate()
 	_isUpdatePending.store(false);
 }
 
+void Hyperion::handleBorderdImage(const Image<ColorRgb>& image)
+{
+	hyperion::BlackBorder currentBorder = _imageProcessor->getCurrentBorder();
+	if (currentBorder.unknown || (currentBorder.horizontalSize <= 0 && currentBorder.verticalSize <= 0))
+	{
+		emit currentImage(image);
+		return;
+	}
+
+	if (imageProcessor_track_border_crop().isDebugEnabled())
+	{
+		// Crop the image according to the detected black borders
+		const int xOffset = currentBorder.verticalSize;   // left/right border
+		const int yOffset = currentBorder.horizontalSize; // top/bottom border
+		const int croppedWidth = image.width() - 2 * xOffset;
+		const int croppedHeight = image.height() - 2 * yOffset;
+
+		if (croppedWidth <= 0 || croppedHeight <= 0)
+		{
+			emit currentImage(image);
+			return;
+		}
+
+		Image<ColorRgb> croppedImage(croppedWidth, croppedHeight);
+		for (int y = 0; y < croppedHeight; ++y)
+		{
+			std::memcpy(croppedImage.memptr() + y * croppedWidth,
+			            image.memptr() + (y + yOffset) * image.width() + xOffset,
+			            croppedWidth * sizeof(ColorRgb));
+		}
+		emit currentImage(croppedImage);
+		return;
+	}
+
+	// Annotate image with borders detected
+	// Work on a detached copy so the original 'image' stays untouched
+	Image<ColorRgb> debugImage = image;
+	QImage qDebugImage = debugImage.toQImage(); // non-const overload -> shares/detaches the copy's buffer
+
+	// horizontalSize crops top/bottom (rows), verticalSize crops left/right (columns)
+	const QRect borderRect(
+	    currentBorder.verticalSize,
+	    currentBorder.horizontalSize,
+	    qDebugImage.width() - 2 * currentBorder.verticalSize,
+	    qDebugImage.height() - 2 * currentBorder.horizontalSize);
+
+	QPainter painter(&qDebugImage);
+	painter.setPen(QPen(Qt::red, 2, Qt::DashLine));
+	painter.drawRect(borderRect);
+	painter.end();
+
+	// qDebugImage shares the buffer with debugImage, so debugImage is already updated -
+	// no explicit conversion back is required.
+	emit currentImage(debugImage); // Emit the border-annotated image instead of the plain one
+}
+
 void Hyperion::processUpdate()
 {
 	// Obtain the current priority channel
@@ -825,14 +883,22 @@ void Hyperion::processUpdate()
 	if (!image.isNull())
 	{
 		TRACK_SCOPE_SUBCOMPONENT_CATEGORY(instance_update) << "Process update using image with id" << image.id() << "and resolution" << image.width() << "x" << image.height();
-		emit currentImage(image);  // Emit the image signal at the controlled rate
 		ledColors = _imageProcessor->process(image);
+
+		if (imageProcessor_track().isDebugEnabled() || imageProcessor_track_border_crop().isDebugEnabled())
+		{
+			handleBorderdImage(image);
+		}
+		else
+		{
+			emit currentImage(image);
+		}
 	}
 	else
 	{
 		ledColors = priorityInfo.ledColors;
 		if (ledColors.empty())
-		{		
+		{
 			TRACK_SCOPE_SUBCOMPONENT_CATEGORY(instance_update) << "Empty image and no LED colors provided - skip update";
 			return;
 		}

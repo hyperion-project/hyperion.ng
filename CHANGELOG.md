@@ -53,6 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Housekeeping - GitHub builds
 - Script to validate translations files for common malformed placeholder/template tokens that may break the i18n parser
 - Update CodeQL runs to exclude external code, plus addressed CodeQL findings
+- Debug support - Annotate or crop the image with borders depending on the detected black borders
 
 ## [2.2.1](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.2.1) - 2026-04-06
 
