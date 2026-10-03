@@ -43,9 +43,19 @@ public:
 	bool start() override;
 
 	///
+	/// Stops the grabber, if running
+	///
+	void stop() override;
+
+	///
 	/// Starts the grabber which produces led values with the specified update rate
 	///
 	bool open() override;
+
+	///
+	/// Closes the grabber and releases any claimed resources
+	///
+	bool close() override;	
 
 public slots:
 	void action() override;

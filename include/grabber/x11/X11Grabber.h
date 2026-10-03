@@ -42,6 +42,7 @@ public:
 	bool isAvailable(bool logError = false) override;
 
 	bool open();
+	bool close();
 	bool setupDisplay();
 
 	///

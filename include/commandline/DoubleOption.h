@@ -16,7 +16,9 @@ public:
 		double minimum = -INFINITY, double maximum = INFINITY, int decimals = 1000)
 	: ValidatorOption(name, description, valueName, defaultValue)
 	{
-		setValidator(new QDoubleValidator(minimum, maximum, decimals));
+		_minimum = minimum;
+		_maximum = maximum;
+		setValidator(new QDoubleValidator(_minimum, _maximum, decimals));
 	}
 
 	DoubleOption(const QStringList &names,
@@ -46,8 +48,8 @@ public:
 
 protected:
 	double _double;
-	int _minimum;
-	int _maximum;
+	double _minimum;
+	double _maximum;
 };
 
 }

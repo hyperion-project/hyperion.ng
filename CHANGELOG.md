@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - MdnsBrowser compile errors when ENABLE_MDNS is false (#2024)
   - LinearColorSmoothing - fix incorrect output interval calculation, fix handling for update frequency >= 1000Hz
   - macOS Screen Capture - Do not take a one-shot screenshot per frame. Use a continuous ScreenCaptureKit stream instead, which is established once. This removes the per-frame shareable content enumeration (WindowServer/replayd CPU) and stops the Screen Recording indicator from flickering, which pinned the macOS Control Center close to 100% CPU (#2046, #2039, #1921)
+  - X11/XCB-Grabbers - fix that client leaks when repeatedly enabled/disabled (#2035)
   - QHttpServer - Fix memory leak
 
 ---
@@ -44,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ProviderRestAPI - Add error when failing to load Qt SSL
 - NetUtils: Improve handling when ENABLE_MDNS is false
 - Configure ccache or buildcache only if explicitly requested
+- Standalone grabber apps refactored to a shared Options/Cli/Traits template pattern and consolidated under `src/grabberapp/`
 - Fixed - docker-compile script, plus support private git package builds
 - Update Mbed TLS to v4.2.0, Update protobuf to v36.0,  HID-API to master (v0.16.0), libusb-cmake to v1.0.30-0, rpi_ws281x
 - macOS Screen Capture - The capture session scales the display down to the analysis resolution (GPU) instead of converting the full resolution frame on the CPU. In addition, the image is no longer re-sized to the configured capture size for every frame. Reduces Hyperion's CPU usage during screen capture by ~5x (#2046, #2039). Cropping and the 3D modes keep using the full resolution capture.
