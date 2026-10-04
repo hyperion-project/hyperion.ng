@@ -159,6 +159,7 @@ private:
 
 	bool setupPSK();
 	bool startSSLHandshake();
+	static void mbedtlsDebugCallback(void *ctx, int level, const char *file, int line, const char *str);	
 
 	QString errorMsg(int ret) const;
 	void closeSSLNotify();
