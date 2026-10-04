@@ -22,7 +22,6 @@ jobs:
       fail-fast: false
       matrix:
         debian: [
-          { codename: [ 'bullseye', 'Bullseye' ] },
           { codename: [ 'bookworm', 'Bookworm' ] },
           { codename: [ 'trixie', 'Trixie' ] }
         ]
@@ -62,7 +61,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: ⬇ Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: 🔧 Prepare
         run: |

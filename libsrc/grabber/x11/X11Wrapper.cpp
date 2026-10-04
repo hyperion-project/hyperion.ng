@@ -33,16 +33,30 @@ bool X11Wrapper::start()
 {
 	if (_grabber.isAvailable())
 	{
+		qCDebug(grabber_screen_flow) << "Start grabber" << _grabber.getGrabberName() << "currently:" << (_grabber.isEnabled() ? "enabled" : "disabled");
 		return GrabberWrapper::start();
 	}
 
 	return false;
 }
 
+void X11Wrapper::stop()
+{
+	qCDebug(grabber_screen_flow) << "Stop grabber" << _grabber.getGrabberName() << "currently:" << (_grabber.isEnabled() ? "enabled" : "disabled");
+	if (_grabber.isAvailable())
+	{
+		GrabberWrapper::stop();
+	}
+}
 
 bool X11Wrapper::open()
 {
 	return _grabber.setupDisplay();
+}
+
+bool X11Wrapper::close()
+{
+	return _grabber.close();
 }
 
 void X11Wrapper::action()

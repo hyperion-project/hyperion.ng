@@ -3,6 +3,8 @@
 
 #include <chrono>
 
+#include <mdns/MdnsUtils.h>
+
 #include <qmdnsengine/server.h>
 #include <qmdnsengine/service.h>
 
@@ -58,25 +60,10 @@ public:
 	QMdnsEngine::Service getFirstService(const QByteArray& serviceType, const QString& filter = ".*", std::chrono::milliseconds waitTime = DEFAULT_DISCOVER_TIMEOUT) const;
 	QJsonArray getServicesDiscoveredJson(const QByteArray& serviceType, const QString& filter = ".*", std::chrono::milliseconds waitTime = std::chrono::milliseconds{ 0 }) const;
 
-	///
-	/// @brief Check if the passed name is an MDNS service- or hostname
-	/// @param[in]     mdnsName    The name to be checked
-	/// @return        True on success else false
-	///
-	static inline bool isMdns(const QString &mdnsName)
-	{
-		return mdnsName.endsWith(".local") || mdnsName.endsWith(".local.");
-	}
-
-	///
-	/// @brief Check if the passed name is an MDNS service name
-	/// @param[in]     mdnsServiceName    The name to be checked
-	/// @return        True on success else false
-	///
-	static inline bool isMdnsService(const QString &mdnsServiceName)
-	{
-		return mdnsServiceName.endsWith("._tcp.local") || mdnsServiceName.endsWith("._tcp.local.");
-	}
+	/// @see MdnsUtils::isMdns
+	static inline bool isMdns(const QString& mdnsName)        { return MdnsUtils::isMdns(mdnsName); }
+	/// @see MdnsUtils::isMdnsService
+	static inline bool isMdnsService(const QString& mdnsServiceName) { return MdnsUtils::isMdnsService(mdnsServiceName); }
 
 	void printCache(const QByteArray &name = QByteArray(), quint16 type = QMdnsEngine::ANY) const;
 

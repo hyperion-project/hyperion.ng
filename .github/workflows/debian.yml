@@ -7,7 +7,7 @@ on:
       codename:
         type: string
         description: The Debian codename
-        default: 'bullseye'
+        default: 'bookworm'
         required: false
       event_name:
         type: string
@@ -50,7 +50,7 @@ jobs:
 
     steps:
       - name: ⬇ Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           submodules: recursive
           fetch-depth: 0  # Ensures all tags are fetched

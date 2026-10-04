@@ -340,10 +340,52 @@ QMdnsEngine::Service MdnsBrowser::getFirstService(const QByteArray& serviceType,
 	return service;
 }
 
+/// @brief Queries the local mDNS cache for services of a given type, filters
+///        them by name, and returns the matching entries as a JSON array.
+///
+/// The function looks up PTR records for @p serviceType in the in-memory mDNS
+/// cache.  For each PTR record whose target name matches the @p filter regular
+/// expression, it resolves the companion SRV record to obtain the host name and
+/// port, and optionally the TXT record for additional service metadata.  The
+/// results are assembled into JSON objects and appended to the returned array.
+///
+/// @par Retry strategy
+/// If the cache returns no matches on the first attempt, the function waits
+/// @p waitTime and retries up to 3 times total before giving up.  This allows
+/// the mDNS browser time to populate the cache with freshly received multicast
+/// responses.
+///
+/// @par Returned JSON schema (one element of the array)
+/// @code{.json}
+/// {
+///   "id":       "MyHyperion._tcp.local.",  // raw PTR target (includes trailing dot)
+///   "service":  "MyHyperion._tcp.local",   // PTR target with trailing dot removed
+///   "type":     "_hyperiond-http._tcp.local.",
+///   "name":     "MyHyperion",              // human-readable service label
+///   "hostname": "raspberrypi",             // SRV target host (trailing dot removed)
+///   "domain":   "local.",
+///   "sameHost": true,                      // true when the service runs on this machine
+///   "port":     8090,
+///   "txt": {                               // optional — only present when a TXT record exists
+///     "version": "2.0.16"
+///   }
+/// }
+/// @endcode
+///
+/// @param serviceType The mDNS service type to look up
+///                    (e.g. @c "_hyperiond-http._tcp.local.").
+/// @param filter      A @c QRegularExpression pattern applied to each PTR record's
+///                    target name.  Pass an empty string or @c ".*" to match all.
+/// @param waitTime    How long to wait between retry attempts when the cache is
+///                    empty or no records match.
+/// @return A @c QJsonArray of matching service descriptors.  Returns an empty
+///         array when the cache is null, the @p filter regex is invalid, or no
+///         matching services are found within the retry budget.
 QJsonArray MdnsBrowser::getServicesDiscoveredJson(const QByteArray& serviceType, const QString& filter, const std::chrono::milliseconds waitTime) const
 {
 	qCDebug(mdns_browser) << "Get services of type:" << serviceType << ", matching name:" << filter;
 
+	// Nothing to search if the cache has not been initialised yet.
 	if (_cache.isNull())
 	{
 		return {};
@@ -351,6 +393,7 @@ QJsonArray MdnsBrowser::getServicesDiscoveredJson(const QByteArray& serviceType,
 
 	QJsonArray result;
 
+	// Validate the caller-supplied filter pattern before using it.
 	QRegularExpression const regEx(filter);
 	if (!regEx.isValid()) {
 		QString const errorString = regEx.errorString();
@@ -362,6 +405,7 @@ QJsonArray MdnsBrowser::getServicesDiscoveredJson(const QByteArray& serviceType,
 	{
 		QList<QMdnsEngine::Record> ptrRecords;
 
+		// Retry loop: wait for the cache to be populated if no records are found yet.
 		int retries = 3;
 		do
 		{
@@ -370,11 +414,14 @@ QJsonArray MdnsBrowser::getServicesDiscoveredJson(const QByteArray& serviceType,
 				for (const auto& ptrRecord : std::as_const(ptrRecords))
 				{
 					QByteArray const serviceName = ptrRecord.target();
+					// Apply the name filter before doing any further record lookups.
 					if (regEx.match(serviceName.constData()).hasMatch())
 					{
+						// Resolve the SRV record to get the host name and port.
 						QMdnsEngine::Record srvRecord;
 						if (!_cache->lookupRecord(serviceName, QMdnsEngine::SRV, srvRecord))
 						{
+							// A PTR record without a corresponding SRV record is incomplete — skip it.
 							qCWarning(mdns_browser) << "No SRV record for:" << serviceName << "found, skip entry";
 						}
 						else
@@ -384,11 +431,14 @@ QJsonArray MdnsBrowser::getServicesDiscoveredJson(const QByteArray& serviceType,
 
 							obj.insert("id", serviceName.constData());
 
+							// Strip the trailing dot that mDNS appends to fully-qualified names.
 							QString service = serviceName;
 							service.chop(1);
 							obj.insert("service", service);
 							obj.insert("type", serviceType.constData());
 
+							// Extract the human-readable service label by removing the
+							// service-type suffix from the full service name.
 							QString name;
 							if (serviceName.endsWith("." + serviceType))
 							{
@@ -403,7 +453,8 @@ QJsonArray MdnsBrowser::getServicesDiscoveredJson(const QByteArray& serviceType,
 							obj.insert("hostname", QString(hostName));
 							obj.insert("domain", domain);
 
-							//Tag records where the service is provided by this host
+							// Tag records where the service is provided by this host so
+							// the UI can highlight local instances.
 							QByteArray localHostname = QHostInfo::localHostName().toUtf8();
 							localHostname = localHostname.replace('.', '-');
 
@@ -417,6 +468,7 @@ QJsonArray MdnsBrowser::getServicesDiscoveredJson(const QByteArray& serviceType,
 							quint16 const port = srvRecord.port();
 							obj.insert("port", port);
 
+							// Append TXT record attributes when available (e.g. version info).
 							QMdnsEngine::Record txtRecord;
 							if (_cache->lookupRecord(serviceName, QMdnsEngine::TXT, txtRecord))
 							{
@@ -436,6 +488,7 @@ QJsonArray MdnsBrowser::getServicesDiscoveredJson(const QByteArray& serviceType,
 				}
 			}
 
+			// Back off and retry when the cache has not delivered any results yet.
 			if ( result.isEmpty())
 			{
 				wait(waitTime);
@@ -451,7 +504,6 @@ QJsonArray MdnsBrowser::getServicesDiscoveredJson(const QByteArray& serviceType,
 		else
 		{
 			qCWarning(mdns_browser) << "No service of type:" << serviceType << "found";
-
 		}
 	}
 

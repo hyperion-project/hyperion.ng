@@ -51,11 +51,19 @@ void LedDeviceSkydimo::prepareHeader()
 int LedDeviceSkydimo::write(const QVector<ColorRgb> & ledValues)
 {
 	auto ledCount = static_cast<uint>(ledValues.size());
-	if (_ledCount != ledCount)
+	// Compare against _bufferLength (only ever set by prepareHeader(), i.e. Skydimo-owned
+	// state) rather than the shared _ledCount, which Hyperion's core can update out-of-band
+	// via setLedCount() before this write() call ever happens (e.g. during the switchOff()/
+	// writeBlack() teardown that follows an LED-count config change). Comparing against
+	// _ledCount there is a false negative - it already matches the new count - so the buffer
+	// resize gets skipped and the assert() below fires against a stale, too-small buffer.
+	const qint64 requiredBufferLength = static_cast<qint64>(HEADER_SIZE) + static_cast<qint64>(ledCount) * static_cast<qint64>(sizeof(ColorRgb));
+	if (_bufferLength != requiredBufferLength)
 	{
-		Warning(_log, "Skydimo LED count has changed (old: %d, new: %d). Rebuilding header.", _ledCount, ledCount);
+		Warning(_log, "Skydimo LED count has changed (new: %d). Rebuilding header.", ledCount);
 
-		_ledRGBCount = ledCount * 3;
+		_ledCount    = ledCount;
+		_ledRGBCount = ledCount * sizeof(ColorRgb);
 		prepareHeader();
 	}
 

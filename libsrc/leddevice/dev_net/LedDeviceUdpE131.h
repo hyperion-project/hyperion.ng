@@ -137,7 +137,7 @@ private:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	int write(const QVector<ColorRgb> & ledValues) override;	
+	int write(const QVector<ColorRgb> & ledValues) override;
 
 	///
 	/// @brief Writes the RGB-Color values to the LEDs.
@@ -161,6 +161,7 @@ private:
 	RGBW::WhiteAlgorithm _whiteAlgorithm;
 	ColorRgbw _temp_rgbw;
 	uint16_t _dmxChannelCount;
+	uint16_t _customWhiteTemperature = 5000;
 };
 
 #endif // LEDEVICEUDPE131_H

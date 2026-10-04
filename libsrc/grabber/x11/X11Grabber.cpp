@@ -1,26 +1,26 @@
-#include <utils/Logger.h>
 #include <grabber/x11/X11Grabber.h>
+#include <utils/Logger.h>
 
 #include <xcb/randr.h>
 #include <xcb/xcb_event.h>
 
 X11Grabber::X11Grabber(int cropLeft, int cropRight, int cropTop, int cropBottom)
-	: Grabber("GRABBER-X11", cropLeft, cropRight, cropTop, cropBottom)
-	, _x11Display(nullptr)
-	, _xImage(nullptr)
-	, _pixmap(None)
-	, _srcFormat(nullptr)
-	, _dstFormat(nullptr)
-	, _srcPicture(None)
-	, _dstPicture(None)
-	, _screenWidth(0)
-	, _screenHeight(0)
-	, _src_x(cropLeft)
-	, _src_y(cropTop)
-	, _xShmAvailable(false)
-	, _xRenderAvailable(false)
-	, _xRandRAvailable(false)
-	, _isWayland (false)
+    : Grabber("GRABBER-X11", cropLeft, cropRight, cropTop, cropBottom)
+    , _x11Display(nullptr)
+    , _xImage(nullptr)
+    , _pixmap(None)
+    , _srcFormat(nullptr)
+    , _dstFormat(nullptr)
+    , _srcPicture(None)
+    , _dstPicture(None)
+    , _screenWidth(0)
+    , _screenHeight(0)
+    , _src_x(cropLeft)
+    , _src_y(cropTop)
+    , _xShmAvailable(false)
+    , _xRenderAvailable(false)
+    , _xRandRAvailable(false)
+    , _isWayland(false)
 {
 	_useImageResampler = false;
 	_imageResampler.setCropping(0, 0, 0, 0); // cropping is performed by XRender, XShmGetImage or XGetImage
@@ -30,50 +30,59 @@ X11Grabber::X11Grabber(int cropLeft, int cropRight, int cropTop, int cropBottom)
 
 X11Grabber::~X11Grabber()
 {
-	if (_x11Display != nullptr)
-	{
-		freeResources();
-		XCloseDisplay(_x11Display);
-	}
+	TRACK_SCOPE();
+	close();
 }
 
 void X11Grabber::freeResources()
 {
-	// Cleanup allocated resources of the X11 grab
+	qCDebug(grabber_screen_flow) << "Freeing X11 resources";
 	if (_xImage != nullptr)
 	{
+		qCDebug(grabber_screen_flow) << "Destroying XImage";
 		XDestroyImage(_xImage);
+		_xImage = nullptr;
 	}
 	if (_xRandRAvailable)
 	{
+		qCDebug(grabber_screen_flow) << "Removing native event filter for XRandR";
 		qApp->removeNativeEventFilter(this);
+		_xRandRAvailable = false;
 	}
-	if(_xShmAvailable)
+	if (_xShmAvailable)
 	{
+		qCDebug(grabber_screen_flow) << "Detaching XShm";
 		XShmDetach(_x11Display, &_shminfo);
 		shmdt(_shminfo.shmaddr);
 		shmctl(_shminfo.shmid, IPC_RMID, nullptr);
+		_xShmAvailable = false;
 	}
 	if (_xRenderAvailable)
 	{
+		qCDebug(grabber_screen_flow) << "Freeing XRender resources";
 		XRenderFreePicture(_x11Display, _srcPicture);
 		XRenderFreePicture(_x11Display, _dstPicture);
 		XFreePixmap(_x11Display, _pixmap);
+		_xRenderAvailable = false;
 	}
+	qCDebug(grabber_screen_flow) << "Finished freeing X11 resources";
 }
 
 void X11Grabber::setupResources()
 {
+	qCDebug(grabber_screen_flow) << "Setting up X11 resources";
 	if (_xRandRAvailable)
 	{
+		qCDebug(grabber_screen_flow) << "Installing native event filter for XRandR";
 		qApp->installNativeEventFilter(this);
 	}
 
-	if(_xShmAvailable)
+	if (_xShmAvailable)
 	{
+		qCDebug(grabber_screen_flow) << "Creating XShm image";
 		_xImage = XShmCreateImage(_x11Display, _windowAttr.visual, _windowAttr.depth, ZPixmap, nullptr, &_shminfo, _width, _height);
-		_shminfo.shmid = shmget(IPC_PRIVATE, (size_t) _xImage->bytes_per_line * _xImage->height, IPC_CREAT|0777);
-		_xImage->data = (char*)shmat(_shminfo.shmid,nullptr,0);
+		_shminfo.shmid = shmget(IPC_PRIVATE, (size_t)_xImage->bytes_per_line * _xImage->height, IPC_CREAT | 0777);
+		_xImage->data = (char*)shmat(_shminfo.shmid, nullptr, 0);
 		_shminfo.shmaddr = _xImage->data;
 		_shminfo.readOnly = False;
 		XShmAttach(_x11Display, &_shminfo);
@@ -81,16 +90,19 @@ void X11Grabber::setupResources()
 
 	if (_xRenderAvailable)
 	{
+		qCDebug(grabber_screen_flow) << "Setting up XRender resources";
 		_useImageResampler = false;
 		_imageResampler.setHorizontalPixelDecimation(1);
 		_imageResampler.setVerticalPixelDecimation(1);
 
-		if(_xShmPixmapAvailable)
+		if (_xShmPixmapAvailable)
 		{
+			qCDebug(grabber_screen_flow) << "Creating XShm Pixmap";
 			_pixmap = XShmCreatePixmap(_x11Display, _window, _xImage->data, &_shminfo, _width, _height, _windowAttr.depth);
 		}
 		else
 		{
+			qCDebug(grabber_screen_flow) << "Creating standard XPixmap";
 			_pixmap = XCreatePixmap(_x11Display, _window, _width, _height, _windowAttr.depth);
 		}
 		_srcFormat = XRenderFindVisualFormat(_x11Display, _windowAttr.visual);
@@ -103,11 +115,12 @@ void X11Grabber::setupResources()
 	else
 	{
 		_useImageResampler = true;
+		qCDebug(grabber_screen_flow) << "Using image resampler with pixel decimation" << _pixelDecimation;
 		_imageResampler.setHorizontalPixelDecimation(_pixelDecimation);
 		_imageResampler.setVerticalPixelDecimation(_pixelDecimation);
 	}
+	qCDebug(grabber_screen_flow) << "Finished setting up X11 resources";
 }
-
 
 bool X11Grabber::isAvailable(bool logError)
 {
@@ -121,20 +134,52 @@ bool X11Grabber::isAvailable(bool logError)
 	return _isAvailable;
 }
 
-
 bool X11Grabber::open()
 {
-	bool rc = false;
-
 	if (_isAvailable)
 	{
-		_x11Display = XOpenDisplay(nullptr);
-		if (_x11Display != nullptr)
+		qCDebug(grabber_screen_flow) << "Open grabber" << getGrabberName() << "currently:" << (_isEnabled ? "enabled" : "disabled");
+		if (_x11Display == nullptr)
 		{
-			rc = true;
+			_x11Display = XOpenDisplay(nullptr);
+			if (_x11Display != nullptr)
+			{
+				qCDebug(grabber_screen_flow) << "Successfully opened display" << getenv("DISPLAY");
+				return true;
+			}
+		}
+		else
+		{
+			qCDebug(grabber_screen_flow) << "Display" << getenv("DISPLAY") << "is already open.";
+			return true;
 		}
 	}
-	return rc;
+	return false;
+}
+
+bool X11Grabber::close()
+{
+	if (_isAvailable)
+	{
+		qCDebug(grabber_screen_flow) << "Close grabber" << getGrabberName() << "currently:" << (_isEnabled ? "enabled" : "disabled");
+		if (_x11Display != nullptr)
+		{
+			freeResources();
+			qCDebug(grabber_screen_flow) << "Closing display" << getenv("DISPLAY");
+			int rc = XCloseDisplay(_x11Display);
+			qCDebug(grabber_screen_flow) << "Closed x11Display:" << ((rc == 0) ? "successfully" : "with error");
+			if (rc == 0)
+			{
+				_x11Display = nullptr;
+				return true;
+			}
+		}
+		else
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 bool X11Grabber::setupDisplay()
@@ -144,48 +189,42 @@ bool X11Grabber::setupDisplay()
 		return false;
 	}
 
-	bool result = false;
+	qCDebug(grabber_screen_flow) << "Starting setup of X11 display";
 
-	if ( ! open() )
+	if (!open())
 	{
 		if (getenv("DISPLAY") != nullptr)
 		{
-			Error(_log, "Unable to open display [%s]",getenv("DISPLAY"));
+			Error(_log, "Unable to open display [%s]", getenv("DISPLAY"));
 		}
 		else
 		{
 			Error(_log, "DISPLAY environment variable not set");
 		}
-
+		return false;
 	}
-	else
-	{
-		_window = DefaultRootWindow(_x11Display);
 
-		int dummy;
-		int pixmaps_supported;
+	qCDebug(grabber_screen_flow) << "Setting up display" << getenv("DISPLAY") << "_x11Display:" << _x11Display;
+	_window = DefaultRootWindow(_x11Display);
 
-		_xRandRAvailable = (XRRQueryExtension(_x11Display, &_xRandREventBase, &dummy) != 0);
-		_xRenderAvailable = (XRenderQueryExtension(_x11Display, &dummy, &dummy) != 0);
-		_xShmAvailable = (XShmQueryExtension(_x11Display) != 0);
-		XShmQueryVersion(_x11Display, &dummy, &dummy, &pixmaps_supported);
-		_xShmPixmapAvailable = (pixmaps_supported != 0) && XShmPixmapFormat(_x11Display) == ZPixmap;
+	int dummy;
+	int pixmaps_supported;
 
-		Info(_log, "%s", QSTRING_CSTR(QString("XRandR=[%1] XRender=[%2] XShm=[%3] XPixmap=[%4]")
-			 .arg(_xRandRAvailable     ? "available" : "unavailable",
-			 _xRenderAvailable    ? "available" : "unavailable",
-			 _xShmAvailable       ? "available" : "unavailable",
-			 _xShmPixmapAvailable ? "available" : "unavailable"))
-			 );
+	_xRandRAvailable = (XRRQueryExtension(_x11Display, &_xRandREventBase, &dummy) != 0);
+	_xRenderAvailable = (XRenderQueryExtension(_x11Display, &dummy, &dummy) != 0);
+	_xShmAvailable = (XShmQueryExtension(_x11Display) != 0);
+	XShmQueryVersion(_x11Display, &dummy, &dummy, &pixmaps_supported);
+	_xShmPixmapAvailable = (pixmaps_supported != 0) && XShmPixmapFormat(_x11Display) == ZPixmap;
 
-		result = (updateScreenDimensions(true) >=0);
-		ErrorIf(!result, _log, "X11 Grabber start failed");
-		setEnabled(result);
-	}
+	Info(_log, "%s", QSTRING_CSTR(QString("XRandR=[%1] XRender=[%2] XShm=[%3] XPixmap=[%4]").arg(_xRandRAvailable ? "available" : "unavailable", _xRenderAvailable ? "available" : "unavailable", _xShmAvailable ? "available" : "unavailable", _xShmPixmapAvailable ? "available" : "unavailable")));
+
+	bool result = (updateScreenDimensions(true) >= 0);
+	ErrorIf(!result, _log, "X11 Grabber start failed");
+	setEnabled(result);
 	return result;
 }
 
-int X11Grabber::grabFrame(Image<ColorRgb> & image, bool forceUpdate)
+int X11Grabber::grabFrame(Image<ColorRgb>& image, bool forceUpdate)
 {
 	if (!_isEnabled)
 	{
@@ -204,33 +243,21 @@ int X11Grabber::grabFrame(Image<ColorRgb> & image, bool forceUpdate)
 		double scale = qMin(scale_y, scale_x);
 
 		_transform =
-		{
-			{
-				{
-					XDoubleToFixed(1),
-					XDoubleToFixed(0),
-					XDoubleToFixed(0)
-				},
-				{
-					XDoubleToFixed(0),
-					XDoubleToFixed(1),
-					XDoubleToFixed(0)
-				},
-				{
-					XDoubleToFixed(0),
-					XDoubleToFixed(0),
-					XDoubleToFixed(scale)
-				}
-			}
-		};
+		    {
+		        {{XDoubleToFixed(1),
+				  XDoubleToFixed(0),
+				  XDoubleToFixed(0)},
+				 {XDoubleToFixed(0),
+				  XDoubleToFixed(1),
+				  XDoubleToFixed(0)},
+				 {XDoubleToFixed(0),
+				  XDoubleToFixed(0),
+				  XDoubleToFixed(scale)}}};
 
-		XRenderSetPictureTransform (_x11Display, _srcPicture, &_transform);
-
-		// display, op, src, mask, dest, src_x = cropLeft,
-		// src_y = cropTop, mask_x, mask_y, dest_x, dest_y, width, height
-		XRenderComposite(
-			_x11Display, PictOpSrc, _srcPicture, None, _dstPicture, ( _src_x/_pixelDecimation),
-			(_src_y/_pixelDecimation), 0, 0, 0, 0, _width, _height);
+		XRenderSetPictureTransform(_x11Display, _srcPicture, &_transform);
+		XRenderComposite(_x11Display,
+		                 PictOpSrc, _srcPicture, None, _dstPicture, (_src_x / _pixelDecimation),
+		                 (_src_y / _pixelDecimation), 0, 0, 0, 0, _width, _height);
 
 		XSync(_x11Display, False);
 
@@ -260,13 +287,14 @@ int X11Grabber::grabFrame(Image<ColorRgb> & image, bool forceUpdate)
 		return -1;
 	}
 
-	_imageResampler.processImage(reinterpret_cast<const uint8_t *>(_xImage->data), _xImage->width, _xImage->height, _xImage->bytes_per_line, PixelFormat::BGR32, image);
+	_imageResampler.processImage(reinterpret_cast<const uint8_t*>(_xImage->data), _xImage->width, _xImage->height, _xImage->bytes_per_line, PixelFormat::BGR32, image);
 
 	return 0;
 }
 
 int X11Grabber::updateScreenDimensions(bool force)
 {
+	qCDebug(grabber_screen_flow) << "Current screen dimensions: [" << _screenWidth << "x" << _screenHeight << "], force update:" << force;
 	const Status status = XGetWindowAttributes(_x11Display, _window, &_windowAttr);
 	if (status == 0)
 	{
@@ -277,43 +305,41 @@ int X11Grabber::updateScreenDimensions(bool force)
 	if (!force && _screenWidth == _windowAttr.width && _screenHeight == _windowAttr.height)
 	{
 		// No update required
+		qCDebug(grabber_screen_flow) << "Screen dimensions unchanged, no update required";
 		return 0;
 	}
 
-	if ((_screenWidth != 0) || (_screenHeight != 0))
-	{
-		freeResources();
-	}
+	qCDebug(grabber_screen_flow) << QString("XRandR=[%1] XRender=[%2] XShm=[%3] XPixmap=[%4]").arg(_xRandRAvailable ? "available" : "unavailable", _xRenderAvailable ? "available" : "unavailable", _xShmAvailable ? "available" : "unavailable", _xShmPixmapAvailable ? "available" : "unavailable");
 
-	Info(_log, "Update of screen resolution: [%dx%d]  to [%dx%d]", _screenWidth, _screenHeight, _windowAttr.width, _windowAttr.height);
-	_screenWidth  = _windowAttr.width;
+	Info(_log, "Update of screen resolution: [%dx%d] to [%dx%d]", _screenWidth, _screenHeight, _windowAttr.width, _windowAttr.height);
+	_screenWidth = _windowAttr.width;
 	_screenHeight = _windowAttr.height;
 
-	int width=0;
-	int height=0;
+	int width = 0;
+	int height = 0;
 
 	// Image scaling is performed by XRender when available, otherwise by ImageResampler
 	if (_xRenderAvailable)
 	{
-		width  =  (_screenWidth > (_cropLeft + _cropRight))
-			? ((_screenWidth - _cropLeft - _cropRight) / _pixelDecimation)
-			: _screenWidth / _pixelDecimation;
+		width = (_screenWidth > (_cropLeft + _cropRight))
+		            ? ((_screenWidth - _cropLeft - _cropRight) / _pixelDecimation)
+		            : _screenWidth / _pixelDecimation;
 
-		height =  (_screenHeight > (_cropTop + _cropBottom))
-			? ((_screenHeight - _cropTop - _cropBottom) / _pixelDecimation)
-			: _screenHeight / _pixelDecimation;
+		height = (_screenHeight > (_cropTop + _cropBottom))
+		             ? ((_screenHeight - _cropTop - _cropBottom) / _pixelDecimation)
+		             : _screenHeight / _pixelDecimation;
 
 		Info(_log, "Using XRender for grabbing");
 	}
 	else
 	{
-		width  =  (_screenWidth > (_cropLeft + _cropRight))
-			? (_screenWidth - _cropLeft - _cropRight)
-			: _screenWidth;
+		width = (_screenWidth > (_cropLeft + _cropRight))
+		            ? (_screenWidth - _cropLeft - _cropRight)
+		            : _screenWidth;
 
-		height =  (_screenHeight > (_cropTop + _cropBottom))
-			? (_screenHeight - _cropTop - _cropBottom)
-			: _screenHeight;
+		height = (_screenHeight > (_cropTop + _cropBottom))
+		             ? (_screenHeight - _cropTop - _cropBottom)
+		             : _screenHeight;
 
 		Info(_log, "Using XGetImage for grabbing");
 	}
@@ -322,23 +348,23 @@ int X11Grabber::updateScreenDimensions(bool force)
 	switch (_videoMode)
 	{
 	case VideoMode::VIDEO_3DSBS:
-		_width  = width /2;
+		_width = width / 2;
 		_height = height;
-		_src_x  = _cropLeft / 2;
-		_src_y  = _cropTop;
+		_src_x = _cropLeft / 2;
+		_src_y = _cropTop;
 		break;
 	case VideoMode::VIDEO_3DTAB:
-		_width  = width;
+		_width = width;
 		_height = height / 2;
-		_src_x  = _cropLeft;
-		_src_y  = _cropTop / 2;
+		_src_x = _cropLeft;
+		_src_y = _cropTop / 2;
 		break;
 	case VideoMode::VIDEO_2D:
 	default:
-		_width  = width;
+		_width = width;
 		_height = height;
-		_src_x  = _cropLeft;
-		_src_y  = _cropTop;
+		_src_x = _cropLeft;
+		_src_y = _cropTop;
 		break;
 	}
 
@@ -352,7 +378,7 @@ int X11Grabber::updateScreenDimensions(bool force)
 void X11Grabber::setVideoMode(VideoMode mode)
 {
 	Grabber::setVideoMode(mode);
-	if(_x11Display != nullptr)
+	if (_x11Display != nullptr)
 	{
 		updateScreenDimensions(true);
 	}
@@ -360,36 +386,36 @@ void X11Grabber::setVideoMode(VideoMode mode)
 
 bool X11Grabber::setPixelDecimation(int pixelDecimation)
 {
-	bool rc (true);
 	if (Grabber::setPixelDecimation(pixelDecimation))
 	{
-		if(_x11Display != nullptr)
+		if (_x11Display != nullptr)
 		{
-			if ( updateScreenDimensions(true) < 0 )
+			if (updateScreenDimensions(true) < 0)
 			{
-				rc = false;
+				return false;
 			}
 		}
 	}
-	return rc;
+	return true;
 }
 
 void X11Grabber::setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom)
 {
 	Grabber::setCropping(cropLeft, cropRight, cropTop, cropBottom);
-	if(_x11Display != nullptr)
+	if (_x11Display != nullptr)
 	{
 		updateScreenDimensions(true); // segfault on init
 	}
 }
 
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
-bool X11Grabber::nativeEventFilter(const QByteArray & eventType, void * message, qintptr * /*result*/)
+bool X11Grabber::nativeEventFilter(const QByteArray& eventType, void* message, qintptr* /*result*/)
 #else
-bool X11Grabber::nativeEventFilter(const QByteArray & eventType, void * message, long int * /*result*/)
+bool X11Grabber::nativeEventFilter(const QByteArray& eventType, void* message, long int* /*result*/)
 #endif
 {
-	if (!_xRandRAvailable || eventType != "xcb_generic_event_t") {
+	if (!_xRandRAvailable || eventType != "xcb_generic_event_t")
+	{
 		return false;
 	}
 
@@ -404,82 +430,87 @@ bool X11Grabber::nativeEventFilter(const QByteArray & eventType, void * message,
 	return false;
 }
 
-QJsonObject X11Grabber::discover(const QJsonObject& params)
+QJsonObject X11Grabber::discover(const QJsonObject& /*params*/)
 {
-	QJsonObject inputsDiscovered;
-	if ( isAvailable(false) && open() )
+	if (!isAvailable(false))
 	{
-		inputsDiscovered["device"] = "x11";
-		inputsDiscovered["device_name"] = "X11";
-		inputsDiscovered["type"] = "screen";
+		return {};
+	}
 
-		QJsonArray video_inputs;
+	QJsonObject inputsDiscovered;
+	inputsDiscovered["device"] = "x11";
+	inputsDiscovered["device_name"] = "X11";
+	inputsDiscovered["type"] = "screen";
 
-		if (_x11Display != nullptr)
+	QJsonArray video_inputs;
+
+	if (!open() || _x11Display == nullptr)
+	{
+		qCDebug(grabber_screen_properties) << "No screens found to capture from!";		
+		return inputsDiscovered;
+	}
+	
+	// Iterate through all X screens
+	for (int i = 0; i < XScreenCount(_x11Display); ++i)
+	{
+		_window = DefaultRootWindow(_x11Display);
+
+		const Status status = XGetWindowAttributes(_x11Display, _window, &_windowAttr);
+		if (status == 0)
 		{
-			// Iterate through all X screens
-			for (int i = 0; i < XScreenCount(_x11Display); ++i)
-			{
-				_window = DefaultRootWindow(_x11Display);
-
-				const Status status = XGetWindowAttributes(_x11Display, _window, &_windowAttr);
-				if (status == 0)
-				{
-					Debug(_log, "Failed to obtain window attributes");
-				}
-				else
-				{
-					QJsonObject input;
-
-					QString displayName;
-					char* name;
-					if ( XFetchName(_x11Display, _window, &name) > 0 )
-					{
-						 displayName = name;
-					}
-					else {
-						displayName = QString("Display:%1").arg(i);
-					}
-
-					input["name"] = displayName;
-					input["inputIdx"] = i;
-
-					QJsonArray formats;
-					QJsonArray resolutionArray;
-					QJsonObject format;
-					QJsonObject resolution;
-
-					resolution["width"] = _windowAttr.width;
-					resolution["height"] = _windowAttr.height;
-					resolution["fps"] = getFpsSupported();
-
-					resolutionArray.append(resolution);
-
-					format["resolutions"] = resolutionArray;
-					formats.append(format);
-
-					input["formats"] = formats;
-					video_inputs.append(input);
-				}
-			}
-
-			if ( !video_inputs.isEmpty() )
-			{
-				inputsDiscovered["video_inputs"] = video_inputs;
-				QJsonObject resolution_default;
-				resolution_default["fps"] = _fps;
-
-				QJsonObject video_inputs_default;
-				video_inputs_default["resolution"] = resolution_default;
-				video_inputs_default["inputIdx"] = 0;
-
-				QJsonObject defaults;
-				defaults["video_input"] = video_inputs_default;
-				inputsDiscovered["default"] = defaults;
-			}
+			Debug(_log, "Failed to obtain window attributes");
 		}
+		else
+		{
+			QJsonObject input;
+
+			QString displayName;
+			char* name;
+			if (XFetchName(_x11Display, _window, &name) > 0)
+			{
+				displayName = name;
+			}
+			else
+			{
+				displayName = QString("Display:%1").arg(i);
+			}
+
+			input["name"] = displayName;
+			input["inputIdx"] = i;
+
+			QJsonArray formats;
+			QJsonArray resolutionArray;
+			QJsonObject format;
+			QJsonObject resolution;
+
+			resolution["width"] = _windowAttr.width;
+			resolution["height"] = _windowAttr.height;
+			resolution["fps"] = getFpsSupported();
+
+			resolutionArray.append(resolution);
+
+			format["resolutions"] = resolutionArray;
+			formats.append(format);
+
+			input["formats"] = formats;
+			video_inputs.append(input);
+		}
+	}
+
+	if (!video_inputs.isEmpty())
+	{
+		inputsDiscovered["video_inputs"] = video_inputs;
+		QJsonObject resolution_default;
+		resolution_default["fps"] = _fps;
+
+		QJsonObject video_inputs_default;
+		video_inputs_default["resolution"] = resolution_default;
+		video_inputs_default["inputIdx"] = 0;
+
+		QJsonObject defaults;
+		defaults["video_input"] = video_inputs_default;
+		inputsDiscovered["default"] = defaults;
 	}
 
 	return inputsDiscovered;
 }
-

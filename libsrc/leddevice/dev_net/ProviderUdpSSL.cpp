@@ -41,11 +41,15 @@ ProviderUdpSSL::ProviderUdpSSL(const QJsonObject &deviceConfig)
 	: LedDevice(deviceConfig)
 	, _port(-1)
 	, client_fd()
+#if !defined(USE_MBEDTLS4)
 	, entropy()
+#endif
 	, ssl()
 	, conf()
 	, cacert()
+#if !defined(USE_MBEDTLS4)
 	, ctr_drbg()
+#endif
 	, timer()
 	, _transport_type(DEFAULT_TRANSPORT_TYPE)
 	, _custom(DEFAULT_SEED_CUSTOM)
@@ -64,8 +68,16 @@ ProviderUdpSSL::ProviderUdpSSL(const QJsonObject &deviceConfig)
 
 	try
 	{
+#if defined(USE_MBEDTLS4)
+		psa_status_t status = psa_crypto_init();
+		if (status != PSA_SUCCESS)
+		{
+			error = true;
+		}
+#else
 		mbedtls_ctr_drbg_init(&ctr_drbg);
 		error = !seedingRNG();
+#endif
 	}
 	catch (...)
 	{
@@ -74,7 +86,11 @@ ProviderUdpSSL::ProviderUdpSSL(const QJsonObject &deviceConfig)
 
 	if (error)
 	{
+#if defined(USE_MBEDTLS4)
+		Error(_log, "Failed to initialize PSA crypto subsystem");
+#else
 		Error(_log, "Failed to initialize mbedtls seed");
+#endif
 	}
 }
 
@@ -82,8 +98,10 @@ ProviderUdpSSL::~ProviderUdpSSL()
 {
 	stopConnection();
 
+#if !defined(USE_MBEDTLS4)
 	mbedtls_ctr_drbg_free(&ctr_drbg);
 	mbedtls_entropy_free(&entropy);
+#endif
 }
 
 bool ProviderUdpSSL::init(const QJsonObject &deviceConfig)
@@ -191,6 +209,7 @@ bool ProviderUdpSSL::initConnection()
 	return false;
 }
 
+#if !defined(USE_MBEDTLS4)
 bool ProviderUdpSSL::seedingRNG()
 {
 	mbedtls_entropy_init(&entropy);
@@ -209,6 +228,7 @@ bool ProviderUdpSSL::seedingRNG()
 	}
 	return true;
 }
+#endif
 
 bool ProviderUdpSSL::setupStructure()
 {
@@ -224,13 +244,15 @@ bool ProviderUdpSSL::setupStructure()
 
 	const int * ciphersuites = getCiphersuites();
 
-	mbedtls_ssl_conf_authmode(&conf, MBEDTLS_SSL_VERIFY_REQUIRED);
+	mbedtls_ssl_conf_authmode(&conf, MBEDTLS_SSL_VERIFY_NONE);
 	mbedtls_ssl_conf_ca_chain(&conf, &cacert, nullptr);
 
 	mbedtls_ssl_conf_handshake_timeout(&conf, _handshake_timeout_min, _handshake_timeout_max);
 
 	mbedtls_ssl_conf_ciphersuites(&conf, ciphersuites);
+#if !defined(USE_MBEDTLS4)
 	mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ctr_drbg);
+#endif
 
 	if (leddevice_dtls().isDebugEnabled())
 	{
@@ -250,42 +272,20 @@ bool ProviderUdpSSL::setupStructure()
 
 bool ProviderUdpSSL::startConnection()
 {
-	for (int attempt = 1; attempt <= _handshake_attempts; ++attempt)
+	mbedtls_ssl_session_reset(&ssl);
+
+	int ret = mbedtls_net_connect(&client_fd, _hostName.toUtf8(), std::to_string(_ssl_port).c_str(), MBEDTLS_NET_PROTO_UDP);
+
+	if (ret != 0)
 	{
-		mbedtls_ssl_session_reset(&ssl);
-
-		if (attempt > 1)
-		{
-			mbedtls_net_free(&client_fd);
-			mbedtls_net_init(&client_fd);
-		}
-
-		Debug(_log, "DTLS connection attempt %d/%d to [%s]:%d (PSK identity: '%s')",
-			attempt, _handshake_attempts,
-			QSTRING_CSTR(_hostName), _ssl_port,
-			QSTRING_CSTR(_psk_identity));
-
-		int ret = mbedtls_net_connect(&client_fd, _hostName.toUtf8(), std::to_string(_ssl_port).c_str(), MBEDTLS_NET_PROTO_UDP);
-		if (ret != 0)
-		{
-			Error(_log, "%s", QSTRING_CSTR(QString("mbedtls_net_connect FAILED %1").arg(errorMsg(ret))));
-			return false;
-		}
-
-		mbedtls_ssl_set_bio(&ssl, &client_fd, mbedtls_net_send, mbedtls_net_recv, mbedtls_net_recv_timeout);
-		mbedtls_ssl_set_timer_cb(&ssl, &timer, mbedtls_timing_set_delay, mbedtls_timing_get_delay);
-
-		if (startSSLHandshake())
-		{
-			return true;
-		}
-
-		Warning(_log, "%s", QSTRING_CSTR(QString("mbedtls_ssl_handshake attempt %1/%2 FAILED. Retrying...").arg(attempt).arg(_handshake_attempts)));
-		QThread::msleep(200);
+		Error(_log, "%s", QSTRING_CSTR(QString("mbedtls_net_connect FAILED %1").arg(errorMsg(ret))));
+		return false;
 	}
 
-	Error(_log, "mbedtls_ssl_handshake FAILED after all %d attempts", _handshake_attempts);
-	return false;
+	mbedtls_ssl_set_bio(&ssl, &client_fd, mbedtls_net_send, mbedtls_net_recv, mbedtls_net_recv_timeout);
+	mbedtls_ssl_set_timer_cb(&ssl, &timer, mbedtls_timing_set_delay, mbedtls_timing_get_delay);
+
+	return startSSLHandshake();
 }
 
 bool ProviderUdpSSL::setupPSK()
@@ -310,25 +310,25 @@ bool ProviderUdpSSL::setupPSK()
 bool ProviderUdpSSL::startSSLHandshake()
 {
 	int ret = 0;
-
-	do
+	for (int attempt = 1; attempt <= _handshake_attempts; ++attempt)
 	{
-		ret = mbedtls_ssl_handshake(&ssl);
-	} while (ret == MBEDTLS_ERR_SSL_WANT_READ || ret == MBEDTLS_ERR_SSL_WANT_WRITE);
+		do
+		{
+			ret = mbedtls_ssl_handshake(&ssl);
+		} while (ret == MBEDTLS_ERR_SSL_WANT_READ || ret == MBEDTLS_ERR_SSL_WANT_WRITE);
+
+		if (ret == 0)
+		{
+			break;
+		}
+
+		Warning(_log, "%s", QSTRING_CSTR(QString("mbedtls_ssl_handshake attempt %1/%2 FAILED. Reason: %3").arg(attempt).arg(_handshake_attempts).arg(errorMsg(ret))));
+		QThread::msleep(200);
+	}
 
 	if (ret != 0)
 	{
-		Warning(_log, "%s", QSTRING_CSTR(QString("mbedtls_ssl_handshake FAILED. Reason: %1").arg(errorMsg(ret))));
-		return false;
-	}
-
-	Debug(_log, "DTLS handshake succeeded. Cipher suite: %s, Protocol: %s",
-		mbedtls_ssl_get_ciphersuite(&ssl),
-		mbedtls_ssl_get_version(&ssl));
-
-	if (mbedtls_ssl_get_verify_result(&ssl) != 0)
-	{
-		Error(_log, "SSL certificate verification failed!");
+		Error(_log, "%s", QSTRING_CSTR(QString("mbedtls_ssl_handshake FAILED %1").arg(errorMsg(ret))));
 		return false;
 	}
 
@@ -401,7 +401,7 @@ void ProviderUdpSSL::writeBytes(unsigned int size, const uint8_t* data, bool flu
 	}
 }
 
-QString ProviderUdpSSL::errorMsg(int ret)
+QString ProviderUdpSSL::errorMsg(int ret) const
 {
 	char error_buf[1024];
 	mbedtls_strerror(ret, error_buf, 1024);

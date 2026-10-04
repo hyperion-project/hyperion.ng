@@ -1112,10 +1112,41 @@ void JsonAPI::handleConfigSetCommand(const QJsonObject &message, const JsonApiCo
 	sendSuccessReply(cmd);
 }
 
+/// @brief Handles a @c config-get JSON API command, returning a filtered snapshot
+///        of the Hyperion configuration.
+///
+/// The caller may supply an optional @c "configFilter" object inside @p message
+/// to restrict which sections of the configuration are returned.  When the
+/// filter is absent the complete configuration is sent back immediately.
+///
+/// @par Filter structure
+/// @code{.json}
+/// {
+///   "configFilter": {
+///     "global": {                  // optional — selects global (non-instance) settings
+///       "types": ["<type1>", …]   // omit to suppress all global sections
+///     },
+///     "instances": {               // optional — selects per-instance settings
+///       "ids":   [0, 1, …],        // instance numbers to include; omit for none
+///       "types": ["<type1>", …]   // setting types to include; omit for none
+///     }
+///   }
+/// }
+/// @endcode
+///
+/// When a @c "global" or @c "instances" key is present but its @c "types" /
+/// @c "ids" sub-key is absent or null, the sentinel value @c "__none__" is used
+/// so that the configuration layer knows to suppress that entire section.
+/// Instance IDs that do not correspond to a configured instance are collected
+/// in @p errorDetails and forwarded to the caller alongside any returned data.
+///
+/// @param message The full JSON request object received from the client.
+/// @param cmd     Command metadata (used to route the reply back to the caller).
 void JsonAPI::handleConfigGetCommand(const QJsonObject &message, const JsonApiCommand& cmd)
 {
 	QJsonObject settings;
 
+	// Short-circuit: no filter means return the entire configuration.
 	QJsonObject filter = message["configFilter"].toObject();
 	if (filter.isEmpty())
 	{
@@ -1127,6 +1158,8 @@ void JsonAPI::handleConfigGetCommand(const QJsonObject &message, const JsonApiCo
 	QStringList errorDetails;
 	QStringList globalFilterTypes;
 
+	// --- Parse the "global" filter section ---
+	// A null value signals "suppress all global sections" via the __none__ sentinel.
 	const QJsonValue globalConfig = filter["global"];
 	if (globalConfig.isNull())
 	{
@@ -1140,10 +1173,12 @@ void JsonAPI::handleConfigGetCommand(const QJsonObject &message, const JsonApiCo
 			QJsonValue const globalTypes = globalConfig["types"];
 			if (globalTypes.isNull())
 			{
+				// "global" key present but no "types" list — suppress all global sections.
 				globalFilterTypes.append("__none__");
 			}
 			else
 			{
+				// Collect each requested global setting type.
 				QJsonArray const globalTypesList = globalTypes.toArray();
 				for (const auto &type : globalTypesList) {
 					if (type.isString()) {
@@ -1157,6 +1192,8 @@ void JsonAPI::handleConfigGetCommand(const QJsonObject &message, const JsonApiCo
 	QList<quint8> instanceListFilter;
 	QStringList instanceFilterTypes;
 
+	// --- Parse the "instances" filter section ---
+	// A null value signals "no instance data requested" via the NO_INSTANCE_ID sentinel.
 	const QJsonValue instances = filter["instances"];
 	if (instances.isNull())
 	{
@@ -1167,6 +1204,8 @@ void JsonAPI::handleConfigGetCommand(const QJsonObject &message, const JsonApiCo
 		const QJsonObject instancesObject = instances.toObject();
 		if (!instancesObject.isEmpty())
 		{
+			// Resolve the set of currently configured instance IDs so that
+			// unknown IDs supplied by the caller can be reported as errors.
 			QSet<quint8> configuredInstanceIds;
 			if (auto im = _instanceManagerWeak.toStrongRef())
 			{
@@ -1175,10 +1214,12 @@ void JsonAPI::handleConfigGetCommand(const QJsonObject &message, const JsonApiCo
 			QJsonValue const instanceIds = instances["ids"];
 			if (instanceIds.isNull())
 			{
+				// "instances" key present but no "ids" list — suppress all instance data.
 				instanceListFilter.append(NO_INSTANCE_ID);
 			}
 			else
 			{
+				// Validate each requested instance ID and accumulate valid ones.
 				QJsonArray const instaceIdsList = instanceIds.toArray();
 				for (const auto &idx : instaceIdsList) {
 					if (idx.isDouble()) {
@@ -1194,9 +1235,11 @@ void JsonAPI::handleConfigGetCommand(const QJsonObject &message, const JsonApiCo
 					}
 				}
 
+				// Collect the per-instance setting types to include.
 				QJsonValue const instanceTypes = instances["types"];
 				if (instanceTypes.isNull())
 				{
+					// No type filter — suppress all per-instance sections.
 					instanceFilterTypes.append("__none__");
 				}
 				else
@@ -1212,6 +1255,7 @@ void JsonAPI::handleConfigGetCommand(const QJsonObject &message, const JsonApiCo
 		}
 	}
 
+	// Fetch the filtered configuration and reply, forwarding any ID-validation errors.
 	settings = JsonInfo::getConfiguration(instanceListFilter, instanceFilterTypes, globalFilterTypes);
 
 	sendSuccessDataReplyWithError(settings, cmd, errorDetails);

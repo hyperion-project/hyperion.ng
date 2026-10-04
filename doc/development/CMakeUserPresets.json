@@ -53,7 +53,7 @@
         "Python3_EXECUTABLE": "$env{WIN_PYTHON_ROOT_DIR}/Python313/python.exe"
       },
       "environment": {
-        "QTDIR": "$env{WIN_QT_ROOT_DIR}/6.10.1/msvc2022_64/"
+        "QTDIR": "$env{WIN_QT_ROOT_DIR}/6.11.0/msvc2022_64/"
       }
     },
 
@@ -100,10 +100,10 @@
       },
       "cacheVariables": {
         "USE_PRE_BUILT_DEPS": "ON",
-        "PRE_BUILT_DEPS_DIR": "$env{LINUX_PRE_BUILT_DEPS_ROOT_DIR}/qt6"
+        "PRE_BUILT_DEPS_DIR": "$env{LINUX_PRE_BUILT_DEPS_ROOT_DIR}/bookworm-qt6-debug"
       },
       "environment": {
-        "QTDIR": "$env{LINUX_QT_ROOT_DIR}/6.10.1/gcc_64"
+        "QTDIR": "$env{LINUX_QT_ROOT_DIR}/6.11.0/gcc_64"
       }
     },
     {
@@ -154,33 +154,33 @@
     },
     {
       "name": "debug-qt5-all-windows",
-      "inherits": [ "windows-debug", "qt5-env-windows-wrapper" ],
+      "inherits": [ "windows-debug", "qt5-env-windows-wrapper", "buildcache" ],
       "hidden": false
     },
     {
       "name": "debug-qt5-light-windows",
-      "inherits": [ "windows-debug", "qt5-env-windows-wrapper", "hyperion-light" ]
+      "inherits": [ "windows-debug", "qt5-env-windows-wrapper", "hyperion-light", "buildcache" ]
     },
     {
       "name": "debug-qt5-minimum-windows",
-      "inherits": [ "windows-debug", "qt5-env-windows-wrapper", "hyperion-bare-minimum" ]
+      "inherits": [ "windows-debug", "qt5-env-windows-wrapper", "hyperion-bare-minimum", "buildcache" ]
     },
     {
-      "name": "release-qt5-all",
-      "inherits": [ "windows-release", "qt5-env-windows-wrapper" ]
+      "name": "release-qt5-all-windows",
+      "inherits": [ "windows-release", "qt5-env-windows-wrapper"]
     },
     {
       "name": "debug-qt5-all-linux",
-      "inherits": [ "linux-debug", "qt5-env-linux-wrapper" ],
+      "inherits": [ "linux-debug", "qt5-env-linux-wrapper", "ccache"],
       "hidden": false
     },
     {
       "name": "debug-qt5-light-linux",
-      "inherits": [ "linux-debug", "qt5-env-linux-wrapper", "hyperion-light" ]
+      "inherits": [ "linux-debug", "qt5-env-linux-wrapper", "hyperion-light", "ccache" ]
     },
     {
       "name": "debug-qt5-minimum-linux",
-      "inherits": [ "linux-debug", "qt5-env-linux-wrapper", "hyperion-bare-minimum" ]
+      "inherits": [ "linux-debug", "qt5-env-linux-wrapper", "hyperion-bare-minimum", "ccache" ]
     },
     {
       "name": "release-qt5-all-linux",
@@ -188,31 +188,39 @@
     },
     {
       "name": "debug-qt6-all-windows",
-      "inherits": [ "windows-debug", "qt6-env-windows-wrapper" ]
+      "inherits": [ "windows-debug", "qt6-env-windows-wrapper", "buildcache" ]
     },
     {
       "name": "debug-qt6-light-windows",
-      "inherits": [ "windows-debug", "qt6-env-windows-wrapper", "hyperion-light" ]
+      "inherits": [ "windows-debug", "qt6-env-windows-wrapper", "hyperion-light", "buildcache" ]
     },
     {
       "name": "debug-qt6-minimum-windows",
-      "inherits": [ "windows-debug", "qt6-env-windows-wrapper", "hyperion-bare-minimum" ]
+      "inherits": [ "windows-debug", "qt6-env-windows-wrapper", "hyperion-bare-minimum", "buildcache" ]
     },
+    {
+      "name": "relwithdebinfo-qt6-all-windows",
+      "inherits": [ "windows-relwithdebinfo", "qt6-env-windows-wrapper" ]
+    },
+    {
+      "name": "relwithdebinfo-qt6-light-windows",
+      "inherits": [ "windows-relwithdebinfo", "qt6-env-windows-wrapper", "hyperion-light" ]
+    },        
     {
       "name": "release-qt6-all-windows",
       "inherits": [ "windows-release", "qt6-env-windows-wrapper" ]
     },
     {
       "name": "debug-qt6-all-linux",
-      "inherits": [ "linux-debug", "qt6-env-linux-wrapper" ]
+      "inherits": [ "linux-debug", "qt6-env-linux-wrapper", "ccache" ]
     },
     {
       "name": "debug-qt6-light-linux",
-      "inherits": [ "linux-debug", "qt6-env-linux-wrapper", "hyperion-light" ]
+      "inherits": [ "linux-debug", "qt6-env-linux-wrapper", "hyperion-light", "ccache" ]
     },
     {
       "name": "debug-qt6-minimum-linux",
-      "inherits": [ "linux-debug", "qt6-env-linux-wrapper", "hyperion-bare-minimum" ]
+      "inherits": [ "linux-debug", "qt6-env-linux-wrapper", "hyperion-bare-minimum", "ccache" ]
     },
     {
       "name": "release-qt6-all-linux",
@@ -221,8 +229,8 @@
   ],
   "buildPresets": [
     {
-      "name": "package-qt5-all-windows",
-      "displayName": "Windows (package - Qt5)",
+      "name": "release-package-qt5-all-windows",
+      "displayName": "Windows (Release package - Qt5)",
       "configuration": "Release",
       "targets": [ "package" ],
       "configurePreset": "release-qt5-all-windows",
@@ -233,8 +241,55 @@
       }
     },
     {
-      "name": "package-qt6-all-windows",
-      "displayName": "Windows (package - Qt6)",
+      "name": "debug-build-qt6-all-windows",
+      "displayName": "Windows (Debug build - Qt6)",
+      "configuration": "Debug",
+      "configurePreset": "debug-qt6-all-windows",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "debug-package-qt6-all-windows",
+      "displayName": "Windows (Debug package - Qt6)",
+      "configuration": "Debug",
+      "targets": [ "package" ],
+      "configurePreset": "debug-qt6-all-windows",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "relwithdebinfo-package-qt6-light-windows",
+      "displayName": "Windows (RelWithDebInfo package - Qt6 - Light)",
+      "configuration": "RelWithDebInfo",
+      "targets": [ "package" ],
+      "configurePreset": "relwithdebinfo-qt6-light-windows",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "relwithdebinfo-package-qt6-all-windows",
+      "displayName": "Windows (RelWithDebInfo package - Qt6)",
+      "configuration": "RelWithDebInfo",
+      "targets": [ "package" ],
+      "configurePreset": "relwithdebinfo-qt6-all-windows",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "release-package-qt6-all-windows",
+      "displayName": "Windows (Release package - Qt6)",
       "configuration": "Release",
       "targets": [ "package" ],
       "configurePreset": "release-qt6-all-windows",

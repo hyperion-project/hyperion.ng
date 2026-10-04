@@ -132,6 +132,14 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 	)
 
 	install(TARGETS ${PROJECT_NAME} BUNDLE DESTINATION . COMPONENT "Hyperion")
+
+	# Code signing identity of the macOS bundle.
+	# "-" (ad-hoc) is the default. Use a stable identity (e.g. an "Apple Development" or
+	# "Developer ID Application" certificate) if the app should keep its macOS privacy
+	# permissions (e.g. Screen Recording) across rebuilds - ad-hoc signatures change with
+	# every build, which invalidates previously granted permissions.
+	set(MACOS_CODESIGN_IDENTITY "-" CACHE STRING "Code signing identity for the macOS bundle ('-' for ad-hoc signing)")
+
 	configure_file("${CMAKE_SOURCE_DIR}/cmake/macos/BundleMacOS.cmake.in" "${PROJECT_BINARY_DIR}/BundleMacOS.cmake" @ONLY)
     install(SCRIPT "${PROJECT_BINARY_DIR}/BundleMacOS.cmake" COMPONENT "Hyperion")
 endif()

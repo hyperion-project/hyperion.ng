@@ -512,7 +512,7 @@ namespace hyperion
 
 			// Compute the average of each color channel
 
-#ifdef WIN32
+#ifdef _WIN32
 #undef min
 #endif
 			const auto avgRed = static_cast<uint8_t>(std::min(std::lround(std::sqrt(static_cast<double>(cummRed / pixelNum))), 255L));

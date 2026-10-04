@@ -1,4 +1,18 @@
 name: "CodeQL config"
+
+# 1. Used by Python & JavaScript (and uncompiled headers in C++)
 paths-ignore:
-  - 'dependencies/external/'
-  - 'assets/webconfig/js/lib'
+  - 'dependencies/**'
+  - '**/dependencies/**'
+  - 'assets/webconfig/js/lib/**'
+
+# 2. Used during Query Evaluation for C++ (and Python/JS)
+query-filters:
+  - exclude:
+      path: 'dependencies/**'
+  - exclude:
+      path: '**/dependencies/**'
+  - exclude:
+      path: 'build/**'
+  - exclude:
+      path: '**/build/**'
