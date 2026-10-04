@@ -12,10 +12,6 @@
 // auth manager
 #include <hyperion/AuthManager.h>
 
-
-#include <utils/ColorRgb.h>
-#include <utils/ColorSys.h>
-
 class JsonCallbacks;
 class HyperionIManager;
 
@@ -274,9 +270,9 @@ protected:
 	/// @brief Update the Password of Hyperion. Requires ADMIN ACCESS
 	/// @param password    Old password
 	/// @param newPassword New password
-	/// @return True on success else false
+	/// @return Empty string on success, otherwise the error message
 	///
-	bool updateHyperionPassword(const QString &password, const QString &newPassword);
+	QString updateHyperionPassword(const QString &password, const QString &newPassword) const;
 
 	///
 	/// @brief Get a new token from AuthManager. Requires ADMIN ACCESS
@@ -284,7 +280,7 @@ protected:
 	/// @param def       The final definition
 	/// @return Empty string on success else error message
 	///
-	QString createToken(const QString &comment, AuthManager::AuthDefinition &def);
+	QString createToken(const QString &comment, AuthManager::AuthDefinition &def) const;
 
 	///
 	/// @brief Rename a token by given id. Requires ADMIN ACCESS
@@ -292,14 +288,14 @@ protected:
 	/// @param comment The new comment
 	/// @return Empty string on success else error message
 	///
-	QString renameToken(const QString &tokenId, const QString &comment);
+	QString renameToken(const QString &tokenId, const QString &comment) const;
 
 	///
 	/// @brief Delete a token by given id. Requires ADMIN ACCESS
 	/// @param tokenId  The id of the token
 	/// @return Empty string on success else error message
 	///
-	QString deleteToken(const QString &tokenId);
+	QString deleteToken(const QString &tokenId) const;
 
 	///
 	/// @brief Set a new token request

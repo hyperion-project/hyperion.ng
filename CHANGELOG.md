@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - EffectFileHandler - Path traversal vulnerability when saving user-defined effects (#2011)
   - Effect scripts: Minor stability and style fixes in `pacman.py`, `traces.py`, `trails.py`(#2011)
   - WebUI - Return a valid Content-Type for static assets to prevent module loading failures
+  - WebUI - Explain why a password change is blocked, including authorization failures and the need to change the default password before using the API
   - MdnsBrowser compile errors when ENABLE_MDNS is false (#2024)
   - LinearColorSmoothing - fix incorrect output interval calculation, fix handling for update frequency >= 1000Hz
   - macOS Screen Capture - Do not take a one-shot screenshot per frame. Use a continuous ScreenCaptureKit stream instead, which is established once. This removes the per-frame shareable content enumeration (WindowServer/replayd CPU) and stops the Screen Recording indicator from flickering, which pinned the macOS Control Center close to 100% CPU (#2046, #2039, #1921)
