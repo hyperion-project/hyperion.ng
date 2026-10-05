@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - Windows - Provide more error details if the UI fails to start because the system proxy is enabled (#2005).
 
 - **Fixes:**
+  - ImageProcessor - Correct swapped squared multicolor and unicolor mean dispatch in both processing overloads
   - Windows DDA Grabber - Prevent image updates when mouse is moved. Provide a Warning on incompatible setting. (#2002)
   - EffectModule - Reference Counting (Use-After-Free) bugs (#2010) - _Thanks to @wr-web_
   - EffectEngine - Follow-up Python C-API null-pointer and stability fixes (#2011)
