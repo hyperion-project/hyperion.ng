@@ -142,10 +142,10 @@ public:
 			switch (_mappingType)
 			{
 			case 1:
-				colors = _imageToLedColors->getUniLedColor(image);
+				colors = _imageToLedColors->getMeanSqrtLedColor(image);
 				break;
 			case 2:
-				colors = _imageToLedColors->getMeanSqrtLedColor(image);
+				colors = _imageToLedColors->getUniLedColor(image);
 				break;
 			case 3:
 				colors = _imageToLedColors->getDominantLedColor(image);
@@ -195,10 +195,10 @@ public:
 			switch (_mappingType)
 			{
 			case 1:
-				_imageToLedColors->getUniLedColor(image, ledColors);
+				_imageToLedColors->getMeanSqrtLedColor(image, ledColors);
 				break;
 			case 2:
-				_imageToLedColors->getMeanSqrtLedColor(image, ledColors);
+				_imageToLedColors->getUniLedColor(image, ledColors);
 				break;
 			case 3:
 				_imageToLedColors->getDominantLedColor(image, ledColors);
