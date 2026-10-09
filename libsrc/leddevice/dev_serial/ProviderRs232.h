@@ -126,6 +126,14 @@ protected slots:
 
 private:
 
+	/// @brief Discover symbolic link devices in the given directory with the specified filter
+	///
+	/// @param[in] deviceList The list to append discovered devices to
+	/// @param[in] deviceDirectory The directory to search for symbolic link devices
+	/// @param[in] deviceFilter The filter to apply when searching for devices
+	/// @param[in] tag The tag to indicate how the device was discovered
+	void discoverSymlinkDevices(QJsonArray& deviceList, const QString& deviceDirectory, const QStringList& deviceFilter, const QString& tag);
+
 	///
 	/// @brief Try to open device if not opened
 	///
