@@ -1,0 +1,24 @@
+{
+    "type": "object",
+    "required": true,
+    "properties": {
+        "command": {
+            "type": "string",
+            "required": true,
+            "enum": ["twilight"]
+        },
+        "tan": {
+            "type": "integer"
+        },
+        "subcommand": {
+            "type": "string",
+            "required": true,
+            "enum": ["get", "set"]
+        },
+        "data": {
+            "type": "object",
+            "required": false
+        }
+    },
+    "additionalProperties": false
+}

@@ -94,7 +94,7 @@ void LedDevice::start()
 		// Everything is OK -> enable device
 		_isDeviceInitialised = true;
 
-		if (_isAutoStart && !_isDeviceInError)
+		if (_isAutoStart && _startEnabled && !_isDeviceInError)
 		{
 				Debug(_log, "Not enabled -> enable device");
 				enable();
@@ -231,6 +231,11 @@ void LedDevice::disable()
 
 	trackDevice(leddevice_flow, "Disabled");
 	emit isEnabledChanged(_isEnabled);
+}
+
+void LedDevice::setStartEnabled(bool enabled)
+{
+	_startEnabled = enabled;
 }
 
 void LedDevice::setActiveDeviceType(const QString& deviceType)
