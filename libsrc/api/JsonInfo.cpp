@@ -743,6 +743,10 @@ QJsonArray JsonInfo::discoverScreenInputs(const QJsonObject& params) const
 	discoverGrabber<XcbGrabber>(screenInputs, params);
 #endif
 
+#ifdef ENABLE_WAYLAND
+	discoverGrabber<WaylandGrabber>(screenInputs, params);
+#endif
+
 #if defined(ENABLE_FB) && !defined(ENABLE_AMLOGIC)
 	discoverGrabber<FramebufferFrameGrabber>(screenInputs, params);
 #endif

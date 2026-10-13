@@ -213,6 +213,10 @@ QStringList GrabberWrapper::availableGrabbers(GrabberTypeFilter type)
 		grabbers << "xcb";
 #endif
 
+#ifdef ENABLE_WAYLAND
+		grabbers << "wayland";
+#endif
+
 #ifdef ENABLE_QT
 		grabbers << "qt";
 #endif
