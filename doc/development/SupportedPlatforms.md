@@ -41,6 +41,6 @@ In case you have an additional working setups you would like to share with the c
 
 Legend
 ---
-&#xB9; Requires an X11 based display manager and an environment with `DISPLAY` defined. Wayland is currently not supported\
+&#xB9; Requires an X11 based display manager and an environment with `DISPLAY` defined. On Wayland sessions use the Wayland grabber, which is available via self-compile (`-DENABLE_WAYLAND=ON`, see [CompileHowto](CompileHowto.md))\
 &#xB2; Requires Hyperion running under root\
 &#xB3; Debian: 11=Bullseye, 12=Bookworm, 13=Trixie, Ubuntu: 22=Jammy Jellyfish, 24=Noble Numbat, 25=Questing Quokka, 26=Resolute Raccoon
