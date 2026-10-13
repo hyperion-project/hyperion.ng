@@ -146,6 +146,7 @@ set(DEFAULT_V4L2                        OFF)
 set(DEFAULT_AUDIO                       ON)
 set(DEFAULT_X11                         OFF)
 set(DEFAULT_XCB                         OFF)
+set(DEFAULT_WAYLAND                     OFF)
 
 # Input
 set(DEFAULT_BOBLIGHT_SERVER             ON)
@@ -408,6 +409,9 @@ message(STATUS "ENABLE_X11 = ${ENABLE_X11}")
 
 option(ENABLE_XCB "Enable the XCB grabber" ${DEFAULT_XCB})
 message(STATUS "ENABLE_XCB = ${ENABLE_XCB}")
+
+option(ENABLE_WAYLAND "Enable the Wayland grabber (Qt Multimedia, xdg-desktop-portal)" ${DEFAULT_WAYLAND})
+message(STATUS "ENABLE_WAYLAND = ${ENABLE_WAYLAND}")
 
 option(ENABLE_AUDIO "Enable the AUDIO grabber" ${DEFAULT_AUDIO})
 message(STATUS "ENABLE_AUDIO = ${ENABLE_AUDIO}")
