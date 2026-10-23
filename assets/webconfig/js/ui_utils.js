@@ -1420,6 +1420,8 @@ function getSystemInfo() {
 - Config database:   ${shy.configDatabaseFile}
 - Database:          ${shy.readOnlyMode ? "read-only" : "read/write"}
 - Mode:              ${shy.isGuiMode ? "GUI" : "Non-GUI"}
+- Suspend Events:    ${shy.suspendEventsAvailable}
+- Lock Events:       ${shy.lockEventsAvailable}
 
 Hyperion Server OS:
 - Distribution:      ${sys.prettyName}

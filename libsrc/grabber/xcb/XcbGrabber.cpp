@@ -556,7 +556,7 @@ QJsonObject XcbGrabber::discover(const QJsonObject& /*params*/)
 	if (!open() || _connection == nullptr || _screen == nullptr)
 	{
 		qCDebug(grabber_screen_properties) << "No screens found to capture from!";
-		return inputsDiscovered;
+		return {};
 	}
 
 	const xcb_setup_t* setup = xcb_get_setup(_connection);
