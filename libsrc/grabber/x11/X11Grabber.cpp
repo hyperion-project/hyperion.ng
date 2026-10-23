@@ -447,7 +447,7 @@ QJsonObject X11Grabber::discover(const QJsonObject& /*params*/)
 	if (!open() || _x11Display == nullptr)
 	{
 		qCDebug(grabber_screen_properties) << "No screens found to capture from!";		
-		return inputsDiscovered;
+		return {};
 	}
 	
 	// Iterate through all X screens
