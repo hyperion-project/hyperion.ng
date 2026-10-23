@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - macOS Screen Capture - Do not take a one-shot screenshot per frame. Use a continuous ScreenCaptureKit stream instead, which is established once. This removes the per-frame shareable content enumeration (WindowServer/replayd CPU) and stops the Screen Recording indicator from flickering, which pinned the macOS Control Center close to 100% CPU (#2046, #2039, #1921)
   - X11/XCB-Grabbers - fix that client leaks when repeatedly enabled/disabled (#2035)
   - QHttpServer - Fix memory leak
+  - OS events - Lock/screensaver events were ignored when Hyperion runs without being a GUI application, although the session bus is available. The WebUI hid the lock options for every non-GUI Hyperion (#2062)
 
 ---
 ### Technical
