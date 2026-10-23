@@ -1,19 +1,19 @@
 #ifndef OSEVENTHANDLER_H
 #define OSEVENTHANDLER_H
 
+#include <QObject>
 #include <QJsonDocument>
 #include <QLoggingCategory>
-#include <QObject>
 #include <QScopedPointer>
 
 #include <events/EventEnum.h>
 
 #if defined(_WIN32)
-#include <QAbstractEventDispatcher>
 #include <QAbstractNativeEventFilter>
+#include <QAbstractEventDispatcher>
 #include <QWidget>
-#include <powrprof.h>
 #include <windows.h>
+#include <powrprof.h>
 #endif
 
 #include <utils/Logger.h>
