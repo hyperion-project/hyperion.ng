@@ -43,10 +43,5 @@ void WaylandWrapper::stop()
 
 void WaylandWrapper::action()
 {
-	if (!_grabber.isAvailable())
-	{
-		return;
-	}
-
 	transferFrame(_grabber);
 }
