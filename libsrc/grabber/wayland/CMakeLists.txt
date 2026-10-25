@@ -15,6 +15,7 @@ add_library(wayland-grabber
 
 target_link_libraries(wayland-grabber
 	hyperion
+	grabber
 	Qt${QT_VERSION_MAJOR}::DBus
 	PkgConfig::PIPEWIRE
 )

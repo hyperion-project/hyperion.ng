@@ -1,3 +1,20 @@
+
+add_library(grabber
+	${CMAKE_SOURCE_DIR}/include/grabber/GrabberTrace.h
+	${CMAKE_SOURCE_DIR}/libsrc/grabber/GrabberTrace.cpp
+)
+
+target_link_libraries(grabber
+	PUBLIC
+		Qt${QT_VERSION_MAJOR}::Core
+)
+
+target_include_directories(grabber
+	PUBLIC
+		${CMAKE_SOURCE_DIR}/include
+)
+
+
 if(ENABLE_AMLOGIC)
 	add_subdirectory(amlogic)
 endif (ENABLE_AMLOGIC)
@@ -49,3 +66,4 @@ endif(ENABLE_WAYLAND)
 if(ENABLE_AUDIO)
 	add_subdirectory(audio)
 endif()
+

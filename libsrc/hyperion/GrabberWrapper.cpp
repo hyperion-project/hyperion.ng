@@ -66,7 +66,7 @@ GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber * ggrabber, i
 }
 GrabberWrapper::~GrabberWrapper()
 {
-	TRACK_SCOPE();
+	TRACK_SCOPE() << "Destroying GrabberWrapper for" << _grabberName;
 	_timer->stop();
 	GrabberWrapper::instance = nullptr;
 }
