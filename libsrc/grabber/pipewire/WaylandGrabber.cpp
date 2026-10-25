@@ -1,4 +1,4 @@
-#include <grabber/wayland/WaylandGrabber.h>
+#include <grabber/pipewire/WaylandGrabber.h>
 
 #include "PipeWireFrameSource.h"
 #include "PortalScreenCast.h"

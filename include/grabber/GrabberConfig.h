@@ -42,7 +42,11 @@
 #endif
 
 #if defined(ENABLE_WAYLAND)
-#include <grabber/wayland/WaylandGrabber.h>
+#include <grabber/pipewire/WaylandGrabber.h>
+#endif
+
+#if defined(ENABLE_GAMESCOPE)
+#include <grabber/pipewire/GamescopeGrabber.h>
 #endif
 
 #if defined(ENABLE_MF)

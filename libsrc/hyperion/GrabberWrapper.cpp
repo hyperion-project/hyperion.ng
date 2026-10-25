@@ -217,6 +217,10 @@ QStringList GrabberWrapper::availableGrabbers(GrabberTypeFilter type)
 		grabbers << "wayland";
 #endif
 
+#ifdef ENABLE_GAMESCOPE
+		grabbers << "gamescope";
+#endif
+
 #ifdef ENABLE_QT
 		grabbers << "qt";
 #endif

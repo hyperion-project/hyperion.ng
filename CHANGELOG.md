@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New Juggler Effect
 - Support for **Robobloq** devices
 - Wayland Screen Grabber (xdg-desktop-portal ScreenCast and PipeWire), build option `ENABLE_WAYLAND` (#1096)
+- Gamescope Screen Grabber (PipeWire), build option `ENABLE_GAMESCOPE` (#2033)
 ---
 
 ### 🔧 Changed

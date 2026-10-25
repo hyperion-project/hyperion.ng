@@ -1,7 +1,7 @@
 #pragma once
 
 #include <hyperion/GrabberWrapper.h>
-#include <grabber/wayland/WaylandGrabber.h>
+#include <grabber/pipewire/WaylandGrabber.h>
 
 ///
 /// The WaylandWrapper uses an instance of the WaylandGrabber to obtain ImageRgb's from the

@@ -35,8 +35,17 @@ public:
 	PipeWireFrameSource();
 	~PipeWireFrameSource();
 
-	/// @param fd  PipeWire remote, duplicated internally
+	/// @param fd      PipeWire remote, duplicated internally (portal mode)
+	/// @param nodeId  Node to connect to (from the portal handshake)
 	bool start(int fd, quint32 nodeId, QString& error);
+
+	/// @brief Connect to the running PipeWire daemon directly (no portal FD needed).
+	///        The stream is attached to the node whose "node.name" property matches
+	///        @p targetNodeName (e.g. "gamescope").  PipeWire's session manager
+	///        (WirePlumber) resolves the name to the actual node.
+	/// @param targetNodeName  Value of the node's "node.name" PW property.
+	bool startDirect(const QString& targetNodeName, QString& error);
+
 	void stop();
 
 	/// Copies the most recent frame, false until the first one has arrived.

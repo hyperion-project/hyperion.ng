@@ -1,4 +1,4 @@
-#include <grabber/wayland/WaylandWrapper.h>
+#include <grabber/pipewire/WaylandWrapper.h>
 
 WaylandWrapper::WaylandWrapper(int updateRate_Hz,
 							   int pixelDecimation,

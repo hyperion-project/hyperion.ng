@@ -73,9 +73,15 @@
 #endif
 
 #ifdef ENABLE_WAYLAND
-	#include <grabber/wayland/WaylandWrapper.h>
+	#include <grabber/pipewire/WaylandWrapper.h>
 #else
 	using WaylandWrapper = QObject;
+#endif
+
+#ifdef ENABLE_GAMESCOPE
+	#include <grabber/pipewire/GamescopeWrapper.h>
+#else
+	using GamescopeWrapper = QObject;
 #endif
 
 #if defined(ENABLE_V4L2) || defined(ENABLE_MF)

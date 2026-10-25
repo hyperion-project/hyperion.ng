@@ -59,9 +59,9 @@ if(ENABLE_XCB)
 	add_subdirectory(xcb)
 endif(ENABLE_XCB)
 
-if(ENABLE_WAYLAND)
-	add_subdirectory(wayland)
-endif(ENABLE_WAYLAND)
+if(ENABLE_WAYLAND OR ENABLE_GAMESCOPE)
+	add_subdirectory(pipewire)
+endif()
 
 if(ENABLE_AUDIO)
 	add_subdirectory(audio)

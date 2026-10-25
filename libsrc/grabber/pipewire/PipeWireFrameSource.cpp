@@ -329,6 +329,104 @@ bool PipeWireFrameSource::start(int fd, quint32 nodeId, QString& error)
 	return true;
 }
 
+bool PipeWireFrameSource::startDirect(const QString& targetNodeName, QString& error)
+{
+	qCDebug(grabber_screen_flow) << "Start direct PipeWire stream for node" << targetNodeName;
+	stop();
+
+	qCDebug(grabber_screen_flow) << "Initializing PipeWire (direct)";
+	pw_init(nullptr, nullptr);
+
+	Impl& s = *_impl;
+	s.pwInitialized = true;
+	s.failed        = false;
+	s.haveFormat    = false;
+	s.haveFrame     = false;
+
+	s.loop = pw_thread_loop_new("hyperion-pipewire-gs", nullptr);
+	if (s.loop == nullptr)
+	{
+		error = QStringLiteral("Cannot create the PipeWire loop");
+		stop();
+		s.failed = true;
+		return false;
+	}
+
+	pw_thread_loop_lock(s.loop);
+
+	s.context = pw_context_new(pw_thread_loop_get_loop(s.loop), nullptr, 0);
+	if (s.context != nullptr)
+	{
+		// Connect to the user's default PipeWire session socket directly.
+		s.core = pw_context_connect(s.context, nullptr, 0);
+	}
+	if (s.core == nullptr)
+	{
+		pw_thread_loop_unlock(s.loop);
+		error = QStringLiteral("Cannot connect to the PipeWire daemon");
+		stop();
+		s.failed = true;
+		return false;
+	}
+
+	// Provide the target node name so WirePlumber links us automatically.
+	const QByteArray targetNameBytes = targetNodeName.toUtf8();
+	s.stream = pw_stream_new(s.core, "hyperion-gamescope-capture",
+	                         pw_properties_new(
+	                             PW_KEY_MEDIA_TYPE,      "Video",
+	                             PW_KEY_MEDIA_CATEGORY,  "Capture",
+	                             PW_KEY_MEDIA_ROLE,      "Screen",
+	                             PW_KEY_TARGET_OBJECT,   targetNameBytes.constData(),
+	                             nullptr));
+
+	s.events.version       = PW_VERSION_STREAM_EVENTS;
+	s.events.state_changed = Impl::onStateChanged;
+	s.events.param_changed = Impl::onParamChanged;
+	s.events.process       = Impl::onProcess;
+	pw_stream_add_listener(s.stream, &s.listener, &s.events, _impl.get());
+
+	uint8_t buffer[1024];
+	spa_pod_builder builder = SPA_POD_BUILDER_INIT(buffer, sizeof(buffer));
+	const spa_rectangle defSize{1920, 1080};
+	const spa_rectangle minSize{1, 1};
+	const spa_rectangle maxSize{16384, 16384};
+	const spa_fraction defRate{DEFAULT_FPS, 1};
+	const spa_fraction minRate{0, 1};
+	const spa_fraction maxRate{MAX_FPS, 1};
+	const spa_pod* params[1];
+	params[0] = static_cast<const spa_pod*>(spa_pod_builder_add_object(&builder,
+		SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat,
+		SPA_FORMAT_mediaType,    SPA_POD_Id(SPA_MEDIA_TYPE_video),
+		SPA_FORMAT_mediaSubtype, SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw),
+		SPA_FORMAT_VIDEO_format, SPA_POD_CHOICE_ENUM_Id(5,
+			SPA_VIDEO_FORMAT_BGRx,
+			SPA_VIDEO_FORMAT_BGRx,
+			SPA_VIDEO_FORMAT_BGRA,
+			SPA_VIDEO_FORMAT_RGBx,
+			SPA_VIDEO_FORMAT_RGBA
+		),
+		SPA_FORMAT_VIDEO_size,      SPA_POD_CHOICE_RANGE_Rectangle(&defSize, &minSize, &maxSize),
+		SPA_FORMAT_VIDEO_framerate, SPA_POD_CHOICE_RANGE_Fraction(&defRate, &minRate, &maxRate))
+	);
+
+	// Use PW_ID_ANY so the session manager resolves PW_KEY_TARGET_OBJECT for us.
+	const int rc = pw_stream_connect(s.stream, PW_DIRECTION_INPUT, PW_ID_ANY,
+	                                 static_cast<pw_stream_flags>(PW_STREAM_FLAG_AUTOCONNECT | PW_STREAM_FLAG_MAP_BUFFERS),
+	                                 params, 1);
+	if (rc < 0)
+	{
+		pw_thread_loop_unlock(s.loop);
+		error = QStringLiteral("Cannot connect the PipeWire stream: %1").arg(QString::fromUtf8(strerror(-rc)));
+		stop();
+		s.failed = true;
+		return false;
+	}
+
+	pw_thread_loop_unlock(s.loop);
+	pw_thread_loop_start(s.loop);
+	return true;
+}
+
 void PipeWireFrameSource::stop()
 {
 	qCDebug(grabber_screen_flow) << "Stopping Pipewire stream";
