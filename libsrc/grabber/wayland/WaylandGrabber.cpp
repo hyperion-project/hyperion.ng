@@ -58,6 +58,9 @@ WaylandGrabber::WaylandGrabber(int cropLeft, int cropRight, int cropTop, int cro
 	// Real size is known with the first frame; keep it non-zero until then.
 	_width = 64;
 	_height = 36;
+
+	QJsonArray fpsSupported = {{ 1, 5, 10, 15, 20, 25, 30, 40, 50, 60, 75, 90, 120, 144, 165, 240 }};
+	setFpsSupported(fpsSupported);
 }
 
 WaylandGrabber::~WaylandGrabber()
@@ -179,8 +182,7 @@ QString WaylandGrabber::stateFile(const QString& name)
 
 int WaylandGrabber::frameIntervalMs() const
 {
-	// a little under one frame period, so every consumer tick finds a fresh frame
-	return qMax(1, 1000 / qMax(1, _fps) - 5);
+	return qMax(1, 1000 / qMax(1, _fps));
 }
 
 bool WaylandGrabber::setFramerate(int fps)
