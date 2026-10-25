@@ -1,8 +1,11 @@
 #pragma once
 
+#include <memory>
+
 #include <QByteArray>
 #include <QString>
-#include <memory>
+
+#include <utils/PixelFormat.h>
 
 ///
 /// @brief Latest frame copied out of a PipeWire screen cast stream.
@@ -10,10 +13,10 @@
 struct CapturedFrame
 {
 	QByteArray data;
-	int width = 0;
-	int height = 0;
-	int stride = 0;
-	bool bgrOrder = true;   ///< 4 bytes per pixel, B-G-R-x when true, R-G-B-x otherwise
+	int width{0};
+	int height{0};
+	size_t stride{0};
+	PixelFormat pixelFormat{PixelFormat::NO_CHANGE};
 };
 
 ///
@@ -24,7 +27,11 @@ struct CapturedFrame
 ///
 class PipeWireFrameSource
 {
+
 public:
+
+	static constexpr int MAX_FPS = 240;
+
 	PipeWireFrameSource();
 	~PipeWireFrameSource();
 

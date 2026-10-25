@@ -12,6 +12,39 @@
 #include <cstring>
 #include <mutex>
 
+#include <QElapsedTimer>
+
+#include <grabber/GrabberTrace.h>
+#include <utils/PixelFormat.h>
+
+namespace {
+	constexpr int RETRY_INTERVAL_MS = 2000;
+
+	// Matches GrabberWrapper::DEFAULT_MAX_GRAB_RATE_HZ
+	constexpr int DEFAULT_FPS = 30;
+}
+
+static QString getStreamState(enum pw_stream_state state)
+{
+	switch (state)
+	{
+	case PW_STREAM_STATE_ERROR:
+		return "IN ERROR";
+	case PW_STREAM_STATE_UNCONNECTED:
+		return "UNCONNECTED";
+	case PW_STREAM_STATE_CONNECTING:
+		return "CONNECTING";
+	case PW_STREAM_STATE_PAUSED:
+		return "PAUSED";
+	case PW_STREAM_STATE_STREAMING:
+		return "STREAMING";
+	default:
+		break;
+	}
+	// Return a default string if the state is unrecognized
+	return "UNKNOWN";
+}
+
 struct PipeWireFrameSource::Impl
 {
 	pw_thread_loop* loop = nullptr;
@@ -32,18 +65,41 @@ struct PipeWireFrameSource::Impl
 	std::atomic<bool> failed{false};
 	std::atomic<int> minIntervalMs{25};
 
-	static void onStateChanged(void* data, pw_stream_state, pw_stream_state state, const char*)
+	// Frame-rate benchmarking state for onProcess(), only touched (and only meaningful)
+	// when the grabber_screen_benchmark debug category is enabled
+	QAtomicInt currentFrameCount{0};
+	QElapsedTimer frameTimer;	
+
+	static void onStateChanged(void* data, pw_stream_state, pw_stream_state state, const char* error)
 	{
+		qCDebug(grabber_screen_flow) << "Stream state changed to" << getStreamState(state) << ", error:" << (error ? error : "(none)");
 		auto* self = static_cast<Impl*>(data);
 		if (state == PW_STREAM_STATE_ERROR || state == PW_STREAM_STATE_UNCONNECTED)
 		{
+			if (error != nullptr)
+			{
+				// UNCONNECTED is an expected, routine transition (e.g. permission revoked, portal
+				// session ended normally) - not worth a Warning. A real problem still surfaces via
+				// ERROR.
+				if (state == PW_STREAM_STATE_ERROR)
+				{
+					qCWarning(grabber_screen_flow) << "Pipewire stream ended:" << error;
+				}
+				else
+				{
+					qCDebug(grabber_screen_flow) << "Pipewire stream ended:" << error;
+				}
+			}
+
 			self->failed = true;
 		}
 	}
 
 	static void onParamChanged(void* data, uint32_t id, const spa_pod* param)
 	{
+		qCDebug(grabber_screen_flow) << "Stream param changed, id=" << id << ", param=" << (param ? "valid" : "null");
 		auto* self = static_cast<Impl*>(data);
+
 		if (param == nullptr || id != SPA_PARAM_Format)
 		{
 			return;
@@ -55,7 +111,12 @@ struct PipeWireFrameSource::Impl
 		{
 			return;
 		}
-		spa_format_video_raw_parse(param, &self->format);
+
+		if (spa_format_video_raw_parse(param, &self->format) < 0)
+		{
+			return;
+		}
+
 		self->haveFormat = true;
 
 		// Ask for memory the CPU can map directly (no DMA-BUF, so no tiling modifiers).
@@ -67,6 +128,11 @@ struct PipeWireFrameSource::Impl
 			SPA_PARAM_BUFFERS_buffers, SPA_POD_CHOICE_RANGE_Int(4, 2, 8),
 			SPA_PARAM_BUFFERS_dataType, SPA_POD_CHOICE_FLAGS_Int((1 << SPA_DATA_MemPtr) | (1 << SPA_DATA_MemFd))));
 		pw_stream_update_params(self->stream, params, 1);
+
+		qCDebug(grabber_screen_flow) << "Stream format changed to" << self->format.size.width
+				<< "x" << self->format.size.height
+				<< ", modifier:" << self->format.modifier
+				<< ", format:" << self->format.format;
 	}
 
 	static void onProcess(void* data)
@@ -89,7 +155,8 @@ struct PipeWireFrameSource::Impl
 			const uint32_t height = self->format.size.height;
 			const uint32_t size = d.chunk->size;
 			const uint32_t offset = d.chunk->offset;
-			const uint32_t stride = d.chunk->stride > 0 ? static_cast<uint32_t>(d.chunk->stride) : (height > 0 ? size / height : 0);
+			const uint32_t strideFromSize = height > 0 ? size / height : 0;
+			const uint32_t stride = d.chunk->stride > 0 ? static_cast<uint32_t>(d.chunk->stride) : strideFromSize;
 
 			// The consumer reads width*4 bytes from each of `height` rows: never hand out a buffer
 			// that is shorter than that or that lies outside the mapping.
@@ -99,33 +166,83 @@ struct PipeWireFrameSource::Impl
 				self->lastCopy = now;
 				const uint32_t fmt = self->format.format;
 
-				std::lock_guard<std::mutex> lock(self->mutex);
+				PixelFormat pixelFormat;
+				switch (fmt)
+				{
+					case SPA_VIDEO_FORMAT_BGRx:
+					case SPA_VIDEO_FORMAT_BGRA:
+						pixelFormat = PixelFormat::BGR32;
+						break;
+					case SPA_VIDEO_FORMAT_RGBx:
+					case SPA_VIDEO_FORMAT_RGBA:
+						pixelFormat = PixelFormat::RGB32;
+						break;
+					default:
+						pixelFormat = PixelFormat::NO_CHANGE;
+						break;
+				}
+
+				std::lock_guard lock(self->mutex);
 				self->frame.data = QByteArray(static_cast<const char*>(d.data) + offset, static_cast<int>(size));
 				self->frame.width = static_cast<int>(width);
 				self->frame.height = static_cast<int>(height);
 				self->frame.stride = static_cast<int>(stride);
-				self->frame.bgrOrder = (fmt == SPA_VIDEO_FORMAT_BGRx || fmt == SPA_VIDEO_FORMAT_BGRA);
+				self->frame.pixelFormat = pixelFormat;
 				self->haveFrame = true;
+
+				++self->currentFrameCount;
 			}
 		}
 
+		qCDebug(grabber_screen_capture) << QString("Processing frame, Width: %1, Height: %2, SpaFormat: %3, PixelFormat: %4")
+		.arg(self->frame.width)
+		.arg(self->frame.height)
+		.arg(self->format.format)
+		.arg(pixelFormatToString(self->frame.pixelFormat));
+
 		pw_stream_queue_buffer(self->stream, pwBuffer);
+
+		if (grabber_screen_benchmark().isDebugEnabled())
+		{
+			// calculate average frametime
+			if (self->currentFrameCount > 1)
+			{
+				if (self->currentFrameCount % 100 == 0)
+				{
+					qint64 timeElaped = self->frameTimer.restart() / 100;
+					qCDebug(grabber_screen_benchmark) << self->currentFrameCount << "frames captured. avg time=" 
+					<< timeElaped << "ms" << "/" << 1000 / timeElaped << "fps" 
+					<< "vs." << self->minIntervalMs << "ms" << "/" << 1000 / self->minIntervalMs << "fps max configured";
+				}
+			}
+			else
+			{
+				qCDebug(grabber_screen_benchmark) << self->currentFrameCount << ": frametimer started";
+				self->frameTimer.start();
+			}
+
+		}
 	}
 };
 
 PipeWireFrameSource::PipeWireFrameSource()
-	: _impl(new Impl)
+	: _impl(std::make_unique<Impl>())
 {
+	TRACK_SCOPE() << "Creating PipeWire frame source";
 }
 
 PipeWireFrameSource::~PipeWireFrameSource()
 {
+	TRACK_SCOPE();
 	stop();
 }
 
 bool PipeWireFrameSource::start(int fd, quint32 nodeId, QString& error)
 {
+	qCDebug(grabber_screen_flow) << "Start Pipewire stream";
 	stop();
+
+	qCDebug(grabber_screen_flow) << "Initializing Pipewire";
 	pw_init(nullptr, nullptr);
 
 	Impl& s = *_impl;
@@ -170,17 +287,27 @@ bool PipeWireFrameSource::start(int fd, quint32 nodeId, QString& error)
 
 	uint8_t buffer[1024];
 	spa_pod_builder builder = SPA_POD_BUILDER_INIT(buffer, sizeof(buffer));
-	const spa_rectangle defSize{1920, 1080}, minSize{1, 1}, maxSize{16384, 16384};
-	const spa_fraction defRate{30, 1}, minRate{0, 1}, maxRate{240, 1};
+	const spa_rectangle defSize{1920, 1080};
+	const spa_rectangle minSize{1, 1};
+	const spa_rectangle maxSize{16384, 16384};
+	const spa_fraction defRate{DEFAULT_FPS, 1};
+	const spa_fraction minRate{0, 1};
+	const spa_fraction maxRate{MAX_FPS, 1};
 	const spa_pod* params[1];
 	params[0] = static_cast<const spa_pod*>(spa_pod_builder_add_object(&builder,
-		SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat,
-		SPA_FORMAT_mediaType, SPA_POD_Id(SPA_MEDIA_TYPE_video),
-		SPA_FORMAT_mediaSubtype, SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw),
-		SPA_FORMAT_VIDEO_format, SPA_POD_CHOICE_ENUM_Id(5, SPA_VIDEO_FORMAT_BGRx, SPA_VIDEO_FORMAT_BGRx,
-							SPA_VIDEO_FORMAT_BGRA, SPA_VIDEO_FORMAT_RGBx, SPA_VIDEO_FORMAT_RGBA),
-		SPA_FORMAT_VIDEO_size, SPA_POD_CHOICE_RANGE_Rectangle(&defSize, &minSize, &maxSize),
-		SPA_FORMAT_VIDEO_framerate, SPA_POD_CHOICE_RANGE_Fraction(&defRate, &minRate, &maxRate)));
+				SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat,
+				SPA_FORMAT_mediaType, SPA_POD_Id(SPA_MEDIA_TYPE_video),
+				SPA_FORMAT_mediaSubtype, SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw),
+				SPA_FORMAT_VIDEO_format, SPA_POD_CHOICE_ENUM_Id(5,
+					SPA_VIDEO_FORMAT_BGRx,
+					SPA_VIDEO_FORMAT_BGRx,
+					SPA_VIDEO_FORMAT_BGRA,
+					SPA_VIDEO_FORMAT_RGBx,
+					SPA_VIDEO_FORMAT_RGBA
+				),
+				SPA_FORMAT_VIDEO_size, SPA_POD_CHOICE_RANGE_Rectangle(&defSize, &minSize, &maxSize),
+				SPA_FORMAT_VIDEO_framerate, SPA_POD_CHOICE_RANGE_Fraction(&defRate, &minRate, &maxRate))
+			);
 
 	const int rc = pw_stream_connect(s.stream, PW_DIRECTION_INPUT, nodeId,
 									 static_cast<pw_stream_flags>(PW_STREAM_FLAG_AUTOCONNECT | PW_STREAM_FLAG_MAP_BUFFERS),
@@ -201,6 +328,7 @@ bool PipeWireFrameSource::start(int fd, quint32 nodeId, QString& error)
 
 void PipeWireFrameSource::stop()
 {
+	qCDebug(grabber_screen_flow) << "Stopping Pipewire stream";
 	Impl& s = *_impl;
 	if (s.loop != nullptr)
 	{
@@ -230,13 +358,15 @@ void PipeWireFrameSource::stop()
 	std::lock_guard<std::mutex> lock(s.mutex);
 	s.frame = CapturedFrame();
 	s.haveFrame = false;
+	qCDebug(grabber_screen_flow) << "Pipewire stream stopped, frame cleared";
 }
 
 bool PipeWireFrameSource::latest(CapturedFrame& out)
 {
-	std::lock_guard<std::mutex> lock(_impl->mutex);
+	std::lock_guard lock(_impl->mutex);
 	if (!_impl->haveFrame)
 	{
+		qCDebug(grabber_screen_capture) << "No new frame available";
 		return false;
 	}
 	out = _impl->frame;   // QByteArray is shared, no deep copy until the stream writes again
@@ -245,10 +375,12 @@ bool PipeWireFrameSource::latest(CapturedFrame& out)
 
 void PipeWireFrameSource::setMinFrameInterval(int ms)
 {
+	qCDebug(grabber_screen_flow) << "Setting minimum frame interval to" << ms << "ms";
 	_impl->minIntervalMs = qMax(1, ms);
 }
 
 bool PipeWireFrameSource::hasFailed() const
 {
+	qCDebug(grabber_screen_capture) << "Checking if Pipewire stream has failed:" << _impl->failed;
 	return _impl->failed;
 }
