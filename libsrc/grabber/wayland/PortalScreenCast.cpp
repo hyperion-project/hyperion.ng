@@ -197,7 +197,11 @@ void PortalScreenCast::onResponse(uint response, const QVariantMap& results)
 	case Step::Start:
 	{
 		qCDebug(grabber_screen_flow) << "Portal returned to Start step with results:" << results;
-		saveToken(results.value(QStringLiteral("restore_token")).toString());
+		QString token = results.value(QStringLiteral("restore_token")).toString();
+		if (!token.isEmpty())
+		{
+			saveToken(token);
+		}
 
 		quint32 node = 0;
 		bool found = false;
