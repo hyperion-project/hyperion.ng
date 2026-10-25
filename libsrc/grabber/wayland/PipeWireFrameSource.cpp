@@ -56,6 +56,7 @@ struct PipeWireFrameSource::Impl
 
 	spa_video_info_raw format{};
 	bool haveFormat = false;
+	bool pwInitialized = false;
 
 	std::mutex mutex;
 	CapturedFrame frame;
@@ -246,6 +247,7 @@ bool PipeWireFrameSource::start(int fd, quint32 nodeId, QString& error)
 	pw_init(nullptr, nullptr);
 
 	Impl& s = *_impl;
+	s.pwInitialized = true;
 	s.failed = false;
 	s.haveFormat = false;
 	s.haveFrame = false;
@@ -254,6 +256,7 @@ bool PipeWireFrameSource::start(int fd, quint32 nodeId, QString& error)
 	if (s.loop == nullptr)
 	{
 		error = QStringLiteral("Cannot create the PipeWire loop");
+		stop();
 		s.failed = true;
 		return false;
 	}
@@ -355,7 +358,13 @@ void PipeWireFrameSource::stop()
 		pw_thread_loop_destroy(s.loop);
 		s.loop = nullptr;
 	}
-	std::lock_guard<std::mutex> lock(s.mutex);
+	if (s.pwInitialized)
+	{
+		qCDebug(grabber_screen_flow) << "Deinitializing Pipewire";
+		pw_deinit();
+		s.pwInitialized = false;
+	}
+	std::lock_guard lock(s.mutex);
 	s.frame = CapturedFrame();
 	s.haveFrame = false;
 	qCDebug(grabber_screen_flow) << "Pipewire stream stopped, frame cleared";
