@@ -12,6 +12,9 @@
 #include <QFileInfo>
 #include <QSaveFile>
 
+#include <grabber/GrabberTrace.h>
+
+
 namespace {
 const QString PORTAL_SERVICE = QStringLiteral("org.freedesktop.portal.Desktop");
 const QString PORTAL_PATH = QStringLiteral("/org/freedesktop/portal/desktop");
@@ -29,10 +32,12 @@ PortalScreenCast::PortalScreenCast(const QString& tokenFile, QObject* parent)
 	: QObject(parent)
 	, _tokenFile(tokenFile)
 {
+	TRACK_SCOPE() << "Creating PortalScreenCast instance";
 }
 
 PortalScreenCast::~PortalScreenCast()
 {
+	TRACK_SCOPE();
 	close();
 }
 
@@ -43,11 +48,14 @@ QString PortalScreenCast::readToken() const
 	{
 		return {};
 	}
+
+	qCDebug(grabber_screen_flow) << "Read token from" << file.fileName();
 	return QString::fromUtf8(file.readAll()).trimmed();
 }
 
 void PortalScreenCast::saveToken(const QString& token) const
 {
+	qCDebug(grabber_screen_flow) << "Saving token to" << _tokenFile;
 	if (token.isEmpty())
 	{
 		return;
@@ -56,9 +64,14 @@ void PortalScreenCast::saveToken(const QString& token) const
 	QSaveFile file(_tokenFile);   // atomic: a crash mid-write cannot leave a truncated token
 	if (file.open(QIODevice::WriteOnly))
 	{
+		qCDebug(grabber_screen_flow) << "Writing token to" << _tokenFile;
 		file.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner);
 		file.write(token.toUtf8());
 		file.commit();
+	}
+	else
+	{
+		qCWarning(grabber_screen_flow) << "[desktop-portal] Failed to save token to" << _tokenFile;
 	}
 }
 
@@ -105,8 +118,10 @@ bool PortalScreenCast::callRequest(const QString& method, const QVariantList& ar
 
 void PortalScreenCast::start()
 {
+	qCDebug(grabber_screen_flow) << "Starting portal screen cast";
 	if (_step != Step::Idle)
 	{
+		qCDebug(grabber_screen_flow) << "Portal screen cast already in progress, ignoring start request";
 		return;
 	}
 
@@ -144,6 +159,7 @@ void PortalScreenCast::onResponse(uint response, const QVariantMap& results)
 	{
 	case Step::CreateSession:
 	{
+		qCDebug(grabber_screen_flow) << "Portal returned session handle:" << results.value(QStringLiteral("session_handle")).toString();
 		_sessionHandle = results.value(QStringLiteral("session_handle")).toString();
 		if (_sessionHandle.isEmpty())
 		{
@@ -169,6 +185,7 @@ void PortalScreenCast::onResponse(uint response, const QVariantMap& results)
 	}
 	case Step::SelectSources:
 	{
+		qCDebug(grabber_screen_flow) << "Portal returned to SelectSources step";
 		_step = Step::Start;
 		const QString token = QStringLiteral("hyperion_%1").arg(++_counter);
 		QVariantMap options;
@@ -179,6 +196,7 @@ void PortalScreenCast::onResponse(uint response, const QVariantMap& results)
 	}
 	case Step::Start:
 	{
+		qCDebug(grabber_screen_flow) << "Portal returned to Start step with results:" << results;
 		saveToken(results.value(QStringLiteral("restore_token")).toString());
 
 		quint32 node = 0;
@@ -224,10 +242,11 @@ void PortalScreenCast::onResponse(uint response, const QVariantMap& results)
 	case Step::Idle:
 		break;
 	}
-}
+}  // NOSONAR: Qt parent owns this; deleteLater() called in finished lambda
 
 void PortalScreenCast::close()
 {
+	qCDebug(grabber_screen_flow) << "Closing portal screen cast";
 	if (_sessionHandle.isEmpty())
 	{
 		return;

@@ -9,6 +9,8 @@
 #include <QSize>
 #include <QStandardPaths>
 
+#include <grabber/GrabberTrace.h>
+
 namespace {
 // A failed portal session (e.g. portal not ready at login, sharing stopped from the desktop) is
 // retried with a doubling delay between these bounds.
@@ -52,6 +54,7 @@ constexpr int RETRY_MAX_MS = 5 * 60 * 1000;
 WaylandGrabber::WaylandGrabber(int cropLeft, int cropRight, int cropTop, int cropBottom)
 	: Grabber("GRABBER-WAYLAND", cropLeft, cropRight, cropTop, cropBottom)
 {
+	TRACK_SCOPE() << "Creating Wayland grabber";
 	// Real size is known with the first frame; keep it non-zero until then.
 	_width = 64;
 	_height = 36;
@@ -59,12 +62,14 @@ WaylandGrabber::WaylandGrabber(int cropLeft, int cropRight, int cropTop, int cro
 
 WaylandGrabber::~WaylandGrabber()
 {
-	close();
+	TRACK_SCOPE();
 }
 
 bool WaylandGrabber::isAvailable(bool logError)
 {
 	_isAvailable = false;
+
+	qCDebug(grabber_screen_flow) << "Checking Wayland grabber availability" << "WAYLAND_DISPLAY:" << qgetenv("WAYLAND_DISPLAY") << "XDG_SESSION_TYPE:" << qgetenv("XDG_SESSION_TYPE") << "DBUS_SESSION_BUS_ADDRESS:" << qgetenv("DBUS_SESSION_BUS_ADDRESS");
 
 	// The dialog is drawn by the portal, so no GUI application is needed: this also runs as a service.
 	if (qEnvironmentVariableIsEmpty("WAYLAND_DISPLAY") && qgetenv("XDG_SESSION_TYPE") != "wayland")
@@ -85,8 +90,10 @@ bool WaylandGrabber::isAvailable(bool logError)
 
 bool WaylandGrabber::open()
 {
+	qCDebug(grabber_screen_flow) << "Opening Wayland grabber";
 	if (_portal != nullptr)
 	{
+		qCDebug(grabber_screen_flow) << "Wayland grabber already opened";
 		return true;
 	}
 
@@ -117,12 +124,14 @@ void WaylandGrabber::releaseSession()
 
 bool WaylandGrabber::close()
 {
+	qCDebug(grabber_screen_flow) << "Closing Wayland grabber";
 	releaseSession();
 	return true;
 }
 
 void WaylandGrabber::onPortalStarted(int pipewireFd, quint32 nodeId)
 {
+	qCDebug(grabber_screen_flow) << "Portal started with pipewireFd:" << pipewireFd << "nodeId:" << nodeId;
 	QString error;
 	if (!_source->start(pipewireFd, nodeId, error))
 	{
@@ -233,6 +242,7 @@ int WaylandGrabber::grabFrame(Image<ColorRgb>& image, bool /*forceUpdate*/)
 
 	if (_userCancelled)
 	{
+		qCDebug(grabber_screen_flow) << "User cancelled, not grabbing frame";
 		return -1;
 	}
 
@@ -242,16 +252,19 @@ int WaylandGrabber::grabFrame(Image<ColorRgb>& image, bool /*forceUpdate*/)
 		releaseSession();
 		_retryDelayMs = RETRY_AFTER_END_MS;
 		_retryTimer.start();
+		qCDebug(grabber_screen_flow) << "Retrying after end delay" << _retryDelayMs << "ms";
 	}
 
 	if (_portal == nullptr)
 	{
 		if (_retryTimer.isValid() && !_retryTimer.hasExpired(_retryDelayMs))
 		{
+			qCDebug(grabber_screen_flow) << "Retrying after delay" << _retryDelayMs << "ms";
 			return -1;
 		}
 		if (!open())
 		{
+			qCDebug(grabber_screen_flow) << "Failed to open portal, will retry";
 			return -1;
 		}
 	}
@@ -260,6 +273,7 @@ int WaylandGrabber::grabFrame(Image<ColorRgb>& image, bool /*forceUpdate*/)
 	if (_source == nullptr || !_source->latest(frame))
 	{
 		// waiting for the portal (or the user, on the first run)
+		qCDebug(grabber_screen_flow) << "Waiting for the portal or user action";
 		return -1;
 	}
 
@@ -272,8 +286,11 @@ int WaylandGrabber::grabFrame(Image<ColorRgb>& image, bool /*forceUpdate*/)
 		updateImageSize(_sourceWidth, _sourceHeight);
 	}
 
-	_imageResampler.processImage(reinterpret_cast<const uint8_t*>(frame.data.constData()), frame.width, frame.height,
-								 static_cast<size_t>(frame.stride), frame.bgrOrder ? PixelFormat::BGR32 : PixelFormat::RGB32, image);
+	_imageResampler.processImage(reinterpret_cast<const uint8_t*>(frame.data.constData()),
+	                             frame.width, frame.height,
+	                             frame.stride, frame.pixelFormat, image);
+
+	qCDebug(grabber_screen_capture) << "Frame grabbed into image with size:" << image.width() << "x" << image.height();								 
 	return 0;
 }
 
