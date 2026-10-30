@@ -64,7 +64,7 @@ void WebJsonRpc::onForbidden()
 
 void WebJsonRpc::sendOkCallbackMessage(QJsonObject obj)
 {
-	sendCallbackMessage(obj, QtHttpReply::Ok);
+	sendCallbackMessage(obj, QtHttpReply::StatusCode::Ok);
 }
 
 void WebJsonRpc::sendCallbackMessage(QJsonObject obj, QtHttpReply::StatusCode code)
