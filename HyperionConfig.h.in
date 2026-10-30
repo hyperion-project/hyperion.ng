@@ -37,6 +37,12 @@
 // Define to enable the XCB grabber
 #cmakedefine ENABLE_XCB
 
+// Define to enable the Wayland grabber
+#cmakedefine ENABLE_WAYLAND
+
+// Define to enable the Gamescope grabber
+#cmakedefine ENABLE_GAMESCOPE
+
 // Define to enable boblight server
 #cmakedefine ENABLE_BOBLIGHT_SERVER
 

@@ -10,18 +10,18 @@ Hyperion is currently supported on the following configurations via our package 
 | ------------ | --------------------- | -------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------- | --------------------------------- |
 | amd64        | Windows               | 11                               | DDA<br/>QT                                            | [Windows-x64.exe](https://github.com/hyperion-project/hyperion.ng/releases)                       | DirectX9 Grabber via self-compile |
 | arm64        | Windows               | 11                               | DDA<br/>QT                                            | [Windows-arm64.exe](https://github.com/hyperion-project/hyperion.ng/releases)                     |                                   |
-| amd64        | macOS (Intel)         | 13                               | QT<br>OSX                                             | [macOS-x86_64.dmg ](https://github.com/hyperion-project/hyperion.ng/releases)                     |                                   |
-| arm64        | macOS (Apple Silicon) | 14, 15                           | QT<br>OSX                                             | [macOS-arm64.dmg](https://github.com/hyperion-project/hyperion.ng/releases)                       |                                   |
-| amd64        | Ubuntu (based)        | 22.04, 24.04, 25.10, 26.04&#xB3; | QT&#xB9;<br/>XCB/X11&#xB9;                            | [via Easy Install](https://docs.hyperion-project.org/user/gettingstarted/Linux.html#easy-install) |                                   |
-| amd64        | Debian (based)        | 11, 12, 13&#xB3;                 | QT&#xB9;<br/>XCB/X11&#xB9;                            | [via Easy Install](https://docs.hyperion-project.org/user/gettingstarted/Linux.html#easy-install) |                                   |
-| amd64        | Fedora                | 43                               | QT&#xB9;<br/>XCB/X11&#xB9;                            | [via Easy Install](https://docs.hyperion-project.org/user/gettingstarted/Linux.html#easy-install) |                                   |
+| amd64        | macOS (Intel)         | 13                               | OSX<br>QT                                             | [macOS-x86_64.dmg ](https://github.com/hyperion-project/hyperion.ng/releases)                     |                                   |
+| arm64        | macOS (Apple Silicon) | 14, 15                           | OSX<br>QT                                             | [macOS-arm64.dmg](https://github.com/hyperion-project/hyperion.ng/releases)                       |                                   |
+| amd64        | Ubuntu (based)        | 22.04, 24.04, 26.04&#xB3;        | Wayland, Gamescope<br/>XCB/X11&#xB9;<br/>QT&#xB9;     | [via Easy Install](https://docs.hyperion-project.org/user/gettingstarted/Linux.html#easy-install) |                                   |
+| amd64        | Debian (based)        | 12, 13&#xB3;                     | Wayland, Gamescope<br/>XCB/X11&#xB9;<br/>QT&#xB9;     | [via Easy Install](https://docs.hyperion-project.org/user/gettingstarted/Linux.html#easy-install) |                                   |
+| amd64        | Fedora                | 44                               | Wayland, Gamescope<br/>XCB/X11&#xB9;<br/>QT&#xB9;     | [via Easy Install](https://docs.hyperion-project.org/user/gettingstarted/Linux.html#easy-install) |                                   |
 | RPi 5        | HyperBian             | 13&#xB3;                         | -                                                     | [HyperBian.zip](https://github.com/Hyperion-Project/HyperBian/releases)                           | Hyperion Out-of-a-box             |
 | RPi 4        | HyperBian             | 13&#xB3;                         | -                                                     | [HyperBian.zip](https://github.com/Hyperion-Project/HyperBian/releases)                           | Hyperion Out-of-a-box             |
 | RPi 3 /3+    | HyperBian             | 13&#xB3;                         | -                                                     | [HyperBian.zip](https://github.com/hyperion-project/hyperion.ng/releases)                         | Hyperion Out-of-a-box             |
-| RPi 5        | Raspberry Pi OS       | 12, 13&#xB3;                     | DRM&#xB2;<br/>QT&#xB9;<br/>XCB/X11&#xB9;<br/>DispmanX | [via Easy Install](https://docs.hyperion-project.org/user/gettingstarted/Linux.html#easy-install) |                                   |
-| RPi 4        | Raspberry Pi OS       | 11, 12, 13&#xB3;                 | DRM&#xB2;<br/>QT&#xB9;<br/>XCB/X11&#xB9;<br/>DispmanX | [via Easy Install](https://docs.hyperion-project.org/user/gettingstarted/Linux.html#easy-install) |                                   |
-| RPi 3 /3+    | Raspberry Pi OS       | 11, 12, 13&#xB3;                 | QT&#xB9;<br/>XCB/X11&#xB9;<br/>DispmanX               | [via Easy Install](https://docs.hyperion-project.org/user/gettingstarted/Linux.html#easy-install) |                                   |
-| RPi 0/ 1 / 2 | Raspberry Pi OS       | 11, 12&#xB3;                     | QT&#xB9;<br/>XCB/X11&#xB9;<br/>DispmanX               | [via Easy Install](https://docs.hyperion-project.org/user/gettingstarted/Linux.html#easy-install) |                                   |
+| RPi 5        | Raspberry Pi OS       | 12, 13&#xB3;                     | DRM&#xB2;<br/>XCB/X11&#xB9;<br/>QT&#xB9;<br/>DispmanX | [via Easy Install](https://docs.hyperion-project.org/user/gettingstarted/Linux.html#easy-install) |                                   |
+| RPi 4        | Raspberry Pi OS       | 12, 13&#xB3;                     | DRM&#xB2;<br/>XCB/X11&#xB9;<br/>QT&#xB9;<br/>DispmanX | [via Easy Install](https://docs.hyperion-project.org/user/gettingstarted/Linux.html#easy-install) |                                   |
+| RPi 3 /3+    | Raspberry Pi OS       | 12, 13&#xB3;                     | XCB/X11&#xB9;<br/>QT&#xB9;<br/>DispmanX               | [via Easy Install](https://docs.hyperion-project.org/user/gettingstarted/Linux.html#easy-install) |                                   |
+| RPi 0/ 1 / 2 | Raspberry Pi OS       | 12&#xB3;                         | XCB/X11&#xB9;<br/>QT&#xB9;<br/>DispmanX               | [via Easy Install](https://docs.hyperion-project.org/user/gettingstarted/Linux.html#easy-install) |                                   |
 
 ## Unofficial
 In case you have an additional working setups you would like to share with the community, please get in touch or issue a PR to have the table updated.
@@ -41,6 +41,6 @@ In case you have an additional working setups you would like to share with the c
 
 Legend
 ---
-&#xB9; Requires an X11 based display manager and an environment with `DISPLAY` defined. Wayland is currently not supported\
+&#xB9; Requires an X11 based display manager and an environment with `DISPLAY` defined.\
 &#xB2; Requires Hyperion running under root\
-&#xB3; Debian: 11=Bullseye, 12=Bookworm, 13=Trixie, Ubuntu: 22=Jammy Jellyfish, 24=Noble Numbat, 25=Questing Quokka, 26=Resolute Raccoon
+&#xB3; Debian: 12=Bookworm, 13=Trixie, Ubuntu: 22=Jammy Jellyfish, 24=Noble Numbat, 26=Resolute Raccoon
