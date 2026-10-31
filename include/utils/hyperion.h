@@ -79,8 +79,18 @@ namespace hyperion {
 		const double gammaG             = colorConfig["gammaGreen"].toDouble(1.0);
 		const double gammaB             = colorConfig["gammaBlue"].toDouble(1.0);
 		const int temperature           = colorConfig["temperature"].toInt(ColorTemperature::DEFAULT);
+		const uint8_t turnOnThreshold = static_cast<uint8_t>(colorConfig["turnOnThreshold"].toInt(0));
+		uint8_t turnOffThreshold = static_cast<uint8_t>(colorConfig["turnOffThreshold"].toInt(0));
+		if (turnOffThreshold > turnOnThreshold)
+		{
+			Warning(Logger::getInstance("HYPERION"), "Turn-off threshold (%u) is higher than turn-on threshold (%u). It will be reduced to %u.", static_cast<unsigned>(turnOffThreshold), static_cast<unsigned>(turnOnThreshold), static_cast<unsigned>(turnOnThreshold));
+			turnOffThreshold = turnOnThreshold;
+		}
 
-		return RgbTransform(gammaR, gammaG, gammaB, backlightThreshold, backlightColored, static_cast<uint8_t>(brightness), static_cast<uint8_t>(brightnessComp), temperature);
+		RgbTransform transform(gammaR, gammaG, gammaB, backlightThreshold, backlightColored, static_cast<uint8_t>(brightness), static_cast<uint8_t>(brightnessComp), temperature);
+		transform.setTurnOnThreshold(turnOnThreshold);
+		transform.setTurnOffThreshold(turnOffThreshold);
+		return transform;
 	}
 
 	static OkhsvTransform createOkhsvTransform(const QJsonObject& colorConfig)

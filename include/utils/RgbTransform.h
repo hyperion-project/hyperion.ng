@@ -106,6 +106,12 @@ public:
 	///
 	void applyBacklight(uint8_t & red, uint8_t & green, uint8_t & blue) const;
 
+	uint8_t getTurnOnThreshold() const;
+	void setTurnOnThreshold(uint8_t threshold);
+	uint8_t getTurnOffThreshold() const;
+	void setTurnOffThreshold(uint8_t threshold);
+	void applyHysteresis(ColorRgb& color, bool& isOn) const;
+
 	int getTemperature() const;
 	void setTemperature(int temperature);
 	void applyTemperature(ColorRgb& color) const;
@@ -152,6 +158,10 @@ private:
 	uint8_t _brightness_rgb;
 	uint8_t _brightness_cmy;
 	uint8_t _brightness_w;
+
+	/// hysteresis variables
+	uint8_t _turnOnThreshold{0};
+	uint8_t _turnOffThreshold{0};
 
 	int _temperature;
 	ColorRgb _temperatureRGB;
