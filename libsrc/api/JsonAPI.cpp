@@ -566,7 +566,7 @@ void JsonAPI::handleGetImageSnapshotCommand(const QJsonObject& message, const Js
 
 	QObject tempContext; // context object for single-shot connection
 	auto connection = QObject::connect(hyperion.get(), &Hyperion::currentImage, &tempContext,
-		[&](const Image<ColorRgb>& img){
+		[&capturedImage, &loop](const Image<ColorRgb>& img){
 			capturedImage = img;
 			loop.quit();
 		});
@@ -1074,7 +1074,7 @@ void JsonAPI::handleConfigSetCommand(const QJsonObject &message, const JsonApiCo
 		instancesNewConfigs.insert(NO_INSTANCE_ID, JsonUtils::mergeJsonObjects(instanceZeroConfig, globalSettings));
 	}
 
-	QMapIterator<quint8, QJsonObject> iter (instancesNewConfigs);
+	QMapIterator iter (instancesNewConfigs);
 	while (iter.hasNext()) {
 		iter.next();
 
@@ -1507,10 +1507,11 @@ void JsonAPI::handleNewPassword(const QJsonObject &message, const JsonApiCommand
 {
 	const QString password = message["password"].toString().trimmed();
 	const QString newPassword = message["newPassword"].toString().trimmed();
-	if (API::updateHyperionPassword(password, newPassword)) {
+	const QString newPasswordResult = API::updateHyperionPassword(password, newPassword);
+	if (newPasswordResult.isEmpty()) {
 		sendSuccessReply(cmd);
 	} else {
-		sendErrorReply("Failed to update user password", cmd);
+		sendErrorReply(newPasswordResult, cmd);
 	}
 }
 

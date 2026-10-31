@@ -195,7 +195,7 @@ void QtHttpClientWrapper::onClientDataReceived (void)
 				if (m_currentRequest->getCommand() == "OPTIONS")
 				{
 					QtHttpReply reply(m_serverHandle);
-					reply.setStatusCode(QtHttpReply::NoContent); // 204 No Content
+					reply.setStatusCode(QtHttpReply::StatusCode::NoContent); // 204 No Content
 
 					injectCorsHeaders(&reply);
 					reply.addHeader(QtHttpHeader::AccessControlMaxAge, "86400"); // Cache for 1 day
@@ -286,7 +286,7 @@ void QtHttpClientWrapper::onClientDataReceived (void)
 				m_sockClient->commitTransaction();
 
 				QtHttpReply reply (m_serverHandle);
-				reply.setStatusCode (QtHttpReply::BadRequest);
+				reply.setStatusCode (QtHttpReply::StatusCode::BadRequest);
 				reply.appendRawData (QByteArrayLiteral ("<h1>Bad Request (HTTP parsing error) !</h1>"));
 				reply.appendRawData (CRLF);
 				m_parsingStatus = sendReplyToClient (&reply);
@@ -314,7 +314,7 @@ void QtHttpClientWrapper::onReplySendHeadersRequested (void)
 		// HTTP Version + Status Code + Status Msg
 		data.append (QtHttpServer::HTTP_VERSION.toUtf8());
 		data.append (SPACE);
-		data.append (QByteArray::number (reply->getStatusCode ()));
+		data.append (QByteArray::number (static_cast<int>(reply->getStatusCode ())));
 		data.append (SPACE);
 		data.append (QtHttpReply::getStatusTextForCode (reply->getStatusCode ()));
 		data.append (CRLF);

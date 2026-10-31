@@ -22,7 +22,7 @@ class AuthManager : public QObject
 	Q_OBJECT
 private:
 	friend class HyperionDaemon;
-	AuthManager(QObject *parent = nullptr);
+	explicit AuthManager(QObject *parent = nullptr);
 
 public:
 	struct AuthDefinition
@@ -135,7 +135,7 @@ public slots:
 	/// @param  newPw The new password
 	/// @return        True on success else false
 	///
-	bool updateUserPassword(const QString &user, const QString &pw, const QString &newPw);
+	QString updateUserPassword(const QString &user, const QString &pw, const QString &newPw);
 
 	///
 	/// @brief Generate a new pending token request with the provided comment and id as identifier helper

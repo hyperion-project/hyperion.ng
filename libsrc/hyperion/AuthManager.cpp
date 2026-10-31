@@ -11,6 +11,13 @@
 #include <QDateTime>
 #include <QUuid>
 
+// Constants
+namespace {
+
+inline constexpr char NO_USER_AUTHORIZATION[] = "No User Authorization";;
+
+}
+
 QSharedPointer<AuthManager> AuthManager::_instance;
 
 AuthManager::AuthManager(QObject *parent)
@@ -162,12 +169,19 @@ bool AuthManager::isUserTokenAuthorized(const QString &usr, const QString &token
 	return true;
 }
 
-bool AuthManager::updateUserPassword(const QString &user, const QString &pw, const QString &newPw)
+QString AuthManager::updateUserPassword(const QString &user, const QString &pw, const QString &newPw)
 {
-	if (isUserAuthorized(user, pw))
-		return _authTable->updateUserPassword(user, newPw);
+	if (!isUserAuthorized(user, pw))
+	{
+		return NO_USER_AUTHORIZATION;
+	}
 
-	return false;
+	if (!_authTable->updateUserPassword(user, newPw))
+	{
+		return "Failed to update user password";
+	}
+
+	return {};
 }
 
 bool AuthManager::resetHyperionUser()

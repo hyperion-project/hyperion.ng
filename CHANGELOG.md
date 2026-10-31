@@ -16,24 +16,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New Juggler Effect
 - Support for **Robobloq** devices
 - Color adjustment: Add configurable per-LED brightness hysteresis thresholds to help prevent flicker near black (#1968).
-
----
+- Serial-LED-Devices: Support to add devices via /dev/serial/by-id (#1511)
 
 ### 🔧 Changed
 
  - Windows - Provide more error details if the UI fails to start because the system proxy is enabled (#2005).
 
 - **Fixes:**
+  - ImageProcessor - Correct swapped squared multicolor and unicolor mean dispatch in both processing overloads
   - Windows DDA Grabber - Prevent image updates when mouse is moved. Provide a Warning on incompatible setting. (#2002)
   - EffectModule - Reference Counting (Use-After-Free) bugs (#2010) - _Thanks to @wr-web_
   - EffectEngine - Follow-up Python C-API null-pointer and stability fixes (#2011)
   - EffectFileHandler - Path traversal vulnerability when saving user-defined effects (#2011)
   - Effect scripts: Minor stability and style fixes in `pacman.py`, `traces.py`, `trails.py`(#2011)
   - WebUI - Return a valid Content-Type for static assets to prevent module loading failures
+  - WebUI - Explain why a password change is blocked, including authorization failures and the need to change the default password before using the API
   - MdnsBrowser compile errors when ENABLE_MDNS is false (#2024)
   - LinearColorSmoothing - fix incorrect output interval calculation, fix handling for update frequency >= 1000Hz
   - macOS Screen Capture - Do not take a one-shot screenshot per frame. Use a continuous ScreenCaptureKit stream instead, which is established once. This removes the per-frame shareable content enumeration (WindowServer/replayd CPU) and stops the Screen Recording indicator from flickering, which pinned the macOS Control Center close to 100% CPU (#2046, #2039, #1921)
   - X11/XCB-Grabbers - fix that client leaks when repeatedly enabled/disabled (#2035)
+  - ImageToLedsMap - Pixel index was calculated wrong for images with detected borders (#2023)
+  - QHttpServer - Fix memory leak
+  - macOS Signal Handler - Exit after a crash instead of hanging at 100% CPU. The stack trace parser assumed the glibc format and faulted on macOS traces
 
 ---
 ### Technical
@@ -54,6 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Housekeeping - GitHub builds
 - Script to validate translations files for common malformed placeholder/template tokens that may break the i18n parser
 - Update CodeQL runs to exclude external code, plus addressed CodeQL findings
+- Debug support - Annotate or crop the image with borders depending on the detected black borders
 
 ## [2.2.1](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.2.1) - 2026-04-06
 

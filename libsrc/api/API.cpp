@@ -469,24 +469,24 @@ QString API::saveEffect(const QJsonObject &data) const
 }
 #endif
 
-bool API::updateHyperionPassword(const QString &password, const QString &newPassword)
+QString API::updateHyperionPassword(const QString &password, const QString &newPassword) const
 {
-	bool isPwUpdated {true};
 	if (!_adminAuthorized)
 	{
-		isPwUpdated = false;
+		return NO_AUTHORIZATION;
 	}
-	else
+
+	if (auto auth = _authManagerWeak.toStrongRef())
 	{
-		if (auto auth = _authManagerWeak.toStrongRef())
-		{
-			QMetaObject::invokeMethod(auth.get(), "updateUserPassword", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isPwUpdated), Q_ARG(QString, DEFAULT_USER), Q_ARG(QString, password), Q_ARG(QString, newPassword));
-		}
+		QString updateError;
+		const bool invoked = QMetaObject::invokeMethod(auth.get(), "updateUserPassword", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QString, updateError), Q_ARG(QString, DEFAULT_USER), Q_ARG(QString, password), Q_ARG(QString, newPassword));
+		return invoked ? updateError : QString("Failed to update user password");
 	}
-	return isPwUpdated;
+
+	return "Failed to update user password";
 }
 
-QString API::createToken(const QString &comment, AuthManager::AuthDefinition &def)
+QString API::createToken(const QString &comment, AuthManager::AuthDefinition &def) const
 {
 	if (!_adminAuthorized)
 	{
@@ -504,7 +504,7 @@ QString API::createToken(const QString &comment, AuthManager::AuthDefinition &de
 	return "";
 }
 
-QString API::renameToken(const QString &tokenId, const QString &comment)
+QString API::renameToken(const QString &tokenId, const QString &comment) const
 {
 	if (!_adminAuthorized)
 	{
@@ -529,7 +529,7 @@ QString API::renameToken(const QString &tokenId, const QString &comment)
 	return (!isTokenRenamed) ? "Token does not exist" : "";
 }
 
-QString API::deleteToken(const QString &tokenId)
+QString API::deleteToken(const QString &tokenId) const
 {
 	if (!_adminAuthorized)
 	{

@@ -146,7 +146,10 @@ void QtHttpServer::onClientDisconnected (void)
 			qCDebug(comm_http_server_track) << "Remove Socket connection -" << wrapper->getGuid();
 			m_socksClientsHash.remove(sockClient);
 			emit clientDisconnected(wrapper->getGuid());
+			
+			// Deallocate both wrapper and socket asynchronously
 			wrapper->deleteLater();
+			sockClient->deleteLater();
 		}
 	}
 

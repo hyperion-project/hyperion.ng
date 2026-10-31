@@ -27,8 +27,15 @@ const char DEFAULT_SEED_CUSTOM[] = "dtls_client";
 const int DEFAULT_HANDSHAKE_ATTEMPTS = 5;
 const int DEFAULT_HANDSHAKE_TIMEOUT_MIN = 300;
 const int DEFAULT_HANDSHAKE_TIMEOUT_MAX = 1000;
-}
 
+} // end of constants namespace
+
+Q_LOGGING_CATEGORY(leddevice_dtls, "hyperion.leddevice.dtls")
+
+void ProviderUdpSSL::mbedtlsDebugCallback(void * /*ctx*/, int level, const char * /*file*/, int /*line*/, const char *str)
+{
+	qCDebug(leddevice_dtls) << "mbedTLS [" << level << "]: " << QString(str).trimmed();
+}
 
 ProviderUdpSSL::ProviderUdpSSL(const QJsonObject &deviceConfig)
 	: LedDevice(deviceConfig)
@@ -247,6 +254,13 @@ bool ProviderUdpSSL::setupStructure()
 	mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ctr_drbg);
 #endif
 
+	if (leddevice_dtls().isDebugEnabled())
+	{
+		mbedtls_ssl_conf_dbg(&conf, mbedtlsDebugCallback, _log.get());
+		mbedtls_debug_set_threshold(2);
+		qCDebug(leddevice_dtls) << "DTLS mbedTLS debug tracing enabled (level 2: errors + state changes)";
+	}
+
 	if ((ret = mbedtls_ssl_setup(&ssl, &conf)) != 0)
 	{
 		Error(_log, "%s", QSTRING_CSTR(QString("mbedtls_ssl_setup FAILED %1").arg(errorMsg(ret))));
@@ -335,7 +349,7 @@ void ProviderUdpSSL::freeSSLConnection()
 {
 	try
 	{
-		Debug(_log, "Release mbedtls");
+		qCDebug(leddevice_dtls) << "Release mbedtls";
 		mbedtls_ssl_session_reset(&ssl);
 		mbedtls_net_free(&client_fd);
 		mbedtls_ssl_free(&ssl);

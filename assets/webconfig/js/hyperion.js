@@ -178,14 +178,21 @@ function initWebSocket() {
                 const logErrorData = JSON.stringify(errorData).replace(/[\r\n\t]/g, ' ')
                 console.error("[globalThis.websocket::onmessage] ", logError, ", Description:", logErrorData);
 
-                $(globalThis.hyperion).trigger({
-                  type: "error",
-                  reason: {
-                    cmd: cmd,
-                    message: error,
-                    details: errorData.map((item) => item.description || "")
-                  }
-                });
+                // Fire the command-specific event so its handler can respond to the failure.
+                // If the handler sets event._errorHandled = true, the generic error dialog is suppressed.
+                const cmdErrorEvent = $.Event("cmd-" + cmd, { response: response });
+                $(globalThis.hyperion).trigger(cmdErrorEvent);
+
+                if (!cmdErrorEvent._errorHandled) {
+                  $(globalThis.hyperion).trigger({
+                    type: "error",
+                    reason: {
+                      cmd: cmd,
+                      message: error,
+                      details: errorData.map((item) => item.description || "")
+                    }
+                  });
+                }
               }
             }
         }

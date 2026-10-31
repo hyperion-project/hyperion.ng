@@ -34,6 +34,7 @@ Q_DECLARE_LOGGING_CATEGORY(leddevice_control);
 Q_DECLARE_LOGGING_CATEGORY(leddevice_flow);
 Q_DECLARE_LOGGING_CATEGORY(leddevice_properties);
 Q_DECLARE_LOGGING_CATEGORY(leddevice_write);
+Q_DECLARE_LOGGING_CATEGORY(leddevice_dtls);
 
 #define trackDevice(category, ...) \
     qCDebug(category).noquote() << QString("|%1| %2 device '%3'") \

@@ -14,7 +14,6 @@ function changePassword() {
     var newPw = $('#new-password').val();
 
     requestChangePassword(oldPw, newPw);
-    history.pushState({}, "New password");
   });
 
   $('#new-password, #current-password').off().on('input', function (e) {

@@ -29,19 +29,28 @@ $(window.hyperion).on("ready", function (event) {
 
 $(window.hyperion).on("error", function (event) {
   const error = event.reason;
+  const translatedMessages = {
+    "password change required": $.i18n('InfoDialog_defaultPasswordChangeRequired'),
+    "Default password must be changed before accessing the API": $.i18n('InfoDialog_defaultPasswordChangeRequired_detail')
+  };
 
   //An error "No Authorization" is handled by waitForSuccessfulAuthorization
   if (error?.message !== "No Authorization") {
 
-    const errorDetails = [];
+    const errorDetails = Array.isArray(error?.details)
+      ? error.details.map(detail => translatedMessages[detail] || detail)
+      : [];
 
     if (error?.cmd) {
       errorDetails.push(`Command: "${error.cmd}"`);
     }
 
-    errorDetails.push(error?.details || "No additional details.");
+    if (errorDetails.length === 0) {
+      errorDetails.push("No additional details.");
+    }
 
-    showInfoDialog("error", "", error?.message || "Unknown error", errorDetails);
+    const message = translatedMessages[error?.message] || error?.message || "Unknown error";
+    showInfoDialog("error", "", message, errorDetails);
   }
 });
 
@@ -81,7 +90,7 @@ $(window.hyperion).one("cmd-authorize-getTokenList", function (event) {
 $(window.hyperion).on("cmd-authorize-newPassword", async function (event) {
 
   if (event.response.success === true) {
-    showInfoDialog("success", $.i18n('InfoDialog_changePassword_success'));
+    showInfoDialog("success", $.i18n('InfoDialog_changePassword_title'), $.i18n('InfoDialog_changePassword_success'));
  
     try {
       // Force login with new passwort
@@ -89,7 +98,15 @@ $(window.hyperion).on("cmd-authorize-newPassword", async function (event) {
       $(window.hyperion).trigger("ready");
     } catch (err) {
       console.error("Authorization failed for new password:", err);
+      showInfoDialog("error", $.i18n('InfoDialog_authorization_new_password_failed_title'), err.message || err);
     }
+  } else {
+    event._errorHandled = true;
+    const details = [];
+    if (event.response.error === "No User Authorization") {
+      details.push($.i18n('InfoDialog_changePassword_authorization_failed'));
+    }
+    showInfoDialog("error", $.i18n('InfoDialog_changePassword_title'), $.i18n('InfoDialog_changePassword_failed'), details);
   }
 });
 
@@ -181,7 +198,7 @@ function waitForSuccessfulAuthorization() {
     let loginResolved = false;
 
     const onLogin = (event) => {
-      if (!loginResolved) {
+      if (!loginResolved && event.response?.success === true) {
         loginResolved = true;
         $(window.hyperion).off("cmd-authorize-login", onLogin);
         resolve(event);
@@ -198,9 +215,13 @@ function waitForSuccessfulAuthorization() {
 
     const onError = (event) => {
       const error = event.reason;
-      if (error?.message === "No Authorization" && getStorage("loginToken")) {
-        removeStorage("loginToken");
-        requestRequiresDefaultPasswortChange(); // Retry trigger
+      if (error?.message === "No Authorization") {
+        if (getStorage("loginToken")) {
+          removeStorage("loginToken");
+          requestRequiresDefaultPasswortChange(); // Retry trigger
+        } else {
+          showInfoDialog("error", $.i18n('InfoDialog_authorization_failed_title'), error.message);
+        }
       }
     };
 
@@ -438,6 +459,11 @@ $(window.hyperion).on("cmd-sysinfo", function (event) {
 $(window.hyperion).on("cmd-config-setconfig", function (event) {
   if (event.response.success === true) {
     showNotification('success', $.i18n('dashboard_alert_message_confsave_success'), $.i18n('dashboard_alert_message_confsave_success_t'))
+  } else {
+    event._errorHandled = true;
+    const errorData = Array.isArray(event.response.errorData) ? event.response.errorData : [];
+    const details = errorData.map(item => item.description || "").filter(Boolean);
+    showInfoDialog("error", $.i18n('infoDialog_writeconf_error_text'), event.response.error, details.length ? details : undefined);
   }
 });
 
