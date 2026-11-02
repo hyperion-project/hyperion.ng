@@ -54,6 +54,7 @@ target_link_libraries(hyperion
 	hyperion-utils
 	leddevice
 	database
+	grabber
 )
 
 if(ENABLE_BOBLIGHT_SERVER)

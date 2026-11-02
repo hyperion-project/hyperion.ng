@@ -146,6 +146,8 @@ set(DEFAULT_V4L2                        OFF)
 set(DEFAULT_AUDIO                       ON)
 set(DEFAULT_X11                         OFF)
 set(DEFAULT_XCB                         OFF)
+set(DEFAULT_WAYLAND                     OFF)
+set(DEFAULT_GAMESCOPE                   OFF)
 
 # Input
 set(DEFAULT_BOBLIGHT_SERVER             ON)
@@ -258,6 +260,8 @@ elseif ("${PLATFORM}" MATCHES "^amlogic")
 		set(DEFAULT_CEC         OFF)
 	endif()
 elseif ("${PLATFORM}" MATCHES "^x11")
+	set(DEFAULT_WAYLAND    ON)
+	set(DEFAULT_GAMESCOPE  ON)
 	set(DEFAULT_X11        ON)
 	set(DEFAULT_XCB        ON)
 	if("${PLATFORM}" MATCHES "-dev$")
@@ -408,6 +412,12 @@ message(STATUS "ENABLE_X11 = ${ENABLE_X11}")
 
 option(ENABLE_XCB "Enable the XCB grabber" ${DEFAULT_XCB})
 message(STATUS "ENABLE_XCB = ${ENABLE_XCB}")
+
+option(ENABLE_WAYLAND "Enable the Wayland grabber (xdg-desktop-portal)" ${DEFAULT_WAYLAND})
+message(STATUS "ENABLE_WAYLAND = ${ENABLE_WAYLAND}")
+
+option(ENABLE_GAMESCOPE "Enable the Gamescope grabber (direct PipeWire, no portal)" ${DEFAULT_GAMESCOPE})
+message(STATUS "ENABLE_GAMESCOPE = ${ENABLE_GAMESCOPE}")
 
 option(ENABLE_AUDIO "Enable the AUDIO grabber" ${DEFAULT_AUDIO})
 message(STATUS "ENABLE_AUDIO = ${ENABLE_AUDIO}")
