@@ -3,9 +3,20 @@
 #include <memory>
 
 #include <QByteArray>
+#include <QList>
 #include <QString>
 
 #include <utils/PixelFormat.h>
+
+///
+/// @brief Information about an active Gamescope video node in PipeWire.
+///
+struct GamescopeNodeInfo
+{
+	uint32_t id{0};
+	QString name;
+	QString displayName;
+};
 
 ///
 /// @brief Latest frame copied out of a PipeWire screen cast stream.
@@ -29,21 +40,24 @@ class PipeWireFrameSource
 {
 
 public:
-
 	static constexpr int MAX_FPS = 240;
 
 	PipeWireFrameSource();
 	~PipeWireFrameSource();
+
+	/// @brief Enumerate active Gamescope video nodes in the current PipeWire session.
+	static QList<GamescopeNodeInfo> discoverGamescopeNodes();
 
 	/// @param fd      PipeWire remote, duplicated internally (portal mode)
 	/// @param nodeId  Node to connect to (from the portal handshake)
 	bool start(int fd, quint32 nodeId, QString& error);
 
 	/// @brief Connect to the running PipeWire daemon directly (no portal FD needed).
-	///        The stream is attached to the node whose "node.name" property matches
-	///        @p targetNodeName (e.g. "gamescope").  PipeWire's session manager
-	///        (WirePlumber) resolves the name to the actual node.
-	/// @param targetNodeName  Value of the node's "node.name" PW property.
+	/// @param targetNodeId    Specific node ID to connect to, or 0 for auto / targetNodeName.
+	/// @param targetNodeName  Node name (e.g. "gamescope") used when targetNodeId is 0.
+	bool startDirect(uint32_t targetNodeId, const QString& targetNodeName, QString& error);
+
+	/// @brief Convenience overload targeting by node name.
 	bool startDirect(const QString& targetNodeName, QString& error);
 
 	void stop();

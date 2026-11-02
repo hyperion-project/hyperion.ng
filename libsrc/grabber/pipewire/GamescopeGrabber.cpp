@@ -9,27 +9,28 @@
 
 #include <grabber/GrabberTrace.h>
 
-namespace {
-// Gamescope is short-lived (launched per game). Retry quickly after a stream
-// end so captures resume the moment the next game starts.
-constexpr int RETRY_AFTER_END_MS  =  2000;
-// Minimum and maximum delays for reconnect attempts when the node is absent.
-constexpr int RETRY_MIN_MS        =  5000;
-constexpr int RETRY_MAX_MS        = 30000;
+namespace
+{
+	// Gamescope is short-lived (launched per game). Retry quickly after a stream
+	// end so captures resume the moment the next game starts.
+	constexpr int RETRY_AFTER_END_MS = 2000;
+	// Minimum and maximum delays for reconnect attempts when the node is absent.
+	constexpr int RETRY_MIN_MS = 5000;
+	constexpr int RETRY_MAX_MS = 30000;
 
-// PipeWire node.name Gamescope registers under.
-constexpr const char* GAMESCOPE_NODE_NAME = "gamescope";
+	// PipeWire node.name Gamescope registers under.
+	constexpr const char* GAMESCOPE_NODE_NAME = "gamescope";
 }
 
 GamescopeGrabber::GamescopeGrabber(int cropLeft, int cropRight, int cropTop, int cropBottom)
-	: Grabber("GRABBER-GAMESCOPE", cropLeft, cropRight, cropTop, cropBottom)
+    : Grabber("GRABBER-GAMESCOPE", cropLeft, cropRight, cropTop, cropBottom)
 {
 	TRACK_SCOPE() << "Creating Gamescope grabber";
 	// Use a placeholder until the real frame size is known.
-	_width  = 64;
+	_width = 64;
 	_height = 36;
 
-	const QJsonArray fpsSupported = {{ 1, 5, 10, 15, 20, 25, 30, 40, 50, 60, 75, 90, 120, 144, 165, 240 }};
+	const QJsonArray fpsSupported = {{1, 5, 10, 15, 20, 25, 30, 40, 50, 60, 75, 90, 120, 144, 165, 240}};
 	setFpsSupported(fpsSupported);
 }
 
@@ -68,6 +69,26 @@ bool GamescopeGrabber::isAvailable(bool logError)
 	return true;
 }
 
+bool GamescopeGrabber::setInput(int nodeId)
+{
+	if (_configuredNodeId == nodeId)
+	{
+		return true;
+	}
+
+	_configuredNodeId = nodeId;
+
+	// Drop the existing stream so the next grabFrame() reconnects to the new node.
+	if (_source != nullptr)
+	{
+		Info(_log, "Gamescope node changed to %d, reconnecting", nodeId);
+		close();
+		_retryDelayMs = 0;
+		_retryTimer.invalidate();
+	}
+	return true;
+}
+
 bool GamescopeGrabber::open()
 {
 	qCDebug(grabber_screen_flow) << "Opening Gamescope grabber";
@@ -82,19 +103,78 @@ bool GamescopeGrabber::open()
 		return false;
 	}
 
+	// Discover all active Gamescope video nodes in PipeWire.
+	const QList<GamescopeNodeInfo> nodes = PipeWireFrameSource::discoverGamescopeNodes();
+
+	uint32_t nodeId = 0;
+	QString nodeName;
+
+	if (!nodes.isEmpty())
+	{
+		// Try the node the user selected.
+		if (_configuredNodeId > 0)
+		{
+			for (const GamescopeNodeInfo& node : nodes)
+			{
+				if (static_cast<int>(node.id) == _configuredNodeId)
+				{
+					nodeId = node.id;
+					nodeName = node.displayName;
+					break;
+				}
+			}
+			if (nodeId == 0)
+			{
+				Warning(_log, "Configured Gamescope node %d not found, falling back to first discovered node",
+				        _configuredNodeId);
+			}
+		}
+
+		// Fall back to the first discovered node.
+		if (nodeId == 0)
+		{
+			Info(_log, "Using the first discovered Gamescope node");
+			nodeId = nodes.first().id;
+			nodeName = nodes.first().displayName;
+		}
+	}
+
 	_source = std::make_unique<PipeWireFrameSource>();
 	_source->setMinFrameInterval(frameIntervalMs());
 
 	QString error;
-	_targetNode = QString::fromUtf8(GAMESCOPE_NODE_NAME);
-	if (!_source->startDirect(_targetNode, error))
+	bool ok = false;
+
+	if (nodeId > 0)
+	{
+		qCDebug(grabber_screen_flow) << "Connecting to Gamescope node by ID: " << nodeId;
+		// Direct connection by numeric node ID — no session manager required.
+		ok = _source->startDirect(nodeId, nodeName, error);
+	}
+	else
+	{
+		// No nodes discovered yet: fall back to name-based auto-connect so
+		// the stream will be linked by WirePlumber once Gamescope appears.
+		nodeName = GAMESCOPE_NODE_NAME;
+		qCDebug(grabber_screen_flow) << "Connecting to Gamescope node by name: " << nodeName;
+		ok = _source->startDirect(nodeName, error);
+		if (ok)
+		{
+			Info(_log, "No Gamescope node found yet, connecting by name for auto-link");
+		}
+	}
+
+	if (!ok)
 	{
 		Error(_log, "Failed to connect to Gamescope PipeWire node: %s", QSTRING_CSTR(error));
 		_source.reset();
 		return false;
 	}
 
-	Info(_log, "Connecting to Gamescope PipeWire node \"%s\"", QSTRING_CSTR(_targetNode));
+	if (nodeId > 0)
+	{
+		Info(_log, "Connecting to Gamescope node \"%s\" (PipeWire ID %u)", QSTRING_CSTR(nodeName), nodeId);
+	}
 	return true;
 }
 
@@ -102,8 +182,7 @@ bool GamescopeGrabber::close()
 {
 	qCDebug(grabber_screen_flow) << "Closing Gamescope grabber";
 	_source.reset();
-	_targetNode.clear();
-	_sourceWidth  = 0;
+	_sourceWidth = 0;
 	_sourceHeight = 0;
 	return true;
 }
@@ -111,7 +190,7 @@ bool GamescopeGrabber::close()
 void GamescopeGrabber::scheduleRetry(int delayMs)
 {
 	_source.reset();
-	_sourceWidth  = 0;
+	_sourceWidth = 0;
 	_sourceHeight = 0;
 	_retryDelayMs = delayMs;
 	_retryTimer.start();
@@ -152,9 +231,9 @@ void GamescopeGrabber::setCropping(int cropLeft, int cropRight, int cropTop, int
 		return;
 	}
 
-	_cropLeft   = cropLeft;
-	_cropRight  = cropRight;
-	_cropTop    = cropTop;
+	_cropLeft = cropLeft;
+	_cropRight = cropRight;
+	_cropTop = cropTop;
 	_cropBottom = cropBottom;
 	_imageResampler.setCropping(cropLeft, cropRight, cropTop, cropBottom);
 
@@ -166,8 +245,8 @@ void GamescopeGrabber::setCropping(int cropLeft, int cropRight, int cropTop, int
 
 void GamescopeGrabber::updateImageSize(int frameWidth, int frameHeight)
 {
-	_width  = qMax(1, (frameWidth  - _cropLeft - _cropRight)  / _pixelDecimation);
-	_height = qMax(1, (frameHeight - _cropTop  - _cropBottom) / _pixelDecimation);
+	_width = qMax(1, (frameWidth - _cropLeft - _cropRight) / _pixelDecimation);
+	_height = qMax(1, (frameHeight - _cropTop - _cropBottom) / _pixelDecimation);
 }
 
 int GamescopeGrabber::grabFrame(Image<ColorRgb>& image, bool /*forceUpdate*/)
@@ -198,8 +277,8 @@ int GamescopeGrabber::grabFrame(Image<ColorRgb>& image, bool /*forceUpdate*/)
 		{
 			// open() failed: apply exponential back-off and try again later.
 			const int nextDelay = _retryDelayMs == 0
-			                      ? RETRY_MIN_MS
-			                      : qMin(_retryDelayMs * 2, RETRY_MAX_MS);
+			                          ? RETRY_MIN_MS
+			                          : qMin(_retryDelayMs * 2, RETRY_MAX_MS);
 			scheduleRetry(nextDelay);
 			qCDebug(grabber_screen_flow) << "Gamescope not reachable, next retry in" << nextDelay << "ms";
 			return -1;
@@ -218,7 +297,7 @@ int GamescopeGrabber::grabFrame(Image<ColorRgb>& image, bool /*forceUpdate*/)
 	{
 		Info(_log, "Receiving Gamescope frames [%dx%d]", frame.width, frame.height);
 		_retryDelayMs = 0;
-		_sourceWidth  = frame.width;
+		_sourceWidth = frame.width;
 		_sourceHeight = frame.height;
 		updateImageSize(_sourceWidth, _sourceHeight);
 	}
@@ -236,45 +315,72 @@ QJsonObject GamescopeGrabber::discover(const QJsonObject& /*params*/)
 	QJsonObject inputsDiscovered;
 	if (!isAvailable(false))
 	{
+		qCDebug(grabber_screen_properties) << "Gamescope is not available!";
 		return inputsDiscovered;
 	}
 
-	inputsDiscovered["device"]      = "gamescope";
+	const QList<GamescopeNodeInfo> nodes = PipeWireFrameSource::discoverGamescopeNodes();
+
+	if (nodes.isEmpty())
+	{
+		qCDebug(grabber_screen_properties) << "No displays found to capture from!";
+		return {};
+	}
+
+	inputsDiscovered["device"] = "gamescope";
 	inputsDiscovered["device_name"] = "Gamescope";
-	inputsDiscovered["type"]        = "screen";
-
-	// Gamescope is a single-output micro-compositor; present one logical input.
-	// The user selects specific screens at the Gamescope launch level (--prefer-output),
-	// not here. If multiple Gamescope instances are running, the session manager
-	// automatically links to the first available one.
-	QJsonObject resolution;
-	resolution["width"]  = _sourceWidth  > 0 ? _sourceWidth  : 1920;
-	resolution["height"] = _sourceHeight > 0 ? _sourceHeight : 1080;
-	resolution["fps"]    = getFpsSupported();
-
-	QJsonObject format;
-	format["resolutions"] = QJsonArray{resolution};
-
-	QJsonObject in;
-	in["name"]     = "Gamescope output";
-	in["inputIdx"] = 0;
-	in["formats"]  = QJsonArray{format};
+	inputsDiscovered["type"] = "screen";
 
 	QJsonArray inputs;
-	inputs.append(in);
+	for (const GamescopeNodeInfo& node : nodes)
+	{
+		QJsonObject resolution;
+		resolution["width"] = _sourceWidth > 0 ? _sourceWidth : 1920;
+		resolution["height"] = _sourceHeight > 0 ? _sourceHeight : 1080;
+		resolution["fps"] = getFpsSupported();
+
+		QJsonObject format;
+		format["resolutions"] = QJsonArray{resolution};
+
+		QJsonObject in;
+		in["name"] = node.displayName + " [Node:" + QString::number(node.id) + "]";
+		in["inputIdx"] = static_cast<int>(node.id); // PipeWire node ID stored as inputIdx
+		in["formats"] = QJsonArray{format};
+		inputs.append(in);
+	}
+
+	// Always include an "auto" entry so the device is selectable even when
+	// Gamescope is not currently running (it will connect once it starts).
+	{
+		QJsonObject resolution;
+		resolution["width"] = _sourceWidth > 0 ? _sourceWidth : 1920;
+		resolution["height"] = _sourceHeight > 0 ? _sourceHeight : 1080;
+		resolution["fps"] = getFpsSupported();
+
+		QJsonObject format;
+		format["resolutions"] = QJsonArray{resolution};
+
+		QJsonObject in;
+		in["name"] = inputs.isEmpty() ? QStringLiteral("Gamescope (auto)") : QStringLiteral("Auto (first found)");
+		in["inputIdx"] = 0;
+		in["formats"] = QJsonArray{format};
+		inputs.prepend(in); // put "auto" at the top
+	}
+
 	inputsDiscovered["video_inputs"] = inputs;
 
 	QJsonObject resolution_default;
 	resolution_default["fps"] = _fps;
 
+	qCDebug(grabber_screen_properties) << "Default inputIdx: " << _configuredNodeId;
+
 	QJsonObject video_input_default;
-	video_input_default["inputIdx"]   = 0;
+	video_input_default["inputIdx"] = 0;
 	video_input_default["resolution"] = resolution_default;
 
 	QJsonObject defaults;
-	defaults["video_input"]       = video_input_default;
-	inputsDiscovered["default"]   = defaults;
+	defaults["video_input"] = video_input_default;
+	inputsDiscovered["default"] = defaults;
 
 	return inputsDiscovered;
 }
-

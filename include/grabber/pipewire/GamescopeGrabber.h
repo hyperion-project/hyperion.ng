@@ -55,6 +55,12 @@ public:
 	bool setWidthHeight(int /*width*/, int /*height*/) override { return true; }
 
 	///
+	/// @brief Store the PipeWire node ID the user selected (from discover()).
+	///        0 means "auto: use the first found node".
+	///
+	bool setInput(int nodeId) override;
+
+	///
 	/// @brief The stream is sampled no more often than frames are consumed.
 	///
 	bool setFramerate(int fps) override;
@@ -91,7 +97,7 @@ private:
 	int _sourceWidth  = 0;
 	int _sourceHeight = 0;
 
-	// PipeWire target node name set in open(); stored so open() is idempotent.
-	QString _targetNode;
+	// PipeWire node ID chosen by the user (0 = auto, use first found).
+	int _configuredNodeId = 0;
 };
 
