@@ -102,7 +102,7 @@ void StaticFileServing::printErrorToReply (QtHttpReply * reply, QtHttpReply::Sta
 	}
 	else
 	{
-		reply->appendRawData (QString(QString::number(code) + " - " +errorMessage.toLocal8Bit()).toHtmlEscaped().toLocal8Bit());
+		reply->appendRawData (QString(QString::number(static_cast<int>(code)) + " - " + errorMessage.toLocal8Bit()).toHtmlEscaped().toLocal8Bit());
 	}
 
 	if (errorPageFooter.open (QFile::ReadOnly))
@@ -133,7 +133,7 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 				catch(std::exception &e)
 				{
 					Error(_log,"Exception while executing cgi %s :  %s", path.toStdString().c_str(), e.what());
-					printErrorToReply (reply, QtHttpReply::InternalError, "script failed (" % path % ")");
+					printErrorToReply (reply, QtHttpReply::StatusCode::InternalError, "script failed (" % path % ")");
 				}
 				return;
 			}
@@ -173,16 +173,16 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 			}
 			else
 			{
-				printErrorToReply(reply, QtHttpReply::Forbidden, "Requested file: " % path);
+				printErrorToReply(reply, QtHttpReply::StatusCode::Forbidden, "Requested file: " % path);
 			}
 		}
 		else
 		{
-			printErrorToReply (reply, QtHttpReply::NotFound, "Requested file: " % path);
+			printErrorToReply (reply, QtHttpReply::StatusCode::NotFound, "Requested file: " % path);
 		}
 	}
 	else
 	{
-		printErrorToReply (reply, QtHttpReply::MethodNotAllowed,"Unhandled HTTP/1.1 method " % command);
+		printErrorToReply (reply, QtHttpReply::StatusCode::MethodNotAllowed,"Unhandled HTTP/1.1 method " % command);
 	}
 }

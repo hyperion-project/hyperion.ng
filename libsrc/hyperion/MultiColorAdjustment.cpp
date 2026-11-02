@@ -7,6 +7,7 @@
 
 MultiColorAdjustment::MultiColorAdjustment(int ledCnt)
 	: _ledAdjustments(static_cast<size_t>(ledCnt), nullptr)
+	, _ledOnState(static_cast<size_t>(ledCnt), 0)
 	, _log(Logger::getInstance("ADJUSTMENT"))
 {
 	TRACK_SCOPE();
@@ -160,5 +161,6 @@ void MultiColorAdjustment::applyAdjustment(QVector<ColorRgb>& ledColors)
 
 		adjustment->_rgbTransform.applyTemperature(color);
 		adjustment->_rgbTransform.applyBacklight(color.red, color.green, color.blue);
+		adjustment->_rgbTransform.applyHysteresis(color, _ledOnState[i]);
 	}
 }

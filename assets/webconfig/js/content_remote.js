@@ -100,7 +100,7 @@ $(document).ready(function () {
         }
         // Handle number type adjustments
         else {
-          if (["brightness", "brightnessCompensation", "backlightThreshold", "saturationGain", "brightnessGain", "temperature"].includes(sColor[key].key)) {
+          if (["brightness", "brightnessCompensation", "backlightThreshold", "saturationGain", "brightnessGain", "temperature", "turnOnThreshold", "turnOffThreshold"].includes(sColor[key].key)) {
             property = `<input id="cr_${sColor[key].key}" type="number" class="form-control" 
                           min="${sColor[key].minimum}" max="${sColor[key].maximum}" step="${sColor[key].step}" value="${value}" />`;
             if (sColor[key].append && sColor[key].append !== "") {
@@ -114,6 +114,22 @@ $(document).ready(function () {
           $('#cr_' + sColor[key].key).off().on('change', function (e) {
             const elementName = e.target.id.substr(e.target.id.indexOf("_") + 1);
             const value = valValue(this.id, this.value, this.min, this.max);
+
+            // Ensure that the OFF threshold is not greater than the ON threshold
+            if (elementName === "turnOffThreshold" || elementName === "turnOnThreshold") {
+              const isTurnOffThreshold = elementName === "turnOffThreshold";
+              const pairedThresholdName = isTurnOffThreshold ? "turnOnThreshold" : "turnOffThreshold";
+              const pairedThreshold = Number.parseFloat($(`#cr_${pairedThresholdName}`).val());
+              const isInvalid = isTurnOffThreshold ? value > pairedThreshold : value < pairedThreshold;
+              if (isInvalid) {
+                const message = isTurnOffThreshold
+                  ? $.i18n('edt_msg_error_maximum_incl', pairedThreshold)
+                  : $.i18n('edt_msg_error_minimum_incl', pairedThreshold);
+                showInfoDialog('warning', $.i18n(`edt_conf_color_${elementName}_title`), message);
+                $(this).val(pairedThreshold);
+              }
+            }
+
             requestAdjustment(elementName, value);
           });
         }
@@ -537,4 +553,3 @@ $(document).ready(function () {
   init();
 
 });
-

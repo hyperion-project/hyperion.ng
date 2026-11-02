@@ -127,6 +127,8 @@ QJsonArray JsonInfo::getAdjustmentInfo(const QSharedPointer<Hyperion>& hyperionI
 
 		adjustment["backlightThreshold"] = colorAdjustment->_rgbTransform.getBacklightThreshold();
 		adjustment["backlightColored"] = colorAdjustment->_rgbTransform.getBacklightColored();
+		adjustment["turnOnThreshold"] = colorAdjustment->_rgbTransform.getTurnOnThreshold();
+		adjustment["turnOffThreshold"] = colorAdjustment->_rgbTransform.getTurnOffThreshold();
 		adjustment["brightness"] = colorAdjustment->_rgbTransform.getBrightness();
 		adjustment["brightnessCompensation"] = colorAdjustment->_rgbTransform.getBrightnessCompensation();
 		adjustment["gammaRed"] = colorAdjustment->_rgbTransform.getGammaR();

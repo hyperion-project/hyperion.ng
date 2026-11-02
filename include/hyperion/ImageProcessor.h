@@ -20,6 +20,7 @@
 #include <blackborder/BlackBorderProcessor.h>
 
 Q_DECLARE_LOGGING_CATEGORY(imageProcessor_track);
+Q_DECLARE_LOGGING_CATEGORY(imageProcessor_track_border_crop);
 
 class Hyperion;
 
@@ -88,6 +89,13 @@ public:
 	/// @param  mapType   The new mapping type
 	///
 	void setHardLedMappingType(int mapType);
+
+	///
+	/// @brief Get the current detected border
+	///
+	/// @return The current border
+	///
+	hyperion::BlackBorder getCurrentBorder() const { return _borderProcessor->getCurrentBorder(); }
 
 public slots:
 	/// Enable or disable the black border detector based on component

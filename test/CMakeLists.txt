@@ -45,6 +45,11 @@ target_link_libraries(test_versions Qt${QT_VERSION_MAJOR}::Core)
 add_executable(test_image2ledsmap TestImage2LedsMap.cpp "${CMAKE_BINARY_DIR}/resources.qrc")
 link_to_hyperion(test_image2ledsmap hyperion-utils)
 
+if(NOT WIN32)
+	add_executable(test_decipher_trace TestDecipherTrace.cpp)
+	target_link_libraries(test_decipher_trace hyperion-utils)
+endif()
+
 ######### These tests are broken. May they fix someone ##########
 
 #if(ENABLE_DISPMANX)

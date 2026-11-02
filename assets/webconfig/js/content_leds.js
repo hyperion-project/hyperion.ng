@@ -2227,7 +2227,7 @@ var updateOutputSelectList = function (ledType, discoveryInfo) {
           case "skydimo":
           case "tpm2":
             for (const device of discoveryInfo.devices) {
-              if (device.udev) {
+              if (device.udev || device.byId) {
                 enumVals.push(device.systemLocation);
               } else {
                 enumVals.push(device.portName);

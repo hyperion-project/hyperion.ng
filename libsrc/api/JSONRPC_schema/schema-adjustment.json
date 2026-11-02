@@ -132,6 +132,18 @@
 					"type" : "boolean",
 					"required" : false
 				},
+				"turnOnThreshold" : {
+					"type" : "integer",
+					"required" : false,
+					"minimum" : 0,
+					"maximum" : 255
+				},
+				"turnOffThreshold" : {
+					"type" : "integer",
+					"required" : false,
+					"minimum" : 0,
+					"maximum" : 255
+				},
 				"brightness" : {
 					"type" : "integer",
 					"required" : false,

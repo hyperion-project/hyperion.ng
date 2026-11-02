@@ -37,6 +37,28 @@ $(document).ready(function () {
     }
   }
 
+  JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
+    let errors = [];
+
+    //Validate the turnOffThreshold is less than or equal to the turnOnThreshold
+    if (/^root\.color\.channelAdjustment\.\d+$/.test(path)) {
+      if (value.turnOffThreshold || value.turnOnThreshold) {
+        if (value.turnOffThreshold > value.turnOnThreshold) {
+          errors.push({
+            path: path + '.turnOffThreshold',
+            property: 'maximum',
+            message: $.i18n('edt_msg_error_maximum_incl', value.turnOnThreshold)
+          }, {
+            path: path + '.turnOnThreshold',
+            property: 'minimum',
+            message: $.i18n('edt_msg_error_minimum_incl', value.turnOffThreshold)
+          });
+        }
+      }
+    }
+    return errors;
+  }); 
+
   //color
   editor_color = createJsonEditor('editor_container_color', {
     color: window.schema.color

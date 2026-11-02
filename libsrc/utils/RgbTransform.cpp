@@ -1,18 +1,18 @@
 #include <utils/RgbTransform.h>
 
-#include <QtMath>
 #include <QtGlobal>
+#include <QtMath>
 
 #include <utils/KelvinToRgb.h>
 
 RgbTransform::RgbTransform()
-	: RgbTransform::RgbTransform(1.0, 1.0, 1.0, 0.0, false, 100, 100, ColorTemperature::DEFAULT)
+    : RgbTransform::RgbTransform(1.0, 1.0, 1.0, 0.0, false, 100, 100, ColorTemperature::DEFAULT)
 {
 }
 
 RgbTransform::RgbTransform(double gammaR, double gammaG, double gammaB, int backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation, int temperature)
-	: _brightness(brightness)
-	, _brightnessCompensation(brightnessCompensation)
+    : _brightness(brightness)
+    , _brightnessCompensation(brightnessCompensation)
 {
 	init(gammaR, gammaG, gammaB, backlightThreshold, backlightColored, _brightness, _brightnessCompensation, temperature);
 }
@@ -20,7 +20,7 @@ RgbTransform::RgbTransform(double gammaR, double gammaG, double gammaB, int back
 void RgbTransform::init(double gammaR, double gammaG, double gammaB, int backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation, int temperature)
 {
 	_backLightEnabled = true;
-	setGamma(gammaR,gammaG,gammaB);
+	setGamma(gammaR, gammaG, gammaB);
 	setBacklightThreshold(backlightThreshold);
 	setBacklightColored(backlightColored);
 	setBrightness(brightness);
@@ -77,7 +77,6 @@ void RgbTransform::initializeMapping()
 		_mappingB[i] = clampedValueB;
 	}
 }
-
 
 int RgbTransform::getBacklightThreshold() const
 {
@@ -145,12 +144,12 @@ uint8_t RgbTransform::getBrightnessCompensation() const
 
 void RgbTransform::updateBrightnessComponents()
 {
-	double Fw   = _brightnessCompensation*2.0/100.0+1.0;
-	double Fcmy = _brightnessCompensation/100.0+1.0;
+	double Fw = _brightnessCompensation * 2.0 / 100.0 + 1.0;
+	double Fcmy = _brightnessCompensation / 100.0 + 1.0;
 
 	_brightness_rgb = 0;
 	_brightness_cmy = 0;
-	_brightness_w   = 0;
+	_brightness_w = 0;
 
 	if (_brightness > 0)
 	{
@@ -159,28 +158,28 @@ void RgbTransform::updateBrightnessComponents()
 		// Ensure that the result is converted to an integer before assigning to uint8_t
 		_brightness_rgb = static_cast<uint8_t>(std::ceil(qMin(static_cast<double>(UINT8_MAX), UINT8_MAX / B_in)));
 		_brightness_cmy = static_cast<uint8_t>(std::ceil(qMin(static_cast<double>(UINT8_MAX), UINT8_MAX / (B_in * Fcmy))));
-		_brightness_w   = static_cast<uint8_t>(std::ceil(qMin(static_cast<double>(UINT8_MAX), UINT8_MAX / (B_in * Fw))));
+		_brightness_w = static_cast<uint8_t>(std::ceil(qMin(static_cast<double>(UINT8_MAX), UINT8_MAX / (B_in * Fw))));
 	}
 }
 
-void RgbTransform::getBrightnessComponents(uint8_t & rgb, uint8_t & cmy, uint8_t & white) const
+void RgbTransform::getBrightnessComponents(uint8_t& rgb, uint8_t& cmy, uint8_t& white) const
 {
 	rgb = _brightness_rgb;
 	cmy = _brightness_cmy;
 	white = _brightness_w;
 }
 
-void RgbTransform::applyGamma(uint8_t & red, uint8_t & green, uint8_t & blue) const
+void RgbTransform::applyGamma(uint8_t& red, uint8_t& green, uint8_t& blue) const
 {
 	// apply gamma
-	red   = _mappingR[red];
+	red = _mappingR[red];
 	green = _mappingG[green];
-	blue  = _mappingB[blue];
+	blue = _mappingB[blue];
 }
 
-void RgbTransform::applyBacklight(uint8_t & red, uint8_t & green, uint8_t & blue) const
+void RgbTransform::applyBacklight(uint8_t& red, uint8_t& green, uint8_t& blue) const
 {
-	int rgbSum = red+green+blue;
+	int rgbSum = red + green + blue;
 	if (_backLightEnabled && rgbSum < _brightnessLow * 3)
 	{
 		if (_backlightColored)
@@ -198,6 +197,49 @@ void RgbTransform::applyBacklight(uint8_t & red, uint8_t & green, uint8_t & blue
 	}
 }
 
+uint8_t RgbTransform::getTurnOnThreshold() const
+{
+	return _turnOnThreshold;
+}
+
+void RgbTransform::setTurnOnThreshold(uint8_t threshold)
+{
+	_turnOnThreshold = threshold;
+	if (_turnOffThreshold > _turnOnThreshold)
+	{
+		_turnOffThreshold = _turnOnThreshold;
+	}
+}
+
+uint8_t RgbTransform::getTurnOffThreshold() const
+{
+	return _turnOffThreshold;
+}
+
+void RgbTransform::setTurnOffThreshold(uint8_t threshold)
+{
+	_turnOffThreshold = qMin(threshold, _turnOnThreshold);
+}
+
+void RgbTransform::applyHysteresis(ColorRgb& color, bool& isOn) const
+{
+	/// Apply a Rec. 709 weighted luminance hysteresis to the given color based on its current on/off state.
+	const auto luminance = static_cast<uint8_t>(
+	    (54U * color.red + 183U * color.green + 19U * color.blue + 128U) >> 8U);
+	const uint8_t threshold = isOn ? _turnOffThreshold : _turnOnThreshold;
+	if (luminance < threshold)
+	{
+		color.red = 0;
+		color.green = 0;
+		color.blue = 0;
+		isOn = false;
+	}
+	else
+	{
+		isOn = true;
+	}
+}
+
 void RgbTransform::setTemperature(int temperature)
 {
 	_temperature = temperature;
@@ -211,7 +253,7 @@ int RgbTransform::getTemperature() const
 
 void RgbTransform::applyTemperature(ColorRgb& color) const
 {
-	color.red   = color.red * _temperatureRGB.red / UINT8_MAX;
+	color.red = color.red * _temperatureRGB.red / UINT8_MAX;
 	color.green = color.green * _temperatureRGB.green / UINT8_MAX;
-	color.blue  = color.blue * _temperatureRGB.blue / UINT8_MAX;
+	color.blue = color.blue * _temperatureRGB.blue / UINT8_MAX;
 }

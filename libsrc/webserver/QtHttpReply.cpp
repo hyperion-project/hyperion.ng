@@ -8,7 +8,7 @@
 QtHttpReply::QtHttpReply (QtHttpServer * parent)
 	: QObject        (parent)
 	, m_useChunked   (false)
-	, m_statusCode   (Ok)
+	, m_statusCode   (StatusCode::Ok)
 	, m_data         (QByteArray ())
 	, m_serverHandle (parent)
 {
@@ -21,10 +21,10 @@ const QByteArray QtHttpReply::getStatusTextForCode (QtHttpReply::StatusCode stat
 {
 	switch (statusCode)
 	{
-		case Ok:         return QByteArrayLiteral ("OK.");
-		case BadRequest: return QByteArrayLiteral ("Bad request !");
-		case Forbidden:  return QByteArrayLiteral ("Forbidden !");
-		case NotFound:   return QByteArrayLiteral ("Not found !");
+		case StatusCode::Ok:         return QByteArrayLiteral ("OK.");
+		case StatusCode::BadRequest: return QByteArrayLiteral ("Bad request !");
+		case StatusCode::Forbidden:  return QByteArrayLiteral ("Forbidden !");
+		case StatusCode::NotFound:   return QByteArrayLiteral ("Not found !");
 		default:         return QByteArrayLiteral ("");
 	}
 }
