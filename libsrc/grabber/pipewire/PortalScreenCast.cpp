@@ -89,9 +89,10 @@ bool PortalScreenCast::callRequest(const QString& method, const QVariantList& ar
 
 	QString sender = bus.baseService().mid(1);
 	sender.replace('.', '_');
-	_requestPath = QStringLiteral("/org/freedesktop/portal/desktop/request/%1/%2").arg(sender, handleToken);
+	const QString requestPath = QStringLiteral("/org/freedesktop/portal/desktop/request/%1/%2").arg(sender, handleToken);
+	_requestPath = requestPath;
 
-	if (!bus.connect(PORTAL_SERVICE, _requestPath, REQUEST_IFACE, QStringLiteral("Response"),
+	if (!bus.connect(PORTAL_SERVICE, requestPath, REQUEST_IFACE, QStringLiteral("Response"),
 	                 this, SLOT(onResponse(uint, QVariantMap))))
 	{
 		fail(QStringLiteral("Cannot subscribe to the portal response of %1").arg(method));
@@ -103,15 +104,26 @@ bool PortalScreenCast::callRequest(const QString& method, const QVariantList& ar
 	QDBusMessage msg = QDBusMessage::createMethodCall(PORTAL_SERVICE, PORTAL_PATH, SCREENCAST_IFACE, method);
 	msg.setArguments(args);
 	auto* watcher = new QDBusPendingCallWatcher(bus.asyncCall(msg, CALL_TIMEOUT_MS), this);
-	connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, method, watcher]
+	connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, method, requestPath, watcher]
 	        {
 		const QDBusPendingReply<QDBusObjectPath> reply = *watcher;
 		watcher->deleteLater();
 		if (reply.isError())
 		{
-			QDBusConnection::sessionBus().disconnect(PORTAL_SERVICE, _requestPath, REQUEST_IFACE, QStringLiteral("Response"),
+			QDBusConnection::sessionBus().disconnect(PORTAL_SERVICE, requestPath, REQUEST_IFACE, QStringLiteral("Response"),
 													 this, SLOT(onResponse(uint, QVariantMap)));
-			fail(QStringLiteral("%1 failed: %2").arg(method, reply.error().message()));
+			if (_requestPath == requestPath)
+			{
+				_requestPath.clear();
+				if (_cancelledCreateSession)
+				{
+					_cancelledCreateSession = false;
+				}
+				else
+				{
+					fail(QStringLiteral("%1 failed: %2").arg(method, reply.error().message()));
+				}
+			}
 		} });
 	return true;
 }
@@ -122,6 +134,11 @@ void PortalScreenCast::start()
 	if (_step != Step::Idle)
 	{
 		qCDebug(grabber_screen_flow) << "Portal screen cast already in progress, ignoring start request";
+		return;
+	}
+	if (_cancelledCreateSession)
+	{
+		qCDebug(grabber_screen_flow) << "Waiting for the cancelled portal session request to finish";
 		return;
 	}
 
@@ -145,6 +162,23 @@ void PortalScreenCast::onResponse(uint response, const QVariantMap& results)
 	QDBusConnection bus = QDBusConnection::sessionBus();
 	bus.disconnect(PORTAL_SERVICE, _requestPath, REQUEST_IFACE, QStringLiteral("Response"),
 	               this, SLOT(onResponse(uint, QVariantMap)));
+	_requestPath.clear();
+
+	if (_cancelledCreateSession)
+	{
+		_cancelledCreateSession = false;
+		if (response == 0)
+		{
+			const QString sessionHandle = results.value(QStringLiteral("session_handle")).toString();
+			if (!sessionHandle.isEmpty())
+			{
+				QDBusMessage msg = QDBusMessage::createMethodCall(PORTAL_SERVICE, sessionHandle, SESSION_IFACE,
+				                                                  QStringLiteral("Close"));
+				bus.call(msg, QDBus::NoBlock);
+			}
+		}
+		return;
+	}
 
 	if (response != 0)
 	{
@@ -257,13 +291,31 @@ void PortalScreenCast::handleStartResponse(const QVariantMap& results)
 void PortalScreenCast::close()
 {
 	qCDebug(grabber_screen_flow) << "Closing portal screen cast";
-	if (_sessionHandle.isEmpty())
+	QDBusConnection bus = QDBusConnection::sessionBus();
+	if (!_requestPath.isEmpty())
 	{
-		return;
+		const QString requestPath = _requestPath;
+		if (_step == Step::CreateSession)
+		{
+			_cancelledCreateSession = true;
+		}
+		else
+		{
+			bus.disconnect(PORTAL_SERVICE, requestPath, REQUEST_IFACE, QStringLiteral("Response"),
+			               this, SLOT(onResponse(uint, QVariantMap)));
+			_requestPath.clear();
+		}
+
+		QDBusMessage request = QDBusMessage::createMethodCall(PORTAL_SERVICE, requestPath, REQUEST_IFACE,
+		                                                     QStringLiteral("Close"));
+		bus.call(request, QDBus::NoBlock);
 	}
 
-	QDBusMessage msg = QDBusMessage::createMethodCall(PORTAL_SERVICE, _sessionHandle, SESSION_IFACE, QStringLiteral("Close"));
-	QDBusConnection::sessionBus().call(msg, QDBus::NoBlock);
+	if (!_sessionHandle.isEmpty())
+	{
+		QDBusMessage msg = QDBusMessage::createMethodCall(PORTAL_SERVICE, _sessionHandle, SESSION_IFACE, QStringLiteral("Close"));
+		bus.call(msg, QDBus::NoBlock);
+	}
 	_sessionHandle.clear();
 	_step = Step::Idle;
 }

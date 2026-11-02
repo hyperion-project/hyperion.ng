@@ -28,11 +28,7 @@ GamescopeWrapper::~GamescopeWrapper()
 
 bool GamescopeWrapper::start()
 {
-	if (_grabber.isAvailable() && _grabber.open())
-	{
-		return GrabberWrapper::start();
-	}
-	return false;
+	return GrabberWrapper::start();
 }
 
 void GamescopeWrapper::stop()

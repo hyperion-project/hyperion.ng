@@ -279,8 +279,26 @@ int WaylandGrabber::grabFrame(Image<ColorRgb>& image, bool /*forceUpdate*/)
 		return -1;
 	}
 
+	if (frame.width <= 0 || frame.height <= 0)
+	{
+		Warning(_log, "Rejecting invalid Wayland frame dimensions [%dx%d]", frame.width, frame.height);
+		return -1;
+	}
+
 	if (frame.width != _sourceWidth || frame.height != _sourceHeight)
 	{
+		if (static_cast<qint64>(_cropLeft) + _cropRight >= frame.width ||
+		    static_cast<qint64>(_cropTop) + _cropBottom >= frame.height)
+		{
+			Warning(_log, "Crop values exceed Wayland frame dimensions [%dx%d]; resetting crop",
+			        frame.width, frame.height);
+			_cropLeft = 0;
+			_cropRight = 0;
+			_cropTop = 0;
+			_cropBottom = 0;
+			_imageResampler.setCropping(0, 0, 0, 0);
+		}
+
 		Info(_log, "Receiving screen frames [%dx%d]", frame.width, frame.height);
 		_retryDelayMs = 0;
 		_sourceWidth = frame.width;

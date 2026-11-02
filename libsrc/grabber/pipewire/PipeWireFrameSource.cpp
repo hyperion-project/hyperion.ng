@@ -9,6 +9,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <cstring>
@@ -233,17 +234,18 @@ struct PipeWireFrameSource::Impl
 
 		pw_stream_queue_buffer(self->stream, pwBuffer);
 
-		if (grabber_screen_benchmark().isDebugEnabled())
+		if (self->haveFrame && grabber_screen_benchmark().isDebugEnabled())
 		{
 			// calculate average frametime
 			if (self->currentFrameCount > 1)
 			{
 				if (self->currentFrameCount % 100 == 0)
 				{
-					qint64 timeElaped = self->frameTimer.restart() / 100;
+					const qint64 timeElaped = std::max<qint64>(1, self->frameTimer.restart() / 100);
+					const int configuredInterval = std::max(1, static_cast<int>(self->minIntervalMs.load()));
 					qCDebug(grabber_screen_benchmark) << self->currentFrameCount << "frames captured. avg time="
 					                                  << timeElaped << "ms" << "/" << 1000 / timeElaped << "fps"
-					                                  << "vs." << self->minIntervalMs << "ms" << "/" << 1000 / self->minIntervalMs << "fps max configured";
+					                                  << "vs." << configuredInterval << "ms" << "/" << 1000 / configuredInterval << "fps max configured";
 				}
 			}
 			else
@@ -689,11 +691,11 @@ QList<GamescopeNodeInfo> PipeWireFrameSource::discoverGamescopeNodes()
 	if (!core)
 	{
 		pw_thread_loop_unlock(loop);
-		pw_thread_loop_destroy(loop);
 		if (ctx)
 		{
 			pw_context_destroy(ctx);
 		}
+		pw_thread_loop_destroy(loop);
 		pw_deinit();
 		return {};
 	}

@@ -27,7 +27,8 @@ WaylandWrapper::~WaylandWrapper()
 
 bool WaylandWrapper::start()
 {
-	if (_grabber.isAvailable() && _grabber.open())
+	// Do not open the portal (sharing dialog/restored session) if capture is disabled
+	if (_grabber.isAvailable() && _grabber.isEnabled() && _grabber.open())
 	{
 		return GrabberWrapper::start();
 	}

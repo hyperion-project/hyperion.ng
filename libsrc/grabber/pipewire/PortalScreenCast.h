@@ -54,4 +54,5 @@ private:
 	QString _requestPath;
 	Step _step = Step::Idle;
 	int _counter = 0;
+	bool _cancelledCreateSession = false;
 };
