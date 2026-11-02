@@ -35,12 +35,19 @@ private slots:
 	void onResponse(uint response, const QVariantMap& results);
 
 private:
-	enum class Step { Idle, CreateSession, SelectSources, Start };
+	enum class Step
+	{
+		Idle,
+		CreateSession,
+		SelectSources,
+		Start
+	};
 
 	bool callRequest(const QString& method, const QVariantList& args, const QString& handleToken);
 	QString readToken() const;
 	void saveToken(const QString& token) const;
 	void fail(const QString& reason, bool userCancelled = false);
+	void handleStartResponse(const QVariantMap& results);
 
 	QString _tokenFile;
 	QString _sessionHandle;

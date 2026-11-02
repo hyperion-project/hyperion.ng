@@ -495,7 +495,7 @@ namespace
 			if (statFile.open(QIODevice::ReadOnly | QIODevice::Text))
 			{
 				QByteArray line = statFile.readLine();
-				int lastCloseParenthesis = line.lastIndexOf(')');
+				qsizetype lastCloseParenthesis = line.lastIndexOf(')');
 				if (lastCloseParenthesis != -1)
 				{
 					QStringList statParts = QString::fromUtf8(line.mid(lastCloseParenthesis + 2)).split(' ', Qt::SkipEmptyParts);
@@ -627,7 +627,7 @@ namespace
 
 		if (clientIdStr)
 		{
-			uint32_t clientId = std::strtoul(clientIdStr, nullptr, 10);
+			auto clientId = static_cast<uint32_t>(std::strtoul(clientIdStr, nullptr, 10));
 			// Retrieve the previously stored PID of the associated client.
 			resolvedPid = state->clientPids.value(clientId);
 		}

@@ -14,23 +14,23 @@
 
 #include <grabber/GrabberTrace.h>
 
+namespace
+{
+	const QString PORTAL_SERVICE = QStringLiteral("org.freedesktop.portal.Desktop");
+	const QString PORTAL_PATH = QStringLiteral("/org/freedesktop/portal/desktop");
+	const QString SCREENCAST_IFACE = QStringLiteral("org.freedesktop.portal.ScreenCast");
+	const QString REQUEST_IFACE = QStringLiteral("org.freedesktop.portal.Request");
+	const QString SESSION_IFACE = QStringLiteral("org.freedesktop.portal.Session");
 
-namespace {
-const QString PORTAL_SERVICE = QStringLiteral("org.freedesktop.portal.Desktop");
-const QString PORTAL_PATH = QStringLiteral("/org/freedesktop/portal/desktop");
-const QString SCREENCAST_IFACE = QStringLiteral("org.freedesktop.portal.ScreenCast");
-const QString REQUEST_IFACE = QStringLiteral("org.freedesktop.portal.Request");
-const QString SESSION_IFACE = QStringLiteral("org.freedesktop.portal.Session");
-
-constexpr uint SOURCE_MONITOR = 1;
-constexpr uint CURSOR_HIDDEN = 1;
-constexpr uint PERSIST_UNTIL_REVOKED = 2;
-constexpr int CALL_TIMEOUT_MS = 10000;
+	constexpr uint SOURCE_MONITOR = 1;
+	constexpr uint CURSOR_HIDDEN = 1;
+	constexpr uint PERSIST_UNTIL_REVOKED = 2;
+	constexpr int CALL_TIMEOUT_MS = 10000;
 }
 
 PortalScreenCast::PortalScreenCast(const QString& tokenFile, QObject* parent)
-	: QObject(parent)
-	, _tokenFile(tokenFile)
+    : QObject(parent)
+    , _tokenFile(tokenFile)
 {
 	TRACK_SCOPE() << "Creating PortalScreenCast instance";
 }
@@ -61,7 +61,7 @@ void PortalScreenCast::saveToken(const QString& token) const
 		return;
 	}
 	QDir().mkpath(QFileInfo(_tokenFile).absolutePath());
-	QSaveFile file(_tokenFile);   // atomic: a crash mid-write cannot leave a truncated token
+	QSaveFile file(_tokenFile); // atomic: a crash mid-write cannot leave a truncated token
 	if (file.open(QIODevice::WriteOnly))
 	{
 		qCDebug(grabber_screen_flow) << "Writing token to" << _tokenFile;
@@ -92,7 +92,7 @@ bool PortalScreenCast::callRequest(const QString& method, const QVariantList& ar
 	_requestPath = QStringLiteral("/org/freedesktop/portal/desktop/request/%1/%2").arg(sender, handleToken);
 
 	if (!bus.connect(PORTAL_SERVICE, _requestPath, REQUEST_IFACE, QStringLiteral("Response"),
-					 this, SLOT(onResponse(uint, QVariantMap))))
+	                 this, SLOT(onResponse(uint, QVariantMap))))
 	{
 		fail(QStringLiteral("Cannot subscribe to the portal response of %1").arg(method));
 		return false;
@@ -103,7 +103,8 @@ bool PortalScreenCast::callRequest(const QString& method, const QVariantList& ar
 	QDBusMessage msg = QDBusMessage::createMethodCall(PORTAL_SERVICE, PORTAL_PATH, SCREENCAST_IFACE, method);
 	msg.setArguments(args);
 	auto* watcher = new QDBusPendingCallWatcher(bus.asyncCall(msg, CALL_TIMEOUT_MS), this);
-	connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, method, watcher] {
+	connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, method, watcher]
+	        {
 		const QDBusPendingReply<QDBusObjectPath> reply = *watcher;
 		watcher->deleteLater();
 		if (reply.isError())
@@ -111,8 +112,7 @@ bool PortalScreenCast::callRequest(const QString& method, const QVariantList& ar
 			QDBusConnection::sessionBus().disconnect(PORTAL_SERVICE, _requestPath, REQUEST_IFACE, QStringLiteral("Response"),
 													 this, SLOT(onResponse(uint, QVariantMap)));
 			fail(QStringLiteral("%1 failed: %2").arg(method, reply.error().message()));
-		}
-	});
+		} });
 	return true;
 }
 
@@ -144,14 +144,14 @@ void PortalScreenCast::onResponse(uint response, const QVariantMap& results)
 {
 	QDBusConnection bus = QDBusConnection::sessionBus();
 	bus.disconnect(PORTAL_SERVICE, _requestPath, REQUEST_IFACE, QStringLiteral("Response"),
-				   this, SLOT(onResponse(uint, QVariantMap)));
+	               this, SLOT(onResponse(uint, QVariantMap)));
 
 	if (response != 0)
 	{
 		// 1 = cancelled by the user, 2 = ended some other way
 		fail(response == 1 ? QStringLiteral("The screen sharing dialog was cancelled")
-						   : QStringLiteral("The portal request failed (code %1)").arg(response),
-			 response == 1);
+		                   : QStringLiteral("The portal request failed (code %1)").arg(response),
+		     response == 1);
 		return;
 	}
 
@@ -196,57 +196,63 @@ void PortalScreenCast::onResponse(uint response, const QVariantMap& results)
 	}
 	case Step::Start:
 	{
-		qCDebug(grabber_screen_flow) << "Portal returned to Start step with results:" << results;
-		QString token = results.value(QStringLiteral("restore_token")).toString();
-		if (!token.isEmpty())
-		{
-			saveToken(token);
-		}
-
-		quint32 node = 0;
-		bool found = false;
-		const QDBusArgument streams = results.value(QStringLiteral("streams")).value<QDBusArgument>();
-		streams.beginArray();
-		while (!streams.atEnd() && !found)
-		{
-			streams.beginStructure();
-			QVariantMap props;
-			streams >> node >> props;
-			streams.endStructure();
-			found = true;
-		}
-		streams.endArray();
-
-		if (!found)
-		{
-			fail(QStringLiteral("The portal returned no stream"));
-			return;
-		}
-
-		QDBusMessage msg = QDBusMessage::createMethodCall(PORTAL_SERVICE, PORTAL_PATH, SCREENCAST_IFACE,
-														 QStringLiteral("OpenPipeWireRemote"));
-		msg.setArguments({QVariant::fromValue(QDBusObjectPath(_sessionHandle)), QVariantMap()});
-		auto* watcher = new QDBusPendingCallWatcher(bus.asyncCall(msg, CALL_TIMEOUT_MS), this);
-		connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, node, watcher] {
-			const QDBusPendingReply<QDBusUnixFileDescriptor> reply = *watcher;
-			watcher->deleteLater();
-			if (reply.isError())
-			{
-				fail(QStringLiteral("OpenPipeWireRemote failed: %1").arg(reply.error().message()));
-				return;
-			}
-
-			// the receiver duplicates the descriptor while handling the signal
-			const QDBusUnixFileDescriptor fd = reply.value();
-			_step = Step::Idle;
-			emit started(fd.fileDescriptor(), node);
-		});
+		handleStartResponse(results);
 		break;
 	}
 	case Step::Idle:
 		break;
 	}
-}  // NOSONAR: Qt parent owns this; deleteLater() called in finished lambda
+}
+
+void PortalScreenCast::handleStartResponse(const QVariantMap& results)
+{
+	qCDebug(grabber_screen_flow) << "Portal returned to Start step with results:" << results;
+	QString token = results.value(QStringLiteral("restore_token")).toString();
+	if (!token.isEmpty())
+	{
+		saveToken(token);
+	}
+
+	quint32 node = 0;
+	bool found = false;
+	const QDBusArgument streams = results.value(QStringLiteral("streams")).value<QDBusArgument>();
+	streams.beginArray();
+	while (!streams.atEnd() && !found)
+	{
+		streams.beginStructure();
+		QVariantMap props;
+		streams >> node >> props;
+		streams.endStructure();
+		found = true;
+	}
+	streams.endArray();
+
+	if (!found)
+	{
+		fail(QStringLiteral("The portal returned no stream"));
+		return;
+	}
+
+	QDBusMessage msg = QDBusMessage::createMethodCall(PORTAL_SERVICE, PORTAL_PATH, SCREENCAST_IFACE,
+	                                                  QStringLiteral("OpenPipeWireRemote"));
+	msg.setArguments({QVariant::fromValue(QDBusObjectPath(_sessionHandle)), QVariantMap()});
+	QDBusConnection bus = QDBusConnection::sessionBus();
+	auto* watcher = new QDBusPendingCallWatcher(bus.asyncCall(msg, CALL_TIMEOUT_MS), this);
+	connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, node, watcher]
+	        {
+		const QDBusPendingReply<QDBusUnixFileDescriptor> reply = *watcher;
+		watcher->deleteLater();
+		if (reply.isError())
+		{
+			fail(QStringLiteral("OpenPipeWireRemote failed: %1").arg(reply.error().message()));
+			return;
+		}
+
+		// the receiver duplicates the descriptor while handling the signal
+		const QDBusUnixFileDescriptor fd = reply.value();
+		_step = Step::Idle;
+		emit started(fd.fileDescriptor(), node); });
+} // NOSONAR: Qt parent owns this; deleteLater() called in finished lambda
 
 void PortalScreenCast::close()
 {

@@ -15,8 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - V4L2/ImageResampler: add support for pixelformats YUV422P and NV21
 - New Juggler Effect
 - Support for **Robobloq** devices
-- Wayland Screen Grabber (xdg-desktop-portal ScreenCast and PipeWire), build option `ENABLE_WAYLAND` (#1096)
-- Gamescope Screen Grabber (PipeWire), build option `ENABLE_GAMESCOPE` (#2033)
+- Wayland Screen Grabber (xdg-desktop-portal ScreenCast and PipeWire), build option `ENABLE_WAYLAND` (#1096) _Thanks to @aleemont1_
+- Gamescope Screen Grabber (PipeWire), build option `ENABLE_GAMESCOPE` (#1096, #2033) _Thanks to @bhill00_
 ---
 
 ### 🔧 Changed
