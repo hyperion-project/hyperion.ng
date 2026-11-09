@@ -45,8 +45,11 @@ void OsxWrapper::stop()
 
 void OsxWrapper::capture()
 {
-	_grabber.grabFrame(_screenshot);
-	emit sig_screenshot(_screenshot);
+	// No frame is available until the capture stream delivers one; an empty image must not be sent
+	if (_grabber.grabFrame(_screenshot) == 0)
+	{
+		emit sig_screenshot(_screenshot);
+	}
 }
 
 void OsxWrapper::setVideoMode(VideoMode mode)

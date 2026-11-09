@@ -701,12 +701,6 @@ int OsxFrameGrabber::grabFrame(Image<ColorRgb> & image, bool /*forceUpdate*/)
         return -1;
     }
 
-	if (image.isNull())
-	{
-		// cannot grab into a null image
-		return -1;
-	}
-
 #if defined(SDK_15_AVAILABLE)
 	if (_streamOutput != nullptr)
 	{
