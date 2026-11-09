@@ -26,6 +26,8 @@ public:
 
 	~WaylandWrapper() override;
 
+	static const int MAX_GRAB_RATE_HZ;
+
 	bool start() override;
 	void stop() override;
 

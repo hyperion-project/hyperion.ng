@@ -31,6 +31,10 @@ if(ENABLE_V4L2 AND ENABLE_FLATBUF_CONNECT)
 	add_subdirectory(hyperion-v4l2)
 endif()
 
+if(ENABLE_WAYLAND AND ENABLE_FLATBUF_CONNECT)
+	add_subdirectory(hyperion-wl)
+endif()
+
 if(ENABLE_X11 AND ENABLE_FLATBUF_CONNECT)
 	add_subdirectory(hyperion-x11)
 endif()

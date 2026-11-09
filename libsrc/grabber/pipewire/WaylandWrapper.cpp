@@ -1,5 +1,7 @@
 #include <grabber/pipewire/WaylandWrapper.h>
 
+const int WaylandWrapper::MAX_GRAB_RATE_HZ = 240;
+
 WaylandWrapper::WaylandWrapper(int updateRate_Hz,
 							   int pixelDecimation,
 							   int cropLeft, int cropRight, int cropTop, int cropBottom)
