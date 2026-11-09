@@ -701,6 +701,7 @@ int OsxFrameGrabber::grabFrame(Image<ColorRgb> & image, bool /*forceUpdate*/)
         return -1;
     }
 
+	// The image may be null here: the ImageResampler allocates it to the output size
 #if defined(SDK_15_AVAILABLE)
 	if (_streamOutput != nullptr)
 	{

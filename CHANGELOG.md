@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - X11/XCB-Grabbers - fix that client leaks when repeatedly enabled/disabled (#2035)
   - ImageToLedsMap - Pixel index was calculated wrong for images with detected borders (#2023)
   - QHttpServer - Fix memory leak
+  - hyperion-osx - Fix the standalone grabber sending empty images, which the server rejected and which stopped the grabber. Screenshot mode now reports an error instead of saving an empty image (#2075)
   - macOS Signal Handler - Exit after a crash instead of hanging at 100% CPU. The stack trace parser assumed the glibc format and faulted on macOS traces
 
 ---
