@@ -32,13 +32,12 @@ if(ENABLE_V4L2 OR ENABLE_MF)
 	endif()
 
 	find_package(TurboJPEG)
-	if(TURBOJPEG_FOUND AND TARGET turbojpeg)
+	if(TurboJPEG_FOUND AND TARGET turbojpeg)
 		target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_TURBO_JPEG)
 		target_link_libraries(${PROJECT_NAME} turbojpeg)
 	else ()
 		message(STATUS "TurboJPEG library not found, MJPEG camera format won't work.")
 	endif()
 endif()
-
 
 

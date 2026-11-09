@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - ImageToLedsMap - Pixel index was calculated wrong for images with detected borders (#2023)
   - QHttpServer - Fix memory leak
   - macOS Signal Handler - Exit after a crash instead of hanging at 100% CPU. The stack trace parser assumed the glibc format and faulted on macOS traces
+  - V4l2-Grabber - Fix MJPEG support identification and show all supported formats in the help text dynamically (#2072)
 
 ---
 ### Technical

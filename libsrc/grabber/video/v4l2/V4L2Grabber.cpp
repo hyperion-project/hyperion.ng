@@ -80,6 +80,38 @@ static PixelFormat GetPixelFormat(const unsigned int format)
 	return PixelFormat::NO_CHANGE;
 };
 
+QList<PixelFormat> V4L2Grabber::getSupportedPixelFormats()
+{
+	QList formats{
+	    PixelFormat::YUYV,
+	    PixelFormat::UYVY,
+	    PixelFormat::RGB24,
+	    PixelFormat::BGR24,
+	    PixelFormat::RGB32,
+	    PixelFormat::BGR32,
+	    PixelFormat::NV12,
+	    PixelFormat::NV21,
+	    PixelFormat::I420,
+	    PixelFormat::I422};
+#ifdef HAVE_TURBO_JPEG
+	formats.append(PixelFormat::MJPEG);
+#endif
+	formats.append(PixelFormat::NO_CHANGE);
+	return formats;
+}
+
+QStringList V4L2Grabber::getSupportedPixelFormatNames()
+{
+	QStringList names;
+	for (const PixelFormat format : getSupportedPixelFormats())
+	{
+		names.append(format == PixelFormat::NO_CHANGE
+		                 ? QStringLiteral("NO-CHANGE")
+						 : pixelFormatToString(format));
+	}
+	return names;
+}
+
 inline int32_t v4l2FixDefaultValue(const QString& device, const QString& control, int32_t def, int32_t min, int32_t max)
 {
     // Is default already valid?	
