@@ -41,6 +41,14 @@
 #include <grabber/xcb/XcbGrabber.h>
 #endif
 
+#if defined(ENABLE_WAYLAND)
+#include <grabber/pipewire/WaylandGrabber.h>
+#endif
+
+#if defined(ENABLE_GAMESCOPE)
+#include <grabber/pipewire/GamescopeGrabber.h>
+#endif
+
 #if defined(ENABLE_MF)
 #include <grabber/video/mediafoundation/MFGrabber.h>
 #elif defined(ENABLE_V4L2)

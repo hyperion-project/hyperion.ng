@@ -66,7 +66,7 @@ GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber * ggrabber, i
 }
 GrabberWrapper::~GrabberWrapper()
 {
-	TRACK_SCOPE();
+	TRACK_SCOPE() << "Destroying GrabberWrapper for" << _grabberName;
 	_timer->stop();
 	GrabberWrapper::instance = nullptr;
 }
@@ -211,6 +211,14 @@ QStringList GrabberWrapper::availableGrabbers(GrabberTypeFilter type)
 
 #ifdef ENABLE_XCB
 		grabbers << "xcb";
+#endif
+
+#ifdef ENABLE_WAYLAND
+		grabbers << "wayland";
+#endif
+
+#ifdef ENABLE_GAMESCOPE
+		grabbers << "gamescope";
 #endif
 
 #ifdef ENABLE_QT

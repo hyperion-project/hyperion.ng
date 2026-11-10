@@ -1,0 +1,26 @@
+#ifndef GRABBERTRACE_H
+#define GRABBERTRACE_H
+
+#include <QLoggingCategory>
+
+#include <utils/MemoryTracker.h>
+
+Q_DECLARE_LOGGING_CATEGORY(grabber_screen_capture);
+Q_DECLARE_LOGGING_CATEGORY(grabber_screen_capture_failed);
+Q_DECLARE_LOGGING_CATEGORY(grabber_screen_flow);
+Q_DECLARE_LOGGING_CATEGORY(grabber_screen_properties);
+Q_DECLARE_LOGGING_CATEGORY(grabber_screen_benchmark);
+
+Q_DECLARE_LOGGING_CATEGORY(grabber_video_capture);
+Q_DECLARE_LOGGING_CATEGORY(grabber_video_capture_failed);
+Q_DECLARE_LOGGING_CATEGORY(grabber_video_flow);
+Q_DECLARE_LOGGING_CATEGORY(grabber_video_properties);
+Q_DECLARE_LOGGING_CATEGORY(grabber_video_benchmark);
+
+Q_DECLARE_LOGGING_CATEGORY(grabber_audio_capture);
+Q_DECLARE_LOGGING_CATEGORY(grabber_audio_capture_failed);
+Q_DECLARE_LOGGING_CATEGORY(grabber_audio_flow);
+Q_DECLARE_LOGGING_CATEGORY(grabber_audio_properties);
+Q_DECLARE_LOGGING_CATEGORY(grabber_audio_benchmark);
+
+#endif // GRABBERTRACE_H

@@ -83,6 +83,14 @@ sudo apt-get install libglib2.0-dev libdrm-dev
 sudo apt-get install libxrandr-dev libxrender-dev libxcb-image0-dev libxcb-util0-dev libxcb-shm0-dev libxcb-render0-dev libxcb-randr0-dev
 ```
 
+**For Linux Wayland grabber support**
+
+The Wayland grabber captures the screen through the xdg-desktop-portal ScreenCast interface and PipeWire, so it needs a running portal (e.g. `xdg-desktop-portal-kde`, `-gnome` or `-wlr`) and PipeWire in the session. It is enabled with `-DENABLE_WAYLAND=ON`. The screen is chosen once in the desktop's own dialog; the choice is stored and reused on the next start.
+
+```console
+sudo apt-get install libpipewire-0.3-dev libspa-0.2-dev
+```
+
 **For Linux CEC support**
 
 ```console
