@@ -33,6 +33,18 @@ target_link_libraries(${PROJECT_NAME}
 	hyperion-utils
 )
 
+if(USE_PRE_BUILT_DEPS)
+	set(TURBOJPEG_ROOT_DIR ${PRE_BUILT_DEPS_DIR})
+endif()
+
+find_package(TurboJPEG)
+if(TurboJPEG_FOUND AND TARGET turbojpeg)
+	target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_TURBO_JPEG)
+	target_link_libraries(${PROJECT_NAME} turbojpeg)
+else ()
+	message(STATUS "TurboJPEG library not found, MJPEG camera format won't work.")
+endif()
+
 install(TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin" COMPONENT "hyperion_v4l2" OPTIONAL)
 
 if(CMAKE_HOST_UNIX)

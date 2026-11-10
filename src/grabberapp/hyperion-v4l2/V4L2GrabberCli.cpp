@@ -4,7 +4,6 @@
 
 #include <QDebug>
 #include <QLoggingCategory>
-
 #include <commandline/BooleanOption.h>
 #include <commandline/DoubleOption.h>
 #include <commandline/IntOption.h>
@@ -12,6 +11,7 @@
 #include <commandline/Parser.h>
 #include <commandline/SwitchOption.h>
 #include <hyperion/GrabberWrapper.h>
+#include <grabber/video/v4l2/V4L2Grabber.h>
 
 using namespace commandline;
 
@@ -22,7 +22,9 @@ V4L2GrabberOptions parseV4L2GrabberOptions(const QCoreApplication& app)
 	Option const& argDevice = parser.add<Option>('d', "device", "The device to use, can be /dev/video0 [default: %1 (auto detected)]", "auto");
 	IntOption& argInput = parser.add<IntOption>('i', "input", "The device input [default: %1]", "0");
 	SwitchOption<VideoStandard>& argVideoStandard = parser.add<SwitchOption<VideoStandard>>('v', "video-standard", "The used video standard. Valid values are PAL, NTSC, SECAM or no-change. [default: %1]", "no-change");
-	SwitchOption<PixelFormat>& argPixelFormat = parser.add<SwitchOption<PixelFormat>>(0x0, "pixel-format", "The use pixel format. Valid values are YUYV, UYVY, RGB32, MJPEG or no-change. [default: %1]", "no-change");
+	const QString pixelFormatDescription = QStringLiteral("The pixel format to use. Valid values are %1.")
+		.arg(V4L2Grabber::getSupportedPixelFormatNames().join(QStringLiteral(", ")));
+	SwitchOption<PixelFormat>& argPixelFormat = parser.add<SwitchOption<PixelFormat>>(0x0, "pixel-format", pixelFormatDescription, "NO-CHANGE");
 	IntOption& argFps = parser.add<IntOption>('f', "framerate", QString("Capture frame rate. Range %1-%2fps").arg(GrabberWrapper::DEFAULT_MIN_GRAB_RATE_HZ).arg(GrabberWrapper::DEFAULT_MAX_GRAB_RATE_HZ), QString::number(GrabberWrapper::DEFAULT_RATE_HZ), GrabberWrapper::DEFAULT_MIN_GRAB_RATE_HZ, GrabberWrapper::DEFAULT_MAX_GRAB_RATE_HZ);
 
 	SwitchOption<FlipMode>& argFlipMode = parser.add<SwitchOption<FlipMode>>(0x0, "flip-mode", "The used image flip mode. Valid values are HORIZONTAL, VERTICAL, BOTH or no-change. [default: %1]", "no-change");
@@ -64,13 +66,11 @@ V4L2GrabberOptions parseV4L2GrabberOptions(const QCoreApplication& app)
 	argVideoStandard.addSwitch("secam", VideoStandard::SECAM);
 	argVideoStandard.addSwitch("no-change", VideoStandard::NO_CHANGE);
 
-	argPixelFormat.addSwitch("yuyv", PixelFormat::YUYV);
-	argPixelFormat.addSwitch("uyvy", PixelFormat::UYVY);
-	argPixelFormat.addSwitch("rgb32", PixelFormat::RGB32);
-#ifdef HAVE_JPEG
-	argPixelFormat.addSwitch("mjpeg", PixelFormat::MJPEG);
-#endif
-	argPixelFormat.addSwitch("no-change", PixelFormat::NO_CHANGE);
+	const QList<PixelFormat> supportedPixelFormats = V4L2Grabber::getSupportedPixelFormats();
+	for (const PixelFormat format : supportedPixelFormats)
+	{
+		argPixelFormat.addSwitch(pixelFormatToString(format).toLower().replace('_', '-'), format);
+	}
 
 	argFlipMode.addSwitch("horizontal", FlipMode::HORIZONTAL);
 	argFlipMode.addSwitch("vertical", FlipMode::VERTICAL);
@@ -161,7 +161,7 @@ V4L2GrabberOptions parseV4L2GrabberOptions(const QCoreApplication& app)
 	opts.debug      = parser.isSet(argDebug);
 	opts.help       = parser.isSet(argHelp);
 
-	qCDebug(grabber_flow).noquote()
+	qCDebug(grabber_video_flow).noquote()
 		<< "Parsed V4L2 grabber options:"
 		<< "\n  device:" << opts.device
 		<< "input:" << opts.input

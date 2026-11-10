@@ -6,6 +6,8 @@
 
 // Qt includes
 #include <QObject>
+#include <QList>
+#include <QStringList>
 #include <QSocketNotifier>
 #include <QRectF>
 #include <QMap>
@@ -67,6 +69,9 @@ public:
 
 	V4L2Grabber();
 	~V4L2Grabber() override;
+
+	static QList<PixelFormat> getSupportedPixelFormats();
+	static QStringList getSupportedPixelFormatNames();
 
 	void setDevice(const QString& devicePath, const QString& deviceName);
 	bool setInput(int input) override;
