@@ -393,7 +393,7 @@ bool V4L2Grabber::open_device()
 		return false;
 	}
 
-	// create the notifier for when a new frame is available
+	// create the notifier for when a new frame is _deviceControlsavailable
 	_streamNotifier = new QSocketNotifier(_fileDescriptor, QSocketNotifier::Read);
 	_streamNotifier->setEnabled(false);
 	connect(_streamNotifier, &QSocketNotifier::activated, this, &V4L2Grabber::read_frame);
@@ -1819,9 +1819,13 @@ void V4L2Grabber::enumVideoCaptureDevices()
 
 				queryctrl.id = itDeviceControls.key();
 				if (xioctl(fd, VIDIOC_QUERYCTRL, &queryctrl) < 0)
-					break;
+				{
+					continue;
+				}
 				if (queryctrl.flags & V4L2_CTRL_FLAG_DISABLED)
-					break;
+				{
+					continue;
+				}
 
 				DeviceControls control;
 				control.property = itDeviceControls.value();
@@ -1847,7 +1851,9 @@ void V4L2Grabber::enumVideoCaptureDevices()
 													   << ", current=" << control.currentValue;
 				}
 				else
-					break;
+				{
+					continue;
+				}
 
 				deviceControlList.append(control);
 			}
