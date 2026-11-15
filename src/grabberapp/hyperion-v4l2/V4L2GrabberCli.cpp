@@ -4,6 +4,7 @@
 
 #include <QDebug>
 #include <QLoggingCategory>
+
 #include <commandline/BooleanOption.h>
 #include <commandline/DoubleOption.h>
 #include <commandline/IntOption.h>
@@ -37,6 +38,13 @@ V4L2GrabberOptions parseV4L2GrabberOptions(const QCoreApplication& app)
 	IntOption& argCropRight = parser.add<IntOption>(0x0, "crop-right", "Number of pixels to crop from the right of the picture before decimation (overrides --crop-width)");
 	IntOption& argCropTop = parser.add<IntOption>(0x0, "crop-top", "Number of pixels to crop from the top of the picture before decimation (overrides --crop-height)");
 	IntOption& argCropBottom = parser.add<IntOption>(0x0, "crop-bottom", "Number of pixels to crop from the bottom of the picture before decimation (overrides --crop-height)");
+
+	IntOption& argBrightness = parser.add<IntOption>(0x0, "brightness", "Brightness of the captured image (default: current device value)");
+	IntOption& argContrast = parser.add<IntOption>(0x0, "contrast", "Contrast of the captured image (default: current device value)");
+	IntOption& argSaturation = parser.add<IntOption>(0x0, "saturation", "Saturation of the captured image (default: current device value)");
+	IntOption& argHue = parser.add<IntOption>(0x0, "hue", "Hue of the captured image (default: current device value)");
+	BooleanOption const& argControlDefaults = parser.add<BooleanOption>(0x0, "use-control-defaults", "Use available device defaults for brightness, contrast, saturation and hue; explicit values take precedence");
+
 	BooleanOption const& arg3DSBS = parser.add<BooleanOption>(0x0, "3DSBS", "Interpret the incoming video stream as 3D side-by-side");
 	BooleanOption const& arg3DTAB = parser.add<BooleanOption>(0x0, "3DTAB", "Interpret the incoming video stream as 3D top-and-bottom");
 
@@ -101,6 +109,24 @@ V4L2GrabberOptions parseV4L2GrabberOptions(const QCoreApplication& app)
 	opts.cropRight  = parser.isSet(argCropRight)  ? argCropRight.getInt(parser)  : argCropWidth.getInt(parser);
 	opts.cropTop    = parser.isSet(argCropTop)    ? argCropTop.getInt(parser)    : argCropHeight.getInt(parser);
 	opts.cropBottom = parser.isSet(argCropBottom) ? argCropBottom.getInt(parser) : argCropHeight.getInt(parser);
+
+	if (parser.isSet(argBrightness))
+	{
+		opts.controls.brightness = argBrightness.getInt(parser);
+	}
+	if (parser.isSet(argContrast))
+	{
+		opts.controls.contrast = argContrast.getInt(parser);
+	}
+	if (parser.isSet(argSaturation))
+	{
+		opts.controls.saturation = argSaturation.getInt(parser);
+	}
+	if (parser.isSet(argHue))
+	{
+		opts.controls.hue = argHue.getInt(parser);
+	}
+	opts.useControlDefaults = parser.isSet(argControlDefaults);
 
 	opts.video3DSBS = parser.isSet(arg3DSBS);
 	opts.video3DTAB = parser.isSet(arg3DTAB);
@@ -176,6 +202,11 @@ V4L2GrabberOptions parseV4L2GrabberOptions(const QCoreApplication& app)
 		<< "cropRight:" << opts.cropRight
 		<< "cropTop:" << opts.cropTop
 		<< "cropBottom:" << opts.cropBottom
+		<< "brightness:" << (opts.controls.brightness.has_value() ? QString::number(*opts.controls.brightness) : QStringLiteral("unchanged"))
+		<< "contrast:" << (opts.controls.contrast.has_value() ? QString::number(*opts.controls.contrast) : QStringLiteral("unchanged"))
+		<< "saturation:" << (opts.controls.saturation.has_value() ? QString::number(*opts.controls.saturation) : QStringLiteral("unchanged"))
+		<< "hue:" << (opts.controls.hue.has_value() ? QString::number(*opts.controls.hue) : QStringLiteral("unchanged"))
+		<< "useControlDefaults:" << opts.useControlDefaults
 		<< "\n  video3DSBS:" << opts.video3DSBS
 		<< "video3DTAB:" << opts.video3DTAB
 		<< "\n  signalDetectionEnabled:" << opts.signalDetectionEnabled

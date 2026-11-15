@@ -19,10 +19,9 @@
 #include <utils/VideoStandard.h>
 
 #include <grabber/GrabberType.h>
+#include <grabber/GrabberTrace.h>
 
 #include <events/EventEnum.h>
-
-Q_DECLARE_LOGGING_CATEGORY(grabber_flow);
 
 class Grabber;
 class GlobalSignals;

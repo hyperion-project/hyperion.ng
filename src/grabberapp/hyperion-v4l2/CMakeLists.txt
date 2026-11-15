@@ -4,6 +4,8 @@ project(hyperion-v4l2)
 add_executable(${PROJECT_NAME}
 	ScreenshotHandler.h
 	ScreenshotHandler.cpp
+	V4L2ControlOptions.h
+	V4L2ControlOptions.cpp
 	V4L2GrabberOptions.h
 	V4L2GrabberCli.h
 	V4L2GrabberCli.cpp
