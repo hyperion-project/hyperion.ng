@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for **Robobloq** devices
 - Color adjustment: Add configurable per-LED brightness hysteresis thresholds to help prevent flicker near black (#1968).
 - Serial-LED-Devices: Support to add devices via /dev/serial/by-id (#1511)
+- Wayland Screen Grabber and grabber app (xdg-desktop-portal ScreenCast and PipeWire), build option `ENABLE_WAYLAND` (#1096) _Thanks to @aleemont1_
+- Gamescope Screen Grabber (PipeWire), build option `ENABLE_GAMESCOPE` (#1096, #2033) _Thanks to @bhill00_
+---
 
 ### 🔧 Changed
 
