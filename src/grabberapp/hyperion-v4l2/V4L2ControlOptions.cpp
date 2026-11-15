@@ -1,8 +1,5 @@
 #include "V4L2ControlOptions.h"
 
-#include <cmath>
-#include <limits>
-
 QString applyV4L2ControlDefaults(V4L2ControlOptions& options, const QJsonObject& defaults, const QString& device)
 {
 	const struct
@@ -24,14 +21,15 @@ QString applyV4L2ControlDefaults(V4L2ControlOptions& options, const QJsonObject&
 			continue;
 		}
 
-		if (!value.isDouble() || !std::isfinite(value.toDouble()) ||
-		    value.toDouble() < std::numeric_limits<int>::min() || value.toDouble() > std::numeric_limits<int>::max() ||
-		    std::trunc(value.toDouble()) != value.toDouble())
+		// toInt() returns the fallback unless the value is a whole number that fits into an int,
+		// so differing results for two fallbacks identify an invalid value.
+		const int parsed = value.toInt(0);
+		if (parsed != value.toInt(1))
 		{
 			return QStringLiteral("Device %1 has an invalid default for --%2").arg(device, control.name);
 		}
 
-		control.value = static_cast<int>(value.toDouble());
+		control.value = parsed;
 	}
 
 	return QString();
