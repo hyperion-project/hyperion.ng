@@ -66,6 +66,11 @@ int runFlatbufferScreenGrabber(const QString& grabberName,
 	{
 		// Capture a single screenshot and finish
 		const Image<ColorRgb>& screenshot = grabber.getScreenshot();
+		if (screenshot.isNull())
+		{
+			emit errorManager.errorOccurred(QStringLiteral("Failed to capture a screenshot"));
+			return 1;
+		}
 		auto const fileName = QStringLiteral("screenshot.png");
 		saveScreenshot(fileName, screenshot);
 		Info(log, "Screenshot saved as: \"%s\"", QSTRING_CSTR(fileName));
