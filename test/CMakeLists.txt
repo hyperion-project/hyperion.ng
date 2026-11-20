@@ -42,6 +42,13 @@ endif(ENABLE_X11)
 add_executable(test_versions TestVersions.cpp)
 target_link_libraries(test_versions Qt${QT_VERSION_MAJOR}::Core)
 
+if(ENABLE_V4L2)
+	add_executable(test_v4l2_control_options
+		TestV4L2ControlOptions.cpp
+		../src/grabberapp/hyperion-v4l2/V4L2ControlOptions.cpp)
+	target_link_libraries(test_v4l2_control_options Qt${QT_VERSION_MAJOR}::Core)
+endif()
+
 add_executable(test_image2ledsmap TestImage2LedsMap.cpp "${CMAKE_BINARY_DIR}/resources.qrc")
 link_to_hyperion(test_image2ledsmap hyperion-utils)
 

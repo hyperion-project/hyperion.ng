@@ -11,8 +11,6 @@
 // qt
 #include <QTimer>
 
-Q_LOGGING_CATEGORY(grabber_flow, "hyperion.grabber.flow");
-
 GrabberWrapper* GrabberWrapper::instance = nullptr;
 const int GrabberWrapper::DEFAULT_RATE_HZ = 25;
 const int GrabberWrapper::DEFAULT_MIN_GRAB_RATE_HZ = 1;

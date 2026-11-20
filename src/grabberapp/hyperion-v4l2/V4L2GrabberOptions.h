@@ -6,6 +6,8 @@
 #include <utils/PixelFormat.h>
 #include <utils/VideoStandard.h>
 
+#include "V4L2ControlOptions.h"
+
 struct V4L2GrabberOptions
 {
 	QString device = QStringLiteral("auto");
@@ -21,6 +23,9 @@ struct V4L2GrabberOptions
 	int cropRight = 0;
 	int cropTop = 0;
 	int cropBottom = 0;
+
+	V4L2ControlOptions controls;
+	bool useControlDefaults = false;
 
 	bool video3DSBS = false;
 	bool video3DTAB = false;
@@ -41,7 +46,7 @@ struct V4L2GrabberOptions
 	bool screenshot = false;
 	bool debug = false;
 	bool help = false;
-	
+
 	QString address;
 	int priority = 150;
 

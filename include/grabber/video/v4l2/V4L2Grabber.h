@@ -1,25 +1,26 @@
 #pragma once
 
 // stl includes
-#include <vector>
 #include <map>
+#include <optional>
+#include <vector>
 
 // Qt includes
-#include <QObject>
+#include <QElapsedTimer>
 #include <QList>
-#include <QStringList>
-#include <QSocketNotifier>
-#include <QRectF>
 #include <QMap>
 #include <QMultiMap>
-#include <QElapsedTimer>
+#include <QObject>
+#include <QRectF>
+#include <QSocketNotifier>
+#include <QStringList>
 
 // util includes
-#include <utils/PixelFormat.h>
 #include <hyperion/Grabber.h>
 #include <hyperion/GrabberWrapper.h>
-#include <utils/VideoStandard.h>
 #include <utils/Components.h>
+#include <utils/PixelFormat.h>
+#include <utils/VideoStandard.h>
 
 // decoder thread includes
 #include <grabber/video/EncoderThread.h>
@@ -38,7 +39,6 @@ class V4L2Grabber : public Grabber
 	Q_OBJECT
 
 public:
-
 	struct DeviceProperties
 	{
 		QString name;
@@ -48,8 +48,8 @@ public:
 			QList<VideoStandard> standards;
 			struct EncodingProperties
 			{
-				int width		= 0;
-				int height		= 0;
+				int width = 0;
+				int height = 0;
 				QList<int> framerates;
 			};
 			QMultiMap<PixelFormat, EncodingProperties> encodingFormats;
@@ -78,12 +78,13 @@ public:
 	bool setWidthHeight(int width, int height) override;
 	void setEncoding(QString enc);
 	void setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue);
+	void setControlOverrides(const std::optional<int>& brightness, const std::optional<int>& contrast, const std::optional<int>& saturation, const std::optional<int>& hue);
 	void setSignalThreshold(double redSignalThreshold, double greenSignalThreshold, double blueSignalThreshold, int noSignalCounterThreshold = 50);
-	void setSignalDetectionOffset( double verticalMin, double horizontalMin, double verticalMax, double horizontalMax);
+	void setSignalDetectionOffset(double verticalMin, double horizontalMin, double verticalMax, double horizontalMax);
 	void setSignalDetectionEnable(bool enable);
 	bool reload(bool force = false);
 
-	QRectF getSignalDetectionOffset() const { return QRectF(_x_frac_min, _y_frac_min, _x_frac_max, _y_frac_max); } //used from hyperion-v4l2
+	QRectF getSignalDetectionOffset() const { return QRectF(_x_frac_min, _y_frac_min, _x_frac_max, _y_frac_max); } // used from hyperion-v4l2
 
 	///
 	/// @brief Discover available V4L2 USB devices (for configuration).
@@ -99,7 +100,7 @@ public slots:
 	void newThreadFrame(const Image<ColorRgb>& image);
 
 signals:
-	void newFrame(const Image<ColorRgb> & image);
+	void newFrame(const Image<ColorRgb>& image);
 	void readError(const char* err);
 
 private slots:
@@ -117,31 +118,31 @@ private:
 	void uninit_device();
 	void start_capturing();
 	void stop_capturing();
-	bool process_image(const void *p, int size);
-	int xioctl(int request, void *arg);
-	int xioctl(int fileDescriptor, int request, void *arg);
+	bool process_image(const void* p, int size);
+	int xioctl(int request, void* arg);
+	int xioctl(int fileDescriptor, int request, void* arg);
 
-	void throw_exception(const QString & error)
+	void throw_exception(const QString& error)
 	{
 		Error(_log, "Throws error: %s", QSTRING_CSTR(error));
 	}
 
-	void throw_errno_exception(const QString & error)
+	void throw_errno_exception(const QString& error)
 	{
 		Error(_log, "Throws error nr: %s", QSTRING_CSTR(QString(error + " error code " + QString::number(errno) + ", " + strerror(errno))));
 	}
 
 	enum io_method
 	{
-			IO_METHOD_READ,
-			IO_METHOD_MMAP,
-			IO_METHOD_USERPTR
+		IO_METHOD_READ,
+		IO_METHOD_MMAP,
+		IO_METHOD_USERPTR
 	};
 
 	struct buffer
 	{
-			void   *start;
-			size_t  length;
+		void* start;
+		size_t length;
 	};
 
 	QString _currentDevicePath;
@@ -162,22 +163,26 @@ private:
 	QAtomicInt _currentFrame;
 
 	// signal detection
-	int      _noSignalCounterThreshold;
+	int _noSignalCounterThreshold;
 	ColorRgb _noSignalThresholdColor;
 	bool _standbyActivated;
 	bool _signalDetectionEnabled;
 	bool _signalDetected;
-	int      _noSignalCounter;
-	int	_brightness;
+	int _noSignalCounter;
+	int _brightness;
 	int _contrast;
 	int _saturation;
 	int _hue;
+	bool _applyBrightness = true;
+	bool _applyContrast = true;
+	bool _applySaturation = true;
+	bool _applyHue = true;
 	double _x_frac_min;
 	double _y_frac_min;
 	double _x_frac_max;
 	double _y_frac_max;
 
-	QSocketNotifier *_streamNotifier;
+	QSocketNotifier* _streamNotifier;
 
 	bool _initialized;
 	bool _reload;
@@ -186,5 +191,5 @@ private:
 
 protected:
 	void enumVideoCaptureDevices();
-	void enumFrameIntervals(QList<int> &framerates, int fileDescriptor, int pixelformat, int width, int height);
+	void enumFrameIntervals(QList<int>& framerates, int fileDescriptor, int pixelformat, int width, int height);
 };

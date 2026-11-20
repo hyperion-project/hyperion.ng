@@ -1,5 +1,7 @@
 #include <grabber/GrabberTrace.h>
 
+Q_LOGGING_CATEGORY(grabber_flow, "hyperion.grabber.flow");
+
 Q_LOGGING_CATEGORY(grabber_screen_capture, "hyperion.grabber.screen.capture");
 Q_LOGGING_CATEGORY(grabber_screen_capture_failed, "hyperion.grabber.screen.capture.failed");
 Q_LOGGING_CATEGORY(grabber_screen_flow, "hyperion.grabber.screen.flow");

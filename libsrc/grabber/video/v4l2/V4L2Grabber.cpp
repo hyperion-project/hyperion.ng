@@ -393,7 +393,7 @@ bool V4L2Grabber::open_device()
 		return false;
 	}
 
-	// create the notifier for when a new frame is available
+	// create the notifier for when a new frame is _deviceControlsavailable
 	_streamNotifier = new QSocketNotifier(_fileDescriptor, QSocketNotifier::Read);
 	_streamNotifier->setEnabled(false);
 	connect(_streamNotifier, &QSocketNotifier::activated, this, &V4L2Grabber::read_frame);
@@ -790,38 +790,46 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 
 		if (_controlIDPropertyMap->key(control.property) == V4L2_CID_BRIGHTNESS)
 		{
-			if (_brightness >= control.minValue && _brightness <= control.maxValue && _brightness != control.currentValue)
+			if (_applyBrightness && _brightness >= control.minValue && _brightness <= control.maxValue && _brightness != control.currentValue)
 			{
 				control_S.value = _brightness;
 				if (xioctl(VIDIOC_S_CTRL, &control_S) >= 0)
 					Debug(_log,"Set brightness to %i", _brightness);
+				else
+					Error(_log, "Failed to set brightness to %i: %s", _brightness, strerror(errno));
 			}
 		}
 		else if (_controlIDPropertyMap->key(control.property) == V4L2_CID_CONTRAST)
 		{
-			if (_contrast >= control.minValue && _contrast <= control.maxValue && _contrast != control.currentValue)
+			if (_applyContrast && _contrast >= control.minValue && _contrast <= control.maxValue && _contrast != control.currentValue)
 			{
 				control_S.value = _contrast;
 				if (xioctl(VIDIOC_S_CTRL, &control_S) >= 0)
 					Debug(_log,"Set contrast to %i", _contrast);
+				else
+					Error(_log, "Failed to set contrast to %i: %s", _contrast, strerror(errno));
 			}
 		}
 		else if (_controlIDPropertyMap->key(control.property) == V4L2_CID_SATURATION)
 		{
-			if (_saturation >= control.minValue && _saturation <= control.maxValue && _saturation != control.currentValue)
+			if (_applySaturation && _saturation >= control.minValue && _saturation <= control.maxValue && _saturation != control.currentValue)
 			{
 				control_S.value = _saturation;
 				if (xioctl(VIDIOC_S_CTRL, &control_S) >= 0)
 					Debug(_log,"Set saturation to %i", _saturation);
+				else
+					Error(_log, "Failed to set saturation to %i: %s", _saturation, strerror(errno));
 			}
 		}
 		else if (_controlIDPropertyMap->key(control.property) == V4L2_CID_HUE)
 		{
-			if (_hue >= control.minValue && _hue <= control.maxValue && _hue != control.currentValue)
+			if (_applyHue && _hue >= control.minValue && _hue <= control.maxValue && _hue != control.currentValue)
 			{
 				control_S.value = _hue;
 				if (xioctl(VIDIOC_S_CTRL, &control_S) >= 0)
 					Debug(_log,"Set hue to %i", _hue);
+				else
+					Error(_log, "Failed to set hue to %i: %s", _hue, strerror(errno));
 			}
 		}
 	}
@@ -1371,12 +1379,43 @@ void V4L2Grabber::setEncoding(QString enc)
 
 void V4L2Grabber::setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue)
 {
-	if (_brightness != brightness || _contrast != contrast || _saturation != saturation || _hue != hue)
+	setControlOverrides(brightness, contrast, saturation, hue);
+}
+
+void V4L2Grabber::setControlOverrides(const std::optional<int>& brightness, const std::optional<int>& contrast,
+                                      const std::optional<int>& saturation, const std::optional<int>& hue)
+{
+	if (_applyBrightness != brightness.has_value() || _applyContrast != contrast.has_value() ||
+	    _applySaturation != saturation.has_value() || _applyHue != hue.has_value() ||
+	    (brightness && _brightness != *brightness) || (contrast && _contrast != *contrast) ||
+	    (saturation && _saturation != *saturation) || (hue && _hue != *hue))
 	{
-		_brightness = brightness;
-		_contrast = contrast;
-		_saturation = saturation;
-		_hue = hue;
+		_applyBrightness = brightness.has_value();
+		_applyContrast = contrast.has_value();
+		_applySaturation = saturation.has_value();
+		_applyHue = hue.has_value();
+
+		qCDebug(grabber_video_flow) << "Applying control overrides. Override brightness:" << _applyBrightness << " contrast:" << _applyContrast << " saturation:" << _applySaturation << " hue:" << _applyHue;
+		if (_applyBrightness) 
+		{ _brightness = *brightness;
+			qCDebug(grabber_video_flow) << "Brightness applied:" << _brightness;
+
+		}
+		if (_applyContrast) 
+		{ 
+			_contrast = *contrast;
+			qCDebug(grabber_video_flow) << "Contrast applied:" << _contrast;
+		}
+		if (_applySaturation) 
+		{ 
+			_saturation = *saturation;
+			qCDebug(grabber_video_flow) << "Saturation applied:" << _saturation;
+		}
+		if (_applyHue) 
+		{ 
+			_hue = *hue;
+			qCDebug(grabber_video_flow) << "Hue applied:" << _hue;
+		}
 
 		_reload = true;
 	}
@@ -1780,9 +1819,13 @@ void V4L2Grabber::enumVideoCaptureDevices()
 
 				queryctrl.id = itDeviceControls.key();
 				if (xioctl(fd, VIDIOC_QUERYCTRL, &queryctrl) < 0)
-					break;
+				{
+					continue;
+				}
 				if (queryctrl.flags & V4L2_CTRL_FLAG_DISABLED)
-					break;
+				{
+					continue;
+				}
 
 				DeviceControls control;
 				control.property = itDeviceControls.value();
@@ -1808,7 +1851,9 @@ void V4L2Grabber::enumVideoCaptureDevices()
 													   << ", current=" << control.currentValue;
 				}
 				else
-					break;
+				{
+					continue;
+				}
 
 				deviceControlList.append(control);
 			}

@@ -25,6 +25,8 @@ V4L2Wrapper::V4L2Wrapper(const V4L2GrabberOptions& opts)
 	// text advertises.
 	QString resolvedPath;
 	QString resolvedName;
+	QJsonObject resolvedProperties;
+	QJsonObject resolvedDefaults;
 	const bool autoDetect = opts.device.compare(QStringLiteral("auto"), Qt::CaseInsensitive) == 0;
 	const QJsonArray discovered = _grabber.discover(QJsonObject());
 	for (const QJsonValue& entry : discovered)
@@ -34,12 +36,27 @@ V4L2Wrapper::V4L2Wrapper(const V4L2GrabberOptions& opts)
 		{
 			resolvedPath = obj.value("device").toString();
 			resolvedName = obj.value("device_name").toString();
+			resolvedProperties = obj.value("properties").toObject();
+			resolvedDefaults = obj.value("default").toObject().value("properties").toObject();
 			_deviceResolved = true;
 			break;
 		}
 	}
 
 	_grabber.setDevice(_deviceResolved ? resolvedPath : opts.device, resolvedName);
+	V4L2ControlOptions controls = opts.controls;
+	if (_deviceResolved)
+	{
+		if (opts.useControlDefaults)
+		{
+			_configurationError = applyV4L2ControlDefaults(controls, resolvedDefaults, resolvedPath);
+		}
+		if (_configurationError.isEmpty())
+		{
+			_configurationError = validateV4L2ControlOptions(controls, resolvedProperties, resolvedPath);
+		}
+	}
+
 	_grabber.setInput(opts.input);
 	_grabber.setWidthHeight(opts.width, opts.height);
 	_grabber.setFramerate(opts.fps);
@@ -62,6 +79,8 @@ V4L2Wrapper::V4L2Wrapper(const V4L2GrabberOptions& opts)
 
 	_grabber.setCropping(opts.cropLeft, opts.cropRight, opts.cropTop, opts.cropBottom);
 
+	_grabber.setControlOverrides(controls.brightness, controls.contrast, controls.saturation, controls.hue);
+
 	if (opts.applySignalDetectionOffset)
 	{
 		_grabber.setSignalDetectionOffset(opts.signalHorizontalMin, opts.signalVerticalMin, opts.signalHorizontalMax, opts.signalVerticalMax);
@@ -72,7 +91,7 @@ V4L2Wrapper::V4L2Wrapper(const V4L2GrabberOptions& opts)
 
 bool V4L2Wrapper::screenInit()
 {
-	if (!_deviceResolved)
+	if (!_deviceResolved || !_configurationError.isEmpty())
 	{
 		return false;
 	}
