@@ -729,7 +729,7 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 
 void HyperionDaemon::updateScreenGrabbers(const QJsonDocument& grabberConfig)
 {
-#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB) && !defined(ENABLE_X11) && !defined(ENABLE_XCB) && !defined(ENABLE_AMLOGIC) && !defined(ENABLE_QT) && !defined(ENABLE_DX) && !defined(ENABLE_DDA) && !defined(ENABLE_DRM)
+#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB) && !defined(ENABLE_X11) && !defined(ENABLE_XCB) && !defined(ENABLE_AMLOGIC) && !defined(ENABLE_QT) && !defined(ENABLE_DX) && !defined(ENABLE_DDA) && !defined(ENABLE_DRM) && !defined(ENABLE_WAYLAND) && !defined(ENABLE_GAMESCOPE)
 	_screenGrabber.reset();
 	Info(_log, "No screen capture supported on this platform");
 	return;
@@ -818,6 +818,18 @@ void HyperionDaemon::updateScreenGrabbers(const QJsonDocument& grabberConfig)
 			startGrabber<XcbWrapper>(_screenGrabber, grabberConfig);
 		}
 #endif
+#ifdef ENABLE_WAYLAND
+		else if (type == "wayland")
+		{
+			startGrabber<WaylandWrapper>(_screenGrabber, grabberConfig);
+		}
+#endif
+#ifdef ENABLE_GAMESCOPE
+		else if (type == "gamescope")
+		{
+			startGrabber<GamescopeWrapper>(_screenGrabber, grabberConfig);
+		}
+#endif
 		else
 		{
 			_screenGrabber.reset();
@@ -890,8 +902,16 @@ QString HyperionDaemon::evalScreenGrabberType()
 		}
 		else
 		{
-			// x11 -> if DISPLAY is set
+			// wayland -> if WAYLAND_DISPLAY is set (X11 capture does not work there, even with XWayland)
 			QByteArray const envDisplay = qgetenv("DISPLAY");
+#ifdef ENABLE_WAYLAND
+			if (!qEnvironmentVariableIsEmpty("WAYLAND_DISPLAY"))
+			{
+				type = "wayland";
+			}
+			else
+#endif
+			// x11 -> if DISPLAY is set
 			if (!envDisplay.isEmpty())
 			{
 #if defined(ENABLE_X11)

@@ -21,8 +21,11 @@ namespace {
 	constexpr std::chrono::milliseconds DEFAULT_IDENTIFY_TIME{ 500 };
 
 	// tty discovery service
-	const char DISCOVERY_DIRECTORY[] = "/dev/";
-	const char DISCOVERY_FILEPATTERN[] = "tty*";
+	const char DISCOVERY_DIRECTORY_UDEV[] = "/dev";
+	const char DISCOVERY_FILEPATTERN_UDEV[] = "tty*";
+	// by-id discovery service
+	const char DISCOVERY_DIRECTORY_BY_ID[] = "/dev/serial/by-id";
+	const char DISCOVERY_FILEPATTERN_BY_ID[] = "*";
 } //End of constants
 
 ProviderRs232::ProviderRs232(const QJsonObject &deviceConfig)
@@ -161,7 +164,7 @@ bool ProviderRs232::tryOpen(int delayAfterConnect_ms)
 		QSerialPortInfo serialPortInfo(_deviceName);
 		if (serialPortInfo.isNull() )
 		{
-						QString errortext = QString("Invalid serial device: %1 %2!").arg(_deviceName, _location);
+			QString errortext = QString("Invalid serial device: %1 %2!").arg(_deviceName, _location);
 			this->setInError( errortext );
 			return false;
 		}
@@ -287,6 +290,34 @@ QString ProviderRs232::discoverFirst()
 	return "";
 }
 
+void ProviderRs232::discoverSymlinkDevices(QJsonArray& deviceList, const QString& deviceDirectory, const QStringList& deviceFilter, const QString& tag)
+{
+	QDir dir(deviceDirectory);
+	dir.setNameFilters(deviceFilter);
+	dir.setSorting(QDir::Name);
+	QFileInfoList deviceFiles = dir.entryInfoList(QDir::AllEntries);
+
+	for (const auto& deviceFile : deviceFiles)
+	{
+		if (deviceFile.isSymLink())
+		{
+			auto port = QSerialPortInfo(QSerialPort(deviceFile.symLinkTarget()));
+
+			QJsonObject portInfo;
+			portInfo.insert("portName", deviceFile.fileName());
+			portInfo.insert("systemLocation", deviceFile.absoluteFilePath());
+			portInfo.insert(tag, true);
+			portInfo.insert("description", port.description());
+			portInfo.insert("manufacturer", port.manufacturer());
+			portInfo.insert("productIdentifier", QString("0x%1").arg(port.productIdentifier(), 0, 16));
+			portInfo.insert("serialNumber", port.serialNumber());
+			portInfo.insert("vendorIdentifier", QString("0x%1").arg(port.vendorIdentifier(), 0, 16));
+
+			deviceList.append(portInfo);
+		}
+	}
+}
+
 QJsonObject ProviderRs232::discover(const QJsonObject& params)
 {
 	QJsonObject devicesDiscovered;
@@ -315,33 +346,10 @@ QJsonObject ProviderRs232::discover(const QJsonObject& params)
 	}
 
 #ifndef _WIN32
-	//Check all /dev/tty* files, if they are udev-serial devices
-	QDir deviceDirectory (DISCOVERY_DIRECTORY);
-	QStringList deviceFilter(DISCOVERY_FILEPATTERN);
-	deviceDirectory.setNameFilters(deviceFilter);
-	deviceDirectory.setSorting(QDir::Name);
-	QFileInfoList deviceFiles = deviceDirectory.entryInfoList(QDir::AllEntries);
-
-	for (const auto& deviceFile : deviceFiles)
-	{
-		if (deviceFile.isSymLink())
-		{
-			auto port = QSerialPortInfo(QSerialPort(deviceFile.symLinkTarget()));
-
-			QJsonObject portInfo;
-			portInfo.insert("portName", deviceFile.fileName());
-			portInfo.insert("systemLocation", deviceFile.absoluteFilePath());
-			portInfo.insert("udev", true);
-
-			portInfo.insert("description", port.description());
-			portInfo.insert("manufacturer", port.manufacturer());
-			portInfo.insert("productIdentifier", QString("0x%1").arg(port.productIdentifier(), 0, 16));
-			portInfo.insert("serialNumber", port.serialNumber());
-			portInfo.insert("vendorIdentifier", QString("0x%1").arg(port.vendorIdentifier(), 0, 16));
-
-			deviceList.append(portInfo);
-		}
-	}
+	//Add all /dev/tty* files, if they are udev-serial devices
+	discoverSymlinkDevices(deviceList, DISCOVERY_DIRECTORY_UDEV, QStringList(DISCOVERY_FILEPATTERN_UDEV), "udev");
+	//Add all /dev/serial/by-id devices
+	discoverSymlinkDevices(deviceList, DISCOVERY_DIRECTORY_BY_ID, QStringList(DISCOVERY_FILEPATTERN_BY_ID), "byId");
 #endif
 
 	devicesDiscovered.insert("devices", deviceList);

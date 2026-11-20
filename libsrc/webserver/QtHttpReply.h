@@ -11,12 +11,11 @@ class QtHttpServer;
 class QtHttpReply : public QObject
 {
 	Q_OBJECT
-	Q_ENUMS (StatusCode)
 
 public:
 	explicit QtHttpReply (QtHttpServer * parent);
 
-	enum StatusCode
+	enum class StatusCode
 	{
 		Ok                 = 200,
 		NoContent          = 204,
@@ -30,8 +29,9 @@ public:
 		BadGateway         = 502,
 		ServiceUnavailable = 503,
 	};
+	Q_ENUM(StatusCode)
 
-	int               getRawDataSize (void) const { return m_data.size();         };
+	qsizetype         getRawDataSize (void) const { return m_data.size();         };
 	bool              useChunked     (void) const { return m_useChunked;          };
 	StatusCode        getStatusCode  (void) const { return m_statusCode;          };
 	QByteArray        getRawData     (void) const { return m_data;                };

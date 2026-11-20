@@ -207,6 +207,8 @@
                "gammaBlue":2.2,
                "backlightThreshold":0,
                "backlightColored":false,
+               "turnOnThreshold":0,
+               "turnOffThreshold":0,
                "brightness":100,
                "brightnessCompensation":100,
                "saturationGain":1.0,

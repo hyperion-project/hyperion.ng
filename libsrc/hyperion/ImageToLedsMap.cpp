@@ -93,7 +93,8 @@ ImageToLedsMap::ImageToLedsMap(
 		{
 			for (int x = minX_idx; x < maxXLedCount; x += _nextPixelCount)
 			{
-				ledColors.append( y * actualWidth + x);
+				// x and y already include the border offsets, so the row stride is the full image width
+				ledColors.append(y * _width + x);
 			}
 		}
 

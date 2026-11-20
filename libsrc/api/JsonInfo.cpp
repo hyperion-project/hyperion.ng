@@ -128,6 +128,8 @@ QJsonArray JsonInfo::getAdjustmentInfo(const QSharedPointer<Hyperion>& hyperionI
 
 		adjustment["backlightThreshold"] = colorAdjustment->_rgbTransform.getBacklightThreshold();
 		adjustment["backlightColored"] = colorAdjustment->_rgbTransform.getBacklightColored();
+		adjustment["turnOnThreshold"] = colorAdjustment->_rgbTransform.getTurnOnThreshold();
+		adjustment["turnOffThreshold"] = colorAdjustment->_rgbTransform.getTurnOffThreshold();
 		adjustment["brightness"] = colorAdjustment->_rgbTransform.getBrightness();
 		adjustment["brightnessCompensation"] = colorAdjustment->_rgbTransform.getBrightnessCompensation();
 		adjustment["gammaRed"] = colorAdjustment->_rgbTransform.getGammaR();
@@ -744,6 +746,14 @@ QJsonArray JsonInfo::discoverScreenInputs(const QJsonObject& params) const
 
 #ifdef ENABLE_XCB
 	discoverGrabber<XcbGrabber>(screenInputs, params);
+#endif
+
+#ifdef ENABLE_WAYLAND
+	discoverGrabber<WaylandGrabber>(screenInputs, params);
+#endif
+
+#ifdef ENABLE_GAMESCOPE
+	discoverGrabber<GamescopeGrabber>(screenInputs, params);
 #endif
 
 #if defined(ENABLE_FB) && !defined(ENABLE_AMLOGIC)

@@ -534,6 +534,14 @@ private slots:
 	/// Report image processing statistics
 	///
 	void reportImagesProcessedStatistics();
+
+	///
+	/// @brief Annotate or crop the image with borders depending on the detected black borders.
+	/// @param image The image with tailored according to detected borders or the original image
+	/// @note This function will emit the processed image via the currentImage signal.
+	///
+	void handleBorderdImage(const Image<ColorRgb>& image);
+
 	///
 	/// @brief Process images for output.
 	///

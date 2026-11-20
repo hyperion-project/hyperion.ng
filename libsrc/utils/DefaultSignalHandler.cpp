@@ -125,19 +125,34 @@ namespace DefaultSignalHandler {
 			return result;
 		}
 
-		auto* begin = strchr(trace.c_str(), '(') + 1;
-		auto* end = strchr(begin, '+');
-		if (!end) end = strchr(begin, ')');
+		// glibc:  "binary(mangled+offset) [address]"
+		// macOS:  "index  binary  address mangled + offset"
+		std::string::size_type begin;
+		std::string::size_type end;
 
-		std::string mangled_name(begin, end);
+		const std::string::size_type open = trace.find('(');
+		if (open != std::string::npos) {
+			begin = open + 1;
+			end = trace.find_first_of("+)", begin);
+		}
+		else {
+			end = trace.rfind(" + ");
+			if (end == std::string::npos || end == 0) return trace;
+			begin = trace.rfind(' ', end - 1);
+			if (begin == std::string::npos) return trace;
+			++begin;
+		}
+
+		if (end == std::string::npos || end <= begin) return trace;
+
+		const std::string mangled_name = trace.substr(begin, end - begin);
 		int status;
 		char* realname = abi::__cxa_demangle(mangled_name.c_str(), 0, 0, &status);
 
-		result.insert(result.end(), trace.c_str(), begin);
-		if (realname) result += realname;
-		else result.insert(result.end(), begin, end);
+		result = trace.substr(0, begin);
+		result += realname ? realname : mangled_name;
 		free(realname);
-		result.insert(result.size(), end);
+		result += trace.substr(end);
 
 		return result;
 	}

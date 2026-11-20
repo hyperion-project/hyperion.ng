@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New Juggler Effect
 - Support for **Robobloq** devices
 - Show OS Suspend/Screensaver/-locking support in the About screen
+- Color adjustment: Add configurable per-LED brightness hysteresis thresholds to help prevent flicker near black (#1968).
+- Serial-LED-Devices: Support to add devices via /dev/serial/by-id (#1511)
+- Wayland Screen Grabber and grabber app (xdg-desktop-portal ScreenCast and PipeWire), build option `ENABLE_WAYLAND` (#1096) _Thanks to @aleemont1_
+- Gamescope Screen Grabber (PipeWire), build option `ENABLE_GAMESCOPE` (#1096, #2033) _Thanks to @bhill00_
 ---
 
 ### 🔧 Changed
@@ -35,8 +39,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - LinearColorSmoothing - fix incorrect output interval calculation, fix handling for update frequency >= 1000Hz
   - macOS Screen Capture - Do not take a one-shot screenshot per frame. Use a continuous ScreenCaptureKit stream instead, which is established once. This removes the per-frame shareable content enumeration (WindowServer/replayd CPU) and stops the Screen Recording indicator from flickering, which pinned the macOS Control Center close to 100% CPU (#2046, #2039, #1921)
   - X11/XCB-Grabbers - fix that client leaks when repeatedly enabled/disabled (#2035)
+  - ImageToLedsMap - Pixel index was calculated wrong for images with detected borders (#2023)
   - QHttpServer - Fix memory leak
   - OS events - Lock/screensaver events were ignored when Hyperion runs without being a GUI application, although the session bus is available. The WebUI hid the lock options for every non-GUI Hyperion (#2062) - _Thanks to @aleemont1_
+  - macOS Signal Handler - Exit after a crash instead of hanging at 100% CPU. The stack trace parser assumed the glibc format and faulted on macOS traces
+  - V4l2-Grabber - Fix MJPEG support identification and show all supported formats in the help text dynamically (#2072)
 
 ---
 ### Technical
@@ -57,6 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Housekeeping - GitHub builds
 - Script to validate translations files for common malformed placeholder/template tokens that may break the i18n parser
 - Update CodeQL runs to exclude external code, plus addressed CodeQL findings
+- Debug support - Annotate or crop the image with borders depending on the detected black borders
 
 ## [2.2.1](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.2.1) - 2026-04-06
 
@@ -1039,4 +1047,3 @@ If you used a `.deb` package please uninstall it before you upgrade
 ## [2.0.0-alpha.1](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.0-alpha.1) - 2020-02-16
 ### Added
 - Initial Release
-
