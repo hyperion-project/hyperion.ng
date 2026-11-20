@@ -344,24 +344,37 @@ void OsEventHandlerWindows::unregisterOsEventHandler()
 	}
 }
 
+bool OsEventHandlerWindows::isLockHandlerSupported()
+{
+	// The notification window requires Qt Widgets, i.e. a QApplication (not available in service mode)
+	return qobject_cast<QApplication*>(QCoreApplication::instance()) != nullptr;
+}
+
 bool OsEventHandlerWindows::registerLockHandler()
 {
 	bool isRegistered{ _isLockRegistered };
 	if (!_isLockRegistered)
 	{
-		_widget = new QWidget();
-		if (_widget)
+		if (!isLockHandlerSupported())
 		{
-			auto handle = reinterpret_cast<HWND> (_widget->winId());
-			if (WTSRegisterSessionNotification(handle, NOTIFY_FOR_THIS_SESSION))
-			{
-				QCoreApplication::instance()->installNativeEventFilter(this);
-				isRegistered = true;
-			}
-			else
-			{
-				Error(_log, "Could not register for lock/unlock events!");
-			}
+			Info(_log, "The lock/unlock feature is not supported in non-GUI mode on Windows");
+			return false;
+		}
+
+		if (!_widget)
+		{
+			_widget = new QWidget();
+		}
+
+		auto handle = reinterpret_cast<HWND> (_widget->winId());
+		if (WTSRegisterSessionNotification(handle, NOTIFY_FOR_THIS_SESSION))
+		{
+			QCoreApplication::instance()->installNativeEventFilter(this);
+			isRegistered = true;
+		}
+		else
+		{
+			Error(_log, "Could not register for lock/unlock events!");
 		}
 	}
 
@@ -374,7 +387,7 @@ bool OsEventHandlerWindows::registerLockHandler()
 
 void OsEventHandlerWindows::unregisterLockHandler()
 {
-	if (_isLockRegistered)
+	if (_isLockRegistered && _widget)
 	{
 		auto handle = reinterpret_cast<HWND> (_widget->winId());
 		QCoreApplication::instance()->removeNativeEventFilter(this);
@@ -429,6 +442,16 @@ namespace {
 		{"ScreenSaver", {"org.gnome.ScreenSaver","/org/gnome/ScreenSaver","org.gnome.ScreenSaver","ActiveChanged"}},
 	};
 } //End of constants
+
+bool OsEventHandlerLinux::isSuspendHandlerSupported()
+{
+	return QDBusConnection::systemBus().isConnected();
+}
+
+bool OsEventHandlerLinux::isLockHandlerSupported()
+{
+	return QDBusConnection::sessionBus().isConnected();
+}
 
 bool OsEventHandlerLinux::registerOsEventHandler()
 {
@@ -583,9 +606,31 @@ void OsEventHandlerLinux::unregisterLockHandler()
 		_isLockRegistered = false;
 	}
 }
+#else
+bool OsEventHandlerLinux::isSuspendHandlerSupported()
+{
+	return false;
+}
+
+bool OsEventHandlerLinux::isLockHandlerSupported()
+{
+	return false;
+}
 #endif // HYPERION_HAS_DBUS
 
 #elif defined(__APPLE__)
+
+bool OsEventHandlerMacOS::isLockHandlerSupported()
+{
+	// Lock event handling is always available on macOS.
+	return true;
+}
+
+bool OsEventHandlerMacOS::isSuspendHandlerSupported()
+{
+	// Suspend event handling is always available on macOS.
+	return true;
+}
 
 OsEventHandlerMacOS::OsEventHandlerMacOS()
 	: _sleepEventHandler(nullptr)

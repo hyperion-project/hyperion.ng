@@ -80,6 +80,10 @@ public:
 	virtual bool isLockHandlerRegistered() { return _isLockRegistered; }
 	virtual bool isSuspendHandlerRegistered() { return _isSuspendRegistered; }
 
+	// Platform capabilities, independent of the current enable settings
+	virtual bool isLockHandlerSupported() { return false; }
+	virtual bool isSuspendHandlerSupported() { return false; }
+
 protected:
 	bool _isSuspendEnabled;
 	bool _isLockEnabled;
@@ -114,6 +118,9 @@ public:
 	~OsEventHandlerWindows();
 
 	void handleSuspendResumeEvent(bool sleep);
+
+	bool isLockHandlerSupported() override;
+	bool isSuspendHandlerSupported() override { return true; }
 
 protected:
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
@@ -154,6 +161,9 @@ class OsEventHandlerLinux : public OsEventHandlerBase,
 public:
 	void handleSignal(int signum);
 
+	bool isLockHandlerSupported() override;
+	bool isSuspendHandlerSupported() override;
+
 private:
 	OsEventHandlerLinux();
 
@@ -174,6 +184,10 @@ class OsEventHandlerMacOS : public OsEventHandlerBase,
 {
 	Q_OBJECT
 	friend class OsEventHandlerSingleton<OsEventHandlerMacOS>;
+
+public:
+	bool isLockHandlerSupported() override;
+	bool isSuspendHandlerSupported() override;
 
 private:
 	OsEventHandlerMacOS();

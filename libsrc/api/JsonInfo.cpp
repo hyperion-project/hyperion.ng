@@ -641,8 +641,8 @@ QJsonObject JsonInfo::getSystemInfo()
 
 	QCoreApplication* app = QCoreApplication::instance();
 	hyperionInfo["isGuiMode"] = qobject_cast<QApplication*>(app) != nullptr;
-	hyperionInfo["suspendEventsAvailable"] = OsEventHandler::getInstance()->isSuspendHandlerRegistered();
-	hyperionInfo["lockEventsAvailable"] = OsEventHandler::getInstance()->isLockHandlerRegistered();
+	hyperionInfo["suspendEventsAvailable"] = OsEventHandler::getInstance()->isSuspendHandlerSupported();
+	hyperionInfo["lockEventsAvailable"] = OsEventHandler::getInstance()->isLockHandlerSupported();
 
 	info["hyperion"] = hyperionInfo;
 
