@@ -60,7 +60,6 @@ void OsEventHandlerBase::handleSettingsUpdate(settings::type type, const QJsonDo
 		const QJsonObject& obj = config.object();
 
 		//Suspend on lock or go into idle mode
-		bool prevIsSuspendOnLock = _isSuspendOnLock;
 		_isSuspendOnLock = obj["suspendOnLockEnable"].toBool(false);
 
 		//Handle OS event related configurations
@@ -76,7 +75,7 @@ void OsEventHandlerBase::handleSettingsUpdate(settings::type type, const QJsonDo
 		}
 
 		_isLockEnabled = obj["lockEnable"].toBool(true);
-		if (_isLockEnabled || _isSuspendOnLock != prevIsSuspendOnLock)
+		if (_isLockEnabled || _isSuspendOnLock)
 		{
 			// Listen to lock/screensaver events received by the OS
 			registerLockHandler();
