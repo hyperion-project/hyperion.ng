@@ -6,6 +6,7 @@
 #include <utils/ColorSys.h>
 #include <leddevice/LedDeviceWrapper.h>
 #include <utils/SysInfo.h>
+#include <events/OsEventHandler.h>
 #include <hyperion/AuthManager.h>
 #include <QCoreApplication>
 #include <QApplication>
@@ -640,6 +641,8 @@ QJsonObject JsonInfo::getSystemInfo()
 
 	QCoreApplication* app = QCoreApplication::instance();
 	hyperionInfo["isGuiMode"] = qobject_cast<QApplication*>(app) != nullptr;
+	hyperionInfo["suspendEventsAvailable"] = OsEventHandler::getInstance()->isSuspendHandlerSupported();
+	hyperionInfo["lockEventsAvailable"] = OsEventHandler::getInstance()->isLockHandlerSupported();
 
 	info["hyperion"] = hyperionInfo;
 

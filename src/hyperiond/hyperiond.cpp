@@ -598,9 +598,8 @@ void HyperionDaemon::startEventServices()
 	_eventScheduler->handleSettingsUpdate(settings::SCHEDEVENTS, getSetting(settings::SCHEDEVENTS));
 	connect(this, &HyperionDaemon::settingsChanged, _eventScheduler.get(), &EventScheduler::handleSettingsUpdate);
 
-	_osEventHandler.reset(new OsEventHandler());
-	_osEventHandler->handleSettingsUpdate(settings::OSEVENTS, getSetting(settings::OSEVENTS));
-	connect(this, &HyperionDaemon::settingsChanged, _osEventHandler.get(), &OsEventHandler::handleSettingsUpdate);
+	OsEventHandler::getInstance()->handleSettingsUpdate(settings::OSEVENTS, getSetting(settings::OSEVENTS));
+	connect(this, &HyperionDaemon::settingsChanged, OsEventHandler::getInstance().get(), &OsEventHandler::handleSettingsUpdate);
 
 #if defined(ENABLE_CEC)
 	_cecHandlerThread.reset(new QThread());
@@ -627,7 +626,8 @@ void HyperionDaemon::stopEventServices()
 	);
 #endif
 
-	_osEventHandler.reset(nullptr);
+	OsEventHandler::destroyInstance();
+
 	_eventScheduler.reset(nullptr);
 
 	// Destroy EventHandler singleton explicitly during shutdown

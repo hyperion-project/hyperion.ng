@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - V4L2/ImageResampler: add support for pixelformats YUV422P and NV21
 - New Juggler Effect
 - Support for **Robobloq** devices
+- Show OS Suspend/Screensaver/-locking support in the About screen
 - Color adjustment: Add configurable per-LED brightness hysteresis thresholds to help prevent flicker near black (#1968).
 - Serial-LED-Devices: Support to add devices via /dev/serial/by-id (#1511)
 - Wayland Screen Grabber and grabber app (xdg-desktop-portal ScreenCast and PipeWire), build option `ENABLE_WAYLAND` (#1096) _Thanks to @aleemont1_
@@ -40,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - X11/XCB-Grabbers - fix that client leaks when repeatedly enabled/disabled (#2035)
   - ImageToLedsMap - Pixel index was calculated wrong for images with detected borders (#2023)
   - QHttpServer - Fix memory leak
+  - OS events - Lock/screensaver events were ignored when Hyperion runs without being a GUI application, although the session bus is available. The WebUI hid the lock options for every non-GUI Hyperion (#2062) - _Thanks to @aleemont1_
   - macOS Signal Handler - Exit after a crash instead of hanging at 100% CPU. The stack trace parser assumed the glibc format and faulted on macOS traces
   - V4l2-Grabber - Fix MJPEG support identification and show all supported formats in the help text dynamically (#2072)
 

@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QJsonDocument>
 #include <QLoggingCategory>
+#include <QScopedPointer>
 
 #include <events/EventEnum.h>
 
@@ -22,14 +23,42 @@ Q_DECLARE_LOGGING_CATEGORY(event_os);
 
 class Logger;
 
+// ---------------------------------------------------------------------------
+// Singleton mixin — provides getInstance() / destroyInstance() for the exact
+// concrete type Derived without touching QObject or requiring Q_OBJECT.
+// ---------------------------------------------------------------------------
+template <typename Derived>
+class OsEventHandlerSingleton
+{
+public:
+	static QScopedPointer<Derived>& getInstance()
+	{
+		if (instance.isNull())
+			instance.reset(new Derived());
+		return instance;
+	}
+
+	static void destroyInstance()
+	{
+		instance.reset();
+	}
+
+protected:
+	static QScopedPointer<Derived> instance;
+};
+
+template <typename Derived>
+QScopedPointer<Derived> OsEventHandlerSingleton<Derived>::instance;
+
+// ---------------------------------------------------------------------------
+// Base class — shared logic, NO singleton machinery here.
+// ---------------------------------------------------------------------------
 class OsEventHandlerBase : public QObject
 {
 	Q_OBJECT
 
 public:
-
-	OsEventHandlerBase();
-	virtual ~OsEventHandlerBase();
+	~OsEventHandlerBase() override;
 
 public slots:
 	void suspend(bool sleep);
@@ -47,6 +76,15 @@ protected:
 	virtual bool registerLockHandler() { return true; }
 	virtual void unregisterLockHandler() {}
 
+public:
+	virtual bool isLockHandlerRegistered() { return _isLockRegistered; }
+	virtual bool isSuspendHandlerRegistered() { return _isSuspendRegistered; }
+
+	// Platform capabilities, independent of the current enable settings
+	virtual bool isLockHandlerSupported() { return false; }
+	virtual bool isSuspendHandlerSupported() { return false; }
+
+protected:
 	bool _isSuspendEnabled;
 	bool _isLockEnabled;
 	bool _isSuspendOnLock;
@@ -54,22 +92,35 @@ protected:
 	bool _isSuspendRegistered;
 	bool _isLockRegistered;
 
-	bool _isService;
-
 	QSharedPointer<Logger> _log;
+
+	OsEventHandlerBase();
+	OsEventHandlerBase(const OsEventHandlerBase&) = delete;
+	OsEventHandlerBase& operator=(const OsEventHandlerBase&) = delete;
+
+private:
+	void applyLockState();
 };
+
+// ---------------------------------------------------------------------------
+// Platform-specific subclasses — each inherits both the base and the mixin.
+// ---------------------------------------------------------------------------
 
 #if defined(_WIN32)
 
-class OsEventHandlerWindows : public OsEventHandlerBase, public QAbstractNativeEventFilter
+class OsEventHandlerWindows : public OsEventHandlerBase,
+                              public OsEventHandlerSingleton<OsEventHandlerWindows>,
+                              public QAbstractNativeEventFilter
 {
+	friend class OsEventHandlerSingleton<OsEventHandlerWindows>;
+
 public:
-	OsEventHandlerWindows();
 	~OsEventHandlerWindows();
 
-	static QScopedPointer<OsEventHandlerWindows>& getInstance();
-
 	void handleSuspendResumeEvent(bool sleep);
+
+	bool isLockHandlerSupported() override;
+	bool isSuspendHandlerSupported() override { return true; }
 
 protected:
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
@@ -84,21 +135,23 @@ protected:
 	void unregisterLockHandler() override;
 
 private:
-
-	static QScopedPointer<OsEventHandlerWindows> instance;
+	OsEventHandlerWindows();
 
 	static DEVICE_NOTIFY_CALLBACK_ROUTINE handlePowerNotifications;
 
 	QWidget* _widget;
-	HPOWERNOTIFY	_notifyHandle;
+	HPOWERNOTIFY _notifyHandle;
 };
 
 using OsEventHandler = OsEventHandlerWindows;
 
 #elif defined(__linux__)
-class OsEventHandlerLinux : public OsEventHandlerBase
+
+class OsEventHandlerLinux : public OsEventHandlerBase,
+                            public OsEventHandlerSingleton<OsEventHandlerLinux>
 {
 	Q_OBJECT
+	friend class OsEventHandlerSingleton<OsEventHandlerLinux>;
 
 	static void static_signaleHandler(int signum)
 	{
@@ -106,14 +159,13 @@ class OsEventHandlerLinux : public OsEventHandlerBase
 	}
 
 public:
-	OsEventHandlerLinux();
-
-	static QScopedPointer<OsEventHandlerLinux>& getInstance();
-
 	void handleSignal(int signum);
 
+	bool isLockHandlerSupported() override;
+	bool isSuspendHandlerSupported() override;
+
 private:
-	static QScopedPointer<OsEventHandlerLinux> instance;
+	OsEventHandlerLinux();
 
 #if defined(HYPERION_HAS_DBUS)
 	bool registerOsEventHandler() override;
@@ -126,17 +178,19 @@ private:
 using OsEventHandler = OsEventHandlerLinux;
 
 #elif defined(__APPLE__)
-class OsEventHandlerMacOS : public OsEventHandlerBase
+
+class OsEventHandlerMacOS : public OsEventHandlerBase,
+                            public OsEventHandlerSingleton<OsEventHandlerMacOS>
 {
 	Q_OBJECT
+	friend class OsEventHandlerSingleton<OsEventHandlerMacOS>;
 
 public:
-	OsEventHandlerMacOS();
-
-	static QScopedPointer<OsEventHandlerMacOS>& getInstance();
+	bool isLockHandlerSupported() override;
+	bool isSuspendHandlerSupported() override;
 
 private:
-	static QScopedPointer<OsEventHandlerMacOS> instance;
+	OsEventHandlerMacOS();
 
 	bool registerOsEventHandler() override;
 	void unregisterOsEventHandler() override;
@@ -150,7 +204,17 @@ private:
 using OsEventHandler = OsEventHandlerMacOS;
 
 #else
-using OsEventHandler = OsEventHandlerBase;
+
+// Fallback: base itself is the concrete singleton target.
+class OsEventHandlerFallback : public OsEventHandlerBase,
+                               public OsEventHandlerSingleton<OsEventHandlerFallback>
+{
+	friend class OsEventHandlerSingleton<OsEventHandlerFallback>;
+	OsEventHandlerFallback() = default;
+};
+
+using OsEventHandler = OsEventHandlerFallback;
+
 #endif
 
 #endif // OSEVENTHANDLER_H

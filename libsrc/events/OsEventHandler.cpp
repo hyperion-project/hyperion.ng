@@ -31,17 +31,11 @@ OsEventHandlerBase::OsEventHandlerBase()
 	, _isSuspendOnLock(false)
 	, _isSuspendRegistered(false)
 	, _isLockRegistered(false)
-	, _isService(false)
 {
 	TRACK_SCOPE();
 	qRegisterMetaType<Event>("Event");
 	_log = Logger::getInstance("EVENTS-OS");
 
-	QCoreApplication* app = QCoreApplication::instance();
-	if (qobject_cast<QApplication*>(app) == nullptr)
-	{
-		_isService = true;
-	}
 	QObject::connect(this, &OsEventHandlerBase::signalEvent, EventHandler::getInstance().data(), &EventHandler::handleEvent);
 
 	Debug(_log, "Operating System event handler created");
@@ -66,7 +60,6 @@ void OsEventHandlerBase::handleSettingsUpdate(settings::type type, const QJsonDo
 		const QJsonObject& obj = config.object();
 
 		//Suspend on lock or go into idle mode
-		bool prevIsSuspendOnLock = _isSuspendOnLock;
 		_isSuspendOnLock = obj["suspendOnLockEnable"].toBool(false);
 
 		//Handle OS event related configurations
@@ -81,19 +74,19 @@ void OsEventHandlerBase::handleSettingsUpdate(settings::type type, const QJsonDo
 			unregisterOsEventHandler();
 		}
 
-		if (!_isService)
+		_isLockEnabled = obj["lockEnable"].toBool(true);
+		if (_isLockEnabled || _isSuspendOnLock)
 		{
-			_isLockEnabled = obj["lockEnable"].toBool(true);
-			if (_isLockEnabled || _isSuspendOnLock != prevIsSuspendOnLock)
-			{
-				// Listen to lock/screensaver events received by the OS
-				registerLockHandler();
-			}
-			else
-			{
-				unregisterLockHandler();
-			}
+			// Listen to lock/screensaver events received by the OS
+			registerLockHandler();
 		}
+		else
+		{
+			unregisterLockHandler();
+		}
+
+		qCDebug(event_os) << "isSuspendEnabled:" << _isSuspendEnabled << "isLockEnabled:" << _isLockEnabled << "isSuspendOnLock:" << _isSuspendOnLock;
+		qCDebug(event_os) << "isSuspendRegistered:" << _isSuspendRegistered << "isLockRegistered:" << _isLockRegistered;
 	}
 }
 
@@ -238,18 +231,6 @@ inline void debugPowerNotification(ULONG Type, PVOID Setting)
 	}
 }
 
-QScopedPointer<OsEventHandlerWindows> OsEventHandlerWindows::instance;
-
-QScopedPointer<OsEventHandlerWindows>& OsEventHandlerWindows::getInstance()
-{
-	if (instance.isNull())
-	{
-		instance.reset(new OsEventHandlerWindows());
-	}
-
-	return instance;
-}
-
 OsEventHandlerWindows::OsEventHandlerWindows()
 	: _notifyHandle(NULL),
 	_widget(nullptr)
@@ -362,27 +343,37 @@ void OsEventHandlerWindows::unregisterOsEventHandler()
 	}
 }
 
+bool OsEventHandlerWindows::isLockHandlerSupported()
+{
+	// The notification window requires Qt Widgets, i.e. a QApplication (not available in service mode)
+	return qobject_cast<QApplication*>(QCoreApplication::instance()) != nullptr;
+}
+
 bool OsEventHandlerWindows::registerLockHandler()
 {
 	bool isRegistered{ _isLockRegistered };
 	if (!_isLockRegistered)
 	{
-		if (!_isService)
+		if (!isLockHandlerSupported())
+		{
+			Info(_log, "The lock/unlock feature is not supported in non-GUI mode on Windows");
+			return false;
+		}
+
+		if (!_widget)
 		{
 			_widget = new QWidget();
-			if (_widget)
-			{
-				auto handle = reinterpret_cast<HWND> (_widget->winId());
-				if (WTSRegisterSessionNotification(handle, NOTIFY_FOR_THIS_SESSION))
-				{
-					QCoreApplication::instance()->installNativeEventFilter(this);
-					isRegistered = true;
-				}
-				else
-				{
-					Error(_log, "Could not register for lock/unlock events!");
-				}
-			}
+		}
+
+		auto handle = reinterpret_cast<HWND> (_widget->winId());
+		if (WTSRegisterSessionNotification(handle, NOTIFY_FOR_THIS_SESSION))
+		{
+			QCoreApplication::instance()->installNativeEventFilter(this);
+			isRegistered = true;
+		}
+		else
+		{
+			Error(_log, "Could not register for lock/unlock events!");
 		}
 	}
 
@@ -395,33 +386,18 @@ bool OsEventHandlerWindows::registerLockHandler()
 
 void OsEventHandlerWindows::unregisterLockHandler()
 {
-	if (_isLockRegistered)
+	if (_isLockRegistered && _widget)
 	{
-		if (!_isService)
-		{
-			auto handle = reinterpret_cast<HWND> (_widget->winId());
-			QCoreApplication::instance()->removeNativeEventFilter(this);
-			WTSUnRegisterSessionNotification(handle);
-			_isLockRegistered = false;
-		}
+		auto handle = reinterpret_cast<HWND> (_widget->winId());
+		QCoreApplication::instance()->removeNativeEventFilter(this);
+		WTSUnRegisterSessionNotification(handle);
+		_isLockRegistered = false;
 	}
 }
 
 #elif defined(__linux__)
 
 #include <csignal>
-
-QScopedPointer<OsEventHandlerLinux> OsEventHandlerLinux::instance;
-
-QScopedPointer<OsEventHandlerLinux>& OsEventHandlerLinux::getInstance()
-{
-	if (!instance)
-	{
-		instance.reset(new OsEventHandlerLinux());
-	}
-
-	return instance;
-}
 
 OsEventHandlerLinux::OsEventHandlerLinux()
 {
@@ -465,6 +441,16 @@ namespace {
 		{"ScreenSaver", {"org.gnome.ScreenSaver","/org/gnome/ScreenSaver","org.gnome.ScreenSaver","ActiveChanged"}},
 	};
 } //End of constants
+
+bool OsEventHandlerLinux::isSuspendHandlerSupported()
+{
+	return QDBusConnection::systemBus().isConnected();
+}
+
+bool OsEventHandlerLinux::isLockHandlerSupported()
+{
+	return QDBusConnection::sessionBus().isConnected();
+}
 
 bool OsEventHandlerLinux::registerOsEventHandler()
 {
@@ -619,20 +605,30 @@ void OsEventHandlerLinux::unregisterLockHandler()
 		_isLockRegistered = false;
 	}
 }
+#else
+bool OsEventHandlerLinux::isSuspendHandlerSupported()
+{
+	return false;
+}
+
+bool OsEventHandlerLinux::isLockHandlerSupported()
+{
+	return false;
+}
 #endif // HYPERION_HAS_DBUS
 
 #elif defined(__APPLE__)
 
-QScopedPointer<OsEventHandlerMacOS> OsEventHandlerMacOS::instance;
-
-QScopedPointer<OsEventHandlerMacOS>& OsEventHandlerMacOS::getInstance()
+bool OsEventHandlerMacOS::isLockHandlerSupported()
 {
-	if (!instance)
-	{
-		instance.reset(new OsEventHandlerMacOS());
-	}
+	// Lock event handling is always available on macOS.
+	return true;
+}
 
-	return instance;
+bool OsEventHandlerMacOS::isSuspendHandlerSupported()
+{
+	// Suspend event handling is always available on macOS.
+	return true;
 }
 
 OsEventHandlerMacOS::OsEventHandlerMacOS()
