@@ -63,15 +63,6 @@ jobs:
         run: |
           apt-get update && apt-get install -y jq
 
-      - name: 💾 Download Pre-Build Dependencies (C++)
-        if: ${{ matrix.language == 'cpp' }}
-        id: dependencies
-        uses: ./.github/actions/download-pre-built-deps
-        with:
-          os: 'debian_bookworm'
-          architecture: 'amd64'
-          build_type: ${{ github.event_name == 'pull_request' && 'debug' || 'release' }}
-
       - name: ⚡ Setup ccache
         if: ${{ matrix.language == 'cpp' }}
         uses: hendrikmuhs/ccache-action@v1.2.24
@@ -87,8 +78,8 @@ jobs:
           # Ensure ccache uses the workspace directory shared with the host
           export CCACHE_DIR="$GITHUB_WORKSPACE/.ccache"
           mkdir -p "$CCACHE_DIR"
-          
-          cmake --preset linux-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }} -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
+
+          cmake --preset linux-${{ env.BUILD_TYPE }} -DUSE_PRE_BUILT_DEPS=ON -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
           cmake --build --preset linux-${{ env.BUILD_TYPE }}
         env:
           BUILD_TYPE: ${{ github.event_name == 'pull_request' && 'debug' || 'release' }}

@@ -65,15 +65,7 @@ jobs:
             echo -n "+nightly$(date '+%Y%m%d')" >> .version
           fi
 
-      - name: 💾 Download Pre-Build Dependencies
-        id: dependencies
-        uses: ./.github/actions/download-pre-built-deps
-        with:
-          os: debian_${{ inputs.codename }}
-          architecture: ${{ matrix.os.architecture[0] }}
-          build_type: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
-
-      - name: 👷 Build ${{ env.HINT }}
+      - name: 👷 Build
         shell: bash
         run: |
           mkdir deploy
@@ -87,15 +79,14 @@ jobs:
             ghcr.io/hyperion-project/debian:${{ env.DOCKER_TAG }} \
             /bin/bash -c "
               git config --global --add safe.directory /source &&
-              cmake --preset linux-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }} -DPLATFORM=${{ matrix.os.platform }} ${{ env.CPACK_SYSTEM_PROCESSOR }} &&
+              cmake --preset linux-${{ env.BUILD_TYPE }} -DUSE_PRE_BUILT_DEPS=ON -DPLATFORM=${{ matrix.os.platform }} ${{ env.CPACK_SYSTEM_PROCESSOR }} &&
               cmake --build --preset linux-${{ env.BUILD_TYPE }} --target package &&
               cp /source/build/Hyperion-* /deploy/ 2>/dev/null"
         env:
-          DOCKER_TAG: ${{ inputs.codename == 'bullseye' && matrix.os.architecture[0] == 'armv6' && inputs.codename || format('{0}-qt6', inputs.codename) }}
+          DOCKER_TAG: ${{ format('{0}-qt6', inputs.codename) }}
           BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
           ENTRYPOINT: ${{ matrix.os.architecture[0] != 'amd64' && '--entrypoint /usr/bin/env' || '' }}
           CPACK_SYSTEM_PROCESSOR: ${{ format('-DCPACK_SYSTEM_PROCESSOR={0}', matrix.target_lookup[format('{0}', matrix.os.architecture[0])]) || '' }}
-          HINT: ${{ steps.dependencies.outputs.cmakeArgs != '' && '(with pre-built dependencies)' || '(full build)' }}
 
       - name: 📦 Upload
         if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
