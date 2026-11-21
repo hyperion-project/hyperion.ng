@@ -22,7 +22,14 @@ else()
 	set(_os "unknown")
 endif()
 
-string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" _arch)
+# Inside emulated containers the kernel reports the host architecture (e.g. armv7l/aarch64 for armv6),
+# so an explicitly given CPACK_SYSTEM_PROCESSOR takes precedence
+if(CPACK_SYSTEM_PROCESSOR)
+	string(TOLOWER "${CPACK_SYSTEM_PROCESSOR}" _arch)
+else()
+	string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" _arch)
+endif()
+
 string(REGEX REPLACE "^aarch64$" "arm64" _arch "${_arch}")
 string(REGEX REPLACE "^(armv[67]).*" "\\1" _arch "${_arch}")
 if(_arch MATCHES "^(x86_64|amd64)$")

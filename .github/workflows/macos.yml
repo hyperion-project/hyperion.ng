@@ -59,7 +59,7 @@ jobs:
         id: deps
         shell: pwsh
         run: |
-          $qt = (Get-Content PreBuiltPresets.json -Raw | ConvertFrom-Json).hashes.macos.'${{ matrix.os.architecture }}'.qt_version
+          $qt = (Get-Content PreBuiltSpecs.json -Raw | ConvertFrom-Json).hashes.macos.'${{ matrix.os.architecture }}'.qt_version
           "qt_version=$qt" >> $env:GITHUB_OUTPUT
 
       - name: 📥 Install Qt ${{ steps.deps.outputs.qt_version }}
