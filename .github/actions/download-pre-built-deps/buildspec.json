@@ -1,90 +1,95 @@
 {
-  "version": "2026-10-30",
+  "version": "2026-11-21",
   "baseUrl": "https://github.com/hyperion-project/hyperion-deps/releases/download",
   "hashes": {
     "debian_bookworm": {
       "amd64": {
         "qt_version": "6.4.2",
-        "debug": "d7d27bb7758d72cce9f03e337bfa2c7aaaef65fc94c0e7fdca3f8ae88ebc4814",
-        "release": "ff41130d595cdec23a51efa5d36737afbc9e776d0bbaa5222afd0ef0c75ff378"
+        "debug": "2f086bd0c4971642d71f06d8d8e58e2984d6b723f7ed745bbe8dc969e1faaf8f",
+        "release": "1b4e27acf59d1fe39102b0703607f6a54f89bbc4cbed1a839b36f20c48456c23"
       },
       "arm64": {
         "qt_version": "6.4.2",
-        "debug": "1613db08916b4ceea50a4fa060315197e356a8752df817f074c13d54e08edc86",
-        "release": "ebb79bc109e39e8197eb1c859654bf6da1c5b053eb905b9a2bd8a95e0d2caae8"
+        "debug": "4648cf55aedce28e959582e3e08127598fdc4a4dd2d1f86f73a2444cfd1c1ac2",
+        "release": "bc0fa5794d800c82ace9ecc480dccd9b1a2602e5a3299ebf9416dbd2fcff57df"
       },
       "armv6": {
         "qt_version": "6.4.2",
-        "debug": "8961da76930c30832c4662e44e7bd975c62b958797f819810258eb2ad46e0273",
-        "release": "77a9c9544ef46428cc3ca77cdb88725e01cf590b7be5c0dbb7f97d51431e40a2"
+        "debug": "93d83a79cbf033db7ee712e755e3686ae9012ea3604ab503948319b0d85cfeed",
+        "release": "9cc951f0ad1646dc45f880583f3db72c346e1d78858c270ec3688df30a952029"
       },
       "armv7": {
         "qt_version": "6.4.2",
-        "debug": "96da7e829cbcb93a083add67d1b5d67ca7c616f62e2e3195a73b13944ca07091",
-        "release": "94f0254432bc16f07c6a2ae568f0ad69de52d12b432b5f24d7705f18beafa3c1"
+        "debug": "bf9e821efad0c6332039ae79d8a35d087fef59ea98fa62807a5d735f6679f88c",
+        "release": "41b35a59181a1e8d471e7b7a74ad5e79bff95dbd3b0e2acad82d11bca7614d82"
       }
     },
     "debian_forky": {
       "amd64": {
         "qt_version": "6.11.2",
-        "debug": "12f2fb8b4c7cbed9fd53d1e2bb4b8d1c8cb70c1f2f06af9d710cae10bbe86519",
-        "release": "8d6e76eff466b328578906d68f29b9be00da93e010d8ebb58b5de4c86bb9114c"
+        "debug": "adcc3f654866a98423e9a797a5bf8e6ce318b0d596c0c4a62817b3c70da90c53",
+        "release": "429649ecdc4b7e3d154c5150360cef8610927744b39e04bbb488d605eab510d8"
       },
       "arm64": {
         "qt_version": "6.11.2",
-        "debug": "3cdd429d96212a409645480966ff54584c0acf5c8fc193fdccda58e20f288c38",
-        "release": "c0aef61be88f2b196f6d51ff922de1d0f414b0f6707bfec7dbf8303ce3c069f0"
+        "debug": "b27c60cf254a1fbc8bfcd8dca6bc7dd8686d3f5f21febed0f831bbdad137ea44",
+        "release": "10af2b93ba8bca9341199029650fbc5385865e34b22228a985499a182720af05"
+      },
+      "armv6": {
+        "qt_version": "6.11.2",
+        "debug": "2c51cb5c5bcfc5d31489e3f2a341783520b811e47919272871a77cb6c0f9b4e5",
+        "release": "b95e70199a61caf60ff560feaae7957c3951976e713f5645159bbe99cd7c4db8"
       },
       "armv7": {
         "qt_version": "6.11.2",
-        "debug": "56e2763af5c5686479660fad4f41deae76d3c2b62ca36deaca913583ed429c0c",
-        "release": "e7c073bbcd9fd17e3b758170b84c6530b1adfd53057330fb30714a2fea0ca984"
+        "debug": "a49ad0f2872dc74f9753180653be5e031a0cc0eab6859fb8af9a981cd781db74",
+        "release": "395eb4f44e838c252d157397b85b35c106557344234b451a1815c932d96498c3"
       }
     },
     "debian_trixie": {
       "amd64": {
         "qt_version": "6.8.2",
-        "debug": "77174251581ee964e09b4d02953b52b680d8098fd03f2b9b01ed5155bf099c74",
-        "release": "8fb996b70c45db6a7909d5d204281734bb37f153a5eb7fc1ad8791a466949ac4"
+        "debug": "8ef0657b04d81e22a853d4252e85abd4eb79f6eafe5001c1c01615c63fbabca0",
+        "release": "8e47699d34ba7543c521c10e5c7a1709027d8b2c5957bd4dc7cb7b3c331d0d6f"
       },
       "arm64": {
         "qt_version": "6.8.2",
-        "debug": "ecef94d6b2b6929797136ffa55158544d75ac9b30b6bad131b1723da769ca1be",
-        "release": "3bc2d23c2fc045fead6b27f56dd1c5478821aa0e3a74341777d1e1c6ceeb380f"
+        "debug": "f508eb1c05afd05a12188495bb2117330c74f5fd01316fd136f3a556e16d5199",
+        "release": "a811949216895e6517adda658ef08ff91e46d0bb9b1dea301371b2df230d1aba"
       },
       "armv6": {
         "qt_version": "6.8.2",
-        "debug": "b09032ea0a11d4444203a0f77343a603adc45daf9ebd4b9378a6e83e41745241",
-        "release": "bb0b66d572a7442d26b1bcd8f3693aa4bc31dd27f3ad508e041db86522ffae38"
+        "debug": "65c88f2d4905c70e976c332467f70604185909e7a35d0bae6e0e259e698ee4c1",
+        "release": "1897e9c71b321e8e6b45592d309512b1b7433fb15e2ec34c2ae8ee841683464a"
       },
       "armv7": {
         "qt_version": "6.8.2",
-        "debug": "3c5f767a32254c6e28c16083ec2ab036636936c42eee076a06d2323b46aae81d",
-        "release": "1243e134d96067c299dda197a7cd84751274add9a3bb0ee5383ea73b351be87a"
+        "debug": "a4be6c325626ebef6b6e5a84e69de5ac5fa243d8c7fed313af2e9839e265fcb0",
+        "release": "38093c6ef4f63dac68917d54c65247e361e1323cc4f1f4246d1a9b3a4299a059"
       }
     },
     "macos": {
       "arm64": {
         "qt_version": "6.12.0",
-        "debug": "d38b5c756fe343aa4d76d2f6ae928321748b0ae5fc29e43a8d0b9bbc63c93fc0",
-        "release": "2007afe4f0555f14a56d4f492cee9f47d5449f838bf13ba05349e042b5698825"
+        "debug": "4a59bf3ceff6a6f7bbb35a4a4c55395d32d5eeaf65c5433db8706b71eb693aeb",
+        "release": "0e07983e06f64d3cf18416257b7dc8db20b1f1747721c8dab802eaad3df515f7"
       },
       "x64": {
         "qt_version": "6.12.0",
-        "debug": "e64df44d02585481f82de43fb10c57be574c16ae216c830a3db3cf6bfa898f0b",
-        "release": "a425cbbcb1fcc4e367159d386d06b18b9c5c9285fc456bb6f3a239c19ea97484"
+        "debug": "cfcf0f6bb6910fdb10f937b8f67361d1324df889171978488d4e7bceecd58989",
+        "release": "580933c99c53a843959adfa36fc8bf4db0235843f9ff3282c9b6056b283a6fbb"
       }
     },
     "windows": {
       "arm64": {
         "qt_version": "6.10.3",
-        "release": "bf2ab4d44d8f01ac32bec2840d7c76ad51294343072086c022267562179f1a90",
-        "relwithdebinfo": "8927a99e52484a7ba5cbd415d13e114006db5f8afe5835f6cc99d6159b92e9bc"
+        "release": "bb4a405b5c3ccdf68a6314b770e8bb24f89e767913b6ba078a4c5c5b41d68a56",
+        "relwithdebinfo": "ebb79fe091a573c99a55977fdc09e8db3c33295b251cd434095aeba7ab4ad7d8"
       },
       "x64": {
         "qt_version": "6.10.3",
-        "release": "9d5957c8c67f084c9946fc1fedc3e07265b37d59e352fdd31098718b13d80c56",
-        "relwithdebinfo": "6669e931b986766c22505633b0d60a1eb83097b0c9c5c6584135c6a8a3b33346"
+        "release": "682c7258067d17d614ab46e14dd6737da45262253f69132e63baf96b6268121b",
+        "relwithdebinfo": "7f0800fe2462f51f012f171ea76e21b46f6647e40c1e0797b21a63bf19507ce3"
       }
     }
   }
