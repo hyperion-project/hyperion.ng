@@ -5,6 +5,8 @@
 
 #include <utils/MemoryTracker.h>
 
+Q_DECLARE_LOGGING_CATEGORY(grabber_flow);
+
 Q_DECLARE_LOGGING_CATEGORY(grabber_screen_capture);
 Q_DECLARE_LOGGING_CATEGORY(grabber_screen_capture_failed);
 Q_DECLARE_LOGGING_CATEGORY(grabber_screen_flow);

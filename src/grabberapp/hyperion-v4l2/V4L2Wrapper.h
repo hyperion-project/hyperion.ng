@@ -34,6 +34,7 @@ public:
 	const Image<ColorRgb>& getScreenshot();
 	void start();
 	void stop();
+	QString configurationError() const { return _configurationError; }
 
 signals:
 	void sig_screenshot(const Image<ColorRgb>& image);
@@ -50,6 +51,7 @@ private:
 	// Set once a matching device (path + enumerated name) was resolved in the
 	// constructor; see the comment there for why this is required.
 	bool _deviceResolved = false;
+	QString _configurationError;
 
 	// Upper bound for how long getScreenshot() waits for a single frame once the
 	// device has started, so a device that opens but never delivers a frame cannot

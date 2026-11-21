@@ -33,6 +33,11 @@ int V4L2GrabberTraits::run(QCoreApplication& /*app*/,
 	// V4L2-Grabber specific: all device/encoding/signal-detection settings are applied
 	// once up-front in the wrapper's constructor.
 	V4L2Wrapper grabber(opts);
+	if (!grabber.configurationError().isEmpty())
+	{
+		emit errorManager.errorOccurred(grabber.configurationError());
+		return 1;
+	}
 
 	// A V4L2 device can fail to start (busy/unplugged) or start but never deliver a
 	// frame; both are reported asynchronously via sig_error since the device is opened
