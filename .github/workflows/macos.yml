@@ -55,33 +55,29 @@ jobs:
             echo -n "+nightly$(date '+%Y%m%d')" >> .version
           fi
 
-      - name: 💾 Download Pre-Build Dependencies
-        id: dependencies
-        uses: ./.github/actions/download-pre-built-deps
-        with:
-          os: 'macos'
-          architecture: ${{ matrix.os.architecture }}
-          build_type: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
+      - name: 🔍 Read Qt version
+        id: deps
+        shell: pwsh
+        run: |
+          $qt = (Get-Content PreBuiltPresets.json -Raw | ConvertFrom-Json).hashes.macos.'${{ matrix.os.architecture }}'.qt_version
+          "qt_version=$qt" >> $env:GITHUB_OUTPUT
 
-      - name: 📥 Install Qt ${{ env.QT_VERSION }}
+      - name: 📥 Install Qt ${{ steps.deps.outputs.qt_version }}
         uses: jurplel/install-qt-action@v4
         with:
-          version: ${{ env.QT_VERSION }}
+          version: ${{ steps.deps.outputs.qt_version }}
           target: 'desktop'
           modules: 'qtserialport qtwebsockets'
           cache: 'true'
           cache-key-prefix: 'cache-qt-macos'
-        env:
-          QT_VERSION: ${{ steps.dependencies.outputs.qtVersion != '' && steps.dependencies.outputs.qtVersion || '' }}
 
-      - name: 👷 Build ${{ env.HINT }}
+      - name: 👷 Build
         shell: bash
         run: |
-          cmake --preset macos-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }}
+          cmake --preset macos-${{ env.BUILD_TYPE }} -DUSE_PRE_BUILT_DEPS=ON
           cmake --build --preset macos-${{ env.BUILD_TYPE }} --target package
         env:
           BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
-          HINT: ${{ steps.dependencies.outputs.cmakeArgs != '' && '(with pre-built dependencies)' || '(full build)' }}
 
       - name: 📦 Upload
         if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}

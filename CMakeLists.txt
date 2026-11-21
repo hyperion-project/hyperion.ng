@@ -201,7 +201,7 @@ set(DEFAULT_TRACE_IMAGE_DATA_MEMORY     OFF)
 set(DEFAULT_HYPERION_LIGHT              OFF)
 
 # Build Hyperion with pre-build dependencies
-set(DEFAULT_PRE_BUILD_DEPS              OFF)
+set(DEFAULT_PRE_BUILT_DEPS              OFF)
 
 if(${CMAKE_SYSTEM} MATCHES "Linux")
 	set(DEFAULT_DRM             ON)
@@ -286,41 +286,52 @@ ADD_DEFINITIONS(${PLATFORM_DEFINE})
 #=============================================================================
 
 option(USE_PRE_BUILT_DEPS "Build Hyperion with previously created dependencies (see also PRE_BUILT_DEPS_DIR)" ${DEFAULT_PRE_BUILT_DEPS})
+option(FETCH_PRE_BUILT_DEPS "Download the pre-built dependencies if PRE_BUILT_DEPS_DIR is not set" ON)
 set(PRE_BUILT_DEPS_DIR "" CACHE STRING "The folder in which the previously created dependencies are located")
 message(STATUS "USE_PRE_BUILT_DEPS = ${USE_PRE_BUILT_DEPS}")
 
-if(USE_PRE_BUILT_DEPS)
-	if(PRE_BUILT_DEPS_DIR)
-		# Handle expansion of the ~ to home directory
-		if(PRE_BUILT_DEPS_DIR MATCHES "^~")
-			string(REPLACE "~" "$ENV{HOME}" PRE_BUILT_DEPS_DIR "${PRE_BUILT_DEPS_DIR}")
+if(USE_PRE_BUILT_DEPS AND NOT PRE_BUILT_DEPS_DIR)
+	if(FETCH_PRE_BUILT_DEPS)
+		# set PRE_BUILT_DEPS_DIR (empty on failure)
+		include(cmake/FetchPreBuiltDeps.cmake)
+
+		# Full build fallback
+		if(NOT PRE_BUILT_DEPS_DIR)
+			set(USE_PRE_BUILT_DEPS OFF)
 		endif()
-
-		# Check if the path is relative
-		if(NOT IS_ABSOLUTE ${PRE_BUILT_DEPS_DIR})
-			# Convert to absolute path based on the directory where CMake was executed
-			get_filename_component(PRE_BUILT_DEPS_DIR "${CMAKE_SOURCE_DIR}/${PRE_BUILT_DEPS_DIR}" ABSOLUTE)
-		endif()
-
-		# Check if the directory exists
-		if(NOT IS_DIRECTORY ${PRE_BUILT_DEPS_DIR})
-			message(FATAL_ERROR "The specified PRE_BUILT_DEPS_DIR (${PRE_BUILT_DEPS_DIR}) does not exist.")
-		endif()
-
-		message(STATUS "Hyperion is build with previously created dependencies")
-		message(STATUS "Pre-build dependencies path: ${PRE_BUILT_DEPS_DIR}")
-
-		# Use pre-built dependencies
-		set(DEFAULT_USE_SYSTEM_LIBUSB_LIBS      ON)
-		set(DEFAULT_USE_SYSTEM_LIBFTDI_LIBS     ON)
-		set(DEFAULT_USE_SYSTEM_HIDAPI_LIBS      ON)
-		set(DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS ON)
-		set(DEFAULT_USE_SYSTEM_PROTO_LIBS       ON)
-		set(DEFAULT_USE_SYSTEM_MBEDTLS_LIBS     ON)
-		set(DEFAULT_USE_SYSTEM_QMDNS_LIBS       ON)
 	else()
 		message(FATAL_ERROR "The folder in which the previously created dependencies are located has not been defined. Please set PRE_BUILT_DEPS_DIR to this directory.")
 	endif()
+endif()
+
+if(USE_PRE_BUILT_DEPS)
+	# Handle expansion of the ~ to home directory
+	if(PRE_BUILT_DEPS_DIR MATCHES "^~")
+		string(REPLACE "~" "$ENV{HOME}" PRE_BUILT_DEPS_DIR "${PRE_BUILT_DEPS_DIR}")
+	endif()
+
+	# Check if the path is relative
+	if(NOT IS_ABSOLUTE ${PRE_BUILT_DEPS_DIR})
+		# Convert to absolute path based on the directory where CMake was executed
+		get_filename_component(PRE_BUILT_DEPS_DIR "${CMAKE_SOURCE_DIR}/${PRE_BUILT_DEPS_DIR}" ABSOLUTE)
+	endif()
+
+	# Check if the directory exists
+	if(NOT IS_DIRECTORY ${PRE_BUILT_DEPS_DIR})
+		message(FATAL_ERROR "The specified PRE_BUILT_DEPS_DIR (${PRE_BUILT_DEPS_DIR}) does not exist.")
+	endif()
+
+	message(STATUS "Hyperion is build with previously created dependencies")
+	message(STATUS "Pre-build dependencies path: ${PRE_BUILT_DEPS_DIR}")
+
+	# Use pre-built dependencies
+	set(DEFAULT_USE_SYSTEM_LIBUSB_LIBS      ON)
+	set(DEFAULT_USE_SYSTEM_LIBFTDI_LIBS     ON)
+	set(DEFAULT_USE_SYSTEM_HIDAPI_LIBS      ON)
+	set(DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS ON)
+	set(DEFAULT_USE_SYSTEM_PROTO_LIBS       ON)
+	set(DEFAULT_USE_SYSTEM_MBEDTLS_LIBS     ON)
+	set(DEFAULT_USE_SYSTEM_QMDNS_LIBS       ON)
 endif()
 
 option(HYPERION_LIGHT "Build Hyperion with a reduced set of functionality" ${DEFAULT_HYPERION_LIGHT})
